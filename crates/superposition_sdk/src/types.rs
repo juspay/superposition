@@ -236,4 +236,3 @@ pub mod builders;
 
 /// Error types that Superposition can respond with.
 pub mod error;
-

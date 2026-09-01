@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct DeleteContextInput  {
+pub struct DeleteContextInput {
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -12,7 +12,7 @@ pub struct DeleteContextInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub config_tags: ::std::option::Option<::std::string::String>,
 }
-impl  DeleteContextInput  {
+impl DeleteContextInput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(&self) -> ::std::option::Option<&str> {
         self.workspace_id.as_deref()
@@ -32,13 +32,16 @@ impl  DeleteContextInput  {
 }
 impl DeleteContextInput {
     /// Creates a new builder-style object to manufacture [`DeleteContextInput`](crate::operation::delete_context::DeleteContextInput).
-    pub fn builder() -> crate::operation::delete_context::builders::DeleteContextInputBuilder {
+    pub fn builder(
+    ) -> crate::operation::delete_context::builders::DeleteContextInputBuilder {
         crate::operation::delete_context::builders::DeleteContextInputBuilder::default()
     }
 }
 
 /// A builder for [`DeleteContextInput`](crate::operation::delete_context::DeleteContextInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct DeleteContextInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
@@ -49,13 +52,20 @@ pub struct DeleteContextInputBuilder {
 impl DeleteContextInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_id = input; self
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -63,13 +73,20 @@ impl DeleteContextInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -83,39 +100,45 @@ impl DeleteContextInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.id = input; self
+        self.id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_id(&self) -> &::std::option::Option<::std::string::String> {
         &self.id
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn config_tags(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn config_tags(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.config_tags = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_config_tags(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.config_tags = input; self
+    pub fn set_config_tags(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.config_tags = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_config_tags(&self) -> &::std::option::Option<::std::string::String> {
         &self.config_tags
     }
     /// Consumes the builder and constructs a [`DeleteContextInput`](crate::operation::delete_context::DeleteContextInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::delete_context::DeleteContextInput, ::aws_smithy_types::error::operation::BuildError> {
-        ::std::result::Result::Ok(
-            crate::operation::delete_context::DeleteContextInput {
-                workspace_id: self.workspace_id
-                ,
-                org_id: self.org_id
-                ,
-                id: self.id
-                ,
-                config_tags: self.config_tags
-                ,
-            }
-        )
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::delete_context::DeleteContextInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
+        ::std::result::Result::Ok(crate::operation::delete_context::DeleteContextInput {
+            workspace_id: self.workspace_id,
+            org_id: self.org_id,
+            id: self.id,
+            config_tags: self.config_tags,
+        })
     }
 }
-

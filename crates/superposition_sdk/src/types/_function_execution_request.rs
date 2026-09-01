@@ -24,8 +24,15 @@ pub enum FunctionExecutionRequest {
 impl FunctionExecutionRequest {
     /// Tries to convert the enum instance into [`ChangeReasonValidate`](crate::types::FunctionExecutionRequest::ChangeReasonValidate), extracting the inner [`ChangeReasonValidationFunctionRequest`](crate::types::ChangeReasonValidationFunctionRequest).
     /// Returns `Err(&Self)` if it can't be converted.
-    pub fn as_change_reason_validate(&self) -> ::std::result::Result<&crate::types::ChangeReasonValidationFunctionRequest, &Self> {
-        if let FunctionExecutionRequest::ChangeReasonValidate(val) = &self { ::std::result::Result::Ok(val) } else { ::std::result::Result::Err(self) }
+    pub fn as_change_reason_validate(
+        &self,
+    ) -> ::std::result::Result<&crate::types::ChangeReasonValidationFunctionRequest, &Self>
+    {
+        if let FunctionExecutionRequest::ChangeReasonValidate(val) = &self {
+            ::std::result::Result::Ok(val)
+        } else {
+            ::std::result::Result::Err(self)
+        }
     }
     /// Returns true if this is a [`ChangeReasonValidate`](crate::types::FunctionExecutionRequest::ChangeReasonValidate).
     pub fn is_change_reason_validate(&self) -> bool {
@@ -33,8 +40,15 @@ impl FunctionExecutionRequest {
     }
     /// Tries to convert the enum instance into [`ContextValidate`](crate::types::FunctionExecutionRequest::ContextValidate), extracting the inner [`ContextValidationFunctionRequest`](crate::types::ContextValidationFunctionRequest).
     /// Returns `Err(&Self)` if it can't be converted.
-    pub fn as_context_validate(&self) -> ::std::result::Result<&crate::types::ContextValidationFunctionRequest, &Self> {
-        if let FunctionExecutionRequest::ContextValidate(val) = &self { ::std::result::Result::Ok(val) } else { ::std::result::Result::Err(self) }
+    pub fn as_context_validate(
+        &self,
+    ) -> ::std::result::Result<&crate::types::ContextValidationFunctionRequest, &Self>
+    {
+        if let FunctionExecutionRequest::ContextValidate(val) = &self {
+            ::std::result::Result::Ok(val)
+        } else {
+            ::std::result::Result::Err(self)
+        }
     }
     /// Returns true if this is a [`ContextValidate`](crate::types::FunctionExecutionRequest::ContextValidate).
     pub fn is_context_validate(&self) -> bool {
@@ -42,8 +56,14 @@ impl FunctionExecutionRequest {
     }
     /// Tries to convert the enum instance into [`ValueCompute`](crate::types::FunctionExecutionRequest::ValueCompute), extracting the inner [`ValueComputeFunctionRequest`](crate::types::ValueComputeFunctionRequest).
     /// Returns `Err(&Self)` if it can't be converted.
-    pub fn as_value_compute(&self) -> ::std::result::Result<&crate::types::ValueComputeFunctionRequest, &Self> {
-        if let FunctionExecutionRequest::ValueCompute(val) = &self { ::std::result::Result::Ok(val) } else { ::std::result::Result::Err(self) }
+    pub fn as_value_compute(
+        &self,
+    ) -> ::std::result::Result<&crate::types::ValueComputeFunctionRequest, &Self> {
+        if let FunctionExecutionRequest::ValueCompute(val) = &self {
+            ::std::result::Result::Ok(val)
+        } else {
+            ::std::result::Result::Err(self)
+        }
     }
     /// Returns true if this is a [`ValueCompute`](crate::types::FunctionExecutionRequest::ValueCompute).
     pub fn is_value_compute(&self) -> bool {
@@ -51,8 +71,14 @@ impl FunctionExecutionRequest {
     }
     /// Tries to convert the enum instance into [`ValueValidate`](crate::types::FunctionExecutionRequest::ValueValidate), extracting the inner [`ValueValidationFunctionRequest`](crate::types::ValueValidationFunctionRequest).
     /// Returns `Err(&Self)` if it can't be converted.
-    pub fn as_value_validate(&self) -> ::std::result::Result<&crate::types::ValueValidationFunctionRequest, &Self> {
-        if let FunctionExecutionRequest::ValueValidate(val) = &self { ::std::result::Result::Ok(val) } else { ::std::result::Result::Err(self) }
+    pub fn as_value_validate(
+        &self,
+    ) -> ::std::result::Result<&crate::types::ValueValidationFunctionRequest, &Self> {
+        if let FunctionExecutionRequest::ValueValidate(val) = &self {
+            ::std::result::Result::Ok(val)
+        } else {
+            ::std::result::Result::Err(self)
+        }
     }
     /// Returns true if this is a [`ValueValidate`](crate::types::FunctionExecutionRequest::ValueValidate).
     pub fn is_value_validate(&self) -> bool {
@@ -63,4 +89,3 @@ impl FunctionExecutionRequest {
         matches!(self, Self::Unknown)
     }
 }
-

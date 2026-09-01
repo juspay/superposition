@@ -2,20 +2,22 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct Bucket  {
+pub struct Bucket {
     #[allow(missing_docs)] // documentation missing in model
     pub experiment_id: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
     pub variant_id: ::std::string::String,
 }
-impl  Bucket  {
+impl Bucket {
     #[allow(missing_docs)] // documentation missing in model
     pub fn experiment_id(&self) -> &str {
-        use std::ops::Deref; self.experiment_id.deref()
+        use std::ops::Deref;
+        self.experiment_id.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn variant_id(&self) -> &str {
-        use std::ops::Deref; self.variant_id.deref()
+        use std::ops::Deref;
+        self.variant_id.deref()
     }
 }
 impl Bucket {
@@ -26,7 +28,9 @@ impl Bucket {
 }
 
 /// A builder for [`Bucket`](crate::types::Bucket).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct BucketBuilder {
     pub(crate) experiment_id: ::std::option::Option<::std::string::String>,
@@ -35,13 +39,20 @@ pub struct BucketBuilder {
 impl BucketBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn experiment_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn experiment_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.experiment_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_experiment_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.experiment_id = input; self
+    pub fn set_experiment_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.experiment_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_experiment_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -49,13 +60,20 @@ impl BucketBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn variant_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn variant_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.variant_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_variant_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.variant_id = input; self
+    pub fn set_variant_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.variant_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_variant_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -65,7 +83,12 @@ impl BucketBuilder {
     /// This method will fail if any of the following fields are not set:
     /// - [`experiment_id`](crate::types::builders::BucketBuilder::experiment_id)
     /// - [`variant_id`](crate::types::builders::BucketBuilder::variant_id)
-    pub fn build(self) -> ::std::result::Result<crate::types::Bucket, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::types::Bucket,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::types::Bucket {
                 experiment_id: self.experiment_id
@@ -82,4 +105,3 @@ impl BucketBuilder {
         )
     }
 }
-

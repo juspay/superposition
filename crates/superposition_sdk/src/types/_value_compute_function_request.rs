@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct ValueComputeFunctionRequest  {
+pub struct ValueComputeFunctionRequest {
     #[allow(missing_docs)] // documentation missing in model
     pub name: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
@@ -12,18 +12,21 @@ pub struct ValueComputeFunctionRequest  {
     #[allow(missing_docs)] // documentation missing in model
     pub environment: ::aws_smithy_types::Document,
 }
-impl  ValueComputeFunctionRequest  {
+impl ValueComputeFunctionRequest {
     #[allow(missing_docs)] // documentation missing in model
     pub fn name(&self) -> &str {
-        use std::ops::Deref; self.name.deref()
+        use std::ops::Deref;
+        self.name.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn prefix(&self) -> &str {
-        use std::ops::Deref; self.prefix.deref()
+        use std::ops::Deref;
+        self.prefix.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn r#type(&self) -> &str {
-        use std::ops::Deref; self.r#type.deref()
+        use std::ops::Deref;
+        self.r#type.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn environment(&self) -> &::aws_smithy_types::Document {
@@ -38,7 +41,9 @@ impl ValueComputeFunctionRequest {
 }
 
 /// A builder for [`ValueComputeFunctionRequest`](crate::types::ValueComputeFunctionRequest).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct ValueComputeFunctionRequestBuilder {
     pub(crate) name: ::std::option::Option<::std::string::String>,
@@ -49,13 +54,20 @@ pub struct ValueComputeFunctionRequestBuilder {
 impl ValueComputeFunctionRequestBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.name = input; self
+    pub fn set_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.name = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_name(&self) -> &::std::option::Option<::std::string::String> {
@@ -63,13 +75,20 @@ impl ValueComputeFunctionRequestBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn prefix(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn prefix(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.prefix = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_prefix(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.prefix = input; self
+    pub fn set_prefix(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.prefix = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_prefix(&self) -> &::std::option::Option<::std::string::String> {
@@ -77,13 +96,20 @@ impl ValueComputeFunctionRequestBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn r#type(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn r#type(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.r#type = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_type(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.r#type = input; self
+    pub fn set_type(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.r#type = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_type(&self) -> &::std::option::Option<::std::string::String> {
@@ -96,11 +122,17 @@ impl ValueComputeFunctionRequestBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_environment(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
-        self.environment = input; self
+    pub fn set_environment(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::Document>,
+    ) -> Self {
+        self.environment = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_environment(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
+    pub fn get_environment(
+        &self,
+    ) -> &::std::option::Option<::aws_smithy_types::Document> {
         &self.environment
     }
     /// Consumes the builder and constructs a [`ValueComputeFunctionRequest`](crate::types::ValueComputeFunctionRequest).
@@ -109,7 +141,12 @@ impl ValueComputeFunctionRequestBuilder {
     /// - [`prefix`](crate::types::builders::ValueComputeFunctionRequestBuilder::prefix)
     /// - [`r#type`](crate::types::builders::ValueComputeFunctionRequestBuilder::type)
     /// - [`environment`](crate::types::builders::ValueComputeFunctionRequestBuilder::environment)
-    pub fn build(self) -> ::std::result::Result<crate::types::ValueComputeFunctionRequest, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::types::ValueComputeFunctionRequest,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::types::ValueComputeFunctionRequest {
                 name: self.name
@@ -136,4 +173,3 @@ impl ValueComputeFunctionRequestBuilder {
         )
     }
 }
-

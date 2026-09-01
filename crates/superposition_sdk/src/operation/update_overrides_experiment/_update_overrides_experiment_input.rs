@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct UpdateOverridesExperimentInput  {
+pub struct UpdateOverridesExperimentInput {
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -10,7 +10,8 @@ pub struct UpdateOverridesExperimentInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
-    pub variant_list: ::std::option::Option<::std::vec::Vec::<crate::types::VariantUpdateRequest>>,
+    pub variant_list:
+        ::std::option::Option<::std::vec::Vec<crate::types::VariantUpdateRequest>>,
     #[allow(missing_docs)] // documentation missing in model
     pub description: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -22,7 +23,7 @@ pub struct UpdateOverridesExperimentInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub config_tags: ::std::option::Option<::std::string::String>,
 }
-impl  UpdateOverridesExperimentInput  {
+impl UpdateOverridesExperimentInput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(&self) -> ::std::option::Option<&str> {
         self.workspace_id.as_deref()
@@ -36,11 +37,10 @@ impl  UpdateOverridesExperimentInput  {
         self.id.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.variant_list.is_none()`.
     pub fn variant_list(&self) -> &[crate::types::VariantUpdateRequest] {
-        self.variant_list.as_deref()
-        .unwrap_or_default()
+        self.variant_list.as_deref().unwrap_or_default()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn description(&self) -> ::std::option::Option<&str> {
@@ -65,19 +65,22 @@ impl  UpdateOverridesExperimentInput  {
 }
 impl UpdateOverridesExperimentInput {
     /// Creates a new builder-style object to manufacture [`UpdateOverridesExperimentInput`](crate::operation::update_overrides_experiment::UpdateOverridesExperimentInput).
-    pub fn builder() -> crate::operation::update_overrides_experiment::builders::UpdateOverridesExperimentInputBuilder {
+    pub fn builder() -> crate::operation::update_overrides_experiment::builders::UpdateOverridesExperimentInputBuilder{
         crate::operation::update_overrides_experiment::builders::UpdateOverridesExperimentInputBuilder::default()
     }
 }
 
 /// A builder for [`UpdateOverridesExperimentInput`](crate::operation::update_overrides_experiment::UpdateOverridesExperimentInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct UpdateOverridesExperimentInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
     pub(crate) id: ::std::option::Option<::std::string::String>,
-    pub(crate) variant_list: ::std::option::Option<::std::vec::Vec::<crate::types::VariantUpdateRequest>>,
+    pub(crate) variant_list:
+        ::std::option::Option<::std::vec::Vec<crate::types::VariantUpdateRequest>>,
     pub(crate) description: ::std::option::Option<::std::string::String>,
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
     pub(crate) metrics: ::std::option::Option<::aws_smithy_types::Document>,
@@ -87,13 +90,20 @@ pub struct UpdateOverridesExperimentInputBuilder {
 impl UpdateOverridesExperimentInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_id = input; self
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -101,13 +111,20 @@ impl UpdateOverridesExperimentInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -121,7 +138,8 @@ impl UpdateOverridesExperimentInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.id = input; self
+        self.id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -133,26 +151,39 @@ impl UpdateOverridesExperimentInputBuilder {
     ///
     pub fn variant_list(mut self, input: crate::types::VariantUpdateRequest) -> Self {
         let mut v = self.variant_list.unwrap_or_default();
-                        v.push(input);
-                        self.variant_list = ::std::option::Option::Some(v);
-                        self
+        v.push(input);
+        self.variant_list = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_variant_list(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::VariantUpdateRequest>>) -> Self {
-        self.variant_list = input; self
+    pub fn set_variant_list(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<crate::types::VariantUpdateRequest>>,
+    ) -> Self {
+        self.variant_list = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_variant_list(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::VariantUpdateRequest>> {
+    pub fn get_variant_list(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<crate::types::VariantUpdateRequest>> {
         &self.variant_list
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn description(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn description(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.description = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_description(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.description = input; self
+    pub fn set_description(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.description = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_description(&self) -> &::std::option::Option<::std::string::String> {
@@ -160,13 +191,20 @@ impl UpdateOverridesExperimentInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn change_reason(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn change_reason(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.change_reason = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_change_reason(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.change_reason = input; self
+    pub fn set_change_reason(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.change_reason = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
@@ -178,41 +216,66 @@ impl UpdateOverridesExperimentInputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_metrics(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
-        self.metrics = input; self
+    pub fn set_metrics(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::Document>,
+    ) -> Self {
+        self.metrics = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_metrics(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
         &self.metrics
     }
     /// To unset experiment group, pass "null" string.
-    pub fn experiment_group_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn experiment_group_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.experiment_group_id = ::std::option::Option::Some(input.into());
         self
     }
     /// To unset experiment group, pass "null" string.
-    pub fn set_experiment_group_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.experiment_group_id = input; self
+    pub fn set_experiment_group_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.experiment_group_id = input;
+        self
     }
     /// To unset experiment group, pass "null" string.
-    pub fn get_experiment_group_id(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_experiment_group_id(
+        &self,
+    ) -> &::std::option::Option<::std::string::String> {
         &self.experiment_group_id
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn config_tags(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn config_tags(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.config_tags = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_config_tags(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.config_tags = input; self
+    pub fn set_config_tags(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.config_tags = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_config_tags(&self) -> &::std::option::Option<::std::string::String> {
         &self.config_tags
     }
     /// Consumes the builder and constructs a [`UpdateOverridesExperimentInput`](crate::operation::update_overrides_experiment::UpdateOverridesExperimentInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::update_overrides_experiment::UpdateOverridesExperimentInput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::update_overrides_experiment::UpdateOverridesExperimentInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::update_overrides_experiment::UpdateOverridesExperimentInput {
                 workspace_id: self.workspace_id
@@ -237,4 +300,3 @@ impl UpdateOverridesExperimentInputBuilder {
         )
     }
 }
-

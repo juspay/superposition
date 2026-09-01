@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct WorkspaceResponse  {
+pub struct WorkspaceResponse {
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_name: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
@@ -26,7 +26,8 @@ pub struct WorkspaceResponse  {
     #[allow(missing_docs)] // documentation missing in model
     pub created_at: ::aws_smithy_types::DateTime,
     #[allow(missing_docs)] // documentation missing in model
-    pub mandatory_dimensions: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub mandatory_dimensions:
+        ::std::option::Option<::std::vec::Vec<::std::string::String>>,
     #[allow(missing_docs)] // documentation missing in model
     pub metrics: ::aws_smithy_types::Document,
     #[allow(missing_docs)] // documentation missing in model
@@ -40,22 +41,26 @@ pub struct WorkspaceResponse  {
     /// Metadata for an active workspace write lock. Present only while another write operation is holding the workspace lease.
     pub workspace_lock: ::std::option::Option<crate::types::WorkspaceLock>,
 }
-impl  WorkspaceResponse  {
+impl WorkspaceResponse {
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_name(&self) -> &str {
-        use std::ops::Deref; self.workspace_name.deref()
+        use std::ops::Deref;
+        self.workspace_name.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn organisation_id(&self) -> &str {
-        use std::ops::Deref; self.organisation_id.deref()
+        use std::ops::Deref;
+        self.organisation_id.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn organisation_name(&self) -> &str {
-        use std::ops::Deref; self.organisation_name.deref()
+        use std::ops::Deref;
+        self.organisation_name.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_schema_name(&self) -> &str {
-        use std::ops::Deref; self.workspace_schema_name.deref()
+        use std::ops::Deref;
+        self.workspace_schema_name.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_status(&self) -> &crate::types::WorkspaceStatus {
@@ -63,7 +68,8 @@ impl  WorkspaceResponse  {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_admin_email(&self) -> &str {
-        use std::ops::Deref; self.workspace_admin_email.deref()
+        use std::ops::Deref;
+        self.workspace_admin_email.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn config_version(&self) -> ::std::option::Option<&str> {
@@ -71,11 +77,13 @@ impl  WorkspaceResponse  {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn created_by(&self) -> &str {
-        use std::ops::Deref; self.created_by.deref()
+        use std::ops::Deref;
+        self.created_by.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn last_modified_by(&self) -> &str {
-        use std::ops::Deref; self.last_modified_by.deref()
+        use std::ops::Deref;
+        self.last_modified_by.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn last_modified_at(&self) -> &::aws_smithy_types::DateTime {
@@ -86,11 +94,10 @@ impl  WorkspaceResponse  {
         &self.created_at
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.mandatory_dimensions.is_none()`.
     pub fn mandatory_dimensions(&self) -> &[::std::string::String] {
-        self.mandatory_dimensions.as_deref()
-        .unwrap_or_default()
+        self.mandatory_dimensions.as_deref().unwrap_or_default()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn metrics(&self) -> &::aws_smithy_types::Document {
@@ -125,7 +132,9 @@ impl WorkspaceResponse {
 }
 
 /// A builder for [`WorkspaceResponse`](crate::types::WorkspaceResponse).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct WorkspaceResponseBuilder {
     pub(crate) workspace_name: ::std::option::Option<::std::string::String>,
@@ -139,7 +148,8 @@ pub struct WorkspaceResponseBuilder {
     pub(crate) last_modified_by: ::std::option::Option<::std::string::String>,
     pub(crate) last_modified_at: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) created_at: ::std::option::Option<::aws_smithy_types::DateTime>,
-    pub(crate) mandatory_dimensions: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub(crate) mandatory_dimensions:
+        ::std::option::Option<::std::vec::Vec<::std::string::String>>,
     pub(crate) metrics: ::std::option::Option<::aws_smithy_types::Document>,
     pub(crate) allow_experiment_self_approval: ::std::option::Option<bool>,
     pub(crate) auto_populate_control: ::std::option::Option<bool>,
@@ -150,13 +160,20 @@ pub struct WorkspaceResponseBuilder {
 impl WorkspaceResponseBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_name = input; self
+    pub fn set_workspace_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_name = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_name(&self) -> &::std::option::Option<::std::string::String> {
@@ -164,13 +181,20 @@ impl WorkspaceResponseBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn organisation_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn organisation_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.organisation_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_organisation_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.organisation_id = input; self
+    pub fn set_organisation_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.organisation_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_organisation_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -178,13 +202,20 @@ impl WorkspaceResponseBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn organisation_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn organisation_name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.organisation_name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_organisation_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.organisation_name = input; self
+    pub fn set_organisation_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.organisation_name = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_organisation_name(&self) -> &::std::option::Option<::std::string::String> {
@@ -192,16 +223,25 @@ impl WorkspaceResponseBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_schema_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_schema_name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_schema_name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_schema_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_schema_name = input; self
+    pub fn set_workspace_schema_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_schema_name = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_workspace_schema_name(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_workspace_schema_name(
+        &self,
+    ) -> &::std::option::Option<::std::string::String> {
         &self.workspace_schema_name
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -211,35 +251,57 @@ impl WorkspaceResponseBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_status(mut self, input: ::std::option::Option<crate::types::WorkspaceStatus>) -> Self {
-        self.workspace_status = input; self
+    pub fn set_workspace_status(
+        mut self,
+        input: ::std::option::Option<crate::types::WorkspaceStatus>,
+    ) -> Self {
+        self.workspace_status = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_workspace_status(&self) -> &::std::option::Option<crate::types::WorkspaceStatus> {
+    pub fn get_workspace_status(
+        &self,
+    ) -> &::std::option::Option<crate::types::WorkspaceStatus> {
         &self.workspace_status
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_admin_email(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_admin_email(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_admin_email = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_admin_email(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_admin_email = input; self
+    pub fn set_workspace_admin_email(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_admin_email = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_workspace_admin_email(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_workspace_admin_email(
+        &self,
+    ) -> &::std::option::Option<::std::string::String> {
         &self.workspace_admin_email
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn config_version(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn config_version(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.config_version = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_config_version(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.config_version = input; self
+    pub fn set_config_version(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.config_version = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_config_version(&self) -> &::std::option::Option<::std::string::String> {
@@ -247,13 +309,20 @@ impl WorkspaceResponseBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn created_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn created_by(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.created_by = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_created_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.created_by = input; self
+    pub fn set_created_by(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.created_by = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_created_by(&self) -> &::std::option::Option<::std::string::String> {
@@ -261,13 +330,20 @@ impl WorkspaceResponseBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn last_modified_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn last_modified_by(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.last_modified_by = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_last_modified_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.last_modified_by = input; self
+    pub fn set_last_modified_by(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.last_modified_by = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_last_modified_by(&self) -> &::std::option::Option<::std::string::String> {
@@ -280,11 +356,17 @@ impl WorkspaceResponseBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_last_modified_at(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.last_modified_at = input; self
+    pub fn set_last_modified_at(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.last_modified_at = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_last_modified_at(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
+    pub fn get_last_modified_at(
+        &self,
+    ) -> &::std::option::Option<::aws_smithy_types::DateTime> {
         &self.last_modified_at
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -294,8 +376,12 @@ impl WorkspaceResponseBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_created_at(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.created_at = input; self
+    pub fn set_created_at(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.created_at = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_created_at(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
@@ -305,18 +391,27 @@ impl WorkspaceResponseBuilder {
     ///
     /// To override the contents of this collection use [`set_mandatory_dimensions`](Self::set_mandatory_dimensions).
     ///
-    pub fn mandatory_dimensions(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn mandatory_dimensions(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         let mut v = self.mandatory_dimensions.unwrap_or_default();
-                        v.push(input.into());
-                        self.mandatory_dimensions = ::std::option::Option::Some(v);
-                        self
+        v.push(input.into());
+        self.mandatory_dimensions = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_mandatory_dimensions(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-        self.mandatory_dimensions = input; self
+    pub fn set_mandatory_dimensions(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    ) -> Self {
+        self.mandatory_dimensions = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_mandatory_dimensions(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
+    pub fn get_mandatory_dimensions(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<::std::string::String>> {
         &self.mandatory_dimensions
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -326,8 +421,12 @@ impl WorkspaceResponseBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_metrics(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
-        self.metrics = input; self
+    pub fn set_metrics(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::Document>,
+    ) -> Self {
+        self.metrics = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_metrics(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
@@ -340,8 +439,12 @@ impl WorkspaceResponseBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_allow_experiment_self_approval(mut self, input: ::std::option::Option<bool>) -> Self {
-        self.allow_experiment_self_approval = input; self
+    pub fn set_allow_experiment_self_approval(
+        mut self,
+        input: ::std::option::Option<bool>,
+    ) -> Self {
+        self.allow_experiment_self_approval = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_allow_experiment_self_approval(&self) -> &::std::option::Option<bool> {
@@ -354,8 +457,12 @@ impl WorkspaceResponseBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_auto_populate_control(mut self, input: ::std::option::Option<bool>) -> Self {
-        self.auto_populate_control = input; self
+    pub fn set_auto_populate_control(
+        mut self,
+        input: ::std::option::Option<bool>,
+    ) -> Self {
+        self.auto_populate_control = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_auto_populate_control(&self) -> &::std::option::Option<bool> {
@@ -368,8 +475,12 @@ impl WorkspaceResponseBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_enable_context_validation(mut self, input: ::std::option::Option<bool>) -> Self {
-        self.enable_context_validation = input; self
+    pub fn set_enable_context_validation(
+        mut self,
+        input: ::std::option::Option<bool>,
+    ) -> Self {
+        self.enable_context_validation = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_enable_context_validation(&self) -> &::std::option::Option<bool> {
@@ -382,8 +493,12 @@ impl WorkspaceResponseBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_enable_change_reason_validation(mut self, input: ::std::option::Option<bool>) -> Self {
-        self.enable_change_reason_validation = input; self
+    pub fn set_enable_change_reason_validation(
+        mut self,
+        input: ::std::option::Option<bool>,
+    ) -> Self {
+        self.enable_change_reason_validation = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_enable_change_reason_validation(&self) -> &::std::option::Option<bool> {
@@ -395,11 +510,17 @@ impl WorkspaceResponseBuilder {
         self
     }
     /// Metadata for an active workspace write lock. Present only while another write operation is holding the workspace lease.
-    pub fn set_workspace_lock(mut self, input: ::std::option::Option<crate::types::WorkspaceLock>) -> Self {
-        self.workspace_lock = input; self
+    pub fn set_workspace_lock(
+        mut self,
+        input: ::std::option::Option<crate::types::WorkspaceLock>,
+    ) -> Self {
+        self.workspace_lock = input;
+        self
     }
     /// Metadata for an active workspace write lock. Present only while another write operation is holding the workspace lease.
-    pub fn get_workspace_lock(&self) -> &::std::option::Option<crate::types::WorkspaceLock> {
+    pub fn get_workspace_lock(
+        &self,
+    ) -> &::std::option::Option<crate::types::WorkspaceLock> {
         &self.workspace_lock
     }
     /// Consumes the builder and constructs a [`WorkspaceResponse`](crate::types::WorkspaceResponse).
@@ -419,7 +540,12 @@ impl WorkspaceResponseBuilder {
     /// - [`auto_populate_control`](crate::types::builders::WorkspaceResponseBuilder::auto_populate_control)
     /// - [`enable_context_validation`](crate::types::builders::WorkspaceResponseBuilder::enable_context_validation)
     /// - [`enable_change_reason_validation`](crate::types::builders::WorkspaceResponseBuilder::enable_change_reason_validation)
-    pub fn build(self) -> ::std::result::Result<crate::types::WorkspaceResponse, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::types::WorkspaceResponse,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::types::WorkspaceResponse {
                 workspace_name: self.workspace_name
@@ -507,4 +633,3 @@ impl WorkspaceResponseBuilder {
         )
     }
 }
-

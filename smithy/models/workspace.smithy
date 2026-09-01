@@ -24,6 +24,7 @@ resource Workspace {
         auto_populate_control: Boolean
         enable_context_validation: Boolean
         enable_change_reason_validation: Boolean
+        merge_strategy: MergeStrategy
         workspace_lock: WorkspaceLock
     }
     list: ListWorkspace
@@ -86,6 +87,8 @@ structure CreateWorkspaceRequest for Workspace with [OrganisationMixin] {
     $enable_context_validation
 
     $enable_change_reason_validation
+
+    $merge_strategy
 }
 
 structure UpdateWorkspaceRequest for Workspace with [OrganisationMixin] {
@@ -111,6 +114,8 @@ structure UpdateWorkspaceRequest for Workspace with [OrganisationMixin] {
     $enable_context_validation
 
     $enable_change_reason_validation
+
+    $merge_strategy
 }
 
 structure WorkspaceSelectorRequest for Workspace with [OrganisationMixin] {
@@ -168,6 +173,9 @@ structure WorkspaceResponse for Workspace {
 
     @required
     $enable_change_reason_validation
+
+    @required
+    $merge_strategy
 
     $workspace_lock
 }

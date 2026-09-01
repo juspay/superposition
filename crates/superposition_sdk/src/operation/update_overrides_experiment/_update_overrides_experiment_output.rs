@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct UpdateOverridesExperimentOutput  {
+pub struct UpdateOverridesExperimentOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub id: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
@@ -16,15 +16,16 @@ pub struct UpdateOverridesExperimentOutput  {
     #[allow(missing_docs)] // documentation missing in model
     pub experiment_type: crate::types::ExperimentType,
     #[allow(missing_docs)] // documentation missing in model
-    pub override_keys: ::std::vec::Vec::<::std::string::String>,
+    pub override_keys: ::std::vec::Vec<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub status: crate::types::ExperimentStatusType,
     #[allow(missing_docs)] // documentation missing in model
     pub traffic_percentage: i32,
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub context: ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>,
+    pub context:
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
     #[allow(missing_docs)] // documentation missing in model
-    pub variants: ::std::vec::Vec::<crate::types::Variant>,
+    pub variants: ::std::vec::Vec<crate::types::Variant>,
     #[allow(missing_docs)] // documentation missing in model
     pub last_modified_by: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
@@ -44,10 +45,11 @@ pub struct UpdateOverridesExperimentOutput  {
     #[allow(missing_docs)] // documentation missing in model
     pub experiment_group_id: ::std::option::Option<::std::string::String>,
 }
-impl  UpdateOverridesExperimentOutput  {
+impl UpdateOverridesExperimentOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn id(&self) -> &str {
-        use std::ops::Deref; self.id.deref()
+        use std::ops::Deref;
+        self.id.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn created_at(&self) -> &::aws_smithy_types::DateTime {
@@ -55,7 +57,8 @@ impl  UpdateOverridesExperimentOutput  {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn created_by(&self) -> &str {
-        use std::ops::Deref; self.created_by.deref()
+        use std::ops::Deref;
+        self.created_by.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn last_modified(&self) -> &::aws_smithy_types::DateTime {
@@ -63,7 +66,8 @@ impl  UpdateOverridesExperimentOutput  {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn name(&self) -> &str {
-        use std::ops::Deref; self.name.deref()
+        use std::ops::Deref;
+        self.name.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn experiment_type(&self) -> &crate::types::ExperimentType {
@@ -71,7 +75,8 @@ impl  UpdateOverridesExperimentOutput  {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn override_keys(&self) -> &[::std::string::String] {
-        use std::ops::Deref; self.override_keys.deref()
+        use std::ops::Deref;
+        self.override_keys.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn status(&self) -> &crate::types::ExperimentStatusType {
@@ -82,16 +87,21 @@ impl  UpdateOverridesExperimentOutput  {
         self.traffic_percentage
     }
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn context(&self) -> &::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document> {
+    pub fn context(
+        &self,
+    ) -> &::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>
+    {
         &self.context
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn variants(&self) -> &[crate::types::Variant] {
-        use std::ops::Deref; self.variants.deref()
+        use std::ops::Deref;
+        self.variants.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn last_modified_by(&self) -> &str {
-        use std::ops::Deref; self.last_modified_by.deref()
+        use std::ops::Deref;
+        self.last_modified_by.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn chosen_variant(&self) -> ::std::option::Option<&str> {
@@ -99,11 +109,13 @@ impl  UpdateOverridesExperimentOutput  {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn description(&self) -> &str {
-        use std::ops::Deref; self.description.deref()
+        use std::ops::Deref;
+        self.description.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn change_reason(&self) -> &str {
-        use std::ops::Deref; self.change_reason.deref()
+        use std::ops::Deref;
+        self.change_reason.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn started_at(&self) -> ::std::option::Option<&::aws_smithy_types::DateTime> {
@@ -128,13 +140,15 @@ impl  UpdateOverridesExperimentOutput  {
 }
 impl UpdateOverridesExperimentOutput {
     /// Creates a new builder-style object to manufacture [`UpdateOverridesExperimentOutput`](crate::operation::update_overrides_experiment::UpdateOverridesExperimentOutput).
-    pub fn builder() -> crate::operation::update_overrides_experiment::builders::UpdateOverridesExperimentOutputBuilder {
+    pub fn builder() -> crate::operation::update_overrides_experiment::builders::UpdateOverridesExperimentOutputBuilder{
         crate::operation::update_overrides_experiment::builders::UpdateOverridesExperimentOutputBuilder::default()
     }
 }
 
 /// A builder for [`UpdateOverridesExperimentOutput`](crate::operation::update_overrides_experiment::UpdateOverridesExperimentOutput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct UpdateOverridesExperimentOutputBuilder {
     pub(crate) id: ::std::option::Option<::std::string::String>,
@@ -143,11 +157,14 @@ pub struct UpdateOverridesExperimentOutputBuilder {
     pub(crate) last_modified: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) name: ::std::option::Option<::std::string::String>,
     pub(crate) experiment_type: ::std::option::Option<crate::types::ExperimentType>,
-    pub(crate) override_keys: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub(crate) override_keys:
+        ::std::option::Option<::std::vec::Vec<::std::string::String>>,
     pub(crate) status: ::std::option::Option<crate::types::ExperimentStatusType>,
     pub(crate) traffic_percentage: ::std::option::Option<i32>,
-    pub(crate) context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
-    pub(crate) variants: ::std::option::Option<::std::vec::Vec::<crate::types::Variant>>,
+    pub(crate) context: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    >,
+    pub(crate) variants: ::std::option::Option<::std::vec::Vec<crate::types::Variant>>,
     pub(crate) last_modified_by: ::std::option::Option<::std::string::String>,
     pub(crate) chosen_variant: ::std::option::Option<::std::string::String>,
     pub(crate) description: ::std::option::Option<::std::string::String>,
@@ -167,7 +184,8 @@ impl UpdateOverridesExperimentOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.id = input; self
+        self.id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -180,8 +198,12 @@ impl UpdateOverridesExperimentOutputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_created_at(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.created_at = input; self
+    pub fn set_created_at(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.created_at = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_created_at(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
@@ -189,13 +211,20 @@ impl UpdateOverridesExperimentOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn created_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn created_by(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.created_by = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_created_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.created_by = input; self
+    pub fn set_created_by(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.created_by = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_created_by(&self) -> &::std::option::Option<::std::string::String> {
@@ -208,22 +237,35 @@ impl UpdateOverridesExperimentOutputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_last_modified(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.last_modified = input; self
+    pub fn set_last_modified(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.last_modified = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_last_modified(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
+    pub fn get_last_modified(
+        &self,
+    ) -> &::std::option::Option<::aws_smithy_types::DateTime> {
         &self.last_modified
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.name = input; self
+    pub fn set_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.name = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_name(&self) -> &::std::option::Option<::std::string::String> {
@@ -236,29 +278,44 @@ impl UpdateOverridesExperimentOutputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_experiment_type(mut self, input: ::std::option::Option<crate::types::ExperimentType>) -> Self {
-        self.experiment_type = input; self
+    pub fn set_experiment_type(
+        mut self,
+        input: ::std::option::Option<crate::types::ExperimentType>,
+    ) -> Self {
+        self.experiment_type = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_experiment_type(&self) -> &::std::option::Option<crate::types::ExperimentType> {
+    pub fn get_experiment_type(
+        &self,
+    ) -> &::std::option::Option<crate::types::ExperimentType> {
         &self.experiment_type
     }
     /// Appends an item to `override_keys`.
     ///
     /// To override the contents of this collection use [`set_override_keys`](Self::set_override_keys).
     ///
-    pub fn override_keys(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn override_keys(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         let mut v = self.override_keys.unwrap_or_default();
-                        v.push(input.into());
-                        self.override_keys = ::std::option::Option::Some(v);
-                        self
+        v.push(input.into());
+        self.override_keys = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_override_keys(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-        self.override_keys = input; self
+    pub fn set_override_keys(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    ) -> Self {
+        self.override_keys = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_override_keys(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
+    pub fn get_override_keys(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<::std::string::String>> {
         &self.override_keys
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -268,11 +325,17 @@ impl UpdateOverridesExperimentOutputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_status(mut self, input: ::std::option::Option<crate::types::ExperimentStatusType>) -> Self {
-        self.status = input; self
+    pub fn set_status(
+        mut self,
+        input: ::std::option::Option<crate::types::ExperimentStatusType>,
+    ) -> Self {
+        self.status = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_status(&self) -> &::std::option::Option<crate::types::ExperimentStatusType> {
+    pub fn get_status(
+        &self,
+    ) -> &::std::option::Option<crate::types::ExperimentStatusType> {
         &self.status
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -283,7 +346,8 @@ impl UpdateOverridesExperimentOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_traffic_percentage(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.traffic_percentage = input; self
+        self.traffic_percentage = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_traffic_percentage(&self) -> &::std::option::Option<i32> {
@@ -294,18 +358,35 @@ impl UpdateOverridesExperimentOutputBuilder {
     /// To override the contents of this collection use [`set_context`](Self::set_context).
     ///
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn context(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
+    pub fn context(
+        mut self,
+        k: impl ::std::convert::Into<::std::string::String>,
+        v: ::aws_smithy_types::Document,
+    ) -> Self {
         let mut hash_map = self.context.unwrap_or_default();
-                        hash_map.insert(k.into(), v);
-                        self.context = ::std::option::Option::Some(hash_map);
-                        self
+        hash_map.insert(k.into(), v);
+        self.context = ::std::option::Option::Some(hash_map);
+        self
     }
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn set_context(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
-        self.context = input; self
+    pub fn set_context(
+        mut self,
+        input: ::std::option::Option<
+            ::std::collections::HashMap<
+                ::std::string::String,
+                ::aws_smithy_types::Document,
+            >,
+        >,
+    ) -> Self {
+        self.context = input;
+        self
     }
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn get_context(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    pub fn get_context(
+        &self,
+    ) -> &::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
         &self.context
     }
     /// Appends an item to `variants`.
@@ -314,40 +395,60 @@ impl UpdateOverridesExperimentOutputBuilder {
     ///
     pub fn variants(mut self, input: crate::types::Variant) -> Self {
         let mut v = self.variants.unwrap_or_default();
-                        v.push(input);
-                        self.variants = ::std::option::Option::Some(v);
-                        self
+        v.push(input);
+        self.variants = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_variants(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::Variant>>) -> Self {
-        self.variants = input; self
+    pub fn set_variants(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<crate::types::Variant>>,
+    ) -> Self {
+        self.variants = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_variants(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::Variant>> {
+    pub fn get_variants(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<crate::types::Variant>> {
         &self.variants
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn last_modified_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn last_modified_by(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.last_modified_by = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_last_modified_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.last_modified_by = input; self
+    pub fn set_last_modified_by(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.last_modified_by = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_last_modified_by(&self) -> &::std::option::Option<::std::string::String> {
         &self.last_modified_by
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn chosen_variant(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn chosen_variant(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.chosen_variant = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_chosen_variant(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.chosen_variant = input; self
+    pub fn set_chosen_variant(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.chosen_variant = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_chosen_variant(&self) -> &::std::option::Option<::std::string::String> {
@@ -355,13 +456,20 @@ impl UpdateOverridesExperimentOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn description(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn description(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.description = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_description(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.description = input; self
+    pub fn set_description(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.description = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_description(&self) -> &::std::option::Option<::std::string::String> {
@@ -369,13 +477,20 @@ impl UpdateOverridesExperimentOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn change_reason(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn change_reason(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.change_reason = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_change_reason(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.change_reason = input; self
+    pub fn set_change_reason(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.change_reason = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
@@ -387,34 +502,52 @@ impl UpdateOverridesExperimentOutputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_started_at(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.started_at = input; self
+    pub fn set_started_at(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.started_at = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_started_at(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
         &self.started_at
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn started_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn started_by(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.started_by = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_started_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.started_by = input; self
+    pub fn set_started_by(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.started_by = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_started_by(&self) -> &::std::option::Option<::std::string::String> {
         &self.started_by
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn metrics_url(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn metrics_url(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.metrics_url = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_metrics_url(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.metrics_url = input; self
+    pub fn set_metrics_url(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.metrics_url = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_metrics_url(&self) -> &::std::option::Option<::std::string::String> {
@@ -426,24 +559,37 @@ impl UpdateOverridesExperimentOutputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_metrics(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
-        self.metrics = input; self
+    pub fn set_metrics(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::Document>,
+    ) -> Self {
+        self.metrics = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_metrics(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
         &self.metrics
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn experiment_group_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn experiment_group_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.experiment_group_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_experiment_group_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.experiment_group_id = input; self
+    pub fn set_experiment_group_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.experiment_group_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_experiment_group_id(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_experiment_group_id(
+        &self,
+    ) -> &::std::option::Option<::std::string::String> {
         &self.experiment_group_id
     }
     /// Consumes the builder and constructs a [`UpdateOverridesExperimentOutput`](crate::operation::update_overrides_experiment::UpdateOverridesExperimentOutput).
@@ -462,7 +608,12 @@ impl UpdateOverridesExperimentOutputBuilder {
     /// - [`last_modified_by`](crate::operation::update_overrides_experiment::builders::UpdateOverridesExperimentOutputBuilder::last_modified_by)
     /// - [`description`](crate::operation::update_overrides_experiment::builders::UpdateOverridesExperimentOutputBuilder::description)
     /// - [`change_reason`](crate::operation::update_overrides_experiment::builders::UpdateOverridesExperimentOutputBuilder::change_reason)
-    pub fn build(self) -> ::std::result::Result<crate::operation::update_overrides_experiment::UpdateOverridesExperimentOutput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::update_overrides_experiment::UpdateOverridesExperimentOutput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::update_overrides_experiment::UpdateOverridesExperimentOutput {
                 id: self.id
@@ -551,4 +702,3 @@ impl UpdateOverridesExperimentOutputBuilder {
         )
     }
 }
-

@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct ValueValidationFunctionRequest  {
+pub struct ValueValidationFunctionRequest {
     #[allow(missing_docs)] // documentation missing in model
     pub key: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
@@ -12,10 +12,11 @@ pub struct ValueValidationFunctionRequest  {
     #[allow(missing_docs)] // documentation missing in model
     pub environment: ::aws_smithy_types::Document,
 }
-impl  ValueValidationFunctionRequest  {
+impl ValueValidationFunctionRequest {
     #[allow(missing_docs)] // documentation missing in model
     pub fn key(&self) -> &str {
-        use std::ops::Deref; self.key.deref()
+        use std::ops::Deref;
+        self.key.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn value(&self) -> &::aws_smithy_types::Document {
@@ -23,7 +24,8 @@ impl  ValueValidationFunctionRequest  {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn r#type(&self) -> &str {
-        use std::ops::Deref; self.r#type.deref()
+        use std::ops::Deref;
+        self.r#type.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn environment(&self) -> &::aws_smithy_types::Document {
@@ -38,7 +40,9 @@ impl ValueValidationFunctionRequest {
 }
 
 /// A builder for [`ValueValidationFunctionRequest`](crate::types::ValueValidationFunctionRequest).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct ValueValidationFunctionRequestBuilder {
     pub(crate) key: ::std::option::Option<::std::string::String>,
@@ -49,13 +53,20 @@ pub struct ValueValidationFunctionRequestBuilder {
 impl ValueValidationFunctionRequestBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn key(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn key(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.key = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_key(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.key = input; self
+    pub fn set_key(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.key = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_key(&self) -> &::std::option::Option<::std::string::String> {
@@ -68,8 +79,12 @@ impl ValueValidationFunctionRequestBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_value(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
-        self.value = input; self
+    pub fn set_value(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::Document>,
+    ) -> Self {
+        self.value = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_value(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
@@ -77,13 +92,20 @@ impl ValueValidationFunctionRequestBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn r#type(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn r#type(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.r#type = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_type(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.r#type = input; self
+    pub fn set_type(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.r#type = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_type(&self) -> &::std::option::Option<::std::string::String> {
@@ -96,11 +118,17 @@ impl ValueValidationFunctionRequestBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_environment(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
-        self.environment = input; self
+    pub fn set_environment(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::Document>,
+    ) -> Self {
+        self.environment = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_environment(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
+    pub fn get_environment(
+        &self,
+    ) -> &::std::option::Option<::aws_smithy_types::Document> {
         &self.environment
     }
     /// Consumes the builder and constructs a [`ValueValidationFunctionRequest`](crate::types::ValueValidationFunctionRequest).
@@ -109,7 +137,12 @@ impl ValueValidationFunctionRequestBuilder {
     /// - [`value`](crate::types::builders::ValueValidationFunctionRequestBuilder::value)
     /// - [`r#type`](crate::types::builders::ValueValidationFunctionRequestBuilder::type)
     /// - [`environment`](crate::types::builders::ValueValidationFunctionRequestBuilder::environment)
-    pub fn build(self) -> ::std::result::Result<crate::types::ValueValidationFunctionRequest, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::types::ValueValidationFunctionRequest,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::types::ValueValidationFunctionRequest {
                 key: self.key
@@ -136,4 +169,3 @@ impl ValueValidationFunctionRequestBuilder {
         )
     }
 }
-

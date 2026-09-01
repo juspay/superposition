@@ -2,13 +2,14 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct DefaultConfigResponse  {
+pub struct DefaultConfigResponse {
     #[allow(missing_docs)] // documentation missing in model
     pub key: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
     pub value: ::aws_smithy_types::Document,
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub schema: ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>,
+    pub schema:
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
     #[allow(missing_docs)] // documentation missing in model
     pub description: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
@@ -26,26 +27,32 @@ pub struct DefaultConfigResponse  {
     #[allow(missing_docs)] // documentation missing in model
     pub last_modified_by: ::std::string::String,
 }
-impl  DefaultConfigResponse  {
+impl DefaultConfigResponse {
     #[allow(missing_docs)] // documentation missing in model
     pub fn key(&self) -> &str {
-        use std::ops::Deref; self.key.deref()
+        use std::ops::Deref;
+        self.key.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn value(&self) -> &::aws_smithy_types::Document {
         &self.value
     }
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub fn schema(&self) -> &::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document> {
+    pub fn schema(
+        &self,
+    ) -> &::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>
+    {
         &self.schema
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn description(&self) -> &str {
-        use std::ops::Deref; self.description.deref()
+        use std::ops::Deref;
+        self.description.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn change_reason(&self) -> &str {
-        use std::ops::Deref; self.change_reason.deref()
+        use std::ops::Deref;
+        self.change_reason.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn value_validation_function_name(&self) -> ::std::option::Option<&str> {
@@ -61,7 +68,8 @@ impl  DefaultConfigResponse  {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn created_by(&self) -> &str {
-        use std::ops::Deref; self.created_by.deref()
+        use std::ops::Deref;
+        self.created_by.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn last_modified_at(&self) -> &::aws_smithy_types::DateTime {
@@ -69,7 +77,8 @@ impl  DefaultConfigResponse  {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn last_modified_by(&self) -> &str {
-        use std::ops::Deref; self.last_modified_by.deref()
+        use std::ops::Deref;
+        self.last_modified_by.deref()
     }
 }
 impl DefaultConfigResponse {
@@ -80,15 +89,20 @@ impl DefaultConfigResponse {
 }
 
 /// A builder for [`DefaultConfigResponse`](crate::types::DefaultConfigResponse).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct DefaultConfigResponseBuilder {
     pub(crate) key: ::std::option::Option<::std::string::String>,
     pub(crate) value: ::std::option::Option<::aws_smithy_types::Document>,
-    pub(crate) schema: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub(crate) schema: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    >,
     pub(crate) description: ::std::option::Option<::std::string::String>,
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
-    pub(crate) value_validation_function_name: ::std::option::Option<::std::string::String>,
+    pub(crate) value_validation_function_name:
+        ::std::option::Option<::std::string::String>,
     pub(crate) value_compute_function_name: ::std::option::Option<::std::string::String>,
     pub(crate) created_at: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) created_by: ::std::option::Option<::std::string::String>,
@@ -98,13 +112,20 @@ pub struct DefaultConfigResponseBuilder {
 impl DefaultConfigResponseBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn key(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn key(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.key = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_key(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.key = input; self
+    pub fn set_key(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.key = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_key(&self) -> &::std::option::Option<::std::string::String> {
@@ -117,8 +138,12 @@ impl DefaultConfigResponseBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_value(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
-        self.value = input; self
+    pub fn set_value(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::Document>,
+    ) -> Self {
+        self.value = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_value(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
@@ -129,29 +154,53 @@ impl DefaultConfigResponseBuilder {
     /// To override the contents of this collection use [`set_schema`](Self::set_schema).
     ///
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub fn schema(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
+    pub fn schema(
+        mut self,
+        k: impl ::std::convert::Into<::std::string::String>,
+        v: ::aws_smithy_types::Document,
+    ) -> Self {
         let mut hash_map = self.schema.unwrap_or_default();
-                        hash_map.insert(k.into(), v);
-                        self.schema = ::std::option::Option::Some(hash_map);
-                        self
+        hash_map.insert(k.into(), v);
+        self.schema = ::std::option::Option::Some(hash_map);
+        self
     }
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub fn set_schema(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
-        self.schema = input; self
+    pub fn set_schema(
+        mut self,
+        input: ::std::option::Option<
+            ::std::collections::HashMap<
+                ::std::string::String,
+                ::aws_smithy_types::Document,
+            >,
+        >,
+    ) -> Self {
+        self.schema = input;
+        self
     }
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub fn get_schema(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    pub fn get_schema(
+        &self,
+    ) -> &::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
         &self.schema
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn description(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn description(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.description = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_description(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.description = input; self
+    pub fn set_description(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.description = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_description(&self) -> &::std::option::Option<::std::string::String> {
@@ -159,42 +208,67 @@ impl DefaultConfigResponseBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn change_reason(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn change_reason(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.change_reason = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_change_reason(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.change_reason = input; self
+    pub fn set_change_reason(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.change_reason = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
         &self.change_reason
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn value_validation_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn value_validation_function_name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.value_validation_function_name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_value_validation_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.value_validation_function_name = input; self
+    pub fn set_value_validation_function_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.value_validation_function_name = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_value_validation_function_name(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_value_validation_function_name(
+        &self,
+    ) -> &::std::option::Option<::std::string::String> {
         &self.value_validation_function_name
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn value_compute_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn value_compute_function_name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.value_compute_function_name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_value_compute_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.value_compute_function_name = input; self
+    pub fn set_value_compute_function_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.value_compute_function_name = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_value_compute_function_name(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_value_compute_function_name(
+        &self,
+    ) -> &::std::option::Option<::std::string::String> {
         &self.value_compute_function_name
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -204,8 +278,12 @@ impl DefaultConfigResponseBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_created_at(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.created_at = input; self
+    pub fn set_created_at(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.created_at = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_created_at(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
@@ -213,13 +291,20 @@ impl DefaultConfigResponseBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn created_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn created_by(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.created_by = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_created_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.created_by = input; self
+    pub fn set_created_by(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.created_by = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_created_by(&self) -> &::std::option::Option<::std::string::String> {
@@ -232,22 +317,35 @@ impl DefaultConfigResponseBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_last_modified_at(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.last_modified_at = input; self
+    pub fn set_last_modified_at(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.last_modified_at = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_last_modified_at(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
+    pub fn get_last_modified_at(
+        &self,
+    ) -> &::std::option::Option<::aws_smithy_types::DateTime> {
         &self.last_modified_at
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn last_modified_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn last_modified_by(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.last_modified_by = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_last_modified_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.last_modified_by = input; self
+    pub fn set_last_modified_by(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.last_modified_by = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_last_modified_by(&self) -> &::std::option::Option<::std::string::String> {
@@ -264,7 +362,12 @@ impl DefaultConfigResponseBuilder {
     /// - [`created_by`](crate::types::builders::DefaultConfigResponseBuilder::created_by)
     /// - [`last_modified_at`](crate::types::builders::DefaultConfigResponseBuilder::last_modified_at)
     /// - [`last_modified_by`](crate::types::builders::DefaultConfigResponseBuilder::last_modified_by)
-    pub fn build(self) -> ::std::result::Result<crate::types::DefaultConfigResponse, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::types::DefaultConfigResponse,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::types::DefaultConfigResponse {
                 key: self.key
@@ -320,4 +423,3 @@ impl DefaultConfigResponseBuilder {
         )
     }
 }
-

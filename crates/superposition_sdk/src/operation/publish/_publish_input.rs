@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct PublishInput  {
+pub struct PublishInput {
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -12,7 +12,7 @@ pub struct PublishInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub change_reason: ::std::option::Option<::std::string::String>,
 }
-impl  PublishInput  {
+impl PublishInput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(&self) -> ::std::option::Option<&str> {
         self.workspace_id.as_deref()
@@ -38,7 +38,9 @@ impl PublishInput {
 }
 
 /// A builder for [`PublishInput`](crate::operation::publish::PublishInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct PublishInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
@@ -49,13 +51,20 @@ pub struct PublishInputBuilder {
 impl PublishInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_id = input; self
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -63,13 +72,20 @@ impl PublishInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -77,13 +93,20 @@ impl PublishInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn function_name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.function_name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.function_name = input; self
+    pub fn set_function_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.function_name = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_function_name(&self) -> &::std::option::Option<::std::string::String> {
@@ -91,32 +114,37 @@ impl PublishInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn change_reason(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn change_reason(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.change_reason = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_change_reason(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.change_reason = input; self
+    pub fn set_change_reason(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.change_reason = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
         &self.change_reason
     }
     /// Consumes the builder and constructs a [`PublishInput`](crate::operation::publish::PublishInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::publish::PublishInput, ::aws_smithy_types::error::operation::BuildError> {
-        ::std::result::Result::Ok(
-            crate::operation::publish::PublishInput {
-                workspace_id: self.workspace_id
-                ,
-                org_id: self.org_id
-                ,
-                function_name: self.function_name
-                ,
-                change_reason: self.change_reason
-                ,
-            }
-        )
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::publish::PublishInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
+        ::std::result::Result::Ok(crate::operation::publish::PublishInput {
+            workspace_id: self.workspace_id,
+            org_id: self.org_id,
+            function_name: self.function_name,
+            change_reason: self.change_reason,
+        })
     }
 }
-

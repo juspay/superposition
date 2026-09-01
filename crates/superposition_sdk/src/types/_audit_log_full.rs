@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct AuditLogFull  {
+pub struct AuditLogFull {
     #[allow(missing_docs)] // documentation missing in model
     pub id: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
@@ -20,18 +20,21 @@ pub struct AuditLogFull  {
     #[allow(missing_docs)] // documentation missing in model
     pub query: ::std::string::String,
 }
-impl  AuditLogFull  {
+impl AuditLogFull {
     #[allow(missing_docs)] // documentation missing in model
     pub fn id(&self) -> &str {
-        use std::ops::Deref; self.id.deref()
+        use std::ops::Deref;
+        self.id.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn table_name(&self) -> &str {
-        use std::ops::Deref; self.table_name.deref()
+        use std::ops::Deref;
+        self.table_name.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn user_name(&self) -> &str {
-        use std::ops::Deref; self.user_name.deref()
+        use std::ops::Deref;
+        self.user_name.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn timestamp(&self) -> &::aws_smithy_types::DateTime {
@@ -51,7 +54,8 @@ impl  AuditLogFull  {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn query(&self) -> &str {
-        use std::ops::Deref; self.query.deref()
+        use std::ops::Deref;
+        self.query.deref()
     }
 }
 impl AuditLogFull {
@@ -62,7 +66,9 @@ impl AuditLogFull {
 }
 
 /// A builder for [`AuditLogFull`](crate::types::AuditLogFull).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct AuditLogFullBuilder {
     pub(crate) id: ::std::option::Option<::std::string::String>,
@@ -83,7 +89,8 @@ impl AuditLogFullBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.id = input; self
+        self.id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -91,13 +98,20 @@ impl AuditLogFullBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn table_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn table_name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.table_name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_table_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.table_name = input; self
+    pub fn set_table_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.table_name = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_table_name(&self) -> &::std::option::Option<::std::string::String> {
@@ -105,13 +119,20 @@ impl AuditLogFullBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn user_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn user_name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.user_name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_user_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.user_name = input; self
+    pub fn set_user_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.user_name = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_user_name(&self) -> &::std::option::Option<::std::string::String> {
@@ -124,8 +145,12 @@ impl AuditLogFullBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_timestamp(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.timestamp = input; self
+    pub fn set_timestamp(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.timestamp = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_timestamp(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
@@ -138,8 +163,12 @@ impl AuditLogFullBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_action(mut self, input: ::std::option::Option<crate::types::AuditAction>) -> Self {
-        self.action = input; self
+    pub fn set_action(
+        mut self,
+        input: ::std::option::Option<crate::types::AuditAction>,
+    ) -> Self {
+        self.action = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_action(&self) -> &::std::option::Option<crate::types::AuditAction> {
@@ -151,11 +180,17 @@ impl AuditLogFullBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_original_data(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
-        self.original_data = input; self
+    pub fn set_original_data(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::Document>,
+    ) -> Self {
+        self.original_data = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_original_data(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
+    pub fn get_original_data(
+        &self,
+    ) -> &::std::option::Option<::aws_smithy_types::Document> {
         &self.original_data
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -164,8 +199,12 @@ impl AuditLogFullBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_new_data(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
-        self.new_data = input; self
+    pub fn set_new_data(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::Document>,
+    ) -> Self {
+        self.new_data = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_new_data(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
@@ -173,13 +212,20 @@ impl AuditLogFullBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn query(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn query(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.query = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_query(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.query = input; self
+    pub fn set_query(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.query = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_query(&self) -> &::std::option::Option<::std::string::String> {
@@ -193,7 +239,12 @@ impl AuditLogFullBuilder {
     /// - [`timestamp`](crate::types::builders::AuditLogFullBuilder::timestamp)
     /// - [`action`](crate::types::builders::AuditLogFullBuilder::action)
     /// - [`query`](crate::types::builders::AuditLogFullBuilder::query)
-    pub fn build(self) -> ::std::result::Result<crate::types::AuditLogFull, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::types::AuditLogFull,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::types::AuditLogFull {
                 id: self.id
@@ -234,4 +285,3 @@ impl AuditLogFullBuilder {
         )
     }
 }
-

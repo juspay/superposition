@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct TestOutput  {
+pub struct TestOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn_output: ::aws_smithy_types::Document,
     #[allow(missing_docs)] // documentation missing in model
@@ -10,14 +10,15 @@ pub struct TestOutput  {
     #[allow(missing_docs)] // documentation missing in model
     pub function_type: crate::types::FunctionTypes,
 }
-impl  TestOutput  {
+impl TestOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn fn_output(&self) -> &::aws_smithy_types::Document {
         &self.fn_output
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn stdout(&self) -> &str {
-        use std::ops::Deref; self.stdout.deref()
+        use std::ops::Deref;
+        self.stdout.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn function_type(&self) -> &crate::types::FunctionTypes {
@@ -32,7 +33,9 @@ impl TestOutput {
 }
 
 /// A builder for [`TestOutput`](crate::operation::test::TestOutput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct TestOutputBuilder {
     pub(crate) fn_output: ::std::option::Option<::aws_smithy_types::Document>,
@@ -47,8 +50,12 @@ impl TestOutputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_fn_output(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
-        self.fn_output = input; self
+    pub fn set_fn_output(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::Document>,
+    ) -> Self {
+        self.fn_output = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_fn_output(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
@@ -56,13 +63,20 @@ impl TestOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn stdout(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn stdout(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.stdout = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_stdout(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.stdout = input; self
+    pub fn set_stdout(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.stdout = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_stdout(&self) -> &::std::option::Option<::std::string::String> {
@@ -75,11 +89,17 @@ impl TestOutputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_function_type(mut self, input: ::std::option::Option<crate::types::FunctionTypes>) -> Self {
-        self.function_type = input; self
+    pub fn set_function_type(
+        mut self,
+        input: ::std::option::Option<crate::types::FunctionTypes>,
+    ) -> Self {
+        self.function_type = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_function_type(&self) -> &::std::option::Option<crate::types::FunctionTypes> {
+    pub fn get_function_type(
+        &self,
+    ) -> &::std::option::Option<crate::types::FunctionTypes> {
         &self.function_type
     }
     /// Consumes the builder and constructs a [`TestOutput`](crate::operation::test::TestOutput).
@@ -87,7 +107,12 @@ impl TestOutputBuilder {
     /// - [`fn_output`](crate::operation::test::builders::TestOutputBuilder::fn_output)
     /// - [`stdout`](crate::operation::test::builders::TestOutputBuilder::stdout)
     /// - [`function_type`](crate::operation::test::builders::TestOutputBuilder::function_type)
-    pub fn build(self) -> ::std::result::Result<crate::operation::test::TestOutput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::test::TestOutput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::test::TestOutput {
                 fn_output: self.fn_output
@@ -109,4 +134,3 @@ impl TestOutputBuilder {
         )
     }
 }
-

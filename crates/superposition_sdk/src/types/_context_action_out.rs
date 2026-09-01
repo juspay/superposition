@@ -25,7 +25,11 @@ impl ContextActionOut {
     /// Tries to convert the enum instance into [`Delete`](crate::types::ContextActionOut::Delete), extracting the inner [`String`](::std::string::String).
     /// Returns `Err(&Self)` if it can't be converted.
     pub fn as_delete(&self) -> ::std::result::Result<&::std::string::String, &Self> {
-        if let ContextActionOut::Delete(val) = &self { ::std::result::Result::Ok(val) } else { ::std::result::Result::Err(self) }
+        if let ContextActionOut::Delete(val) = &self {
+            ::std::result::Result::Ok(val)
+        } else {
+            ::std::result::Result::Err(self)
+        }
     }
     /// Returns true if this is a [`Delete`](crate::types::ContextActionOut::Delete).
     pub fn is_delete(&self) -> bool {
@@ -33,8 +37,14 @@ impl ContextActionOut {
     }
     /// Tries to convert the enum instance into [`Move`](crate::types::ContextActionOut::Move), extracting the inner [`ContextResponse`](crate::types::ContextResponse).
     /// Returns `Err(&Self)` if it can't be converted.
-    pub fn as_move(&self) -> ::std::result::Result<&crate::types::ContextResponse, &Self> {
-        if let ContextActionOut::Move(val) = &self { ::std::result::Result::Ok(val) } else { ::std::result::Result::Err(self) }
+    pub fn as_move(
+        &self,
+    ) -> ::std::result::Result<&crate::types::ContextResponse, &Self> {
+        if let ContextActionOut::Move(val) = &self {
+            ::std::result::Result::Ok(val)
+        } else {
+            ::std::result::Result::Err(self)
+        }
     }
     /// Returns true if this is a [`Move`](crate::types::ContextActionOut::Move).
     pub fn is_move(&self) -> bool {
@@ -43,7 +53,11 @@ impl ContextActionOut {
     /// Tries to convert the enum instance into [`Put`](crate::types::ContextActionOut::Put), extracting the inner [`ContextResponse`](crate::types::ContextResponse).
     /// Returns `Err(&Self)` if it can't be converted.
     pub fn as_put(&self) -> ::std::result::Result<&crate::types::ContextResponse, &Self> {
-        if let ContextActionOut::Put(val) = &self { ::std::result::Result::Ok(val) } else { ::std::result::Result::Err(self) }
+        if let ContextActionOut::Put(val) = &self {
+            ::std::result::Result::Ok(val)
+        } else {
+            ::std::result::Result::Err(self)
+        }
     }
     /// Returns true if this is a [`Put`](crate::types::ContextActionOut::Put).
     pub fn is_put(&self) -> bool {
@@ -51,8 +65,14 @@ impl ContextActionOut {
     }
     /// Tries to convert the enum instance into [`Replace`](crate::types::ContextActionOut::Replace), extracting the inner [`ContextResponse`](crate::types::ContextResponse).
     /// Returns `Err(&Self)` if it can't be converted.
-    pub fn as_replace(&self) -> ::std::result::Result<&crate::types::ContextResponse, &Self> {
-        if let ContextActionOut::Replace(val) = &self { ::std::result::Result::Ok(val) } else { ::std::result::Result::Err(self) }
+    pub fn as_replace(
+        &self,
+    ) -> ::std::result::Result<&crate::types::ContextResponse, &Self> {
+        if let ContextActionOut::Replace(val) = &self {
+            ::std::result::Result::Ok(val)
+        } else {
+            ::std::result::Result::Err(self)
+        }
     }
     /// Returns true if this is a [`Replace`](crate::types::ContextActionOut::Replace).
     pub fn is_replace(&self) -> bool {
@@ -63,4 +83,3 @@ impl ContextActionOut {
         matches!(self, Self::Unknown)
     }
 }
-

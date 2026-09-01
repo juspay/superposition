@@ -3,7 +3,7 @@
 /// Input structure for creating a new experiment group.
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct CreateExperimentGroupInput  {
+pub struct CreateExperimentGroupInput {
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -15,13 +15,16 @@ pub struct CreateExperimentGroupInput  {
     /// Reason for creating this experiment group.
     pub change_reason: ::std::option::Option<::std::string::String>,
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub context: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    >,
     #[allow(missing_docs)] // documentation missing in model
     pub traffic_percentage: ::std::option::Option<i32>,
     /// List of experiment IDs that are members of this group.
-    pub member_experiment_ids: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub member_experiment_ids:
+        ::std::option::Option<::std::vec::Vec<::std::string::String>>,
 }
-impl  CreateExperimentGroupInput  {
+impl CreateExperimentGroupInput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(&self) -> ::std::option::Option<&str> {
         self.workspace_id.as_deref()
@@ -43,7 +46,11 @@ impl  CreateExperimentGroupInput  {
         self.change_reason.as_deref()
     }
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn context(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    pub fn context(
+        &self,
+    ) -> ::std::option::Option<
+        &::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
         self.context.as_ref()
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -51,22 +58,23 @@ impl  CreateExperimentGroupInput  {
         self.traffic_percentage
     }
     /// List of experiment IDs that are members of this group.
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.member_experiment_ids.is_none()`.
     pub fn member_experiment_ids(&self) -> &[::std::string::String] {
-        self.member_experiment_ids.as_deref()
-        .unwrap_or_default()
+        self.member_experiment_ids.as_deref().unwrap_or_default()
     }
 }
 impl CreateExperimentGroupInput {
     /// Creates a new builder-style object to manufacture [`CreateExperimentGroupInput`](crate::operation::create_experiment_group::CreateExperimentGroupInput).
-    pub fn builder() -> crate::operation::create_experiment_group::builders::CreateExperimentGroupInputBuilder {
+    pub fn builder() -> crate::operation::create_experiment_group::builders::CreateExperimentGroupInputBuilder{
         crate::operation::create_experiment_group::builders::CreateExperimentGroupInputBuilder::default()
     }
 }
 
 /// A builder for [`CreateExperimentGroupInput`](crate::operation::create_experiment_group::CreateExperimentGroupInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct CreateExperimentGroupInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
@@ -74,20 +82,30 @@ pub struct CreateExperimentGroupInputBuilder {
     pub(crate) name: ::std::option::Option<::std::string::String>,
     pub(crate) description: ::std::option::Option<::std::string::String>,
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
-    pub(crate) context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub(crate) context: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    >,
     pub(crate) traffic_percentage: ::std::option::Option<i32>,
-    pub(crate) member_experiment_ids: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub(crate) member_experiment_ids:
+        ::std::option::Option<::std::vec::Vec<::std::string::String>>,
 }
 impl CreateExperimentGroupInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_id = input; self
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -95,13 +113,20 @@ impl CreateExperimentGroupInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -109,13 +134,20 @@ impl CreateExperimentGroupInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.name = input; self
+    pub fn set_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.name = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_name(&self) -> &::std::option::Option<::std::string::String> {
@@ -123,13 +155,20 @@ impl CreateExperimentGroupInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn description(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn description(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.description = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_description(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.description = input; self
+    pub fn set_description(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.description = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_description(&self) -> &::std::option::Option<::std::string::String> {
@@ -137,13 +176,20 @@ impl CreateExperimentGroupInputBuilder {
     }
     /// Reason for creating this experiment group.
     /// This field is required.
-    pub fn change_reason(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn change_reason(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.change_reason = ::std::option::Option::Some(input.into());
         self
     }
     /// Reason for creating this experiment group.
-    pub fn set_change_reason(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.change_reason = input; self
+    pub fn set_change_reason(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.change_reason = input;
+        self
     }
     /// Reason for creating this experiment group.
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
@@ -154,18 +200,35 @@ impl CreateExperimentGroupInputBuilder {
     /// To override the contents of this collection use [`set_context`](Self::set_context).
     ///
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn context(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
+    pub fn context(
+        mut self,
+        k: impl ::std::convert::Into<::std::string::String>,
+        v: ::aws_smithy_types::Document,
+    ) -> Self {
         let mut hash_map = self.context.unwrap_or_default();
-                        hash_map.insert(k.into(), v);
-                        self.context = ::std::option::Option::Some(hash_map);
-                        self
+        hash_map.insert(k.into(), v);
+        self.context = ::std::option::Option::Some(hash_map);
+        self
     }
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn set_context(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
-        self.context = input; self
+    pub fn set_context(
+        mut self,
+        input: ::std::option::Option<
+            ::std::collections::HashMap<
+                ::std::string::String,
+                ::aws_smithy_types::Document,
+            >,
+        >,
+    ) -> Self {
+        self.context = input;
+        self
     }
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn get_context(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    pub fn get_context(
+        &self,
+    ) -> &::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
         &self.context
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -176,7 +239,8 @@ impl CreateExperimentGroupInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_traffic_percentage(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.traffic_percentage = input; self
+        self.traffic_percentage = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_traffic_percentage(&self) -> &::std::option::Option<i32> {
@@ -187,42 +251,47 @@ impl CreateExperimentGroupInputBuilder {
     /// To override the contents of this collection use [`set_member_experiment_ids`](Self::set_member_experiment_ids).
     ///
     /// List of experiment IDs that are members of this group.
-    pub fn member_experiment_ids(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn member_experiment_ids(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         let mut v = self.member_experiment_ids.unwrap_or_default();
-                        v.push(input.into());
-                        self.member_experiment_ids = ::std::option::Option::Some(v);
-                        self
+        v.push(input.into());
+        self.member_experiment_ids = ::std::option::Option::Some(v);
+        self
     }
     /// List of experiment IDs that are members of this group.
-    pub fn set_member_experiment_ids(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-        self.member_experiment_ids = input; self
+    pub fn set_member_experiment_ids(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    ) -> Self {
+        self.member_experiment_ids = input;
+        self
     }
     /// List of experiment IDs that are members of this group.
-    pub fn get_member_experiment_ids(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
+    pub fn get_member_experiment_ids(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<::std::string::String>> {
         &self.member_experiment_ids
     }
     /// Consumes the builder and constructs a [`CreateExperimentGroupInput`](crate::operation::create_experiment_group::CreateExperimentGroupInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::create_experiment_group::CreateExperimentGroupInput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::create_experiment_group::CreateExperimentGroupInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::create_experiment_group::CreateExperimentGroupInput {
-                workspace_id: self.workspace_id
-                ,
-                org_id: self.org_id
-                ,
-                name: self.name
-                ,
-                description: self.description
-                ,
-                change_reason: self.change_reason
-                ,
-                context: self.context
-                ,
-                traffic_percentage: self.traffic_percentage
-                ,
-                member_experiment_ids: self.member_experiment_ids
-                ,
-            }
+                workspace_id: self.workspace_id,
+                org_id: self.org_id,
+                name: self.name,
+                description: self.description,
+                change_reason: self.change_reason,
+                context: self.context,
+                traffic_percentage: self.traffic_percentage,
+                member_experiment_ids: self.member_experiment_ids,
+            },
         )
     }
 }
-

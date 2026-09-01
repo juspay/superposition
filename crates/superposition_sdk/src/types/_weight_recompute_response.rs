@@ -2,32 +2,39 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct WeightRecomputeResponse  {
+pub struct WeightRecomputeResponse {
     #[allow(missing_docs)] // documentation missing in model
     pub id: ::std::string::String,
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub condition: ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>,
+    pub condition:
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
     /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
     pub old_weight: ::std::string::String,
     /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
     pub new_weight: ::std::string::String,
 }
-impl  WeightRecomputeResponse  {
+impl WeightRecomputeResponse {
     #[allow(missing_docs)] // documentation missing in model
     pub fn id(&self) -> &str {
-        use std::ops::Deref; self.id.deref()
+        use std::ops::Deref;
+        self.id.deref()
     }
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn condition(&self) -> &::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document> {
+    pub fn condition(
+        &self,
+    ) -> &::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>
+    {
         &self.condition
     }
     /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
     pub fn old_weight(&self) -> &str {
-        use std::ops::Deref; self.old_weight.deref()
+        use std::ops::Deref;
+        self.old_weight.deref()
     }
     /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
     pub fn new_weight(&self) -> &str {
-        use std::ops::Deref; self.new_weight.deref()
+        use std::ops::Deref;
+        self.new_weight.deref()
     }
 }
 impl WeightRecomputeResponse {
@@ -38,11 +45,15 @@ impl WeightRecomputeResponse {
 }
 
 /// A builder for [`WeightRecomputeResponse`](crate::types::WeightRecomputeResponse).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct WeightRecomputeResponseBuilder {
     pub(crate) id: ::std::option::Option<::std::string::String>,
-    pub(crate) condition: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub(crate) condition: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    >,
     pub(crate) old_weight: ::std::option::Option<::std::string::String>,
     pub(crate) new_weight: ::std::option::Option<::std::string::String>,
 }
@@ -55,7 +66,8 @@ impl WeightRecomputeResponseBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.id = input; self
+        self.id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -66,29 +78,53 @@ impl WeightRecomputeResponseBuilder {
     /// To override the contents of this collection use [`set_condition`](Self::set_condition).
     ///
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn condition(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
+    pub fn condition(
+        mut self,
+        k: impl ::std::convert::Into<::std::string::String>,
+        v: ::aws_smithy_types::Document,
+    ) -> Self {
         let mut hash_map = self.condition.unwrap_or_default();
-                        hash_map.insert(k.into(), v);
-                        self.condition = ::std::option::Option::Some(hash_map);
-                        self
+        hash_map.insert(k.into(), v);
+        self.condition = ::std::option::Option::Some(hash_map);
+        self
     }
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn set_condition(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
-        self.condition = input; self
+    pub fn set_condition(
+        mut self,
+        input: ::std::option::Option<
+            ::std::collections::HashMap<
+                ::std::string::String,
+                ::aws_smithy_types::Document,
+            >,
+        >,
+    ) -> Self {
+        self.condition = input;
+        self
     }
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn get_condition(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    pub fn get_condition(
+        &self,
+    ) -> &::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
         &self.condition
     }
     /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
     /// This field is required.
-    pub fn old_weight(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn old_weight(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.old_weight = ::std::option::Option::Some(input.into());
         self
     }
     /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
-    pub fn set_old_weight(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.old_weight = input; self
+    pub fn set_old_weight(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.old_weight = input;
+        self
     }
     /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
     pub fn get_old_weight(&self) -> &::std::option::Option<::std::string::String> {
@@ -96,13 +132,20 @@ impl WeightRecomputeResponseBuilder {
     }
     /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
     /// This field is required.
-    pub fn new_weight(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn new_weight(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.new_weight = ::std::option::Option::Some(input.into());
         self
     }
     /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
-    pub fn set_new_weight(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.new_weight = input; self
+    pub fn set_new_weight(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.new_weight = input;
+        self
     }
     /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
     pub fn get_new_weight(&self) -> &::std::option::Option<::std::string::String> {
@@ -114,7 +157,12 @@ impl WeightRecomputeResponseBuilder {
     /// - [`condition`](crate::types::builders::WeightRecomputeResponseBuilder::condition)
     /// - [`old_weight`](crate::types::builders::WeightRecomputeResponseBuilder::old_weight)
     /// - [`new_weight`](crate::types::builders::WeightRecomputeResponseBuilder::new_weight)
-    pub fn build(self) -> ::std::result::Result<crate::types::WeightRecomputeResponse, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::types::WeightRecomputeResponse,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::types::WeightRecomputeResponse {
                 id: self.id
@@ -141,4 +189,3 @@ impl WeightRecomputeResponseBuilder {
         )
     }
 }
-

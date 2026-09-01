@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct Variant  {
+pub struct Variant {
     #[allow(missing_docs)] // documentation missing in model
     pub id: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
@@ -12,12 +12,14 @@ pub struct Variant  {
     #[allow(missing_docs)] // documentation missing in model
     pub override_id: ::std::option::Option<::std::string::String>,
     /// Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
-    pub overrides: ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>,
+    pub overrides:
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
 }
-impl  Variant  {
+impl Variant {
     #[allow(missing_docs)] // documentation missing in model
     pub fn id(&self) -> &str {
-        use std::ops::Deref; self.id.deref()
+        use std::ops::Deref;
+        self.id.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn variant_type(&self) -> &crate::types::VariantType {
@@ -32,7 +34,10 @@ impl  Variant  {
         self.override_id.as_deref()
     }
     /// Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
-    pub fn overrides(&self) -> &::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document> {
+    pub fn overrides(
+        &self,
+    ) -> &::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>
+    {
         &self.overrides
     }
 }
@@ -44,14 +49,18 @@ impl Variant {
 }
 
 /// A builder for [`Variant`](crate::types::Variant).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct VariantBuilder {
     pub(crate) id: ::std::option::Option<::std::string::String>,
     pub(crate) variant_type: ::std::option::Option<crate::types::VariantType>,
     pub(crate) context_id: ::std::option::Option<::std::string::String>,
     pub(crate) override_id: ::std::option::Option<::std::string::String>,
-    pub(crate) overrides: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub(crate) overrides: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    >,
 }
 impl VariantBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -62,7 +71,8 @@ impl VariantBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.id = input; self
+        self.id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -75,34 +85,52 @@ impl VariantBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_variant_type(mut self, input: ::std::option::Option<crate::types::VariantType>) -> Self {
-        self.variant_type = input; self
+    pub fn set_variant_type(
+        mut self,
+        input: ::std::option::Option<crate::types::VariantType>,
+    ) -> Self {
+        self.variant_type = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_variant_type(&self) -> &::std::option::Option<crate::types::VariantType> {
         &self.variant_type
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn context_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn context_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.context_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_context_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.context_id = input; self
+    pub fn set_context_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.context_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_context_id(&self) -> &::std::option::Option<::std::string::String> {
         &self.context_id
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn override_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn override_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.override_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_override_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.override_id = input; self
+    pub fn set_override_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.override_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_override_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -113,18 +141,35 @@ impl VariantBuilder {
     /// To override the contents of this collection use [`set_overrides`](Self::set_overrides).
     ///
     /// Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
-    pub fn overrides(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
+    pub fn overrides(
+        mut self,
+        k: impl ::std::convert::Into<::std::string::String>,
+        v: ::aws_smithy_types::Document,
+    ) -> Self {
         let mut hash_map = self.overrides.unwrap_or_default();
-                        hash_map.insert(k.into(), v);
-                        self.overrides = ::std::option::Option::Some(hash_map);
-                        self
+        hash_map.insert(k.into(), v);
+        self.overrides = ::std::option::Option::Some(hash_map);
+        self
     }
     /// Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
-    pub fn set_overrides(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
-        self.overrides = input; self
+    pub fn set_overrides(
+        mut self,
+        input: ::std::option::Option<
+            ::std::collections::HashMap<
+                ::std::string::String,
+                ::aws_smithy_types::Document,
+            >,
+        >,
+    ) -> Self {
+        self.overrides = input;
+        self
     }
     /// Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
-    pub fn get_overrides(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    pub fn get_overrides(
+        &self,
+    ) -> &::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
         &self.overrides
     }
     /// Consumes the builder and constructs a [`Variant`](crate::types::Variant).
@@ -132,7 +177,12 @@ impl VariantBuilder {
     /// - [`id`](crate::types::builders::VariantBuilder::id)
     /// - [`variant_type`](crate::types::builders::VariantBuilder::variant_type)
     /// - [`overrides`](crate::types::builders::VariantBuilder::overrides)
-    pub fn build(self) -> ::std::result::Result<crate::types::Variant, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::types::Variant,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::types::Variant {
                 id: self.id
@@ -158,4 +208,3 @@ impl VariantBuilder {
         )
     }
 }
-

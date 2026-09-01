@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct OrganisationResponse  {
+pub struct OrganisationResponse {
     #[allow(missing_docs)] // documentation missing in model
     pub id: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
@@ -28,14 +28,16 @@ pub struct OrganisationResponse  {
     #[allow(missing_docs)] // documentation missing in model
     pub updated_by: ::std::string::String,
 }
-impl  OrganisationResponse  {
+impl OrganisationResponse {
     #[allow(missing_docs)] // documentation missing in model
     pub fn id(&self) -> &str {
-        use std::ops::Deref; self.id.deref()
+        use std::ops::Deref;
+        self.id.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn name(&self) -> &str {
-        use std::ops::Deref; self.name.deref()
+        use std::ops::Deref;
+        self.name.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn country_code(&self) -> ::std::option::Option<&str> {
@@ -51,11 +53,13 @@ impl  OrganisationResponse  {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn created_by(&self) -> &str {
-        use std::ops::Deref; self.created_by.deref()
+        use std::ops::Deref;
+        self.created_by.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn admin_email(&self) -> &str {
-        use std::ops::Deref; self.admin_email.deref()
+        use std::ops::Deref;
+        self.admin_email.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn status(&self) -> &crate::types::OrgStatus {
@@ -75,7 +79,8 @@ impl  OrganisationResponse  {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn updated_by(&self) -> &str {
-        use std::ops::Deref; self.updated_by.deref()
+        use std::ops::Deref;
+        self.updated_by.deref()
     }
 }
 impl OrganisationResponse {
@@ -86,7 +91,9 @@ impl OrganisationResponse {
 }
 
 /// A builder for [`OrganisationResponse`](crate::types::OrganisationResponse).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct OrganisationResponseBuilder {
     pub(crate) id: ::std::option::Option<::std::string::String>,
@@ -111,7 +118,8 @@ impl OrganisationResponseBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.id = input; self
+        self.id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -119,52 +127,80 @@ impl OrganisationResponseBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.name = input; self
+    pub fn set_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.name = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_name(&self) -> &::std::option::Option<::std::string::String> {
         &self.name
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn country_code(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn country_code(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.country_code = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_country_code(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.country_code = input; self
+    pub fn set_country_code(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.country_code = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_country_code(&self) -> &::std::option::Option<::std::string::String> {
         &self.country_code
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn contact_email(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn contact_email(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.contact_email = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_contact_email(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.contact_email = input; self
+    pub fn set_contact_email(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.contact_email = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_contact_email(&self) -> &::std::option::Option<::std::string::String> {
         &self.contact_email
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn contact_phone(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn contact_phone(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.contact_phone = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_contact_phone(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.contact_phone = input; self
+    pub fn set_contact_phone(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.contact_phone = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_contact_phone(&self) -> &::std::option::Option<::std::string::String> {
@@ -172,13 +208,20 @@ impl OrganisationResponseBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn created_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn created_by(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.created_by = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_created_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.created_by = input; self
+    pub fn set_created_by(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.created_by = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_created_by(&self) -> &::std::option::Option<::std::string::String> {
@@ -186,13 +229,20 @@ impl OrganisationResponseBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn admin_email(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn admin_email(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.admin_email = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_admin_email(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.admin_email = input; self
+    pub fn set_admin_email(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.admin_email = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_admin_email(&self) -> &::std::option::Option<::std::string::String> {
@@ -205,21 +255,32 @@ impl OrganisationResponseBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_status(mut self, input: ::std::option::Option<crate::types::OrgStatus>) -> Self {
-        self.status = input; self
+    pub fn set_status(
+        mut self,
+        input: ::std::option::Option<crate::types::OrgStatus>,
+    ) -> Self {
+        self.status = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_status(&self) -> &::std::option::Option<crate::types::OrgStatus> {
         &self.status
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn sector(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn sector(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.sector = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_sector(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.sector = input; self
+    pub fn set_sector(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.sector = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_sector(&self) -> &::std::option::Option<::std::string::String> {
@@ -232,8 +293,12 @@ impl OrganisationResponseBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_created_at(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.created_at = input; self
+    pub fn set_created_at(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.created_at = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_created_at(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
@@ -246,8 +311,12 @@ impl OrganisationResponseBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_updated_at(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.updated_at = input; self
+    pub fn set_updated_at(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.updated_at = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_updated_at(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
@@ -255,13 +324,20 @@ impl OrganisationResponseBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn updated_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn updated_by(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.updated_by = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_updated_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.updated_by = input; self
+    pub fn set_updated_by(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.updated_by = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_updated_by(&self) -> &::std::option::Option<::std::string::String> {
@@ -277,7 +353,12 @@ impl OrganisationResponseBuilder {
     /// - [`created_at`](crate::types::builders::OrganisationResponseBuilder::created_at)
     /// - [`updated_at`](crate::types::builders::OrganisationResponseBuilder::updated_at)
     /// - [`updated_by`](crate::types::builders::OrganisationResponseBuilder::updated_by)
-    pub fn build(self) -> ::std::result::Result<crate::types::OrganisationResponse, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::types::OrganisationResponse,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::types::OrganisationResponse {
                 id: self.id
@@ -332,4 +413,3 @@ impl OrganisationResponseBuilder {
         )
     }
 }
-

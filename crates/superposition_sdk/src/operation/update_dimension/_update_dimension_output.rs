@@ -2,13 +2,14 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct UpdateDimensionOutput  {
+pub struct UpdateDimensionOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub dimension: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
     pub position: i32,
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub schema: ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>,
+    pub schema:
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
     #[allow(missing_docs)] // documentation missing in model
     pub value_validation_function_name: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -24,7 +25,10 @@ pub struct UpdateDimensionOutput  {
     #[allow(missing_docs)] // documentation missing in model
     pub created_by: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
-    pub dependency_graph: ::std::collections::HashMap::<::std::string::String, ::std::vec::Vec::<::std::string::String>>,
+    pub dependency_graph: ::std::collections::HashMap<
+        ::std::string::String,
+        ::std::vec::Vec<::std::string::String>,
+    >,
     #[allow(missing_docs)] // documentation missing in model
     pub dimension_type: crate::types::DimensionType,
     #[allow(missing_docs)] // documentation missing in model
@@ -32,17 +36,21 @@ pub struct UpdateDimensionOutput  {
     #[allow(missing_docs)] // documentation missing in model
     pub mandatory: bool,
 }
-impl  UpdateDimensionOutput  {
+impl UpdateDimensionOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn dimension(&self) -> &str {
-        use std::ops::Deref; self.dimension.deref()
+        use std::ops::Deref;
+        self.dimension.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn position(&self) -> i32 {
         self.position
     }
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub fn schema(&self) -> &::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document> {
+    pub fn schema(
+        &self,
+    ) -> &::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>
+    {
         &self.schema
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -51,11 +59,13 @@ impl  UpdateDimensionOutput  {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn description(&self) -> &str {
-        use std::ops::Deref; self.description.deref()
+        use std::ops::Deref;
+        self.description.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn change_reason(&self) -> &str {
-        use std::ops::Deref; self.change_reason.deref()
+        use std::ops::Deref;
+        self.change_reason.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn last_modified_at(&self) -> &::aws_smithy_types::DateTime {
@@ -63,7 +73,8 @@ impl  UpdateDimensionOutput  {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn last_modified_by(&self) -> &str {
-        use std::ops::Deref; self.last_modified_by.deref()
+        use std::ops::Deref;
+        self.last_modified_by.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn created_at(&self) -> &::aws_smithy_types::DateTime {
@@ -71,10 +82,16 @@ impl  UpdateDimensionOutput  {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn created_by(&self) -> &str {
-        use std::ops::Deref; self.created_by.deref()
+        use std::ops::Deref;
+        self.created_by.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn dependency_graph(&self) -> &::std::collections::HashMap::<::std::string::String, ::std::vec::Vec::<::std::string::String>> {
+    pub fn dependency_graph(
+        &self,
+    ) -> &::std::collections::HashMap<
+        ::std::string::String,
+        ::std::vec::Vec<::std::string::String>,
+    > {
         &self.dependency_graph
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -92,26 +109,37 @@ impl  UpdateDimensionOutput  {
 }
 impl UpdateDimensionOutput {
     /// Creates a new builder-style object to manufacture [`UpdateDimensionOutput`](crate::operation::update_dimension::UpdateDimensionOutput).
-    pub fn builder() -> crate::operation::update_dimension::builders::UpdateDimensionOutputBuilder {
+    pub fn builder(
+    ) -> crate::operation::update_dimension::builders::UpdateDimensionOutputBuilder {
         crate::operation::update_dimension::builders::UpdateDimensionOutputBuilder::default()
     }
 }
 
 /// A builder for [`UpdateDimensionOutput`](crate::operation::update_dimension::UpdateDimensionOutput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct UpdateDimensionOutputBuilder {
     pub(crate) dimension: ::std::option::Option<::std::string::String>,
     pub(crate) position: ::std::option::Option<i32>,
-    pub(crate) schema: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
-    pub(crate) value_validation_function_name: ::std::option::Option<::std::string::String>,
+    pub(crate) schema: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    >,
+    pub(crate) value_validation_function_name:
+        ::std::option::Option<::std::string::String>,
     pub(crate) description: ::std::option::Option<::std::string::String>,
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
     pub(crate) last_modified_at: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) last_modified_by: ::std::option::Option<::std::string::String>,
     pub(crate) created_at: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) created_by: ::std::option::Option<::std::string::String>,
-    pub(crate) dependency_graph: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::vec::Vec::<::std::string::String>>>,
+    pub(crate) dependency_graph: ::std::option::Option<
+        ::std::collections::HashMap<
+            ::std::string::String,
+            ::std::vec::Vec<::std::string::String>,
+        >,
+    >,
     pub(crate) dimension_type: ::std::option::Option<crate::types::DimensionType>,
     pub(crate) value_compute_function_name: ::std::option::Option<::std::string::String>,
     pub(crate) mandatory: ::std::option::Option<bool>,
@@ -119,13 +147,20 @@ pub struct UpdateDimensionOutputBuilder {
 impl UpdateDimensionOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn dimension(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn dimension(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.dimension = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_dimension(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.dimension = input; self
+    pub fn set_dimension(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.dimension = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_dimension(&self) -> &::std::option::Option<::std::string::String> {
@@ -139,7 +174,8 @@ impl UpdateDimensionOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_position(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.position = input; self
+        self.position = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_position(&self) -> &::std::option::Option<i32> {
@@ -150,42 +186,75 @@ impl UpdateDimensionOutputBuilder {
     /// To override the contents of this collection use [`set_schema`](Self::set_schema).
     ///
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub fn schema(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
+    pub fn schema(
+        mut self,
+        k: impl ::std::convert::Into<::std::string::String>,
+        v: ::aws_smithy_types::Document,
+    ) -> Self {
         let mut hash_map = self.schema.unwrap_or_default();
-                        hash_map.insert(k.into(), v);
-                        self.schema = ::std::option::Option::Some(hash_map);
-                        self
+        hash_map.insert(k.into(), v);
+        self.schema = ::std::option::Option::Some(hash_map);
+        self
     }
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub fn set_schema(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
-        self.schema = input; self
+    pub fn set_schema(
+        mut self,
+        input: ::std::option::Option<
+            ::std::collections::HashMap<
+                ::std::string::String,
+                ::aws_smithy_types::Document,
+            >,
+        >,
+    ) -> Self {
+        self.schema = input;
+        self
     }
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub fn get_schema(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    pub fn get_schema(
+        &self,
+    ) -> &::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
         &self.schema
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn value_validation_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn value_validation_function_name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.value_validation_function_name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_value_validation_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.value_validation_function_name = input; self
+    pub fn set_value_validation_function_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.value_validation_function_name = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_value_validation_function_name(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_value_validation_function_name(
+        &self,
+    ) -> &::std::option::Option<::std::string::String> {
         &self.value_validation_function_name
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn description(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn description(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.description = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_description(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.description = input; self
+    pub fn set_description(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.description = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_description(&self) -> &::std::option::Option<::std::string::String> {
@@ -193,13 +262,20 @@ impl UpdateDimensionOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn change_reason(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn change_reason(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.change_reason = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_change_reason(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.change_reason = input; self
+    pub fn set_change_reason(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.change_reason = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
@@ -212,22 +288,35 @@ impl UpdateDimensionOutputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_last_modified_at(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.last_modified_at = input; self
+    pub fn set_last_modified_at(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.last_modified_at = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_last_modified_at(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
+    pub fn get_last_modified_at(
+        &self,
+    ) -> &::std::option::Option<::aws_smithy_types::DateTime> {
         &self.last_modified_at
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn last_modified_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn last_modified_by(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.last_modified_by = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_last_modified_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.last_modified_by = input; self
+    pub fn set_last_modified_by(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.last_modified_by = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_last_modified_by(&self) -> &::std::option::Option<::std::string::String> {
@@ -240,8 +329,12 @@ impl UpdateDimensionOutputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_created_at(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.created_at = input; self
+    pub fn set_created_at(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.created_at = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_created_at(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
@@ -249,13 +342,20 @@ impl UpdateDimensionOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn created_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn created_by(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.created_by = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_created_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.created_by = input; self
+    pub fn set_created_by(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.created_by = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_created_by(&self) -> &::std::option::Option<::std::string::String> {
@@ -265,18 +365,38 @@ impl UpdateDimensionOutputBuilder {
     ///
     /// To override the contents of this collection use [`set_dependency_graph`](Self::set_dependency_graph).
     ///
-    pub fn dependency_graph(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::std::vec::Vec::<::std::string::String>) -> Self {
+    pub fn dependency_graph(
+        mut self,
+        k: impl ::std::convert::Into<::std::string::String>,
+        v: ::std::vec::Vec<::std::string::String>,
+    ) -> Self {
         let mut hash_map = self.dependency_graph.unwrap_or_default();
-                        hash_map.insert(k.into(), v);
-                        self.dependency_graph = ::std::option::Option::Some(hash_map);
-                        self
+        hash_map.insert(k.into(), v);
+        self.dependency_graph = ::std::option::Option::Some(hash_map);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_dependency_graph(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::vec::Vec::<::std::string::String>>>) -> Self {
-        self.dependency_graph = input; self
+    pub fn set_dependency_graph(
+        mut self,
+        input: ::std::option::Option<
+            ::std::collections::HashMap<
+                ::std::string::String,
+                ::std::vec::Vec<::std::string::String>,
+            >,
+        >,
+    ) -> Self {
+        self.dependency_graph = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_dependency_graph(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::vec::Vec::<::std::string::String>>> {
+    pub fn get_dependency_graph(
+        &self,
+    ) -> &::std::option::Option<
+        ::std::collections::HashMap<
+            ::std::string::String,
+            ::std::vec::Vec<::std::string::String>,
+        >,
+    > {
         &self.dependency_graph
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -286,24 +406,39 @@ impl UpdateDimensionOutputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_dimension_type(mut self, input: ::std::option::Option<crate::types::DimensionType>) -> Self {
-        self.dimension_type = input; self
+    pub fn set_dimension_type(
+        mut self,
+        input: ::std::option::Option<crate::types::DimensionType>,
+    ) -> Self {
+        self.dimension_type = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_dimension_type(&self) -> &::std::option::Option<crate::types::DimensionType> {
+    pub fn get_dimension_type(
+        &self,
+    ) -> &::std::option::Option<crate::types::DimensionType> {
         &self.dimension_type
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn value_compute_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn value_compute_function_name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.value_compute_function_name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_value_compute_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.value_compute_function_name = input; self
+    pub fn set_value_compute_function_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.value_compute_function_name = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_value_compute_function_name(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_value_compute_function_name(
+        &self,
+    ) -> &::std::option::Option<::std::string::String> {
         &self.value_compute_function_name
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -314,7 +449,8 @@ impl UpdateDimensionOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_mandatory(mut self, input: ::std::option::Option<bool>) -> Self {
-        self.mandatory = input; self
+        self.mandatory = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_mandatory(&self) -> &::std::option::Option<bool> {
@@ -334,7 +470,12 @@ impl UpdateDimensionOutputBuilder {
     /// - [`dependency_graph`](crate::operation::update_dimension::builders::UpdateDimensionOutputBuilder::dependency_graph)
     /// - [`dimension_type`](crate::operation::update_dimension::builders::UpdateDimensionOutputBuilder::dimension_type)
     /// - [`mandatory`](crate::operation::update_dimension::builders::UpdateDimensionOutputBuilder::mandatory)
-    pub fn build(self) -> ::std::result::Result<crate::operation::update_dimension::UpdateDimensionOutput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::update_dimension::UpdateDimensionOutput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::update_dimension::UpdateDimensionOutput {
                 dimension: self.dimension
@@ -405,4 +546,3 @@ impl UpdateDimensionOutputBuilder {
         )
     }
 }
-

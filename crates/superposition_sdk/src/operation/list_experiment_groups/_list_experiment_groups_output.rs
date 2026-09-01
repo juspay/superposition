@@ -2,17 +2,17 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct ListExperimentGroupsOutput  {
+pub struct ListExperimentGroupsOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub total_pages: i32,
     #[allow(missing_docs)] // documentation missing in model
     pub total_items: i32,
     /// A list of experiment group responses.
-    pub data: ::std::vec::Vec::<crate::types::ExperimentGroupResponse>,
+    pub data: ::std::vec::Vec<crate::types::ExperimentGroupResponse>,
     #[allow(missing_docs)] // documentation missing in model
     pub last_modified: ::aws_smithy_types::DateTime,
 }
-impl  ListExperimentGroupsOutput  {
+impl ListExperimentGroupsOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn total_pages(&self) -> i32 {
         self.total_pages
@@ -23,7 +23,8 @@ impl  ListExperimentGroupsOutput  {
     }
     /// A list of experiment group responses.
     pub fn data(&self) -> &[crate::types::ExperimentGroupResponse] {
-        use std::ops::Deref; self.data.deref()
+        use std::ops::Deref;
+        self.data.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn last_modified(&self) -> &::aws_smithy_types::DateTime {
@@ -32,18 +33,21 @@ impl  ListExperimentGroupsOutput  {
 }
 impl ListExperimentGroupsOutput {
     /// Creates a new builder-style object to manufacture [`ListExperimentGroupsOutput`](crate::operation::list_experiment_groups::ListExperimentGroupsOutput).
-    pub fn builder() -> crate::operation::list_experiment_groups::builders::ListExperimentGroupsOutputBuilder {
+    pub fn builder() -> crate::operation::list_experiment_groups::builders::ListExperimentGroupsOutputBuilder{
         crate::operation::list_experiment_groups::builders::ListExperimentGroupsOutputBuilder::default()
     }
 }
 
 /// A builder for [`ListExperimentGroupsOutput`](crate::operation::list_experiment_groups::ListExperimentGroupsOutput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct ListExperimentGroupsOutputBuilder {
     pub(crate) total_pages: ::std::option::Option<i32>,
     pub(crate) total_items: ::std::option::Option<i32>,
-    pub(crate) data: ::std::option::Option<::std::vec::Vec::<crate::types::ExperimentGroupResponse>>,
+    pub(crate) data:
+        ::std::option::Option<::std::vec::Vec<crate::types::ExperimentGroupResponse>>,
     pub(crate) last_modified: ::std::option::Option<::aws_smithy_types::DateTime>,
 }
 impl ListExperimentGroupsOutputBuilder {
@@ -55,7 +59,8 @@ impl ListExperimentGroupsOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_total_pages(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.total_pages = input; self
+        self.total_pages = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_total_pages(&self) -> &::std::option::Option<i32> {
@@ -69,7 +74,8 @@ impl ListExperimentGroupsOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_total_items(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.total_items = input; self
+        self.total_items = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_total_items(&self) -> &::std::option::Option<i32> {
@@ -82,16 +88,25 @@ impl ListExperimentGroupsOutputBuilder {
     /// A list of experiment group responses.
     pub fn data(mut self, input: crate::types::ExperimentGroupResponse) -> Self {
         let mut v = self.data.unwrap_or_default();
-                        v.push(input);
-                        self.data = ::std::option::Option::Some(v);
-                        self
+        v.push(input);
+        self.data = ::std::option::Option::Some(v);
+        self
     }
     /// A list of experiment group responses.
-    pub fn set_data(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::ExperimentGroupResponse>>) -> Self {
-        self.data = input; self
+    pub fn set_data(
+        mut self,
+        input: ::std::option::Option<
+            ::std::vec::Vec<crate::types::ExperimentGroupResponse>,
+        >,
+    ) -> Self {
+        self.data = input;
+        self
     }
     /// A list of experiment group responses.
-    pub fn get_data(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::ExperimentGroupResponse>> {
+    pub fn get_data(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<crate::types::ExperimentGroupResponse>>
+    {
         &self.data
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -101,11 +116,17 @@ impl ListExperimentGroupsOutputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_last_modified(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.last_modified = input; self
+    pub fn set_last_modified(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.last_modified = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_last_modified(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
+    pub fn get_last_modified(
+        &self,
+    ) -> &::std::option::Option<::aws_smithy_types::DateTime> {
         &self.last_modified
     }
     /// Consumes the builder and constructs a [`ListExperimentGroupsOutput`](crate::operation::list_experiment_groups::ListExperimentGroupsOutput).
@@ -114,7 +135,12 @@ impl ListExperimentGroupsOutputBuilder {
     /// - [`total_items`](crate::operation::list_experiment_groups::builders::ListExperimentGroupsOutputBuilder::total_items)
     /// - [`data`](crate::operation::list_experiment_groups::builders::ListExperimentGroupsOutputBuilder::data)
     /// - [`last_modified`](crate::operation::list_experiment_groups::builders::ListExperimentGroupsOutputBuilder::last_modified)
-    pub fn build(self) -> ::std::result::Result<crate::operation::list_experiment_groups::ListExperimentGroupsOutput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::list_experiment_groups::ListExperimentGroupsOutput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::list_experiment_groups::ListExperimentGroupsOutput {
                 total_pages: self.total_pages
@@ -141,4 +167,3 @@ impl ListExperimentGroupsOutputBuilder {
         )
     }
 }
-

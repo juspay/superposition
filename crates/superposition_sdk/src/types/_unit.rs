@@ -2,8 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct Unit  {
-}
+pub struct Unit {}
 impl Unit {
     /// Creates a new builder-style object to manufacture [`Unit`](crate::types::Unit).
     pub fn builder() -> crate::types::builders::UnitBuilder {
@@ -12,15 +11,14 @@ impl Unit {
 }
 
 /// A builder for [`Unit`](crate::types::Unit).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
-pub struct UnitBuilder {
-}
+pub struct UnitBuilder {}
 impl UnitBuilder {
     /// Consumes the builder and constructs a [`Unit`](crate::types::Unit).
     pub fn build(self) -> crate::types::Unit {
-        crate::types::Unit {
-        }
+        crate::types::Unit {}
     }
 }
-

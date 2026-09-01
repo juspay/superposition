@@ -2,15 +2,15 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct ListVariablesOutput  {
+pub struct ListVariablesOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub total_pages: i32,
     #[allow(missing_docs)] // documentation missing in model
     pub total_items: i32,
     #[allow(missing_docs)] // documentation missing in model
-    pub data: ::std::vec::Vec::<crate::types::VariableResponse>,
+    pub data: ::std::vec::Vec<crate::types::VariableResponse>,
 }
-impl  ListVariablesOutput  {
+impl ListVariablesOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn total_pages(&self) -> i32 {
         self.total_pages
@@ -21,23 +21,28 @@ impl  ListVariablesOutput  {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn data(&self) -> &[crate::types::VariableResponse] {
-        use std::ops::Deref; self.data.deref()
+        use std::ops::Deref;
+        self.data.deref()
     }
 }
 impl ListVariablesOutput {
     /// Creates a new builder-style object to manufacture [`ListVariablesOutput`](crate::operation::list_variables::ListVariablesOutput).
-    pub fn builder() -> crate::operation::list_variables::builders::ListVariablesOutputBuilder {
+    pub fn builder(
+    ) -> crate::operation::list_variables::builders::ListVariablesOutputBuilder {
         crate::operation::list_variables::builders::ListVariablesOutputBuilder::default()
     }
 }
 
 /// A builder for [`ListVariablesOutput`](crate::operation::list_variables::ListVariablesOutput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct ListVariablesOutputBuilder {
     pub(crate) total_pages: ::std::option::Option<i32>,
     pub(crate) total_items: ::std::option::Option<i32>,
-    pub(crate) data: ::std::option::Option<::std::vec::Vec::<crate::types::VariableResponse>>,
+    pub(crate) data:
+        ::std::option::Option<::std::vec::Vec<crate::types::VariableResponse>>,
 }
 impl ListVariablesOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -48,7 +53,8 @@ impl ListVariablesOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_total_pages(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.total_pages = input; self
+        self.total_pages = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_total_pages(&self) -> &::std::option::Option<i32> {
@@ -62,7 +68,8 @@ impl ListVariablesOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_total_items(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.total_items = input; self
+        self.total_items = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_total_items(&self) -> &::std::option::Option<i32> {
@@ -74,16 +81,22 @@ impl ListVariablesOutputBuilder {
     ///
     pub fn data(mut self, input: crate::types::VariableResponse) -> Self {
         let mut v = self.data.unwrap_or_default();
-                        v.push(input);
-                        self.data = ::std::option::Option::Some(v);
-                        self
+        v.push(input);
+        self.data = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_data(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::VariableResponse>>) -> Self {
-        self.data = input; self
+    pub fn set_data(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<crate::types::VariableResponse>>,
+    ) -> Self {
+        self.data = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_data(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::VariableResponse>> {
+    pub fn get_data(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<crate::types::VariableResponse>> {
         &self.data
     }
     /// Consumes the builder and constructs a [`ListVariablesOutput`](crate::operation::list_variables::ListVariablesOutput).
@@ -91,7 +104,12 @@ impl ListVariablesOutputBuilder {
     /// - [`total_pages`](crate::operation::list_variables::builders::ListVariablesOutputBuilder::total_pages)
     /// - [`total_items`](crate::operation::list_variables::builders::ListVariablesOutputBuilder::total_items)
     /// - [`data`](crate::operation::list_variables::builders::ListVariablesOutputBuilder::data)
-    pub fn build(self) -> ::std::result::Result<crate::operation::list_variables::ListVariablesOutput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::list_variables::ListVariablesOutput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::list_variables::ListVariablesOutput {
                 total_pages: self.total_pages
@@ -113,4 +131,3 @@ impl ListVariablesOutputBuilder {
         )
     }
 }
-

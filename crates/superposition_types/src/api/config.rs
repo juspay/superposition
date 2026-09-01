@@ -82,9 +82,28 @@ pub struct Explanation {
 }
 
 #[derive(
-    strum_macros::EnumString, Clone, Copy, strum_macros::Display, Default, uniffi::Enum,
+    strum_macros::EnumString,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Deserialize,
+    Serialize,
+    strum_macros::Display,
+    Default,
+    uniffi::Enum,
 )]
+#[serde(rename_all = "UPPERCASE")]
 #[strum(serialize_all = "snake_case")]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(diesel_derive_enum::DbEnum, diesel::query_builder::QueryId)
+)]
+#[cfg_attr(feature = "diesel_derives", DbValueStyle = "UPPERCASE")]
+#[cfg_attr(
+    feature = "diesel_derives",
+    ExistingTypePath = "crate::database::superposition_schema::superposition::sql_types::MergeStrategy"
+)]
 pub enum MergeStrategy {
     #[default]
     MERGE,

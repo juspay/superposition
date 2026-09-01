@@ -3,7 +3,7 @@
 /// Input structure for updating an existing experiment group.
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct UpdateExperimentGroupInput  {
+pub struct UpdateExperimentGroupInput {
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -17,7 +17,7 @@ pub struct UpdateExperimentGroupInput  {
     /// Optional new traffic percentage for the group.
     pub traffic_percentage: ::std::option::Option<i32>,
 }
-impl  UpdateExperimentGroupInput  {
+impl UpdateExperimentGroupInput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(&self) -> ::std::option::Option<&str> {
         self.workspace_id.as_deref()
@@ -45,13 +45,15 @@ impl  UpdateExperimentGroupInput  {
 }
 impl UpdateExperimentGroupInput {
     /// Creates a new builder-style object to manufacture [`UpdateExperimentGroupInput`](crate::operation::update_experiment_group::UpdateExperimentGroupInput).
-    pub fn builder() -> crate::operation::update_experiment_group::builders::UpdateExperimentGroupInputBuilder {
+    pub fn builder() -> crate::operation::update_experiment_group::builders::UpdateExperimentGroupInputBuilder{
         crate::operation::update_experiment_group::builders::UpdateExperimentGroupInputBuilder::default()
     }
 }
 
 /// A builder for [`UpdateExperimentGroupInput`](crate::operation::update_experiment_group::UpdateExperimentGroupInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct UpdateExperimentGroupInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
@@ -64,13 +66,20 @@ pub struct UpdateExperimentGroupInputBuilder {
 impl UpdateExperimentGroupInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_id = input; self
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -78,13 +87,20 @@ impl UpdateExperimentGroupInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -98,7 +114,8 @@ impl UpdateExperimentGroupInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.id = input; self
+        self.id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -106,26 +123,40 @@ impl UpdateExperimentGroupInputBuilder {
     }
     /// Reason for this update.
     /// This field is required.
-    pub fn change_reason(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn change_reason(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.change_reason = ::std::option::Option::Some(input.into());
         self
     }
     /// Reason for this update.
-    pub fn set_change_reason(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.change_reason = input; self
+    pub fn set_change_reason(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.change_reason = input;
+        self
     }
     /// Reason for this update.
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
         &self.change_reason
     }
     /// Optional new description for the group.
-    pub fn description(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn description(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.description = ::std::option::Option::Some(input.into());
         self
     }
     /// Optional new description for the group.
-    pub fn set_description(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.description = input; self
+    pub fn set_description(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.description = input;
+        self
     }
     /// Optional new description for the group.
     pub fn get_description(&self) -> &::std::option::Option<::std::string::String> {
@@ -138,30 +169,29 @@ impl UpdateExperimentGroupInputBuilder {
     }
     /// Optional new traffic percentage for the group.
     pub fn set_traffic_percentage(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.traffic_percentage = input; self
+        self.traffic_percentage = input;
+        self
     }
     /// Optional new traffic percentage for the group.
     pub fn get_traffic_percentage(&self) -> &::std::option::Option<i32> {
         &self.traffic_percentage
     }
     /// Consumes the builder and constructs a [`UpdateExperimentGroupInput`](crate::operation::update_experiment_group::UpdateExperimentGroupInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::update_experiment_group::UpdateExperimentGroupInput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::update_experiment_group::UpdateExperimentGroupInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::update_experiment_group::UpdateExperimentGroupInput {
-                workspace_id: self.workspace_id
-                ,
-                org_id: self.org_id
-                ,
-                id: self.id
-                ,
-                change_reason: self.change_reason
-                ,
-                description: self.description
-                ,
-                traffic_percentage: self.traffic_percentage
-                ,
-            }
+                workspace_id: self.workspace_id,
+                org_id: self.org_id,
+                id: self.id,
+                change_reason: self.change_reason,
+                description: self.description,
+                traffic_percentage: self.traffic_percentage,
+            },
         )
     }
 }
-

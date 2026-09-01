@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct RampExperimentInput  {
+pub struct RampExperimentInput {
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -14,7 +14,7 @@ pub struct RampExperimentInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub traffic_percentage: ::std::option::Option<i32>,
 }
-impl  RampExperimentInput  {
+impl RampExperimentInput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(&self) -> ::std::option::Option<&str> {
         self.workspace_id.as_deref()
@@ -38,13 +38,16 @@ impl  RampExperimentInput  {
 }
 impl RampExperimentInput {
     /// Creates a new builder-style object to manufacture [`RampExperimentInput`](crate::operation::ramp_experiment::RampExperimentInput).
-    pub fn builder() -> crate::operation::ramp_experiment::builders::RampExperimentInputBuilder {
+    pub fn builder(
+    ) -> crate::operation::ramp_experiment::builders::RampExperimentInputBuilder {
         crate::operation::ramp_experiment::builders::RampExperimentInputBuilder::default()
     }
 }
 
 /// A builder for [`RampExperimentInput`](crate::operation::ramp_experiment::RampExperimentInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct RampExperimentInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
@@ -56,13 +59,20 @@ pub struct RampExperimentInputBuilder {
 impl RampExperimentInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_id = input; self
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -70,13 +80,20 @@ impl RampExperimentInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -90,7 +107,8 @@ impl RampExperimentInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.id = input; self
+        self.id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -98,13 +116,20 @@ impl RampExperimentInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn change_reason(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn change_reason(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.change_reason = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_change_reason(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.change_reason = input; self
+    pub fn set_change_reason(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.change_reason = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
@@ -118,28 +143,28 @@ impl RampExperimentInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_traffic_percentage(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.traffic_percentage = input; self
+        self.traffic_percentage = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_traffic_percentage(&self) -> &::std::option::Option<i32> {
         &self.traffic_percentage
     }
     /// Consumes the builder and constructs a [`RampExperimentInput`](crate::operation::ramp_experiment::RampExperimentInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::ramp_experiment::RampExperimentInput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::ramp_experiment::RampExperimentInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::ramp_experiment::RampExperimentInput {
-                workspace_id: self.workspace_id
-                ,
-                org_id: self.org_id
-                ,
-                id: self.id
-                ,
-                change_reason: self.change_reason
-                ,
-                traffic_percentage: self.traffic_percentage
-                ,
-            }
+                workspace_id: self.workspace_id,
+                org_id: self.org_id,
+                id: self.id,
+                change_reason: self.change_reason,
+                traffic_percentage: self.traffic_percentage,
+            },
         )
     }
 }
-

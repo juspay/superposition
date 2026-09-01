@@ -2,25 +2,24 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct DeleteDimensionOutput  {
-}
+pub struct DeleteDimensionOutput {}
 impl DeleteDimensionOutput {
     /// Creates a new builder-style object to manufacture [`DeleteDimensionOutput`](crate::operation::delete_dimension::DeleteDimensionOutput).
-    pub fn builder() -> crate::operation::delete_dimension::builders::DeleteDimensionOutputBuilder {
+    pub fn builder(
+    ) -> crate::operation::delete_dimension::builders::DeleteDimensionOutputBuilder {
         crate::operation::delete_dimension::builders::DeleteDimensionOutputBuilder::default()
     }
 }
 
 /// A builder for [`DeleteDimensionOutput`](crate::operation::delete_dimension::DeleteDimensionOutput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
-pub struct DeleteDimensionOutputBuilder {
-}
+pub struct DeleteDimensionOutputBuilder {}
 impl DeleteDimensionOutputBuilder {
     /// Consumes the builder and constructs a [`DeleteDimensionOutput`](crate::operation::delete_dimension::DeleteDimensionOutput).
     pub fn build(self) -> crate::operation::delete_dimension::DeleteDimensionOutput {
-        crate::operation::delete_dimension::DeleteDimensionOutput {
-        }
+        crate::operation::delete_dimension::DeleteDimensionOutput {}
     }
 }
-

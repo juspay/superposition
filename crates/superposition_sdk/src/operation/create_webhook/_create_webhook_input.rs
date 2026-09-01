@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct CreateWebhookInput  {
+pub struct CreateWebhookInput {
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -20,13 +20,15 @@ pub struct CreateWebhookInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub version: ::std::option::Option<crate::types::Version>,
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub custom_headers: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub custom_headers: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    >,
     #[allow(missing_docs)] // documentation missing in model
-    pub events: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub events: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
     #[allow(missing_docs)] // documentation missing in model
     pub change_reason: ::std::option::Option<::std::string::String>,
 }
-impl  CreateWebhookInput  {
+impl CreateWebhookInput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(&self) -> ::std::option::Option<&str> {
         self.workspace_id.as_deref()
@@ -60,15 +62,18 @@ impl  CreateWebhookInput  {
         self.version.as_ref()
     }
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub fn custom_headers(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    pub fn custom_headers(
+        &self,
+    ) -> ::std::option::Option<
+        &::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
         self.custom_headers.as_ref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.events.is_none()`.
     pub fn events(&self) -> &[::std::string::String] {
-        self.events.as_deref()
-        .unwrap_or_default()
+        self.events.as_deref().unwrap_or_default()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn change_reason(&self) -> ::std::option::Option<&str> {
@@ -77,13 +82,16 @@ impl  CreateWebhookInput  {
 }
 impl CreateWebhookInput {
     /// Creates a new builder-style object to manufacture [`CreateWebhookInput`](crate::operation::create_webhook::CreateWebhookInput).
-    pub fn builder() -> crate::operation::create_webhook::builders::CreateWebhookInputBuilder {
+    pub fn builder(
+    ) -> crate::operation::create_webhook::builders::CreateWebhookInputBuilder {
         crate::operation::create_webhook::builders::CreateWebhookInputBuilder::default()
     }
 }
 
 /// A builder for [`CreateWebhookInput`](crate::operation::create_webhook::CreateWebhookInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct CreateWebhookInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
@@ -94,20 +102,29 @@ pub struct CreateWebhookInputBuilder {
     pub(crate) url: ::std::option::Option<::std::string::String>,
     pub(crate) method: ::std::option::Option<crate::types::HttpMethod>,
     pub(crate) version: ::std::option::Option<crate::types::Version>,
-    pub(crate) custom_headers: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
-    pub(crate) events: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub(crate) custom_headers: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    >,
+    pub(crate) events: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
 }
 impl CreateWebhookInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_id = input; self
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -115,13 +132,20 @@ impl CreateWebhookInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -129,13 +153,20 @@ impl CreateWebhookInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.name = input; self
+    pub fn set_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.name = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_name(&self) -> &::std::option::Option<::std::string::String> {
@@ -143,13 +174,20 @@ impl CreateWebhookInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn description(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn description(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.description = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_description(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.description = input; self
+    pub fn set_description(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.description = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_description(&self) -> &::std::option::Option<::std::string::String> {
@@ -163,7 +201,8 @@ impl CreateWebhookInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_enabled(mut self, input: ::std::option::Option<bool>) -> Self {
-        self.enabled = input; self
+        self.enabled = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_enabled(&self) -> &::std::option::Option<bool> {
@@ -171,13 +210,20 @@ impl CreateWebhookInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn url(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn url(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.url = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_url(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.url = input; self
+    pub fn set_url(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.url = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_url(&self) -> &::std::option::Option<::std::string::String> {
@@ -190,8 +236,12 @@ impl CreateWebhookInputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_method(mut self, input: ::std::option::Option<crate::types::HttpMethod>) -> Self {
-        self.method = input; self
+    pub fn set_method(
+        mut self,
+        input: ::std::option::Option<crate::types::HttpMethod>,
+    ) -> Self {
+        self.method = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_method(&self) -> &::std::option::Option<crate::types::HttpMethod> {
@@ -203,8 +253,12 @@ impl CreateWebhookInputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_version(mut self, input: ::std::option::Option<crate::types::Version>) -> Self {
-        self.version = input; self
+    pub fn set_version(
+        mut self,
+        input: ::std::option::Option<crate::types::Version>,
+    ) -> Self {
+        self.version = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_version(&self) -> &::std::option::Option<crate::types::Version> {
@@ -215,80 +269,104 @@ impl CreateWebhookInputBuilder {
     /// To override the contents of this collection use [`set_custom_headers`](Self::set_custom_headers).
     ///
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub fn custom_headers(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
+    pub fn custom_headers(
+        mut self,
+        k: impl ::std::convert::Into<::std::string::String>,
+        v: ::aws_smithy_types::Document,
+    ) -> Self {
         let mut hash_map = self.custom_headers.unwrap_or_default();
-                        hash_map.insert(k.into(), v);
-                        self.custom_headers = ::std::option::Option::Some(hash_map);
-                        self
+        hash_map.insert(k.into(), v);
+        self.custom_headers = ::std::option::Option::Some(hash_map);
+        self
     }
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub fn set_custom_headers(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
-        self.custom_headers = input; self
+    pub fn set_custom_headers(
+        mut self,
+        input: ::std::option::Option<
+            ::std::collections::HashMap<
+                ::std::string::String,
+                ::aws_smithy_types::Document,
+            >,
+        >,
+    ) -> Self {
+        self.custom_headers = input;
+        self
     }
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub fn get_custom_headers(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    pub fn get_custom_headers(
+        &self,
+    ) -> &::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
         &self.custom_headers
     }
     /// Appends an item to `events`.
     ///
     /// To override the contents of this collection use [`set_events`](Self::set_events).
     ///
-    pub fn events(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn events(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         let mut v = self.events.unwrap_or_default();
-                        v.push(input.into());
-                        self.events = ::std::option::Option::Some(v);
-                        self
+        v.push(input.into());
+        self.events = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_events(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-        self.events = input; self
+    pub fn set_events(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    ) -> Self {
+        self.events = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_events(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
+    pub fn get_events(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<::std::string::String>> {
         &self.events
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn change_reason(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn change_reason(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.change_reason = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_change_reason(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.change_reason = input; self
+    pub fn set_change_reason(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.change_reason = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
         &self.change_reason
     }
     /// Consumes the builder and constructs a [`CreateWebhookInput`](crate::operation::create_webhook::CreateWebhookInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::create_webhook::CreateWebhookInput, ::aws_smithy_types::error::operation::BuildError> {
-        ::std::result::Result::Ok(
-            crate::operation::create_webhook::CreateWebhookInput {
-                workspace_id: self.workspace_id
-                ,
-                org_id: self.org_id
-                ,
-                name: self.name
-                ,
-                description: self.description
-                ,
-                enabled: self.enabled
-                ,
-                url: self.url
-                ,
-                method: self.method
-                ,
-                version: self.version
-                ,
-                custom_headers: self.custom_headers
-                ,
-                events: self.events
-                ,
-                change_reason: self.change_reason
-                ,
-            }
-        )
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::create_webhook::CreateWebhookInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
+        ::std::result::Result::Ok(crate::operation::create_webhook::CreateWebhookInput {
+            workspace_id: self.workspace_id,
+            org_id: self.org_id,
+            name: self.name,
+            description: self.description,
+            enabled: self.enabled,
+            url: self.url,
+            method: self.method,
+            version: self.version,
+            custom_headers: self.custom_headers,
+            events: self.events,
+            change_reason: self.change_reason,
+        })
     }
 }
-

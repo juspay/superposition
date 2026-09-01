@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct CreateOrganisationInput  {
+pub struct CreateOrganisationInput {
     #[allow(missing_docs)] // documentation missing in model
     pub country_code: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -16,7 +16,7 @@ pub struct CreateOrganisationInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub name: ::std::option::Option<::std::string::String>,
 }
-impl  CreateOrganisationInput  {
+impl CreateOrganisationInput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn country_code(&self) -> ::std::option::Option<&str> {
         self.country_code.as_deref()
@@ -44,13 +44,17 @@ impl  CreateOrganisationInput  {
 }
 impl CreateOrganisationInput {
     /// Creates a new builder-style object to manufacture [`CreateOrganisationInput`](crate::operation::create_organisation::CreateOrganisationInput).
-    pub fn builder() -> crate::operation::create_organisation::builders::CreateOrganisationInputBuilder {
+    pub fn builder(
+    ) -> crate::operation::create_organisation::builders::CreateOrganisationInputBuilder
+    {
         crate::operation::create_organisation::builders::CreateOrganisationInputBuilder::default()
     }
 }
 
 /// A builder for [`CreateOrganisationInput`](crate::operation::create_organisation::CreateOrganisationInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct CreateOrganisationInputBuilder {
     pub(crate) country_code: ::std::option::Option<::std::string::String>,
@@ -62,39 +66,60 @@ pub struct CreateOrganisationInputBuilder {
 }
 impl CreateOrganisationInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
-    pub fn country_code(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn country_code(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.country_code = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_country_code(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.country_code = input; self
+    pub fn set_country_code(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.country_code = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_country_code(&self) -> &::std::option::Option<::std::string::String> {
         &self.country_code
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn contact_email(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn contact_email(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.contact_email = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_contact_email(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.contact_email = input; self
+    pub fn set_contact_email(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.contact_email = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_contact_email(&self) -> &::std::option::Option<::std::string::String> {
         &self.contact_email
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn contact_phone(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn contact_phone(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.contact_phone = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_contact_phone(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.contact_phone = input; self
+    pub fn set_contact_phone(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.contact_phone = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_contact_phone(&self) -> &::std::option::Option<::std::string::String> {
@@ -102,26 +127,40 @@ impl CreateOrganisationInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn admin_email(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn admin_email(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.admin_email = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_admin_email(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.admin_email = input; self
+    pub fn set_admin_email(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.admin_email = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_admin_email(&self) -> &::std::option::Option<::std::string::String> {
         &self.admin_email
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn sector(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn sector(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.sector = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_sector(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.sector = input; self
+    pub fn set_sector(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.sector = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_sector(&self) -> &::std::option::Option<::std::string::String> {
@@ -129,36 +168,41 @@ impl CreateOrganisationInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.name = input; self
+    pub fn set_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.name = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_name(&self) -> &::std::option::Option<::std::string::String> {
         &self.name
     }
     /// Consumes the builder and constructs a [`CreateOrganisationInput`](crate::operation::create_organisation::CreateOrganisationInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::create_organisation::CreateOrganisationInput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::create_organisation::CreateOrganisationInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::create_organisation::CreateOrganisationInput {
-                country_code: self.country_code
-                ,
-                contact_email: self.contact_email
-                ,
-                contact_phone: self.contact_phone
-                ,
-                admin_email: self.admin_email
-                ,
-                sector: self.sector
-                ,
-                name: self.name
-                ,
-            }
+                country_code: self.country_code,
+                contact_email: self.contact_email,
+                contact_phone: self.contact_phone,
+                admin_email: self.admin_email,
+                sector: self.sector,
+                name: self.name,
+            },
         )
     }
 }
-

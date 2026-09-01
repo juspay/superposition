@@ -2,13 +2,13 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct RotateWorkspaceEncryptionKeyInput  {
+pub struct RotateWorkspaceEncryptionKeyInput {
     #[allow(missing_docs)] // documentation missing in model
     pub org_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_name: ::std::option::Option<::std::string::String>,
 }
-impl  RotateWorkspaceEncryptionKeyInput  {
+impl RotateWorkspaceEncryptionKeyInput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn org_id(&self) -> ::std::option::Option<&str> {
         self.org_id.as_deref()
@@ -20,13 +20,15 @@ impl  RotateWorkspaceEncryptionKeyInput  {
 }
 impl RotateWorkspaceEncryptionKeyInput {
     /// Creates a new builder-style object to manufacture [`RotateWorkspaceEncryptionKeyInput`](crate::operation::rotate_workspace_encryption_key::RotateWorkspaceEncryptionKeyInput).
-    pub fn builder() -> crate::operation::rotate_workspace_encryption_key::builders::RotateWorkspaceEncryptionKeyInputBuilder {
+    pub fn builder() -> crate::operation::rotate_workspace_encryption_key::builders::RotateWorkspaceEncryptionKeyInputBuilder{
         crate::operation::rotate_workspace_encryption_key::builders::RotateWorkspaceEncryptionKeyInputBuilder::default()
     }
 }
 
 /// A builder for [`RotateWorkspaceEncryptionKeyInput`](crate::operation::rotate_workspace_encryption_key::RotateWorkspaceEncryptionKeyInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct RotateWorkspaceEncryptionKeyInputBuilder {
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
@@ -35,13 +37,20 @@ pub struct RotateWorkspaceEncryptionKeyInputBuilder {
 impl RotateWorkspaceEncryptionKeyInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -49,20 +58,27 @@ impl RotateWorkspaceEncryptionKeyInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_name = input; self
+    pub fn set_workspace_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_name = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_name(&self) -> &::std::option::Option<::std::string::String> {
         &self.workspace_name
     }
     /// Consumes the builder and constructs a [`RotateWorkspaceEncryptionKeyInput`](crate::operation::rotate_workspace_encryption_key::RotateWorkspaceEncryptionKeyInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::rotate_workspace_encryption_key::RotateWorkspaceEncryptionKeyInput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(self) -> ::std::result::Result<crate::operation::rotate_workspace_encryption_key::RotateWorkspaceEncryptionKeyInput, ::aws_smithy_types::error::operation::BuildError>{
         ::std::result::Result::Ok(
             crate::operation::rotate_workspace_encryption_key::RotateWorkspaceEncryptionKeyInput {
                 org_id: self.org_id
@@ -73,4 +89,3 @@ impl RotateWorkspaceEncryptionKeyInputBuilder {
         )
     }
 }
-

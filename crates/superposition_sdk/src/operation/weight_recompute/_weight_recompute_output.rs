@@ -2,31 +2,35 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct WeightRecomputeOutput  {
+pub struct WeightRecomputeOutput {
     #[allow(missing_docs)] // documentation missing in model
-    pub data: ::std::option::Option<::std::vec::Vec::<crate::types::WeightRecomputeResponse>>,
+    pub data:
+        ::std::option::Option<::std::vec::Vec<crate::types::WeightRecomputeResponse>>,
 }
-impl  WeightRecomputeOutput  {
+impl WeightRecomputeOutput {
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.data.is_none()`.
     pub fn data(&self) -> &[crate::types::WeightRecomputeResponse] {
-        self.data.as_deref()
-        .unwrap_or_default()
+        self.data.as_deref().unwrap_or_default()
     }
 }
 impl WeightRecomputeOutput {
     /// Creates a new builder-style object to manufacture [`WeightRecomputeOutput`](crate::operation::weight_recompute::WeightRecomputeOutput).
-    pub fn builder() -> crate::operation::weight_recompute::builders::WeightRecomputeOutputBuilder {
+    pub fn builder(
+    ) -> crate::operation::weight_recompute::builders::WeightRecomputeOutputBuilder {
         crate::operation::weight_recompute::builders::WeightRecomputeOutputBuilder::default()
     }
 }
 
 /// A builder for [`WeightRecomputeOutput`](crate::operation::weight_recompute::WeightRecomputeOutput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct WeightRecomputeOutputBuilder {
-    pub(crate) data: ::std::option::Option<::std::vec::Vec::<crate::types::WeightRecomputeResponse>>,
+    pub(crate) data:
+        ::std::option::Option<::std::vec::Vec<crate::types::WeightRecomputeResponse>>,
 }
 impl WeightRecomputeOutputBuilder {
     /// Appends an item to `data`.
@@ -35,24 +39,29 @@ impl WeightRecomputeOutputBuilder {
     ///
     pub fn data(mut self, input: crate::types::WeightRecomputeResponse) -> Self {
         let mut v = self.data.unwrap_or_default();
-                        v.push(input);
-                        self.data = ::std::option::Option::Some(v);
-                        self
+        v.push(input);
+        self.data = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_data(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::WeightRecomputeResponse>>) -> Self {
-        self.data = input; self
+    pub fn set_data(
+        mut self,
+        input: ::std::option::Option<
+            ::std::vec::Vec<crate::types::WeightRecomputeResponse>,
+        >,
+    ) -> Self {
+        self.data = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_data(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::WeightRecomputeResponse>> {
+    pub fn get_data(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<crate::types::WeightRecomputeResponse>>
+    {
         &self.data
     }
     /// Consumes the builder and constructs a [`WeightRecomputeOutput`](crate::operation::weight_recompute::WeightRecomputeOutput).
     pub fn build(self) -> crate::operation::weight_recompute::WeightRecomputeOutput {
-        crate::operation::weight_recompute::WeightRecomputeOutput {
-            data: self.data
-            ,
-        }
+        crate::operation::weight_recompute::WeightRecomputeOutput { data: self.data }
     }
 }
-

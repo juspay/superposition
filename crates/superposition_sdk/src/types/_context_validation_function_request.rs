@@ -2,11 +2,11 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct ContextValidationFunctionRequest  {
+pub struct ContextValidationFunctionRequest {
     #[allow(missing_docs)] // documentation missing in model
     pub environment: ::aws_smithy_types::Document,
 }
-impl  ContextValidationFunctionRequest  {
+impl ContextValidationFunctionRequest {
     #[allow(missing_docs)] // documentation missing in model
     pub fn environment(&self) -> &::aws_smithy_types::Document {
         &self.environment
@@ -20,7 +20,9 @@ impl ContextValidationFunctionRequest {
 }
 
 /// A builder for [`ContextValidationFunctionRequest`](crate::types::ContextValidationFunctionRequest).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct ContextValidationFunctionRequestBuilder {
     pub(crate) environment: ::std::option::Option<::aws_smithy_types::Document>,
@@ -33,17 +35,28 @@ impl ContextValidationFunctionRequestBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_environment(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
-        self.environment = input; self
+    pub fn set_environment(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::Document>,
+    ) -> Self {
+        self.environment = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_environment(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
+    pub fn get_environment(
+        &self,
+    ) -> &::std::option::Option<::aws_smithy_types::Document> {
         &self.environment
     }
     /// Consumes the builder and constructs a [`ContextValidationFunctionRequest`](crate::types::ContextValidationFunctionRequest).
     /// This method will fail if any of the following fields are not set:
     /// - [`environment`](crate::types::builders::ContextValidationFunctionRequestBuilder::environment)
-    pub fn build(self) -> ::std::result::Result<crate::types::ContextValidationFunctionRequest, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::types::ContextValidationFunctionRequest,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::types::ContextValidationFunctionRequest {
                 environment: self.environment
@@ -55,4 +68,3 @@ impl ContextValidationFunctionRequestBuilder {
         )
     }
 }
-

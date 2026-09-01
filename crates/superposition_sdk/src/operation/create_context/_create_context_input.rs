@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct CreateContextInput  {
+pub struct CreateContextInput {
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -12,7 +12,7 @@ pub struct CreateContextInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub request: ::std::option::Option<crate::types::ContextPut>,
 }
-impl  CreateContextInput  {
+impl CreateContextInput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(&self) -> ::std::option::Option<&str> {
         self.workspace_id.as_deref()
@@ -32,13 +32,16 @@ impl  CreateContextInput  {
 }
 impl CreateContextInput {
     /// Creates a new builder-style object to manufacture [`CreateContextInput`](crate::operation::create_context::CreateContextInput).
-    pub fn builder() -> crate::operation::create_context::builders::CreateContextInputBuilder {
+    pub fn builder(
+    ) -> crate::operation::create_context::builders::CreateContextInputBuilder {
         crate::operation::create_context::builders::CreateContextInputBuilder::default()
     }
 }
 
 /// A builder for [`CreateContextInput`](crate::operation::create_context::CreateContextInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct CreateContextInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
@@ -49,13 +52,20 @@ pub struct CreateContextInputBuilder {
 impl CreateContextInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_id = input; self
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -63,26 +73,40 @@ impl CreateContextInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
         &self.org_id
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn config_tags(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn config_tags(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.config_tags = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_config_tags(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.config_tags = input; self
+    pub fn set_config_tags(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.config_tags = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_config_tags(&self) -> &::std::option::Option<::std::string::String> {
@@ -95,27 +119,29 @@ impl CreateContextInputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_request(mut self, input: ::std::option::Option<crate::types::ContextPut>) -> Self {
-        self.request = input; self
+    pub fn set_request(
+        mut self,
+        input: ::std::option::Option<crate::types::ContextPut>,
+    ) -> Self {
+        self.request = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_request(&self) -> &::std::option::Option<crate::types::ContextPut> {
         &self.request
     }
     /// Consumes the builder and constructs a [`CreateContextInput`](crate::operation::create_context::CreateContextInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::create_context::CreateContextInput, ::aws_smithy_types::error::operation::BuildError> {
-        ::std::result::Result::Ok(
-            crate::operation::create_context::CreateContextInput {
-                workspace_id: self.workspace_id
-                ,
-                org_id: self.org_id
-                ,
-                config_tags: self.config_tags
-                ,
-                request: self.request
-                ,
-            }
-        )
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::create_context::CreateContextInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
+        ::std::result::Result::Ok(crate::operation::create_context::CreateContextInput {
+            workspace_id: self.workspace_id,
+            org_id: self.org_id,
+            config_tags: self.config_tags,
+            request: self.request,
+        })
     }
 }
-

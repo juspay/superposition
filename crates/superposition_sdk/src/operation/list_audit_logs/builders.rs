@@ -4,280 +4,358 @@ pub use crate::operation::list_audit_logs::_list_audit_logs_output::ListAuditLog
 pub use crate::operation::list_audit_logs::_list_audit_logs_input::ListAuditLogsInputBuilder;
 
 impl crate::operation::list_audit_logs::builders::ListAuditLogsInputBuilder {
-                    /// Sends a request with this input using the given client.
-                    pub async fn send_with(self, client: &crate::Client) -> ::std::result::Result<
-                        crate::operation::list_audit_logs::ListAuditLogsOutput,
-                        ::aws_smithy_runtime_api::client::result::SdkError<
-                            crate::operation::list_audit_logs::ListAuditLogsError,
-                            ::aws_smithy_runtime_api::client::orchestrator::HttpResponse
-                        >
-                    > {
-                        let mut fluent_builder = client.list_audit_logs();
-                        fluent_builder.inner = self;
-                        fluent_builder.send().await
-                    }
-                }
+    /// Sends a request with this input using the given client.
+    pub async fn send_with(
+        self,
+        client: &crate::Client,
+    ) -> ::std::result::Result<
+        crate::operation::list_audit_logs::ListAuditLogsOutput,
+        ::aws_smithy_runtime_api::client::result::SdkError<
+            crate::operation::list_audit_logs::ListAuditLogsError,
+            ::aws_smithy_runtime_api::client::orchestrator::HttpResponse,
+        >,
+    > {
+        let mut fluent_builder = client.list_audit_logs();
+        fluent_builder.inner = self;
+        fluent_builder.send().await
+    }
+}
 /// Fluent builder constructing a request to `ListAuditLogs`.
-/// 
+///
 /// Retrieves a paginated list of audit logs with support for filtering by date range, table names, actions, and usernames for compliance and monitoring purposes.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct ListAuditLogsFluentBuilder {
-                handle: ::std::sync::Arc<crate::client::Handle>,
-                inner: crate::operation::list_audit_logs::builders::ListAuditLogsInputBuilder,
-config_override: ::std::option::Option<crate::config::Builder>,
-            }
+    handle: ::std::sync::Arc<crate::client::Handle>,
+    inner: crate::operation::list_audit_logs::builders::ListAuditLogsInputBuilder,
+    config_override: ::std::option::Option<crate::config::Builder>,
+}
 impl
-                crate::client::customize::internal::CustomizableSend<
-                    crate::operation::list_audit_logs::ListAuditLogsOutput,
-                    crate::operation::list_audit_logs::ListAuditLogsError,
-                > for ListAuditLogsFluentBuilder
-            {
-                fn send(
-                    self,
-                    config_override: crate::config::Builder,
-                ) -> crate::client::customize::internal::BoxFuture<
-                    crate::client::customize::internal::SendResult<
-                        crate::operation::list_audit_logs::ListAuditLogsOutput,
-                        crate::operation::list_audit_logs::ListAuditLogsError,
-                    >,
-                > {
-                    ::std::boxed::Box::pin(async move { self.config_override(config_override).send().await })
-                }
-            }
+    crate::client::customize::internal::CustomizableSend<
+        crate::operation::list_audit_logs::ListAuditLogsOutput,
+        crate::operation::list_audit_logs::ListAuditLogsError,
+    > for ListAuditLogsFluentBuilder
+{
+    fn send(
+        self,
+        config_override: crate::config::Builder,
+    ) -> crate::client::customize::internal::BoxFuture<
+        crate::client::customize::internal::SendResult<
+            crate::operation::list_audit_logs::ListAuditLogsOutput,
+            crate::operation::list_audit_logs::ListAuditLogsError,
+        >,
+    > {
+        ::std::boxed::Box::pin(async move {
+            self.config_override(config_override).send().await
+        })
+    }
+}
 impl ListAuditLogsFluentBuilder {
     /// Creates a new `ListAuditLogsFluentBuilder`.
-                    pub(crate) fn new(handle: ::std::sync::Arc<crate::client::Handle>) -> Self {
-                        Self {
-                            handle,
-                            inner: ::std::default::Default::default(),
-    config_override: ::std::option::Option::None,
-                        }
-                    }
+    pub(crate) fn new(handle: ::std::sync::Arc<crate::client::Handle>) -> Self {
+        Self {
+            handle,
+            inner: ::std::default::Default::default(),
+            config_override: ::std::option::Option::None,
+        }
+    }
     /// Access the ListAuditLogs as a reference.
-                    pub fn as_input(&self) -> &crate::operation::list_audit_logs::builders::ListAuditLogsInputBuilder {
-                        &self.inner
-                    }
+    pub fn as_input(
+        &self,
+    ) -> &crate::operation::list_audit_logs::builders::ListAuditLogsInputBuilder {
+        &self.inner
+    }
     /// Sends the request and returns the response.
-                    ///
-                    /// If an error occurs, an `SdkError` will be returned with additional details that
-                    /// can be matched against.
-                    ///
-                    /// By default, any retryable failures will be retried twice. Retry behavior
-                    /// is configurable with the [RetryConfig](aws_smithy_types::retry::RetryConfig), which can be
-                    /// set when configuring the client.
-                    pub async fn send(self) -> ::std::result::Result<crate::operation::list_audit_logs::ListAuditLogsOutput, ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::list_audit_logs::ListAuditLogsError, ::aws_smithy_runtime_api::client::orchestrator::HttpResponse>> {
-                        let input = self.inner.build().map_err(::aws_smithy_runtime_api::client::result::SdkError::construction_failure)?;
-                        let runtime_plugins = crate::operation::list_audit_logs::ListAuditLogs::operation_runtime_plugins(
-                            self.handle.runtime_plugins.clone(),
-                            &self.handle.conf,
-                            self.config_override,
-                        );
-                        crate::operation::list_audit_logs::ListAuditLogs::orchestrate(&runtime_plugins, input).await
-                    }
-    
-                    /// Consumes this builder, creating a customizable operation that can be modified before being sent.
-                    pub fn customize(
-                        self,
-                    ) -> crate::client::customize::CustomizableOperation<crate::operation::list_audit_logs::ListAuditLogsOutput, crate::operation::list_audit_logs::ListAuditLogsError, Self> {
-                        crate::client::customize::CustomizableOperation::new(self)
-                    }
+    ///
+    /// If an error occurs, an `SdkError` will be returned with additional details that
+    /// can be matched against.
+    ///
+    /// By default, any retryable failures will be retried twice. Retry behavior
+    /// is configurable with the [RetryConfig](aws_smithy_types::retry::RetryConfig), which can be
+    /// set when configuring the client.
+    pub async fn send(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::list_audit_logs::ListAuditLogsOutput,
+        ::aws_smithy_runtime_api::client::result::SdkError<
+            crate::operation::list_audit_logs::ListAuditLogsError,
+            ::aws_smithy_runtime_api::client::orchestrator::HttpResponse,
+        >,
+    > {
+        let input = self.inner.build().map_err(
+            ::aws_smithy_runtime_api::client::result::SdkError::construction_failure,
+        )?;
+        let runtime_plugins =
+            crate::operation::list_audit_logs::ListAuditLogs::operation_runtime_plugins(
+                self.handle.runtime_plugins.clone(),
+                &self.handle.conf,
+                self.config_override,
+            );
+        crate::operation::list_audit_logs::ListAuditLogs::orchestrate(
+            &runtime_plugins,
+            input,
+        )
+        .await
+    }
+
+    /// Consumes this builder, creating a customizable operation that can be modified before being sent.
+    pub fn customize(
+        self,
+    ) -> crate::client::customize::CustomizableOperation<
+        crate::operation::list_audit_logs::ListAuditLogsOutput,
+        crate::operation::list_audit_logs::ListAuditLogsError,
+        Self,
+    > {
+        crate::client::customize::CustomizableOperation::new(self)
+    }
     pub(crate) fn config_override(
-                            mut self,
-                            config_override: impl ::std::convert::Into<crate::config::Builder>,
-                        ) -> Self {
-                            self.set_config_override(::std::option::Option::Some(config_override.into()));
-                            self
-                        }
-    
-                        pub(crate) fn set_config_override(
-                            &mut self,
-                            config_override: ::std::option::Option<crate::config::Builder>,
-                        ) -> &mut Self {
-                            self.config_override = config_override;
-                            self
-                        }
+        mut self,
+        config_override: impl ::std::convert::Into<crate::config::Builder>,
+    ) -> Self {
+        self.set_config_override(::std::option::Option::Some(config_override.into()));
+        self
+    }
+
+    pub(crate) fn set_config_override(
+        &mut self,
+        config_override: ::std::option::Option<crate::config::Builder>,
+    ) -> &mut Self {
+        self.config_override = config_override;
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.workspace_id(input.into());
-                    self
-                }
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.workspace_id(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_workspace_id(input);
-                    self
-                }
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_workspace_id(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_workspace_id()
-                }
+        self.inner.get_workspace_id()
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.org_id(input.into());
-                    self
-                }
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.org_id(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_org_id(input);
-                    self
-                }
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_org_id(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_org_id()
-                }
+        self.inner.get_org_id()
+    }
     /// Number of items to be returned in each page.
     pub fn count(mut self, input: i32) -> Self {
-                    self.inner = self.inner.count(input);
-                    self
-                }
+        self.inner = self.inner.count(input);
+        self
+    }
     /// Number of items to be returned in each page.
     pub fn set_count(mut self, input: ::std::option::Option<i32>) -> Self {
-                    self.inner = self.inner.set_count(input);
-                    self
-                }
+        self.inner = self.inner.set_count(input);
+        self
+    }
     /// Number of items to be returned in each page.
     pub fn get_count(&self) -> &::std::option::Option<i32> {
-                    self.inner.get_count()
-                }
+        self.inner.get_count()
+    }
     /// Page number to retrieve, starting from 1.
     pub fn page(mut self, input: i32) -> Self {
-                    self.inner = self.inner.page(input);
-                    self
-                }
+        self.inner = self.inner.page(input);
+        self
+    }
     /// Page number to retrieve, starting from 1.
     pub fn set_page(mut self, input: ::std::option::Option<i32>) -> Self {
-                    self.inner = self.inner.set_page(input);
-                    self
-                }
+        self.inner = self.inner.set_page(input);
+        self
+    }
     /// Page number to retrieve, starting from 1.
     pub fn get_page(&self) -> &::std::option::Option<i32> {
-                    self.inner.get_page()
-                }
+        self.inner.get_page()
+    }
     /// If true, returns all requested items, ignoring pagination parameters page and count.
     pub fn all(mut self, input: bool) -> Self {
-                    self.inner = self.inner.all(input);
-                    self
-                }
+        self.inner = self.inner.all(input);
+        self
+    }
     /// If true, returns all requested items, ignoring pagination parameters page and count.
     pub fn set_all(mut self, input: ::std::option::Option<bool>) -> Self {
-                    self.inner = self.inner.set_all(input);
-                    self
-                }
+        self.inner = self.inner.set_all(input);
+        self
+    }
     /// If true, returns all requested items, ignoring pagination parameters page and count.
     pub fn get_all(&self) -> &::std::option::Option<bool> {
-                    self.inner.get_all()
-                }
+        self.inner.get_all()
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn from_date(mut self, input: ::aws_smithy_types::DateTime) -> Self {
-                    self.inner = self.inner.from_date(input);
-                    self
-                }
+        self.inner = self.inner.from_date(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_from_date(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-                    self.inner = self.inner.set_from_date(input);
-                    self
-                }
+    pub fn set_from_date(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.inner = self.inner.set_from_date(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_from_date(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
-                    self.inner.get_from_date()
-                }
+        self.inner.get_from_date()
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn to_date(mut self, input: ::aws_smithy_types::DateTime) -> Self {
-                    self.inner = self.inner.to_date(input);
-                    self
-                }
+        self.inner = self.inner.to_date(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_to_date(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-                    self.inner = self.inner.set_to_date(input);
-                    self
-                }
+    pub fn set_to_date(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.inner = self.inner.set_to_date(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_to_date(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
-                    self.inner.get_to_date()
-                }
-    /// 
+        self.inner.get_to_date()
+    }
+    ///
     /// Appends an item to `tables`.
-    /// 
+    ///
     /// To override the contents of this collection use [`set_tables`](Self::set_tables).
-    /// 
+    ///
     #[allow(missing_docs)] // documentation missing in model
-    pub fn tables(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                        self.inner = self.inner.tables(input.into());
-                        self
-                    }
+    pub fn tables(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.tables(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_tables(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-                    self.inner = self.inner.set_tables(input);
-                    self
-                }
+    pub fn set_tables(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    ) -> Self {
+        self.inner = self.inner.set_tables(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_tables(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
-                    self.inner.get_tables()
-                }
-    /// 
+    pub fn get_tables(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<::std::string::String>> {
+        self.inner.get_tables()
+    }
+    ///
     /// Appends an item to `action`.
-    /// 
+    ///
     /// To override the contents of this collection use [`set_action`](Self::set_action).
-    /// 
+    ///
     #[allow(missing_docs)] // documentation missing in model
     pub fn action(mut self, input: crate::types::AuditAction) -> Self {
-                        self.inner = self.inner.action(input);
-                        self
-                    }
+        self.inner = self.inner.action(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_action(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::AuditAction>>) -> Self {
-                    self.inner = self.inner.set_action(input);
-                    self
-                }
+    pub fn set_action(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<crate::types::AuditAction>>,
+    ) -> Self {
+        self.inner = self.inner.set_action(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_action(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::AuditAction>> {
-                    self.inner.get_action()
-                }
+    pub fn get_action(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<crate::types::AuditAction>> {
+        self.inner.get_action()
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn username(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.username(input.into());
-                    self
-                }
+    pub fn username(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.username(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_username(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_username(input);
-                    self
-                }
+    pub fn set_username(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_username(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_username(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_username()
-                }
-    /// 
+        self.inner.get_username()
+    }
+    ///
     /// Adds a key-value pair to `dimension_params`.
-    /// 
+    ///
     /// To override the contents of this collection use [`set_dimension_params`](Self::set_dimension_params).
-    /// 
+    ///
     /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
-    pub fn dimension_params(mut self, k: impl ::std::convert::Into<::std::string::String>, v: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.dimension_params(k.into(), v.into());
-                    self
-                }
+    pub fn dimension_params(
+        mut self,
+        k: impl ::std::convert::Into<::std::string::String>,
+        v: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.dimension_params(k.into(), v.into());
+        self
+    }
     /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
-    pub fn set_dimension_params(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>>) -> Self {
-                    self.inner = self.inner.set_dimension_params(input);
-                    self
-                }
+    pub fn set_dimension_params(
+        mut self,
+        input: ::std::option::Option<
+            ::std::collections::HashMap<::std::string::String, ::std::string::String>,
+        >,
+    ) -> Self {
+        self.inner = self.inner.set_dimension_params(input);
+        self
+    }
     /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
-    pub fn get_dimension_params(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>> {
-                    self.inner.get_dimension_params()
-                }
+    pub fn get_dimension_params(
+        &self,
+    ) -> &::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::std::string::String>,
+    > {
+        self.inner.get_dimension_params()
+    }
     /// Sort order enumeration for list operations.
     pub fn sort_by(mut self, input: crate::types::SortBy) -> Self {
-                    self.inner = self.inner.sort_by(input);
-                    self
-                }
+        self.inner = self.inner.sort_by(input);
+        self
+    }
     /// Sort order enumeration for list operations.
-    pub fn set_sort_by(mut self, input: ::std::option::Option<crate::types::SortBy>) -> Self {
-                    self.inner = self.inner.set_sort_by(input);
-                    self
-                }
+    pub fn set_sort_by(
+        mut self,
+        input: ::std::option::Option<crate::types::SortBy>,
+    ) -> Self {
+        self.inner = self.inner.set_sort_by(input);
+        self
+    }
     /// Sort order enumeration for list operations.
     pub fn get_sort_by(&self) -> &::std::option::Option<crate::types::SortBy> {
-                    self.inner.get_sort_by()
-                }
+        self.inner.get_sort_by()
+    }
 }
-

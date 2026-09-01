@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct ListAuditLogsInput  {
+pub struct ListAuditLogsInput {
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -18,17 +18,19 @@ pub struct ListAuditLogsInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub to_date: ::std::option::Option<::aws_smithy_types::DateTime>,
     #[allow(missing_docs)] // documentation missing in model
-    pub tables: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub tables: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
     #[allow(missing_docs)] // documentation missing in model
-    pub action: ::std::option::Option<::std::vec::Vec::<crate::types::AuditAction>>,
+    pub action: ::std::option::Option<::std::vec::Vec<crate::types::AuditAction>>,
     #[allow(missing_docs)] // documentation missing in model
     pub username: ::std::option::Option<::std::string::String>,
     /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
-    pub dimension_params: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>>,
+    pub dimension_params: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::std::string::String>,
+    >,
     /// Sort order enumeration for list operations.
     pub sort_by: ::std::option::Option<crate::types::SortBy>,
 }
-impl  ListAuditLogsInput  {
+impl ListAuditLogsInput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(&self) -> ::std::option::Option<&str> {
         self.workspace_id.as_deref()
@@ -58,25 +60,27 @@ impl  ListAuditLogsInput  {
         self.to_date.as_ref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.tables.is_none()`.
     pub fn tables(&self) -> &[::std::string::String] {
-        self.tables.as_deref()
-        .unwrap_or_default()
+        self.tables.as_deref().unwrap_or_default()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.action.is_none()`.
     pub fn action(&self) -> &[crate::types::AuditAction] {
-        self.action.as_deref()
-        .unwrap_or_default()
+        self.action.as_deref().unwrap_or_default()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn username(&self) -> ::std::option::Option<&str> {
         self.username.as_deref()
     }
     /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
-    pub fn dimension_params(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::std::string::String>> {
+    pub fn dimension_params(
+        &self,
+    ) -> ::std::option::Option<
+        &::std::collections::HashMap<::std::string::String, ::std::string::String>,
+    > {
         self.dimension_params.as_ref()
     }
     /// Sort order enumeration for list operations.
@@ -86,13 +90,16 @@ impl  ListAuditLogsInput  {
 }
 impl ListAuditLogsInput {
     /// Creates a new builder-style object to manufacture [`ListAuditLogsInput`](crate::operation::list_audit_logs::ListAuditLogsInput).
-    pub fn builder() -> crate::operation::list_audit_logs::builders::ListAuditLogsInputBuilder {
+    pub fn builder(
+    ) -> crate::operation::list_audit_logs::builders::ListAuditLogsInputBuilder {
         crate::operation::list_audit_logs::builders::ListAuditLogsInputBuilder::default()
     }
 }
 
 /// A builder for [`ListAuditLogsInput`](crate::operation::list_audit_logs::ListAuditLogsInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct ListAuditLogsInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
@@ -102,22 +109,31 @@ pub struct ListAuditLogsInputBuilder {
     pub(crate) all: ::std::option::Option<bool>,
     pub(crate) from_date: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) to_date: ::std::option::Option<::aws_smithy_types::DateTime>,
-    pub(crate) tables: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
-    pub(crate) action: ::std::option::Option<::std::vec::Vec::<crate::types::AuditAction>>,
+    pub(crate) tables: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    pub(crate) action: ::std::option::Option<::std::vec::Vec<crate::types::AuditAction>>,
     pub(crate) username: ::std::option::Option<::std::string::String>,
-    pub(crate) dimension_params: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>>,
+    pub(crate) dimension_params: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::std::string::String>,
+    >,
     pub(crate) sort_by: ::std::option::Option<crate::types::SortBy>,
 }
 impl ListAuditLogsInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_id = input; self
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -125,13 +141,20 @@ impl ListAuditLogsInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -144,7 +167,8 @@ impl ListAuditLogsInputBuilder {
     }
     /// Number of items to be returned in each page.
     pub fn set_count(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.count = input; self
+        self.count = input;
+        self
     }
     /// Number of items to be returned in each page.
     pub fn get_count(&self) -> &::std::option::Option<i32> {
@@ -157,7 +181,8 @@ impl ListAuditLogsInputBuilder {
     }
     /// Page number to retrieve, starting from 1.
     pub fn set_page(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.page = input; self
+        self.page = input;
+        self
     }
     /// Page number to retrieve, starting from 1.
     pub fn get_page(&self) -> &::std::option::Option<i32> {
@@ -170,7 +195,8 @@ impl ListAuditLogsInputBuilder {
     }
     /// If true, returns all requested items, ignoring pagination parameters page and count.
     pub fn set_all(mut self, input: ::std::option::Option<bool>) -> Self {
-        self.all = input; self
+        self.all = input;
+        self
     }
     /// If true, returns all requested items, ignoring pagination parameters page and count.
     pub fn get_all(&self) -> &::std::option::Option<bool> {
@@ -182,8 +208,12 @@ impl ListAuditLogsInputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_from_date(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.from_date = input; self
+    pub fn set_from_date(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.from_date = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_from_date(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
@@ -195,8 +225,12 @@ impl ListAuditLogsInputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_to_date(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.to_date = input; self
+    pub fn set_to_date(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.to_date = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_to_date(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
@@ -206,18 +240,27 @@ impl ListAuditLogsInputBuilder {
     ///
     /// To override the contents of this collection use [`set_tables`](Self::set_tables).
     ///
-    pub fn tables(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn tables(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         let mut v = self.tables.unwrap_or_default();
-                        v.push(input.into());
-                        self.tables = ::std::option::Option::Some(v);
-                        self
+        v.push(input.into());
+        self.tables = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_tables(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-        self.tables = input; self
+    pub fn set_tables(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    ) -> Self {
+        self.tables = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_tables(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
+    pub fn get_tables(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<::std::string::String>> {
         &self.tables
     }
     /// Appends an item to `action`.
@@ -226,26 +269,39 @@ impl ListAuditLogsInputBuilder {
     ///
     pub fn action(mut self, input: crate::types::AuditAction) -> Self {
         let mut v = self.action.unwrap_or_default();
-                        v.push(input);
-                        self.action = ::std::option::Option::Some(v);
-                        self
+        v.push(input);
+        self.action = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_action(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::AuditAction>>) -> Self {
-        self.action = input; self
+    pub fn set_action(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<crate::types::AuditAction>>,
+    ) -> Self {
+        self.action = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_action(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::AuditAction>> {
+    pub fn get_action(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<crate::types::AuditAction>> {
         &self.action
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn username(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn username(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.username = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_username(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.username = input; self
+    pub fn set_username(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.username = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_username(&self) -> &::std::option::Option<::std::string::String> {
@@ -256,18 +312,32 @@ impl ListAuditLogsInputBuilder {
     /// To override the contents of this collection use [`set_dimension_params`](Self::set_dimension_params).
     ///
     /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
-    pub fn dimension_params(mut self, k: impl ::std::convert::Into<::std::string::String>, v: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn dimension_params(
+        mut self,
+        k: impl ::std::convert::Into<::std::string::String>,
+        v: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         let mut hash_map = self.dimension_params.unwrap_or_default();
-                        hash_map.insert(k.into(), v.into());
-                        self.dimension_params = ::std::option::Option::Some(hash_map);
-                        self
+        hash_map.insert(k.into(), v.into());
+        self.dimension_params = ::std::option::Option::Some(hash_map);
+        self
     }
     /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
-    pub fn set_dimension_params(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>>) -> Self {
-        self.dimension_params = input; self
+    pub fn set_dimension_params(
+        mut self,
+        input: ::std::option::Option<
+            ::std::collections::HashMap<::std::string::String, ::std::string::String>,
+        >,
+    ) -> Self {
+        self.dimension_params = input;
+        self
     }
     /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
-    pub fn get_dimension_params(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>> {
+    pub fn get_dimension_params(
+        &self,
+    ) -> &::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::std::string::String>,
+    > {
         &self.dimension_params
     }
     /// Sort order enumeration for list operations.
@@ -276,43 +346,37 @@ impl ListAuditLogsInputBuilder {
         self
     }
     /// Sort order enumeration for list operations.
-    pub fn set_sort_by(mut self, input: ::std::option::Option<crate::types::SortBy>) -> Self {
-        self.sort_by = input; self
+    pub fn set_sort_by(
+        mut self,
+        input: ::std::option::Option<crate::types::SortBy>,
+    ) -> Self {
+        self.sort_by = input;
+        self
     }
     /// Sort order enumeration for list operations.
     pub fn get_sort_by(&self) -> &::std::option::Option<crate::types::SortBy> {
         &self.sort_by
     }
     /// Consumes the builder and constructs a [`ListAuditLogsInput`](crate::operation::list_audit_logs::ListAuditLogsInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::list_audit_logs::ListAuditLogsInput, ::aws_smithy_types::error::operation::BuildError> {
-        ::std::result::Result::Ok(
-            crate::operation::list_audit_logs::ListAuditLogsInput {
-                workspace_id: self.workspace_id
-                ,
-                org_id: self.org_id
-                ,
-                count: self.count
-                ,
-                page: self.page
-                ,
-                all: self.all
-                ,
-                from_date: self.from_date
-                ,
-                to_date: self.to_date
-                ,
-                tables: self.tables
-                ,
-                action: self.action
-                ,
-                username: self.username
-                ,
-                dimension_params: self.dimension_params
-                ,
-                sort_by: self.sort_by
-                ,
-            }
-        )
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::list_audit_logs::ListAuditLogsInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
+        ::std::result::Result::Ok(crate::operation::list_audit_logs::ListAuditLogsInput {
+            workspace_id: self.workspace_id,
+            org_id: self.org_id,
+            count: self.count,
+            page: self.page,
+            all: self.all,
+            from_date: self.from_date,
+            to_date: self.to_date,
+            tables: self.tables,
+            action: self.action,
+            username: self.username,
+            dimension_params: self.dimension_params,
+            sort_by: self.sort_by,
+        })
     }
 }
-

@@ -2,15 +2,15 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct ListContextsOutput  {
+pub struct ListContextsOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub total_pages: i32,
     #[allow(missing_docs)] // documentation missing in model
     pub total_items: i32,
     #[allow(missing_docs)] // documentation missing in model
-    pub data: ::std::vec::Vec::<crate::types::ContextResponse>,
+    pub data: ::std::vec::Vec<crate::types::ContextResponse>,
 }
-impl  ListContextsOutput  {
+impl ListContextsOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn total_pages(&self) -> i32 {
         self.total_pages
@@ -21,23 +21,28 @@ impl  ListContextsOutput  {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn data(&self) -> &[crate::types::ContextResponse] {
-        use std::ops::Deref; self.data.deref()
+        use std::ops::Deref;
+        self.data.deref()
     }
 }
 impl ListContextsOutput {
     /// Creates a new builder-style object to manufacture [`ListContextsOutput`](crate::operation::list_contexts::ListContextsOutput).
-    pub fn builder() -> crate::operation::list_contexts::builders::ListContextsOutputBuilder {
+    pub fn builder(
+    ) -> crate::operation::list_contexts::builders::ListContextsOutputBuilder {
         crate::operation::list_contexts::builders::ListContextsOutputBuilder::default()
     }
 }
 
 /// A builder for [`ListContextsOutput`](crate::operation::list_contexts::ListContextsOutput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct ListContextsOutputBuilder {
     pub(crate) total_pages: ::std::option::Option<i32>,
     pub(crate) total_items: ::std::option::Option<i32>,
-    pub(crate) data: ::std::option::Option<::std::vec::Vec::<crate::types::ContextResponse>>,
+    pub(crate) data:
+        ::std::option::Option<::std::vec::Vec<crate::types::ContextResponse>>,
 }
 impl ListContextsOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -48,7 +53,8 @@ impl ListContextsOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_total_pages(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.total_pages = input; self
+        self.total_pages = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_total_pages(&self) -> &::std::option::Option<i32> {
@@ -62,7 +68,8 @@ impl ListContextsOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_total_items(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.total_items = input; self
+        self.total_items = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_total_items(&self) -> &::std::option::Option<i32> {
@@ -74,16 +81,22 @@ impl ListContextsOutputBuilder {
     ///
     pub fn data(mut self, input: crate::types::ContextResponse) -> Self {
         let mut v = self.data.unwrap_or_default();
-                        v.push(input);
-                        self.data = ::std::option::Option::Some(v);
-                        self
+        v.push(input);
+        self.data = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_data(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::ContextResponse>>) -> Self {
-        self.data = input; self
+    pub fn set_data(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<crate::types::ContextResponse>>,
+    ) -> Self {
+        self.data = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_data(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::ContextResponse>> {
+    pub fn get_data(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<crate::types::ContextResponse>> {
         &self.data
     }
     /// Consumes the builder and constructs a [`ListContextsOutput`](crate::operation::list_contexts::ListContextsOutput).
@@ -91,7 +104,12 @@ impl ListContextsOutputBuilder {
     /// - [`total_pages`](crate::operation::list_contexts::builders::ListContextsOutputBuilder::total_pages)
     /// - [`total_items`](crate::operation::list_contexts::builders::ListContextsOutputBuilder::total_items)
     /// - [`data`](crate::operation::list_contexts::builders::ListContextsOutputBuilder::data)
-    pub fn build(self) -> ::std::result::Result<crate::operation::list_contexts::ListContextsOutput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::list_contexts::ListContextsOutput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::list_contexts::ListContextsOutput {
                 total_pages: self.total_pages
@@ -113,4 +131,3 @@ impl ListContextsOutputBuilder {
         )
     }
 }
-

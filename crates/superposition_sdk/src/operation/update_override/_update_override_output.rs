@@ -2,13 +2,15 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct UpdateOverrideOutput  {
+pub struct UpdateOverrideOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub id: ::std::string::String,
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub value: ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>,
+    pub value:
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
     /// Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
-    pub r#override: ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>,
+    pub r#override:
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
     #[allow(missing_docs)] // documentation missing in model
     pub override_id: ::std::string::String,
     /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
@@ -26,34 +28,45 @@ pub struct UpdateOverrideOutput  {
     #[allow(missing_docs)] // documentation missing in model
     pub last_modified_by: ::std::string::String,
 }
-impl  UpdateOverrideOutput  {
+impl UpdateOverrideOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn id(&self) -> &str {
-        use std::ops::Deref; self.id.deref()
+        use std::ops::Deref;
+        self.id.deref()
     }
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn value(&self) -> &::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document> {
+    pub fn value(
+        &self,
+    ) -> &::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>
+    {
         &self.value
     }
     /// Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
-    pub fn r#override(&self) -> &::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document> {
+    pub fn r#override(
+        &self,
+    ) -> &::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>
+    {
         &self.r#override
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn override_id(&self) -> &str {
-        use std::ops::Deref; self.override_id.deref()
+        use std::ops::Deref;
+        self.override_id.deref()
     }
     /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
     pub fn weight(&self) -> &str {
-        use std::ops::Deref; self.weight.deref()
+        use std::ops::Deref;
+        self.weight.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn description(&self) -> &str {
-        use std::ops::Deref; self.description.deref()
+        use std::ops::Deref;
+        self.description.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn change_reason(&self) -> &str {
-        use std::ops::Deref; self.change_reason.deref()
+        use std::ops::Deref;
+        self.change_reason.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn created_at(&self) -> &::aws_smithy_types::DateTime {
@@ -61,7 +74,8 @@ impl  UpdateOverrideOutput  {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn created_by(&self) -> &str {
-        use std::ops::Deref; self.created_by.deref()
+        use std::ops::Deref;
+        self.created_by.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn last_modified_at(&self) -> &::aws_smithy_types::DateTime {
@@ -69,23 +83,32 @@ impl  UpdateOverrideOutput  {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn last_modified_by(&self) -> &str {
-        use std::ops::Deref; self.last_modified_by.deref()
+        use std::ops::Deref;
+        self.last_modified_by.deref()
     }
 }
 impl UpdateOverrideOutput {
     /// Creates a new builder-style object to manufacture [`UpdateOverrideOutput`](crate::operation::update_override::UpdateOverrideOutput).
-    pub fn builder() -> crate::operation::update_override::builders::UpdateOverrideOutputBuilder {
-        crate::operation::update_override::builders::UpdateOverrideOutputBuilder::default()
+    pub fn builder(
+    ) -> crate::operation::update_override::builders::UpdateOverrideOutputBuilder {
+        crate::operation::update_override::builders::UpdateOverrideOutputBuilder::default(
+        )
     }
 }
 
 /// A builder for [`UpdateOverrideOutput`](crate::operation::update_override::UpdateOverrideOutput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct UpdateOverrideOutputBuilder {
     pub(crate) id: ::std::option::Option<::std::string::String>,
-    pub(crate) value: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
-    pub(crate) r#override: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub(crate) value: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    >,
+    pub(crate) r#override: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    >,
     pub(crate) override_id: ::std::option::Option<::std::string::String>,
     pub(crate) weight: ::std::option::Option<::std::string::String>,
     pub(crate) description: ::std::option::Option<::std::string::String>,
@@ -104,7 +127,8 @@ impl UpdateOverrideOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.id = input; self
+        self.id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -115,18 +139,35 @@ impl UpdateOverrideOutputBuilder {
     /// To override the contents of this collection use [`set_value`](Self::set_value).
     ///
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn value(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
+    pub fn value(
+        mut self,
+        k: impl ::std::convert::Into<::std::string::String>,
+        v: ::aws_smithy_types::Document,
+    ) -> Self {
         let mut hash_map = self.value.unwrap_or_default();
-                        hash_map.insert(k.into(), v);
-                        self.value = ::std::option::Option::Some(hash_map);
-                        self
+        hash_map.insert(k.into(), v);
+        self.value = ::std::option::Option::Some(hash_map);
+        self
     }
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn set_value(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
-        self.value = input; self
+    pub fn set_value(
+        mut self,
+        input: ::std::option::Option<
+            ::std::collections::HashMap<
+                ::std::string::String,
+                ::aws_smithy_types::Document,
+            >,
+        >,
+    ) -> Self {
+        self.value = input;
+        self
     }
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn get_value(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    pub fn get_value(
+        &self,
+    ) -> &::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
         &self.value
     }
     /// Adds a key-value pair to `r#override`.
@@ -134,29 +175,53 @@ impl UpdateOverrideOutputBuilder {
     /// To override the contents of this collection use [`set_override`](Self::set_override).
     ///
     /// Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
-    pub fn r#override(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
+    pub fn r#override(
+        mut self,
+        k: impl ::std::convert::Into<::std::string::String>,
+        v: ::aws_smithy_types::Document,
+    ) -> Self {
         let mut hash_map = self.r#override.unwrap_or_default();
-                        hash_map.insert(k.into(), v);
-                        self.r#override = ::std::option::Option::Some(hash_map);
-                        self
+        hash_map.insert(k.into(), v);
+        self.r#override = ::std::option::Option::Some(hash_map);
+        self
     }
     /// Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
-    pub fn set_override(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
-        self.r#override = input; self
+    pub fn set_override(
+        mut self,
+        input: ::std::option::Option<
+            ::std::collections::HashMap<
+                ::std::string::String,
+                ::aws_smithy_types::Document,
+            >,
+        >,
+    ) -> Self {
+        self.r#override = input;
+        self
     }
     /// Configuration overrides that replace default values when context conditions are met. Keys represent configuration keys and values are the override data.
-    pub fn get_override(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    pub fn get_override(
+        &self,
+    ) -> &::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
         &self.r#override
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn override_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn override_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.override_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_override_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.override_id = input; self
+    pub fn set_override_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.override_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_override_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -164,13 +229,20 @@ impl UpdateOverrideOutputBuilder {
     }
     /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
     /// This field is required.
-    pub fn weight(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn weight(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.weight = ::std::option::Option::Some(input.into());
         self
     }
     /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
-    pub fn set_weight(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.weight = input; self
+    pub fn set_weight(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.weight = input;
+        self
     }
     /// Priority weight used to determine the order of context evaluation. Higher weights take precedence during configuration resolution.
     pub fn get_weight(&self) -> &::std::option::Option<::std::string::String> {
@@ -178,13 +250,20 @@ impl UpdateOverrideOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn description(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn description(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.description = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_description(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.description = input; self
+    pub fn set_description(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.description = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_description(&self) -> &::std::option::Option<::std::string::String> {
@@ -192,13 +271,20 @@ impl UpdateOverrideOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn change_reason(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn change_reason(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.change_reason = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_change_reason(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.change_reason = input; self
+    pub fn set_change_reason(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.change_reason = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
@@ -211,8 +297,12 @@ impl UpdateOverrideOutputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_created_at(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.created_at = input; self
+    pub fn set_created_at(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.created_at = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_created_at(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
@@ -220,13 +310,20 @@ impl UpdateOverrideOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn created_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn created_by(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.created_by = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_created_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.created_by = input; self
+    pub fn set_created_by(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.created_by = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_created_by(&self) -> &::std::option::Option<::std::string::String> {
@@ -239,22 +336,35 @@ impl UpdateOverrideOutputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_last_modified_at(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.last_modified_at = input; self
+    pub fn set_last_modified_at(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.last_modified_at = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_last_modified_at(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
+    pub fn get_last_modified_at(
+        &self,
+    ) -> &::std::option::Option<::aws_smithy_types::DateTime> {
         &self.last_modified_at
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn last_modified_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn last_modified_by(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.last_modified_by = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_last_modified_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.last_modified_by = input; self
+    pub fn set_last_modified_by(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.last_modified_by = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_last_modified_by(&self) -> &::std::option::Option<::std::string::String> {
@@ -273,7 +383,12 @@ impl UpdateOverrideOutputBuilder {
     /// - [`created_by`](crate::operation::update_override::builders::UpdateOverrideOutputBuilder::created_by)
     /// - [`last_modified_at`](crate::operation::update_override::builders::UpdateOverrideOutputBuilder::last_modified_at)
     /// - [`last_modified_by`](crate::operation::update_override::builders::UpdateOverrideOutputBuilder::last_modified_by)
-    pub fn build(self) -> ::std::result::Result<crate::operation::update_override::UpdateOverrideOutput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::update_override::UpdateOverrideOutput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::update_override::UpdateOverrideOutput {
                 id: self.id
@@ -335,4 +450,3 @@ impl UpdateOverrideOutputBuilder {
         )
     }
 }
-

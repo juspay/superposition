@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct CreateWorkspaceInput  {
+pub struct CreateWorkspaceInput {
     #[allow(missing_docs)] // documentation missing in model
     pub org_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -22,7 +22,7 @@ pub struct CreateWorkspaceInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub enable_change_reason_validation: ::std::option::Option<bool>,
 }
-impl  CreateWorkspaceInput  {
+impl CreateWorkspaceInput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn org_id(&self) -> ::std::option::Option<&str> {
         self.org_id.as_deref()
@@ -36,7 +36,9 @@ impl  CreateWorkspaceInput  {
         self.workspace_name.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn workspace_status(&self) -> ::std::option::Option<&crate::types::WorkspaceStatus> {
+    pub fn workspace_status(
+        &self,
+    ) -> ::std::option::Option<&crate::types::WorkspaceStatus> {
         self.workspace_status.as_ref()
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -62,13 +64,17 @@ impl  CreateWorkspaceInput  {
 }
 impl CreateWorkspaceInput {
     /// Creates a new builder-style object to manufacture [`CreateWorkspaceInput`](crate::operation::create_workspace::CreateWorkspaceInput).
-    pub fn builder() -> crate::operation::create_workspace::builders::CreateWorkspaceInputBuilder {
-        crate::operation::create_workspace::builders::CreateWorkspaceInputBuilder::default()
+    pub fn builder(
+    ) -> crate::operation::create_workspace::builders::CreateWorkspaceInputBuilder {
+        crate::operation::create_workspace::builders::CreateWorkspaceInputBuilder::default(
+        )
     }
 }
 
 /// A builder for [`CreateWorkspaceInput`](crate::operation::create_workspace::CreateWorkspaceInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct CreateWorkspaceInputBuilder {
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
@@ -84,13 +90,20 @@ pub struct CreateWorkspaceInputBuilder {
 impl CreateWorkspaceInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -98,27 +111,43 @@ impl CreateWorkspaceInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_admin_email(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_admin_email(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_admin_email = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_admin_email(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_admin_email = input; self
+    pub fn set_workspace_admin_email(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_admin_email = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_workspace_admin_email(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_workspace_admin_email(
+        &self,
+    ) -> &::std::option::Option<::std::string::String> {
         &self.workspace_admin_email
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_name = input; self
+    pub fn set_workspace_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_name = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_name(&self) -> &::std::option::Option<::std::string::String> {
@@ -130,11 +159,17 @@ impl CreateWorkspaceInputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_status(mut self, input: ::std::option::Option<crate::types::WorkspaceStatus>) -> Self {
-        self.workspace_status = input; self
+    pub fn set_workspace_status(
+        mut self,
+        input: ::std::option::Option<crate::types::WorkspaceStatus>,
+    ) -> Self {
+        self.workspace_status = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_workspace_status(&self) -> &::std::option::Option<crate::types::WorkspaceStatus> {
+    pub fn get_workspace_status(
+        &self,
+    ) -> &::std::option::Option<crate::types::WorkspaceStatus> {
         &self.workspace_status
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -143,8 +178,12 @@ impl CreateWorkspaceInputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_metrics(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
-        self.metrics = input; self
+    pub fn set_metrics(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::Document>,
+    ) -> Self {
+        self.metrics = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_metrics(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
@@ -156,8 +195,12 @@ impl CreateWorkspaceInputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_allow_experiment_self_approval(mut self, input: ::std::option::Option<bool>) -> Self {
-        self.allow_experiment_self_approval = input; self
+    pub fn set_allow_experiment_self_approval(
+        mut self,
+        input: ::std::option::Option<bool>,
+    ) -> Self {
+        self.allow_experiment_self_approval = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_allow_experiment_self_approval(&self) -> &::std::option::Option<bool> {
@@ -169,8 +212,12 @@ impl CreateWorkspaceInputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_auto_populate_control(mut self, input: ::std::option::Option<bool>) -> Self {
-        self.auto_populate_control = input; self
+    pub fn set_auto_populate_control(
+        mut self,
+        input: ::std::option::Option<bool>,
+    ) -> Self {
+        self.auto_populate_control = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_auto_populate_control(&self) -> &::std::option::Option<bool> {
@@ -182,8 +229,12 @@ impl CreateWorkspaceInputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_enable_context_validation(mut self, input: ::std::option::Option<bool>) -> Self {
-        self.enable_context_validation = input; self
+    pub fn set_enable_context_validation(
+        mut self,
+        input: ::std::option::Option<bool>,
+    ) -> Self {
+        self.enable_context_validation = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_enable_context_validation(&self) -> &::std::option::Option<bool> {
@@ -195,37 +246,36 @@ impl CreateWorkspaceInputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_enable_change_reason_validation(mut self, input: ::std::option::Option<bool>) -> Self {
-        self.enable_change_reason_validation = input; self
+    pub fn set_enable_change_reason_validation(
+        mut self,
+        input: ::std::option::Option<bool>,
+    ) -> Self {
+        self.enable_change_reason_validation = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_enable_change_reason_validation(&self) -> &::std::option::Option<bool> {
         &self.enable_change_reason_validation
     }
     /// Consumes the builder and constructs a [`CreateWorkspaceInput`](crate::operation::create_workspace::CreateWorkspaceInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::create_workspace::CreateWorkspaceInput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::create_workspace::CreateWorkspaceInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::create_workspace::CreateWorkspaceInput {
-                org_id: self.org_id
-                ,
-                workspace_admin_email: self.workspace_admin_email
-                ,
-                workspace_name: self.workspace_name
-                ,
-                workspace_status: self.workspace_status
-                ,
-                metrics: self.metrics
-                ,
-                allow_experiment_self_approval: self.allow_experiment_self_approval
-                ,
-                auto_populate_control: self.auto_populate_control
-                ,
-                enable_context_validation: self.enable_context_validation
-                ,
-                enable_change_reason_validation: self.enable_change_reason_validation
-                ,
-            }
+                org_id: self.org_id,
+                workspace_admin_email: self.workspace_admin_email,
+                workspace_name: self.workspace_name,
+                workspace_status: self.workspace_status,
+                metrics: self.metrics,
+                allow_experiment_self_approval: self.allow_experiment_self_approval,
+                auto_populate_control: self.auto_populate_control,
+                enable_context_validation: self.enable_context_validation,
+                enable_change_reason_validation: self.enable_change_reason_validation,
+            },
         )
     }
 }
-

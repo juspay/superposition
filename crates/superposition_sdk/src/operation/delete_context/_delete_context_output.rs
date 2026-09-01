@@ -2,25 +2,24 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct DeleteContextOutput  {
-}
+pub struct DeleteContextOutput {}
 impl DeleteContextOutput {
     /// Creates a new builder-style object to manufacture [`DeleteContextOutput`](crate::operation::delete_context::DeleteContextOutput).
-    pub fn builder() -> crate::operation::delete_context::builders::DeleteContextOutputBuilder {
+    pub fn builder(
+    ) -> crate::operation::delete_context::builders::DeleteContextOutputBuilder {
         crate::operation::delete_context::builders::DeleteContextOutputBuilder::default()
     }
 }
 
 /// A builder for [`DeleteContextOutput`](crate::operation::delete_context::DeleteContextOutput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
-pub struct DeleteContextOutputBuilder {
-}
+pub struct DeleteContextOutputBuilder {}
 impl DeleteContextOutputBuilder {
     /// Consumes the builder and constructs a [`DeleteContextOutput`](crate::operation::delete_context::DeleteContextOutput).
     pub fn build(self) -> crate::operation::delete_context::DeleteContextOutput {
-        crate::operation::delete_context::DeleteContextOutput {
-        }
+        crate::operation::delete_context::DeleteContextOutput {}
     }
 }
-

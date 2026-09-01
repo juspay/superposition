@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct ListDefaultConfigsInput  {
+pub struct ListDefaultConfigsInput {
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -16,7 +16,7 @@ pub struct ListDefaultConfigsInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub name: ::std::option::Option<::std::string::String>,
 }
-impl  ListDefaultConfigsInput  {
+impl ListDefaultConfigsInput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(&self) -> ::std::option::Option<&str> {
         self.workspace_id.as_deref()
@@ -44,13 +44,17 @@ impl  ListDefaultConfigsInput  {
 }
 impl ListDefaultConfigsInput {
     /// Creates a new builder-style object to manufacture [`ListDefaultConfigsInput`](crate::operation::list_default_configs::ListDefaultConfigsInput).
-    pub fn builder() -> crate::operation::list_default_configs::builders::ListDefaultConfigsInputBuilder {
+    pub fn builder(
+    ) -> crate::operation::list_default_configs::builders::ListDefaultConfigsInputBuilder
+    {
         crate::operation::list_default_configs::builders::ListDefaultConfigsInputBuilder::default()
     }
 }
 
 /// A builder for [`ListDefaultConfigsInput`](crate::operation::list_default_configs::ListDefaultConfigsInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct ListDefaultConfigsInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
@@ -63,13 +67,20 @@ pub struct ListDefaultConfigsInputBuilder {
 impl ListDefaultConfigsInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_id = input; self
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -77,13 +88,20 @@ impl ListDefaultConfigsInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -96,7 +114,8 @@ impl ListDefaultConfigsInputBuilder {
     }
     /// Number of items to be returned in each page.
     pub fn set_count(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.count = input; self
+        self.count = input;
+        self
     }
     /// Number of items to be returned in each page.
     pub fn get_count(&self) -> &::std::option::Option<i32> {
@@ -109,7 +128,8 @@ impl ListDefaultConfigsInputBuilder {
     }
     /// Page number to retrieve, starting from 1.
     pub fn set_page(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.page = input; self
+        self.page = input;
+        self
     }
     /// Page number to retrieve, starting from 1.
     pub fn get_page(&self) -> &::std::option::Option<i32> {
@@ -122,43 +142,49 @@ impl ListDefaultConfigsInputBuilder {
     }
     /// If true, returns all requested items, ignoring pagination parameters page and count.
     pub fn set_all(mut self, input: ::std::option::Option<bool>) -> Self {
-        self.all = input; self
+        self.all = input;
+        self
     }
     /// If true, returns all requested items, ignoring pagination parameters page and count.
     pub fn get_all(&self) -> &::std::option::Option<bool> {
         &self.all
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.name = input; self
+    pub fn set_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.name = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_name(&self) -> &::std::option::Option<::std::string::String> {
         &self.name
     }
     /// Consumes the builder and constructs a [`ListDefaultConfigsInput`](crate::operation::list_default_configs::ListDefaultConfigsInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::list_default_configs::ListDefaultConfigsInput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::list_default_configs::ListDefaultConfigsInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::list_default_configs::ListDefaultConfigsInput {
-                workspace_id: self.workspace_id
-                ,
-                org_id: self.org_id
-                ,
-                count: self.count
-                ,
-                page: self.page
-                ,
-                all: self.all
-                ,
-                name: self.name
-                ,
-            }
+                workspace_id: self.workspace_id,
+                org_id: self.org_id,
+                count: self.count,
+                page: self.page,
+                all: self.all,
+                name: self.name,
+            },
         )
     }
 }
-

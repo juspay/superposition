@@ -2,25 +2,24 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct ValidateContextOutput  {
-}
+pub struct ValidateContextOutput {}
 impl ValidateContextOutput {
     /// Creates a new builder-style object to manufacture [`ValidateContextOutput`](crate::operation::validate_context::ValidateContextOutput).
-    pub fn builder() -> crate::operation::validate_context::builders::ValidateContextOutputBuilder {
+    pub fn builder(
+    ) -> crate::operation::validate_context::builders::ValidateContextOutputBuilder {
         crate::operation::validate_context::builders::ValidateContextOutputBuilder::default()
     }
 }
 
 /// A builder for [`ValidateContextOutput`](crate::operation::validate_context::ValidateContextOutput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
-pub struct ValidateContextOutputBuilder {
-}
+pub struct ValidateContextOutputBuilder {}
 impl ValidateContextOutputBuilder {
     /// Consumes the builder and constructs a [`ValidateContextOutput`](crate::operation::validate_context::ValidateContextOutput).
     pub fn build(self) -> crate::operation::validate_context::ValidateContextOutput {
-        crate::operation::validate_context::ValidateContextOutput {
-        }
+        crate::operation::validate_context::ValidateContextOutput {}
     }
 }
-

@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct CreateFunctionInput  {
+pub struct CreateFunctionInput {
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -20,7 +20,7 @@ pub struct CreateFunctionInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub function_type: ::std::option::Option<crate::types::FunctionTypes>,
 }
-impl  CreateFunctionInput  {
+impl CreateFunctionInput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(&self) -> ::std::option::Option<&str> {
         self.workspace_id.as_deref()
@@ -46,7 +46,9 @@ impl  CreateFunctionInput  {
         self.function.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn runtime_version(&self) -> ::std::option::Option<&crate::types::FunctionRuntimeVersion> {
+    pub fn runtime_version(
+        &self,
+    ) -> ::std::option::Option<&crate::types::FunctionRuntimeVersion> {
         self.runtime_version.as_ref()
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -56,13 +58,16 @@ impl  CreateFunctionInput  {
 }
 impl CreateFunctionInput {
     /// Creates a new builder-style object to manufacture [`CreateFunctionInput`](crate::operation::create_function::CreateFunctionInput).
-    pub fn builder() -> crate::operation::create_function::builders::CreateFunctionInputBuilder {
+    pub fn builder(
+    ) -> crate::operation::create_function::builders::CreateFunctionInputBuilder {
         crate::operation::create_function::builders::CreateFunctionInputBuilder::default()
     }
 }
 
 /// A builder for [`CreateFunctionInput`](crate::operation::create_function::CreateFunctionInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct CreateFunctionInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
@@ -71,19 +76,27 @@ pub struct CreateFunctionInputBuilder {
     pub(crate) description: ::std::option::Option<::std::string::String>,
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
     pub(crate) function: ::std::option::Option<::std::string::String>,
-    pub(crate) runtime_version: ::std::option::Option<crate::types::FunctionRuntimeVersion>,
+    pub(crate) runtime_version:
+        ::std::option::Option<crate::types::FunctionRuntimeVersion>,
     pub(crate) function_type: ::std::option::Option<crate::types::FunctionTypes>,
 }
 impl CreateFunctionInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_id = input; self
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -91,13 +104,20 @@ impl CreateFunctionInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -105,13 +125,20 @@ impl CreateFunctionInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn function_name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.function_name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.function_name = input; self
+    pub fn set_function_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.function_name = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_function_name(&self) -> &::std::option::Option<::std::string::String> {
@@ -119,13 +146,20 @@ impl CreateFunctionInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn description(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn description(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.description = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_description(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.description = input; self
+    pub fn set_description(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.description = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_description(&self) -> &::std::option::Option<::std::string::String> {
@@ -133,13 +167,20 @@ impl CreateFunctionInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn change_reason(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn change_reason(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.change_reason = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_change_reason(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.change_reason = input; self
+    pub fn set_change_reason(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.change_reason = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
@@ -147,13 +188,20 @@ impl CreateFunctionInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn function(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn function(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.function = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_function(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.function = input; self
+    pub fn set_function(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.function = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_function(&self) -> &::std::option::Option<::std::string::String> {
@@ -161,16 +209,25 @@ impl CreateFunctionInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn runtime_version(mut self, input: crate::types::FunctionRuntimeVersion) -> Self {
+    pub fn runtime_version(
+        mut self,
+        input: crate::types::FunctionRuntimeVersion,
+    ) -> Self {
         self.runtime_version = ::std::option::Option::Some(input);
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_runtime_version(mut self, input: ::std::option::Option<crate::types::FunctionRuntimeVersion>) -> Self {
-        self.runtime_version = input; self
+    pub fn set_runtime_version(
+        mut self,
+        input: ::std::option::Option<crate::types::FunctionRuntimeVersion>,
+    ) -> Self {
+        self.runtime_version = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_runtime_version(&self) -> &::std::option::Option<crate::types::FunctionRuntimeVersion> {
+    pub fn get_runtime_version(
+        &self,
+    ) -> &::std::option::Option<crate::types::FunctionRuntimeVersion> {
         &self.runtime_version
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -180,35 +237,37 @@ impl CreateFunctionInputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_function_type(mut self, input: ::std::option::Option<crate::types::FunctionTypes>) -> Self {
-        self.function_type = input; self
+    pub fn set_function_type(
+        mut self,
+        input: ::std::option::Option<crate::types::FunctionTypes>,
+    ) -> Self {
+        self.function_type = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_function_type(&self) -> &::std::option::Option<crate::types::FunctionTypes> {
+    pub fn get_function_type(
+        &self,
+    ) -> &::std::option::Option<crate::types::FunctionTypes> {
         &self.function_type
     }
     /// Consumes the builder and constructs a [`CreateFunctionInput`](crate::operation::create_function::CreateFunctionInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::create_function::CreateFunctionInput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::create_function::CreateFunctionInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::create_function::CreateFunctionInput {
-                workspace_id: self.workspace_id
-                ,
-                org_id: self.org_id
-                ,
-                function_name: self.function_name
-                ,
-                description: self.description
-                ,
-                change_reason: self.change_reason
-                ,
-                function: self.function
-                ,
-                runtime_version: self.runtime_version
-                ,
-                function_type: self.function_type
-                ,
-            }
+                workspace_id: self.workspace_id,
+                org_id: self.org_id,
+                function_name: self.function_name,
+                description: self.description,
+                change_reason: self.change_reason,
+                function: self.function,
+                runtime_version: self.runtime_version,
+                function_type: self.function_type,
+            },
         )
     }
 }
-

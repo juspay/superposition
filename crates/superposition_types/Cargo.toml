@@ -41,6 +41,7 @@ uniffi = { workspace = true }
 
 [features]
 diesel_derives = [
+    "api",
     "dep:diesel",
     "superposition_derives/diesel_derives",
     "dep:diesel-derive-enum",

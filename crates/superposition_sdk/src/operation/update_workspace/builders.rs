@@ -4,256 +4,334 @@ pub use crate::operation::update_workspace::_update_workspace_output::UpdateWork
 pub use crate::operation::update_workspace::_update_workspace_input::UpdateWorkspaceInputBuilder;
 
 impl crate::operation::update_workspace::builders::UpdateWorkspaceInputBuilder {
-                    /// Sends a request with this input using the given client.
-                    pub async fn send_with(self, client: &crate::Client) -> ::std::result::Result<
-                        crate::operation::update_workspace::UpdateWorkspaceOutput,
-                        ::aws_smithy_runtime_api::client::result::SdkError<
-                            crate::operation::update_workspace::UpdateWorkspaceError,
-                            ::aws_smithy_runtime_api::client::orchestrator::HttpResponse
-                        >
-                    > {
-                        let mut fluent_builder = client.update_workspace();
-                        fluent_builder.inner = self;
-                        fluent_builder.send().await
-                    }
-                }
+    /// Sends a request with this input using the given client.
+    pub async fn send_with(
+        self,
+        client: &crate::Client,
+    ) -> ::std::result::Result<
+        crate::operation::update_workspace::UpdateWorkspaceOutput,
+        ::aws_smithy_runtime_api::client::result::SdkError<
+            crate::operation::update_workspace::UpdateWorkspaceError,
+            ::aws_smithy_runtime_api::client::orchestrator::HttpResponse,
+        >,
+    > {
+        let mut fluent_builder = client.update_workspace();
+        fluent_builder.inner = self;
+        fluent_builder.send().await
+    }
+}
 /// Fluent builder constructing a request to `UpdateWorkspace`.
-/// 
+///
 /// Updates an existing workspace configuration, allowing modification of admin settings, mandatory dimensions, and workspace properties. Validates config version existence if provided.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct UpdateWorkspaceFluentBuilder {
-                handle: ::std::sync::Arc<crate::client::Handle>,
-                inner: crate::operation::update_workspace::builders::UpdateWorkspaceInputBuilder,
-config_override: ::std::option::Option<crate::config::Builder>,
-            }
+    handle: ::std::sync::Arc<crate::client::Handle>,
+    inner: crate::operation::update_workspace::builders::UpdateWorkspaceInputBuilder,
+    config_override: ::std::option::Option<crate::config::Builder>,
+}
 impl
-                crate::client::customize::internal::CustomizableSend<
-                    crate::operation::update_workspace::UpdateWorkspaceOutput,
-                    crate::operation::update_workspace::UpdateWorkspaceError,
-                > for UpdateWorkspaceFluentBuilder
-            {
-                fn send(
-                    self,
-                    config_override: crate::config::Builder,
-                ) -> crate::client::customize::internal::BoxFuture<
-                    crate::client::customize::internal::SendResult<
-                        crate::operation::update_workspace::UpdateWorkspaceOutput,
-                        crate::operation::update_workspace::UpdateWorkspaceError,
-                    >,
-                > {
-                    ::std::boxed::Box::pin(async move { self.config_override(config_override).send().await })
-                }
-            }
+    crate::client::customize::internal::CustomizableSend<
+        crate::operation::update_workspace::UpdateWorkspaceOutput,
+        crate::operation::update_workspace::UpdateWorkspaceError,
+    > for UpdateWorkspaceFluentBuilder
+{
+    fn send(
+        self,
+        config_override: crate::config::Builder,
+    ) -> crate::client::customize::internal::BoxFuture<
+        crate::client::customize::internal::SendResult<
+            crate::operation::update_workspace::UpdateWorkspaceOutput,
+            crate::operation::update_workspace::UpdateWorkspaceError,
+        >,
+    > {
+        ::std::boxed::Box::pin(async move {
+            self.config_override(config_override).send().await
+        })
+    }
+}
 impl UpdateWorkspaceFluentBuilder {
     /// Creates a new `UpdateWorkspaceFluentBuilder`.
-                    pub(crate) fn new(handle: ::std::sync::Arc<crate::client::Handle>) -> Self {
-                        Self {
-                            handle,
-                            inner: ::std::default::Default::default(),
-    config_override: ::std::option::Option::None,
-                        }
-                    }
+    pub(crate) fn new(handle: ::std::sync::Arc<crate::client::Handle>) -> Self {
+        Self {
+            handle,
+            inner: ::std::default::Default::default(),
+            config_override: ::std::option::Option::None,
+        }
+    }
     /// Access the UpdateWorkspace as a reference.
-                    pub fn as_input(&self) -> &crate::operation::update_workspace::builders::UpdateWorkspaceInputBuilder {
-                        &self.inner
-                    }
+    pub fn as_input(
+        &self,
+    ) -> &crate::operation::update_workspace::builders::UpdateWorkspaceInputBuilder {
+        &self.inner
+    }
     /// Sends the request and returns the response.
-                    ///
-                    /// If an error occurs, an `SdkError` will be returned with additional details that
-                    /// can be matched against.
-                    ///
-                    /// By default, any retryable failures will be retried twice. Retry behavior
-                    /// is configurable with the [RetryConfig](aws_smithy_types::retry::RetryConfig), which can be
-                    /// set when configuring the client.
-                    pub async fn send(self) -> ::std::result::Result<crate::operation::update_workspace::UpdateWorkspaceOutput, ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::update_workspace::UpdateWorkspaceError, ::aws_smithy_runtime_api::client::orchestrator::HttpResponse>> {
-                        let input = self.inner.build().map_err(::aws_smithy_runtime_api::client::result::SdkError::construction_failure)?;
-                        let runtime_plugins = crate::operation::update_workspace::UpdateWorkspace::operation_runtime_plugins(
+    ///
+    /// If an error occurs, an `SdkError` will be returned with additional details that
+    /// can be matched against.
+    ///
+    /// By default, any retryable failures will be retried twice. Retry behavior
+    /// is configurable with the [RetryConfig](aws_smithy_types::retry::RetryConfig), which can be
+    /// set when configuring the client.
+    pub async fn send(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::update_workspace::UpdateWorkspaceOutput,
+        ::aws_smithy_runtime_api::client::result::SdkError<
+            crate::operation::update_workspace::UpdateWorkspaceError,
+            ::aws_smithy_runtime_api::client::orchestrator::HttpResponse,
+        >,
+    > {
+        let input = self.inner.build().map_err(
+            ::aws_smithy_runtime_api::client::result::SdkError::construction_failure,
+        )?;
+        let runtime_plugins = crate::operation::update_workspace::UpdateWorkspace::operation_runtime_plugins(
                             self.handle.runtime_plugins.clone(),
                             &self.handle.conf,
                             self.config_override,
                         );
-                        crate::operation::update_workspace::UpdateWorkspace::orchestrate(&runtime_plugins, input).await
-                    }
-    
-                    /// Consumes this builder, creating a customizable operation that can be modified before being sent.
-                    pub fn customize(
-                        self,
-                    ) -> crate::client::customize::CustomizableOperation<crate::operation::update_workspace::UpdateWorkspaceOutput, crate::operation::update_workspace::UpdateWorkspaceError, Self> {
-                        crate::client::customize::CustomizableOperation::new(self)
-                    }
+        crate::operation::update_workspace::UpdateWorkspace::orchestrate(
+            &runtime_plugins,
+            input,
+        )
+        .await
+    }
+
+    /// Consumes this builder, creating a customizable operation that can be modified before being sent.
+    pub fn customize(
+        self,
+    ) -> crate::client::customize::CustomizableOperation<
+        crate::operation::update_workspace::UpdateWorkspaceOutput,
+        crate::operation::update_workspace::UpdateWorkspaceError,
+        Self,
+    > {
+        crate::client::customize::CustomizableOperation::new(self)
+    }
     pub(crate) fn config_override(
-                            mut self,
-                            config_override: impl ::std::convert::Into<crate::config::Builder>,
-                        ) -> Self {
-                            self.set_config_override(::std::option::Option::Some(config_override.into()));
-                            self
-                        }
-    
-                        pub(crate) fn set_config_override(
-                            &mut self,
-                            config_override: ::std::option::Option<crate::config::Builder>,
-                        ) -> &mut Self {
-                            self.config_override = config_override;
-                            self
-                        }
+        mut self,
+        config_override: impl ::std::convert::Into<crate::config::Builder>,
+    ) -> Self {
+        self.set_config_override(::std::option::Option::Some(config_override.into()));
+        self
+    }
+
+    pub(crate) fn set_config_override(
+        &mut self,
+        config_override: ::std::option::Option<crate::config::Builder>,
+    ) -> &mut Self {
+        self.config_override = config_override;
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.org_id(input.into());
-                    self
-                }
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.org_id(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_org_id(input);
-                    self
-                }
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_org_id(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_org_id()
-                }
+        self.inner.get_org_id()
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn workspace_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.workspace_name(input.into());
-                    self
-                }
+    pub fn workspace_name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.workspace_name(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_workspace_name(input);
-                    self
-                }
+    pub fn set_workspace_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_workspace_name(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_name(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_workspace_name()
-                }
+        self.inner.get_workspace_name()
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn workspace_admin_email(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.workspace_admin_email(input.into());
-                    self
-                }
+    pub fn workspace_admin_email(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.workspace_admin_email(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_admin_email(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_workspace_admin_email(input);
-                    self
-                }
+    pub fn set_workspace_admin_email(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_workspace_admin_email(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_workspace_admin_email(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_workspace_admin_email()
-                }
+    pub fn get_workspace_admin_email(
+        &self,
+    ) -> &::std::option::Option<::std::string::String> {
+        self.inner.get_workspace_admin_email()
+    }
     /// To unset config version, pass "null" string.
-    pub fn config_version(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.config_version(input.into());
-                    self
-                }
+    pub fn config_version(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.config_version(input.into());
+        self
+    }
     /// To unset config version, pass "null" string.
-    pub fn set_config_version(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_config_version(input);
-                    self
-                }
+    pub fn set_config_version(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_config_version(input);
+        self
+    }
     /// To unset config version, pass "null" string.
     pub fn get_config_version(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_config_version()
-                }
-    /// 
+        self.inner.get_config_version()
+    }
+    ///
     /// Appends an item to `mandatory_dimensions`.
-    /// 
+    ///
     /// To override the contents of this collection use [`set_mandatory_dimensions`](Self::set_mandatory_dimensions).
-    /// 
+    ///
     #[allow(missing_docs)] // documentation missing in model
-    pub fn mandatory_dimensions(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                        self.inner = self.inner.mandatory_dimensions(input.into());
-                        self
-                    }
+    pub fn mandatory_dimensions(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.mandatory_dimensions(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_mandatory_dimensions(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-                    self.inner = self.inner.set_mandatory_dimensions(input);
-                    self
-                }
+    pub fn set_mandatory_dimensions(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    ) -> Self {
+        self.inner = self.inner.set_mandatory_dimensions(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_mandatory_dimensions(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
-                    self.inner.get_mandatory_dimensions()
-                }
+    pub fn get_mandatory_dimensions(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<::std::string::String>> {
+        self.inner.get_mandatory_dimensions()
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_status(mut self, input: crate::types::WorkspaceStatus) -> Self {
-                    self.inner = self.inner.workspace_status(input);
-                    self
-                }
+        self.inner = self.inner.workspace_status(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_status(mut self, input: ::std::option::Option<crate::types::WorkspaceStatus>) -> Self {
-                    self.inner = self.inner.set_workspace_status(input);
-                    self
-                }
+    pub fn set_workspace_status(
+        mut self,
+        input: ::std::option::Option<crate::types::WorkspaceStatus>,
+    ) -> Self {
+        self.inner = self.inner.set_workspace_status(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_workspace_status(&self) -> &::std::option::Option<crate::types::WorkspaceStatus> {
-                    self.inner.get_workspace_status()
-                }
+    pub fn get_workspace_status(
+        &self,
+    ) -> &::std::option::Option<crate::types::WorkspaceStatus> {
+        self.inner.get_workspace_status()
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn metrics(mut self, input: ::aws_smithy_types::Document) -> Self {
-                    self.inner = self.inner.metrics(input);
-                    self
-                }
+        self.inner = self.inner.metrics(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_metrics(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
-                    self.inner = self.inner.set_metrics(input);
-                    self
-                }
+    pub fn set_metrics(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::Document>,
+    ) -> Self {
+        self.inner = self.inner.set_metrics(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_metrics(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
-                    self.inner.get_metrics()
-                }
+        self.inner.get_metrics()
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn allow_experiment_self_approval(mut self, input: bool) -> Self {
-                    self.inner = self.inner.allow_experiment_self_approval(input);
-                    self
-                }
+        self.inner = self.inner.allow_experiment_self_approval(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_allow_experiment_self_approval(mut self, input: ::std::option::Option<bool>) -> Self {
-                    self.inner = self.inner.set_allow_experiment_self_approval(input);
-                    self
-                }
+    pub fn set_allow_experiment_self_approval(
+        mut self,
+        input: ::std::option::Option<bool>,
+    ) -> Self {
+        self.inner = self.inner.set_allow_experiment_self_approval(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_allow_experiment_self_approval(&self) -> &::std::option::Option<bool> {
-                    self.inner.get_allow_experiment_self_approval()
-                }
+        self.inner.get_allow_experiment_self_approval()
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn auto_populate_control(mut self, input: bool) -> Self {
-                    self.inner = self.inner.auto_populate_control(input);
-                    self
-                }
+        self.inner = self.inner.auto_populate_control(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_auto_populate_control(mut self, input: ::std::option::Option<bool>) -> Self {
-                    self.inner = self.inner.set_auto_populate_control(input);
-                    self
-                }
+    pub fn set_auto_populate_control(
+        mut self,
+        input: ::std::option::Option<bool>,
+    ) -> Self {
+        self.inner = self.inner.set_auto_populate_control(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_auto_populate_control(&self) -> &::std::option::Option<bool> {
-                    self.inner.get_auto_populate_control()
-                }
+        self.inner.get_auto_populate_control()
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn enable_context_validation(mut self, input: bool) -> Self {
-                    self.inner = self.inner.enable_context_validation(input);
-                    self
-                }
+        self.inner = self.inner.enable_context_validation(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_enable_context_validation(mut self, input: ::std::option::Option<bool>) -> Self {
-                    self.inner = self.inner.set_enable_context_validation(input);
-                    self
-                }
+    pub fn set_enable_context_validation(
+        mut self,
+        input: ::std::option::Option<bool>,
+    ) -> Self {
+        self.inner = self.inner.set_enable_context_validation(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_enable_context_validation(&self) -> &::std::option::Option<bool> {
-                    self.inner.get_enable_context_validation()
-                }
+        self.inner.get_enable_context_validation()
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn enable_change_reason_validation(mut self, input: bool) -> Self {
-                    self.inner = self.inner.enable_change_reason_validation(input);
-                    self
-                }
+        self.inner = self.inner.enable_change_reason_validation(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_enable_change_reason_validation(mut self, input: ::std::option::Option<bool>) -> Self {
-                    self.inner = self.inner.set_enable_change_reason_validation(input);
-                    self
-                }
+    pub fn set_enable_change_reason_validation(
+        mut self,
+        input: ::std::option::Option<bool>,
+    ) -> Self {
+        self.inner = self.inner.set_enable_change_reason_validation(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_enable_change_reason_validation(&self) -> &::std::option::Option<bool> {
-                    self.inner.get_enable_change_reason_validation()
-                }
+        self.inner.get_enable_change_reason_validation()
+    }
 }
-

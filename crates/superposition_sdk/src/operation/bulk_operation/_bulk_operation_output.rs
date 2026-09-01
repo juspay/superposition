@@ -2,28 +2,33 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct BulkOperationOutput  {
+pub struct BulkOperationOutput {
     #[allow(missing_docs)] // documentation missing in model
-    pub output: ::std::vec::Vec::<crate::types::ContextActionOut>,
+    pub output: ::std::vec::Vec<crate::types::ContextActionOut>,
 }
-impl  BulkOperationOutput  {
+impl BulkOperationOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn output(&self) -> &[crate::types::ContextActionOut] {
-        use std::ops::Deref; self.output.deref()
+        use std::ops::Deref;
+        self.output.deref()
     }
 }
 impl BulkOperationOutput {
     /// Creates a new builder-style object to manufacture [`BulkOperationOutput`](crate::operation::bulk_operation::BulkOperationOutput).
-    pub fn builder() -> crate::operation::bulk_operation::builders::BulkOperationOutputBuilder {
+    pub fn builder(
+    ) -> crate::operation::bulk_operation::builders::BulkOperationOutputBuilder {
         crate::operation::bulk_operation::builders::BulkOperationOutputBuilder::default()
     }
 }
 
 /// A builder for [`BulkOperationOutput`](crate::operation::bulk_operation::BulkOperationOutput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct BulkOperationOutputBuilder {
-    pub(crate) output: ::std::option::Option<::std::vec::Vec::<crate::types::ContextActionOut>>,
+    pub(crate) output:
+        ::std::option::Option<::std::vec::Vec<crate::types::ContextActionOut>>,
 }
 impl BulkOperationOutputBuilder {
     /// Appends an item to `output`.
@@ -32,22 +37,33 @@ impl BulkOperationOutputBuilder {
     ///
     pub fn output(mut self, input: crate::types::ContextActionOut) -> Self {
         let mut v = self.output.unwrap_or_default();
-                        v.push(input);
-                        self.output = ::std::option::Option::Some(v);
-                        self
+        v.push(input);
+        self.output = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_output(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::ContextActionOut>>) -> Self {
-        self.output = input; self
+    pub fn set_output(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<crate::types::ContextActionOut>>,
+    ) -> Self {
+        self.output = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_output(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::ContextActionOut>> {
+    pub fn get_output(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<crate::types::ContextActionOut>> {
         &self.output
     }
     /// Consumes the builder and constructs a [`BulkOperationOutput`](crate::operation::bulk_operation::BulkOperationOutput).
     /// This method will fail if any of the following fields are not set:
     /// - [`output`](crate::operation::bulk_operation::builders::BulkOperationOutputBuilder::output)
-    pub fn build(self) -> ::std::result::Result<crate::operation::bulk_operation::BulkOperationOutput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::bulk_operation::BulkOperationOutput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::bulk_operation::BulkOperationOutput {
                 output: self.output
@@ -59,4 +75,3 @@ impl BulkOperationOutputBuilder {
         )
     }
 }
-

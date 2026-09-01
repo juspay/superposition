@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct MoveContextInput  {
+pub struct MoveContextInput {
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -12,7 +12,7 @@ pub struct MoveContextInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub request: ::std::option::Option<crate::types::ContextMove>,
 }
-impl  MoveContextInput  {
+impl MoveContextInput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(&self) -> ::std::option::Option<&str> {
         self.workspace_id.as_deref()
@@ -32,13 +32,16 @@ impl  MoveContextInput  {
 }
 impl MoveContextInput {
     /// Creates a new builder-style object to manufacture [`MoveContextInput`](crate::operation::move_context::MoveContextInput).
-    pub fn builder() -> crate::operation::move_context::builders::MoveContextInputBuilder {
+    pub fn builder() -> crate::operation::move_context::builders::MoveContextInputBuilder
+    {
         crate::operation::move_context::builders::MoveContextInputBuilder::default()
     }
 }
 
 /// A builder for [`MoveContextInput`](crate::operation::move_context::MoveContextInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct MoveContextInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
@@ -49,13 +52,20 @@ pub struct MoveContextInputBuilder {
 impl MoveContextInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_id = input; self
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -63,13 +73,20 @@ impl MoveContextInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -83,7 +100,8 @@ impl MoveContextInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.id = input; self
+        self.id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -96,27 +114,29 @@ impl MoveContextInputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_request(mut self, input: ::std::option::Option<crate::types::ContextMove>) -> Self {
-        self.request = input; self
+    pub fn set_request(
+        mut self,
+        input: ::std::option::Option<crate::types::ContextMove>,
+    ) -> Self {
+        self.request = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_request(&self) -> &::std::option::Option<crate::types::ContextMove> {
         &self.request
     }
     /// Consumes the builder and constructs a [`MoveContextInput`](crate::operation::move_context::MoveContextInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::move_context::MoveContextInput, ::aws_smithy_types::error::operation::BuildError> {
-        ::std::result::Result::Ok(
-            crate::operation::move_context::MoveContextInput {
-                workspace_id: self.workspace_id
-                ,
-                org_id: self.org_id
-                ,
-                id: self.id
-                ,
-                request: self.request
-                ,
-            }
-        )
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::move_context::MoveContextInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
+        ::std::result::Result::Ok(crate::operation::move_context::MoveContextInput {
+            workspace_id: self.workspace_id,
+            org_id: self.org_id,
+            id: self.id,
+            request: self.request,
+        })
     }
 }
-

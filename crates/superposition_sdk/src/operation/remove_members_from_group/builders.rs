@@ -18,7 +18,7 @@ impl crate::operation::remove_members_from_group::builders::RemoveMembersFromGro
                     }
                 }
 /// Fluent builder constructing a request to `RemoveMembersFromGroup`.
-/// 
+///
 /// Removes members from an existing experiment group.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct RemoveMembersFromGroupFluentBuilder {
@@ -27,149 +27,194 @@ pub struct RemoveMembersFromGroupFluentBuilder {
 config_override: ::std::option::Option<crate::config::Builder>,
             }
 impl
-                crate::client::customize::internal::CustomizableSend<
-                    crate::operation::remove_members_from_group::RemoveMembersFromGroupOutput,
-                    crate::operation::remove_members_from_group::RemoveMembersFromGroupError,
-                > for RemoveMembersFromGroupFluentBuilder
-            {
-                fn send(
-                    self,
-                    config_override: crate::config::Builder,
-                ) -> crate::client::customize::internal::BoxFuture<
-                    crate::client::customize::internal::SendResult<
-                        crate::operation::remove_members_from_group::RemoveMembersFromGroupOutput,
-                        crate::operation::remove_members_from_group::RemoveMembersFromGroupError,
-                    >,
-                > {
-                    ::std::boxed::Box::pin(async move { self.config_override(config_override).send().await })
-                }
-            }
+    crate::client::customize::internal::CustomizableSend<
+        crate::operation::remove_members_from_group::RemoveMembersFromGroupOutput,
+        crate::operation::remove_members_from_group::RemoveMembersFromGroupError,
+    > for RemoveMembersFromGroupFluentBuilder
+{
+    fn send(
+        self,
+        config_override: crate::config::Builder,
+    ) -> crate::client::customize::internal::BoxFuture<
+        crate::client::customize::internal::SendResult<
+            crate::operation::remove_members_from_group::RemoveMembersFromGroupOutput,
+            crate::operation::remove_members_from_group::RemoveMembersFromGroupError,
+        >,
+    > {
+        ::std::boxed::Box::pin(async move {
+            self.config_override(config_override).send().await
+        })
+    }
+}
 impl RemoveMembersFromGroupFluentBuilder {
     /// Creates a new `RemoveMembersFromGroupFluentBuilder`.
-                    pub(crate) fn new(handle: ::std::sync::Arc<crate::client::Handle>) -> Self {
-                        Self {
-                            handle,
-                            inner: ::std::default::Default::default(),
-    config_override: ::std::option::Option::None,
-                        }
-                    }
+    pub(crate) fn new(handle: ::std::sync::Arc<crate::client::Handle>) -> Self {
+        Self {
+            handle,
+            inner: ::std::default::Default::default(),
+            config_override: ::std::option::Option::None,
+        }
+    }
     /// Access the RemoveMembersFromGroup as a reference.
-                    pub fn as_input(&self) -> &crate::operation::remove_members_from_group::builders::RemoveMembersFromGroupInputBuilder {
-                        &self.inner
-                    }
+    pub fn as_input(&self) -> &crate::operation::remove_members_from_group::builders::RemoveMembersFromGroupInputBuilder{
+        &self.inner
+    }
     /// Sends the request and returns the response.
-                    ///
-                    /// If an error occurs, an `SdkError` will be returned with additional details that
-                    /// can be matched against.
-                    ///
-                    /// By default, any retryable failures will be retried twice. Retry behavior
-                    /// is configurable with the [RetryConfig](aws_smithy_types::retry::RetryConfig), which can be
-                    /// set when configuring the client.
-                    pub async fn send(self) -> ::std::result::Result<crate::operation::remove_members_from_group::RemoveMembersFromGroupOutput, ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::remove_members_from_group::RemoveMembersFromGroupError, ::aws_smithy_runtime_api::client::orchestrator::HttpResponse>> {
-                        let input = self.inner.build().map_err(::aws_smithy_runtime_api::client::result::SdkError::construction_failure)?;
-                        let runtime_plugins = crate::operation::remove_members_from_group::RemoveMembersFromGroup::operation_runtime_plugins(
+    ///
+    /// If an error occurs, an `SdkError` will be returned with additional details that
+    /// can be matched against.
+    ///
+    /// By default, any retryable failures will be retried twice. Retry behavior
+    /// is configurable with the [RetryConfig](aws_smithy_types::retry::RetryConfig), which can be
+    /// set when configuring the client.
+    pub async fn send(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::remove_members_from_group::RemoveMembersFromGroupOutput,
+        ::aws_smithy_runtime_api::client::result::SdkError<
+            crate::operation::remove_members_from_group::RemoveMembersFromGroupError,
+            ::aws_smithy_runtime_api::client::orchestrator::HttpResponse,
+        >,
+    > {
+        let input = self.inner.build().map_err(
+            ::aws_smithy_runtime_api::client::result::SdkError::construction_failure,
+        )?;
+        let runtime_plugins = crate::operation::remove_members_from_group::RemoveMembersFromGroup::operation_runtime_plugins(
                             self.handle.runtime_plugins.clone(),
                             &self.handle.conf,
                             self.config_override,
                         );
-                        crate::operation::remove_members_from_group::RemoveMembersFromGroup::orchestrate(&runtime_plugins, input).await
-                    }
-    
-                    /// Consumes this builder, creating a customizable operation that can be modified before being sent.
-                    pub fn customize(
-                        self,
-                    ) -> crate::client::customize::CustomizableOperation<crate::operation::remove_members_from_group::RemoveMembersFromGroupOutput, crate::operation::remove_members_from_group::RemoveMembersFromGroupError, Self> {
-                        crate::client::customize::CustomizableOperation::new(self)
-                    }
+        crate::operation::remove_members_from_group::RemoveMembersFromGroup::orchestrate(
+            &runtime_plugins,
+            input,
+        )
+        .await
+    }
+
+    /// Consumes this builder, creating a customizable operation that can be modified before being sent.
+    pub fn customize(
+        self,
+    ) -> crate::client::customize::CustomizableOperation<
+        crate::operation::remove_members_from_group::RemoveMembersFromGroupOutput,
+        crate::operation::remove_members_from_group::RemoveMembersFromGroupError,
+        Self,
+    > {
+        crate::client::customize::CustomizableOperation::new(self)
+    }
     pub(crate) fn config_override(
-                            mut self,
-                            config_override: impl ::std::convert::Into<crate::config::Builder>,
-                        ) -> Self {
-                            self.set_config_override(::std::option::Option::Some(config_override.into()));
-                            self
-                        }
-    
-                        pub(crate) fn set_config_override(
-                            &mut self,
-                            config_override: ::std::option::Option<crate::config::Builder>,
-                        ) -> &mut Self {
-                            self.config_override = config_override;
-                            self
-                        }
+        mut self,
+        config_override: impl ::std::convert::Into<crate::config::Builder>,
+    ) -> Self {
+        self.set_config_override(::std::option::Option::Some(config_override.into()));
+        self
+    }
+
+    pub(crate) fn set_config_override(
+        &mut self,
+        config_override: ::std::option::Option<crate::config::Builder>,
+    ) -> &mut Self {
+        self.config_override = config_override;
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.workspace_id(input.into());
-                    self
-                }
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.workspace_id(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_workspace_id(input);
-                    self
-                }
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_workspace_id(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_workspace_id()
-                }
+        self.inner.get_workspace_id()
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.org_id(input.into());
-                    self
-                }
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.org_id(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_org_id(input);
-                    self
-                }
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_org_id(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_org_id()
-                }
+        self.inner.get_org_id()
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.id(input.into());
-                    self
-                }
+        self.inner = self.inner.id(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_id(input);
-                    self
-                }
+        self.inner = self.inner.set_id(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_id(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_id()
-                }
+        self.inner.get_id()
+    }
     /// Reason for adding these members.
-    pub fn change_reason(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.change_reason(input.into());
-                    self
-                }
+    pub fn change_reason(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.change_reason(input.into());
+        self
+    }
     /// Reason for adding these members.
-    pub fn set_change_reason(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_change_reason(input);
-                    self
-                }
+    pub fn set_change_reason(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_change_reason(input);
+        self
+    }
     /// Reason for adding these members.
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_change_reason()
-                }
-    /// 
+        self.inner.get_change_reason()
+    }
+    ///
     /// Appends an item to `member_experiment_ids`.
-    /// 
+    ///
     /// To override the contents of this collection use [`set_member_experiment_ids`](Self::set_member_experiment_ids).
-    /// 
+    ///
     /// List of experiment IDs to add/remove to this group.
-    pub fn member_experiment_ids(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                        self.inner = self.inner.member_experiment_ids(input.into());
-                        self
-                    }
+    pub fn member_experiment_ids(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.member_experiment_ids(input.into());
+        self
+    }
     /// List of experiment IDs to add/remove to this group.
-    pub fn set_member_experiment_ids(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-                    self.inner = self.inner.set_member_experiment_ids(input);
-                    self
-                }
+    pub fn set_member_experiment_ids(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    ) -> Self {
+        self.inner = self.inner.set_member_experiment_ids(input);
+        self
+    }
     /// List of experiment IDs to add/remove to this group.
-    pub fn get_member_experiment_ids(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
-                    self.inner.get_member_experiment_ids()
-                }
+    pub fn get_member_experiment_ids(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<::std::string::String>> {
+        self.inner.get_member_experiment_ids()
+    }
 }
-

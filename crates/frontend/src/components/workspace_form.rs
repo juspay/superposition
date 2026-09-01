@@ -3,6 +3,7 @@ pub mod utils;
 
 use leptos::*;
 use serde_json::{Value, to_string};
+use superposition_types::api::config::MergeStrategy;
 use superposition_types::api::workspace::CreateWorkspaceRequest;
 use superposition_types::database::models::{Metrics, WorkspaceStatus};
 use web_sys::MouseEvent;
@@ -33,6 +34,7 @@ pub fn WorkspaceForm(
     #[prop(default = true)] auto_populate_control: bool,
     #[prop(default = false)] enable_context_validation: bool,
     #[prop(default = false)] enable_change_reason_validation: bool,
+    #[prop(default = MergeStrategy::MERGE)] merge_strategy: MergeStrategy,
     #[prop(into)] handle_submit: Callback<(), ()>,
 ) -> impl IntoView {
     let (workspace_name_rs, workspace_name_ws) = create_signal(workspace_name);
@@ -51,6 +53,7 @@ pub fn WorkspaceForm(
         create_signal(enable_context_validation);
     let (enable_change_reason_validation_rs, enable_change_reason_validation_ws) =
         create_signal(enable_change_reason_validation);
+    let (merge_strategy_rs, merge_strategy_ws) = create_signal(merge_strategy);
 
     let on_submit = move |ev: MouseEvent| {
         req_inprogress_ws.set(true);
@@ -70,6 +73,7 @@ pub fn WorkspaceForm(
                         auto_populate_control_rs.get_untracked(),
                         enable_context_validation_rs.get_untracked(),
                         enable_change_reason_validation_rs.get_untracked(),
+                        merge_strategy_rs.get_untracked(),
                     );
                     match update_payload {
                         Ok(payload) => {
@@ -95,6 +99,7 @@ pub fn WorkspaceForm(
                             .get_untracked(),
                         enable_change_reason_validation:
                             enable_change_reason_validation_rs.get_untracked(),
+                        merge_strategy: merge_strategy_rs.get_untracked(),
                     };
                     workspaces::create(create_payload, &org_id.get_untracked().0).await
                 };

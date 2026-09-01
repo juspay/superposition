@@ -9,6 +9,10 @@ pub mod superposition {
         #[derive(diesel::sql_types::SqlType)]
         #[diesel(postgres_type(name = "workspace_status", schema = "superposition"))]
         pub struct WorkspaceStatus;
+
+        #[derive(diesel::sql_types::SqlType)]
+        #[diesel(postgres_type(name = "merge_strategy", schema = "superposition"))]
+        pub struct MergeStrategy;
     }
 
     diesel::table! {
@@ -38,6 +42,7 @@ pub mod superposition {
 
     diesel::table! {
         use diesel::sql_types::*;
+        use super::sql_types::MergeStrategy;
         use super::sql_types::WorkspaceStatus;
 
         superposition.workspaces (organisation_id, workspace_name) {
@@ -60,6 +65,7 @@ pub mod superposition {
             auto_populate_control -> Bool,
             enable_context_validation -> Bool,
             enable_change_reason_validation -> Bool,
+            merge_strategy -> MergeStrategy,
             encryption_key -> Text,
             key_rotated_at -> Nullable<Timestamptz>,
             workspace_lock_id -> Nullable<Uuid>,

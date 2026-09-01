@@ -2,11 +2,11 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct GetOrganisationInput  {
+pub struct GetOrganisationInput {
     #[allow(missing_docs)] // documentation missing in model
     pub id: ::std::option::Option<::std::string::String>,
 }
-impl  GetOrganisationInput  {
+impl GetOrganisationInput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn id(&self) -> ::std::option::Option<&str> {
         self.id.as_deref()
@@ -14,13 +14,17 @@ impl  GetOrganisationInput  {
 }
 impl GetOrganisationInput {
     /// Creates a new builder-style object to manufacture [`GetOrganisationInput`](crate::operation::get_organisation::GetOrganisationInput).
-    pub fn builder() -> crate::operation::get_organisation::builders::GetOrganisationInputBuilder {
-        crate::operation::get_organisation::builders::GetOrganisationInputBuilder::default()
+    pub fn builder(
+    ) -> crate::operation::get_organisation::builders::GetOrganisationInputBuilder {
+        crate::operation::get_organisation::builders::GetOrganisationInputBuilder::default(
+        )
     }
 }
 
 /// A builder for [`GetOrganisationInput`](crate::operation::get_organisation::GetOrganisationInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct GetOrganisationInputBuilder {
     pub(crate) id: ::std::option::Option<::std::string::String>,
@@ -34,20 +38,22 @@ impl GetOrganisationInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.id = input; self
+        self.id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_id(&self) -> &::std::option::Option<::std::string::String> {
         &self.id
     }
     /// Consumes the builder and constructs a [`GetOrganisationInput`](crate::operation::get_organisation::GetOrganisationInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::get_organisation::GetOrganisationInput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::get_organisation::GetOrganisationInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
-            crate::operation::get_organisation::GetOrganisationInput {
-                id: self.id
-                ,
-            }
+            crate::operation::get_organisation::GetOrganisationInput { id: self.id },
         )
     }
 }
-

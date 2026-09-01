@@ -2,25 +2,29 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct ChangeReasonValidationFunctionRequest  {
+pub struct ChangeReasonValidationFunctionRequest {
     #[allow(missing_docs)] // documentation missing in model
     pub change_reason: ::std::string::String,
 }
-impl  ChangeReasonValidationFunctionRequest  {
+impl ChangeReasonValidationFunctionRequest {
     #[allow(missing_docs)] // documentation missing in model
     pub fn change_reason(&self) -> &str {
-        use std::ops::Deref; self.change_reason.deref()
+        use std::ops::Deref;
+        self.change_reason.deref()
     }
 }
 impl ChangeReasonValidationFunctionRequest {
     /// Creates a new builder-style object to manufacture [`ChangeReasonValidationFunctionRequest`](crate::types::ChangeReasonValidationFunctionRequest).
-    pub fn builder() -> crate::types::builders::ChangeReasonValidationFunctionRequestBuilder {
+    pub fn builder(
+    ) -> crate::types::builders::ChangeReasonValidationFunctionRequestBuilder {
         crate::types::builders::ChangeReasonValidationFunctionRequestBuilder::default()
     }
 }
 
 /// A builder for [`ChangeReasonValidationFunctionRequest`](crate::types::ChangeReasonValidationFunctionRequest).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct ChangeReasonValidationFunctionRequestBuilder {
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
@@ -28,13 +32,20 @@ pub struct ChangeReasonValidationFunctionRequestBuilder {
 impl ChangeReasonValidationFunctionRequestBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn change_reason(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn change_reason(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.change_reason = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_change_reason(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.change_reason = input; self
+    pub fn set_change_reason(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.change_reason = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
@@ -43,7 +54,12 @@ impl ChangeReasonValidationFunctionRequestBuilder {
     /// Consumes the builder and constructs a [`ChangeReasonValidationFunctionRequest`](crate::types::ChangeReasonValidationFunctionRequest).
     /// This method will fail if any of the following fields are not set:
     /// - [`change_reason`](crate::types::builders::ChangeReasonValidationFunctionRequestBuilder::change_reason)
-    pub fn build(self) -> ::std::result::Result<crate::types::ChangeReasonValidationFunctionRequest, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::types::ChangeReasonValidationFunctionRequest,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::types::ChangeReasonValidationFunctionRequest {
                 change_reason: self.change_reason
@@ -55,4 +71,3 @@ impl ChangeReasonValidationFunctionRequestBuilder {
         )
     }
 }
-

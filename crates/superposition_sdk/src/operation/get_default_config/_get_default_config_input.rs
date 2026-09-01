@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct GetDefaultConfigInput  {
+pub struct GetDefaultConfigInput {
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -10,7 +10,7 @@ pub struct GetDefaultConfigInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub key: ::std::option::Option<::std::string::String>,
 }
-impl  GetDefaultConfigInput  {
+impl GetDefaultConfigInput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(&self) -> ::std::option::Option<&str> {
         self.workspace_id.as_deref()
@@ -26,13 +26,17 @@ impl  GetDefaultConfigInput  {
 }
 impl GetDefaultConfigInput {
     /// Creates a new builder-style object to manufacture [`GetDefaultConfigInput`](crate::operation::get_default_config::GetDefaultConfigInput).
-    pub fn builder() -> crate::operation::get_default_config::builders::GetDefaultConfigInputBuilder {
+    pub fn builder(
+    ) -> crate::operation::get_default_config::builders::GetDefaultConfigInputBuilder
+    {
         crate::operation::get_default_config::builders::GetDefaultConfigInputBuilder::default()
     }
 }
 
 /// A builder for [`GetDefaultConfigInput`](crate::operation::get_default_config::GetDefaultConfigInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct GetDefaultConfigInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
@@ -42,13 +46,20 @@ pub struct GetDefaultConfigInputBuilder {
 impl GetDefaultConfigInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_id = input; self
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -56,13 +67,20 @@ impl GetDefaultConfigInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -70,30 +88,38 @@ impl GetDefaultConfigInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn key(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn key(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.key = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_key(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.key = input; self
+    pub fn set_key(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.key = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_key(&self) -> &::std::option::Option<::std::string::String> {
         &self.key
     }
     /// Consumes the builder and constructs a [`GetDefaultConfigInput`](crate::operation::get_default_config::GetDefaultConfigInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::get_default_config::GetDefaultConfigInput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::get_default_config::GetDefaultConfigInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::get_default_config::GetDefaultConfigInput {
-                workspace_id: self.workspace_id
-                ,
-                org_id: self.org_id
-                ,
-                key: self.key
-                ,
-            }
+                workspace_id: self.workspace_id,
+                org_id: self.org_id,
+                key: self.key,
+            },
         )
     }
 }
-

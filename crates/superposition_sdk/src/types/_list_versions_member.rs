@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct ListVersionsMember  {
+pub struct ListVersionsMember {
     #[allow(missing_docs)] // documentation missing in model
     pub id: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
@@ -12,12 +12,13 @@ pub struct ListVersionsMember  {
     #[allow(missing_docs)] // documentation missing in model
     pub description: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
-    pub tags: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub tags: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
 }
-impl  ListVersionsMember  {
+impl ListVersionsMember {
     #[allow(missing_docs)] // documentation missing in model
     pub fn id(&self) -> &str {
-        use std::ops::Deref; self.id.deref()
+        use std::ops::Deref;
+        self.id.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn config(&self) -> &crate::types::ConfigData {
@@ -29,14 +30,14 @@ impl  ListVersionsMember  {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn description(&self) -> &str {
-        use std::ops::Deref; self.description.deref()
+        use std::ops::Deref;
+        self.description.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.tags.is_none()`.
     pub fn tags(&self) -> &[::std::string::String] {
-        self.tags.as_deref()
-        .unwrap_or_default()
+        self.tags.as_deref().unwrap_or_default()
     }
 }
 impl ListVersionsMember {
@@ -47,14 +48,16 @@ impl ListVersionsMember {
 }
 
 /// A builder for [`ListVersionsMember`](crate::types::ListVersionsMember).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct ListVersionsMemberBuilder {
     pub(crate) id: ::std::option::Option<::std::string::String>,
     pub(crate) config: ::std::option::Option<crate::types::ConfigData>,
     pub(crate) created_at: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) description: ::std::option::Option<::std::string::String>,
-    pub(crate) tags: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub(crate) tags: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
 }
 impl ListVersionsMemberBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -65,7 +68,8 @@ impl ListVersionsMemberBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.id = input; self
+        self.id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -78,8 +82,12 @@ impl ListVersionsMemberBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_config(mut self, input: ::std::option::Option<crate::types::ConfigData>) -> Self {
-        self.config = input; self
+    pub fn set_config(
+        mut self,
+        input: ::std::option::Option<crate::types::ConfigData>,
+    ) -> Self {
+        self.config = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_config(&self) -> &::std::option::Option<crate::types::ConfigData> {
@@ -92,8 +100,12 @@ impl ListVersionsMemberBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_created_at(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.created_at = input; self
+    pub fn set_created_at(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.created_at = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_created_at(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
@@ -101,13 +113,20 @@ impl ListVersionsMemberBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn description(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn description(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.description = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_description(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.description = input; self
+    pub fn set_description(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.description = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_description(&self) -> &::std::option::Option<::std::string::String> {
@@ -117,18 +136,27 @@ impl ListVersionsMemberBuilder {
     ///
     /// To override the contents of this collection use [`set_tags`](Self::set_tags).
     ///
-    pub fn tags(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn tags(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         let mut v = self.tags.unwrap_or_default();
-                        v.push(input.into());
-                        self.tags = ::std::option::Option::Some(v);
-                        self
+        v.push(input.into());
+        self.tags = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_tags(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-        self.tags = input; self
+    pub fn set_tags(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    ) -> Self {
+        self.tags = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_tags(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
+    pub fn get_tags(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<::std::string::String>> {
         &self.tags
     }
     /// Consumes the builder and constructs a [`ListVersionsMember`](crate::types::ListVersionsMember).
@@ -137,7 +165,12 @@ impl ListVersionsMemberBuilder {
     /// - [`config`](crate::types::builders::ListVersionsMemberBuilder::config)
     /// - [`created_at`](crate::types::builders::ListVersionsMemberBuilder::created_at)
     /// - [`description`](crate::types::builders::ListVersionsMemberBuilder::description)
-    pub fn build(self) -> ::std::result::Result<crate::types::ListVersionsMember, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::types::ListVersionsMember,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::types::ListVersionsMember {
                 id: self.id
@@ -166,4 +199,3 @@ impl ListVersionsMemberBuilder {
         )
     }
 }
-

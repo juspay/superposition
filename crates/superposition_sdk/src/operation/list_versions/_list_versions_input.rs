@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct ListVersionsInput  {
+pub struct ListVersionsInput {
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -12,7 +12,7 @@ pub struct ListVersionsInput  {
     /// Page number to retrieve, starting from 1.
     pub page: ::std::option::Option<i32>,
 }
-impl  ListVersionsInput  {
+impl ListVersionsInput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(&self) -> ::std::option::Option<&str> {
         self.workspace_id.as_deref()
@@ -32,13 +32,16 @@ impl  ListVersionsInput  {
 }
 impl ListVersionsInput {
     /// Creates a new builder-style object to manufacture [`ListVersionsInput`](crate::operation::list_versions::ListVersionsInput).
-    pub fn builder() -> crate::operation::list_versions::builders::ListVersionsInputBuilder {
+    pub fn builder() -> crate::operation::list_versions::builders::ListVersionsInputBuilder
+    {
         crate::operation::list_versions::builders::ListVersionsInputBuilder::default()
     }
 }
 
 /// A builder for [`ListVersionsInput`](crate::operation::list_versions::ListVersionsInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct ListVersionsInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
@@ -49,13 +52,20 @@ pub struct ListVersionsInputBuilder {
 impl ListVersionsInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_id = input; self
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -63,13 +73,20 @@ impl ListVersionsInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -82,7 +99,8 @@ impl ListVersionsInputBuilder {
     }
     /// Number of items to be returned in each page.
     pub fn set_count(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.count = input; self
+        self.count = input;
+        self
     }
     /// Number of items to be returned in each page.
     pub fn get_count(&self) -> &::std::option::Option<i32> {
@@ -95,26 +113,25 @@ impl ListVersionsInputBuilder {
     }
     /// Page number to retrieve, starting from 1.
     pub fn set_page(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.page = input; self
+        self.page = input;
+        self
     }
     /// Page number to retrieve, starting from 1.
     pub fn get_page(&self) -> &::std::option::Option<i32> {
         &self.page
     }
     /// Consumes the builder and constructs a [`ListVersionsInput`](crate::operation::list_versions::ListVersionsInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::list_versions::ListVersionsInput, ::aws_smithy_types::error::operation::BuildError> {
-        ::std::result::Result::Ok(
-            crate::operation::list_versions::ListVersionsInput {
-                workspace_id: self.workspace_id
-                ,
-                org_id: self.org_id
-                ,
-                count: self.count
-                ,
-                page: self.page
-                ,
-            }
-        )
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::list_versions::ListVersionsInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
+        ::std::result::Result::Ok(crate::operation::list_versions::ListVersionsInput {
+            workspace_id: self.workspace_id,
+            org_id: self.org_id,
+            count: self.count,
+            page: self.page,
+        })
     }
 }
-

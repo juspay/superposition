@@ -73,7 +73,8 @@ mod tests {
         assert!(settings.include_header(&CONTENT_LENGTH));
         assert!(settings.include_header(&CONTENT_TYPE));
 
-        let settings = HeaderSerializationSettings::default().omit_default_content_length();
+        let settings =
+            HeaderSerializationSettings::default().omit_default_content_length();
         assert!(!settings.include_header(&CONTENT_LENGTH));
         assert!(settings.include_header(&CONTENT_TYPE));
 
@@ -88,4 +89,3 @@ mod tests {
         assert!(!settings.include_header(&CONTENT_TYPE));
     }
 }
-

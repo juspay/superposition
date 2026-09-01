@@ -2,25 +2,30 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct ContextPartial  {
+pub struct ContextPartial {
     #[allow(missing_docs)] // documentation missing in model
     pub id: ::std::string::String,
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub condition: ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>,
+    pub condition:
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
     #[allow(missing_docs)] // documentation missing in model
     pub priority: i32,
     #[allow(missing_docs)] // documentation missing in model
     pub weight: i32,
     #[allow(missing_docs)] // documentation missing in model
-    pub override_with_keys: ::std::vec::Vec::<::std::string::String>,
+    pub override_with_keys: ::std::vec::Vec<::std::string::String>,
 }
-impl  ContextPartial  {
+impl ContextPartial {
     #[allow(missing_docs)] // documentation missing in model
     pub fn id(&self) -> &str {
-        use std::ops::Deref; self.id.deref()
+        use std::ops::Deref;
+        self.id.deref()
     }
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn condition(&self) -> &::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document> {
+    pub fn condition(
+        &self,
+    ) -> &::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>
+    {
         &self.condition
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -33,7 +38,8 @@ impl  ContextPartial  {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn override_with_keys(&self) -> &[::std::string::String] {
-        use std::ops::Deref; self.override_with_keys.deref()
+        use std::ops::Deref;
+        self.override_with_keys.deref()
     }
 }
 impl ContextPartial {
@@ -44,14 +50,19 @@ impl ContextPartial {
 }
 
 /// A builder for [`ContextPartial`](crate::types::ContextPartial).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct ContextPartialBuilder {
     pub(crate) id: ::std::option::Option<::std::string::String>,
-    pub(crate) condition: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub(crate) condition: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    >,
     pub(crate) priority: ::std::option::Option<i32>,
     pub(crate) weight: ::std::option::Option<i32>,
-    pub(crate) override_with_keys: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub(crate) override_with_keys:
+        ::std::option::Option<::std::vec::Vec<::std::string::String>>,
 }
 impl ContextPartialBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -62,7 +73,8 @@ impl ContextPartialBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.id = input; self
+        self.id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -73,18 +85,35 @@ impl ContextPartialBuilder {
     /// To override the contents of this collection use [`set_condition`](Self::set_condition).
     ///
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn condition(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
+    pub fn condition(
+        mut self,
+        k: impl ::std::convert::Into<::std::string::String>,
+        v: ::aws_smithy_types::Document,
+    ) -> Self {
         let mut hash_map = self.condition.unwrap_or_default();
-                        hash_map.insert(k.into(), v);
-                        self.condition = ::std::option::Option::Some(hash_map);
-                        self
+        hash_map.insert(k.into(), v);
+        self.condition = ::std::option::Option::Some(hash_map);
+        self
     }
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn set_condition(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
-        self.condition = input; self
+    pub fn set_condition(
+        mut self,
+        input: ::std::option::Option<
+            ::std::collections::HashMap<
+                ::std::string::String,
+                ::aws_smithy_types::Document,
+            >,
+        >,
+    ) -> Self {
+        self.condition = input;
+        self
     }
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn get_condition(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    pub fn get_condition(
+        &self,
+    ) -> &::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
         &self.condition
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -95,7 +124,8 @@ impl ContextPartialBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_priority(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.priority = input; self
+        self.priority = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_priority(&self) -> &::std::option::Option<i32> {
@@ -109,7 +139,8 @@ impl ContextPartialBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_weight(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.weight = input; self
+        self.weight = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_weight(&self) -> &::std::option::Option<i32> {
@@ -119,18 +150,27 @@ impl ContextPartialBuilder {
     ///
     /// To override the contents of this collection use [`set_override_with_keys`](Self::set_override_with_keys).
     ///
-    pub fn override_with_keys(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn override_with_keys(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         let mut v = self.override_with_keys.unwrap_or_default();
-                        v.push(input.into());
-                        self.override_with_keys = ::std::option::Option::Some(v);
-                        self
+        v.push(input.into());
+        self.override_with_keys = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_override_with_keys(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-        self.override_with_keys = input; self
+    pub fn set_override_with_keys(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    ) -> Self {
+        self.override_with_keys = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_override_with_keys(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
+    pub fn get_override_with_keys(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<::std::string::String>> {
         &self.override_with_keys
     }
     /// Consumes the builder and constructs a [`ContextPartial`](crate::types::ContextPartial).
@@ -140,7 +180,12 @@ impl ContextPartialBuilder {
     /// - [`priority`](crate::types::builders::ContextPartialBuilder::priority)
     /// - [`weight`](crate::types::builders::ContextPartialBuilder::weight)
     /// - [`override_with_keys`](crate::types::builders::ContextPartialBuilder::override_with_keys)
-    pub fn build(self) -> ::std::result::Result<crate::types::ContextPartial, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::types::ContextPartial,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::types::ContextPartial {
                 id: self.id
@@ -172,4 +217,3 @@ impl ContextPartialBuilder {
         )
     }
 }
-

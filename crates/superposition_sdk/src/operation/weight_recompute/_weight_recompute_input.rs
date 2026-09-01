@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct WeightRecomputeInput  {
+pub struct WeightRecomputeInput {
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -10,7 +10,7 @@ pub struct WeightRecomputeInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub config_tags: ::std::option::Option<::std::string::String>,
 }
-impl  WeightRecomputeInput  {
+impl WeightRecomputeInput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(&self) -> ::std::option::Option<&str> {
         self.workspace_id.as_deref()
@@ -26,13 +26,17 @@ impl  WeightRecomputeInput  {
 }
 impl WeightRecomputeInput {
     /// Creates a new builder-style object to manufacture [`WeightRecomputeInput`](crate::operation::weight_recompute::WeightRecomputeInput).
-    pub fn builder() -> crate::operation::weight_recompute::builders::WeightRecomputeInputBuilder {
-        crate::operation::weight_recompute::builders::WeightRecomputeInputBuilder::default()
+    pub fn builder(
+    ) -> crate::operation::weight_recompute::builders::WeightRecomputeInputBuilder {
+        crate::operation::weight_recompute::builders::WeightRecomputeInputBuilder::default(
+        )
     }
 }
 
 /// A builder for [`WeightRecomputeInput`](crate::operation::weight_recompute::WeightRecomputeInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct WeightRecomputeInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
@@ -42,13 +46,20 @@ pub struct WeightRecomputeInputBuilder {
 impl WeightRecomputeInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_id = input; self
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -56,43 +67,58 @@ impl WeightRecomputeInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
         &self.org_id
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn config_tags(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn config_tags(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.config_tags = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_config_tags(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.config_tags = input; self
+    pub fn set_config_tags(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.config_tags = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_config_tags(&self) -> &::std::option::Option<::std::string::String> {
         &self.config_tags
     }
     /// Consumes the builder and constructs a [`WeightRecomputeInput`](crate::operation::weight_recompute::WeightRecomputeInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::weight_recompute::WeightRecomputeInput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::weight_recompute::WeightRecomputeInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::weight_recompute::WeightRecomputeInput {
-                workspace_id: self.workspace_id
-                ,
-                org_id: self.org_id
-                ,
-                config_tags: self.config_tags
-                ,
-            }
+                workspace_id: self.workspace_id,
+                org_id: self.org_id,
+                config_tags: self.config_tags,
+            },
         )
     }
 }
-

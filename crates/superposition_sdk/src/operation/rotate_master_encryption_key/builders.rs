@@ -18,7 +18,7 @@ impl crate::operation::rotate_master_encryption_key::builders::RotateMasterEncry
                     }
                 }
 /// Fluent builder constructing a request to `RotateMasterEncryptionKey`.
-/// 
+///
 /// Rotates the master encryption key across all workspaces
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct RotateMasterEncryptionKeyFluentBuilder {
@@ -27,12 +27,12 @@ pub struct RotateMasterEncryptionKeyFluentBuilder {
 config_override: ::std::option::Option<crate::config::Builder>,
             }
 impl
-                crate::client::customize::internal::CustomizableSend<
-                    crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKeyOutput,
-                    crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKeyError,
-                > for RotateMasterEncryptionKeyFluentBuilder
-            {
-                fn send(
+    crate::client::customize::internal::CustomizableSend<
+        crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKeyOutput,
+        crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKeyError,
+    > for RotateMasterEncryptionKeyFluentBuilder
+{
+    fn send(
                     self,
                     config_override: crate::config::Builder,
                 ) -> crate::client::customize::internal::BoxFuture<
@@ -40,61 +40,68 @@ impl
                         crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKeyOutput,
                         crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKeyError,
                     >,
-                > {
-                    ::std::boxed::Box::pin(async move { self.config_override(config_override).send().await })
-                }
-            }
+    >{
+        ::std::boxed::Box::pin(async move {
+            self.config_override(config_override).send().await
+        })
+    }
+}
 impl RotateMasterEncryptionKeyFluentBuilder {
     /// Creates a new `RotateMasterEncryptionKeyFluentBuilder`.
-                    pub(crate) fn new(handle: ::std::sync::Arc<crate::client::Handle>) -> Self {
-                        Self {
-                            handle,
-                            inner: ::std::default::Default::default(),
-    config_override: ::std::option::Option::None,
-                        }
-                    }
+    pub(crate) fn new(handle: ::std::sync::Arc<crate::client::Handle>) -> Self {
+        Self {
+            handle,
+            inner: ::std::default::Default::default(),
+            config_override: ::std::option::Option::None,
+        }
+    }
     /// Access the RotateMasterEncryptionKey as a reference.
-                    pub fn as_input(&self) -> &crate::operation::rotate_master_encryption_key::builders::RotateMasterEncryptionKeyInputBuilder {
-                        &self.inner
-                    }
+    pub fn as_input(&self) -> &crate::operation::rotate_master_encryption_key::builders::RotateMasterEncryptionKeyInputBuilder{
+        &self.inner
+    }
     /// Sends the request and returns the response.
-                    ///
-                    /// If an error occurs, an `SdkError` will be returned with additional details that
-                    /// can be matched against.
-                    ///
-                    /// By default, any retryable failures will be retried twice. Retry behavior
-                    /// is configurable with the [RetryConfig](aws_smithy_types::retry::RetryConfig), which can be
-                    /// set when configuring the client.
-                    pub async fn send(self) -> ::std::result::Result<crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKeyOutput, ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKeyError, ::aws_smithy_runtime_api::client::orchestrator::HttpResponse>> {
-                        let input = self.inner.build().map_err(::aws_smithy_runtime_api::client::result::SdkError::construction_failure)?;
-                        let runtime_plugins = crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKey::operation_runtime_plugins(
+    ///
+    /// If an error occurs, an `SdkError` will be returned with additional details that
+    /// can be matched against.
+    ///
+    /// By default, any retryable failures will be retried twice. Retry behavior
+    /// is configurable with the [RetryConfig](aws_smithy_types::retry::RetryConfig), which can be
+    /// set when configuring the client.
+    pub async fn send(self) -> ::std::result::Result<crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKeyOutput, ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKeyError, ::aws_smithy_runtime_api::client::orchestrator::HttpResponse>>{
+        let input = self.inner.build().map_err(
+            ::aws_smithy_runtime_api::client::result::SdkError::construction_failure,
+        )?;
+        let runtime_plugins = crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKey::operation_runtime_plugins(
                             self.handle.runtime_plugins.clone(),
                             &self.handle.conf,
                             self.config_override,
                         );
-                        crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKey::orchestrate(&runtime_plugins, input).await
-                    }
-    
-                    /// Consumes this builder, creating a customizable operation that can be modified before being sent.
-                    pub fn customize(
-                        self,
-                    ) -> crate::client::customize::CustomizableOperation<crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKeyOutput, crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKeyError, Self> {
-                        crate::client::customize::CustomizableOperation::new(self)
-                    }
-    pub(crate) fn config_override(
-                            mut self,
-                            config_override: impl ::std::convert::Into<crate::config::Builder>,
-                        ) -> Self {
-                            self.set_config_override(::std::option::Option::Some(config_override.into()));
-                            self
-                        }
-    
-                        pub(crate) fn set_config_override(
-                            &mut self,
-                            config_override: ::std::option::Option<crate::config::Builder>,
-                        ) -> &mut Self {
-                            self.config_override = config_override;
-                            self
-                        }
-}
+        crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKey::orchestrate(&runtime_plugins, input).await
+    }
 
+    /// Consumes this builder, creating a customizable operation that can be modified before being sent.
+    pub fn customize(
+        self,
+    ) -> crate::client::customize::CustomizableOperation<
+        crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKeyOutput,
+        crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKeyError,
+        Self,
+    > {
+        crate::client::customize::CustomizableOperation::new(self)
+    }
+    pub(crate) fn config_override(
+        mut self,
+        config_override: impl ::std::convert::Into<crate::config::Builder>,
+    ) -> Self {
+        self.set_config_override(::std::option::Option::Some(config_override.into()));
+        self
+    }
+
+    pub(crate) fn set_config_override(
+        &mut self,
+        config_override: ::std::option::Option<crate::config::Builder>,
+    ) -> &mut Self {
+        self.config_override = config_override;
+        self
+    }
+}

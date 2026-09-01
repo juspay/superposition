@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct DeleteDimensionInput  {
+pub struct DeleteDimensionInput {
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -10,7 +10,7 @@ pub struct DeleteDimensionInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub dimension: ::std::option::Option<::std::string::String>,
 }
-impl  DeleteDimensionInput  {
+impl DeleteDimensionInput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(&self) -> ::std::option::Option<&str> {
         self.workspace_id.as_deref()
@@ -26,13 +26,17 @@ impl  DeleteDimensionInput  {
 }
 impl DeleteDimensionInput {
     /// Creates a new builder-style object to manufacture [`DeleteDimensionInput`](crate::operation::delete_dimension::DeleteDimensionInput).
-    pub fn builder() -> crate::operation::delete_dimension::builders::DeleteDimensionInputBuilder {
-        crate::operation::delete_dimension::builders::DeleteDimensionInputBuilder::default()
+    pub fn builder(
+    ) -> crate::operation::delete_dimension::builders::DeleteDimensionInputBuilder {
+        crate::operation::delete_dimension::builders::DeleteDimensionInputBuilder::default(
+        )
     }
 }
 
 /// A builder for [`DeleteDimensionInput`](crate::operation::delete_dimension::DeleteDimensionInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct DeleteDimensionInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
@@ -42,13 +46,20 @@ pub struct DeleteDimensionInputBuilder {
 impl DeleteDimensionInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_id = input; self
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -56,13 +67,20 @@ impl DeleteDimensionInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -70,30 +88,38 @@ impl DeleteDimensionInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn dimension(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn dimension(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.dimension = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_dimension(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.dimension = input; self
+    pub fn set_dimension(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.dimension = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_dimension(&self) -> &::std::option::Option<::std::string::String> {
         &self.dimension
     }
     /// Consumes the builder and constructs a [`DeleteDimensionInput`](crate::operation::delete_dimension::DeleteDimensionInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::delete_dimension::DeleteDimensionInput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::delete_dimension::DeleteDimensionInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::delete_dimension::DeleteDimensionInput {
-                workspace_id: self.workspace_id
-                ,
-                org_id: self.org_id
-                ,
-                dimension: self.dimension
-                ,
-            }
+                workspace_id: self.workspace_id,
+                org_id: self.org_id,
+                dimension: self.dimension,
+            },
         )
     }
 }
-

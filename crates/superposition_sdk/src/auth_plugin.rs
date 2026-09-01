@@ -38,4 +38,3 @@ impl RuntimePlugin for DefaultAuthOptionsPlugin {
         Cow::Borrowed(&self.runtime_components)
     }
 }
-

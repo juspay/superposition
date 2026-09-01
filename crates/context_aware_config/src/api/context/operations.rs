@@ -152,6 +152,7 @@ pub struct MoveResult {
 }
 
 #[allow(clippy::too_many_arguments)]
+#[allow(clippy::too_many_arguments)]
 pub fn r#move(
     workspace_context: &WorkspaceContext,
     old_ctx_id: String,
@@ -161,6 +162,7 @@ pub fn r#move(
     already_under_txn: bool,
     user: &User,
     dimension_data_map: &HashMap<String, DimensionInfo>,
+    replace_existing: bool,
 ) -> result::Result<MoveResult> {
     use contexts::dsl;
     let req = req.into_inner();
@@ -218,7 +220,21 @@ pub fn r#move(
             .get_result(conn)?;
 
         let ctx = contruct_new_ctx_with_old_overrides(deleted_ctxt);
-        update_override_of_existing_ctx(conn, ctx, user, &workspace_context.schema_name)
+        if replace_existing {
+            replace_override_of_existing_ctx(
+                conn,
+                ctx,
+                user,
+                &workspace_context.schema_name,
+            )
+        } else {
+            update_override_of_existing_ctx(
+                conn,
+                ctx,
+                user,
+                &workspace_context.schema_name,
+            )
+        }
     };
 
     match context {

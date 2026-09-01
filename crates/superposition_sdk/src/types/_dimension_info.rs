@@ -2,21 +2,28 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct DimensionInfo  {
+pub struct DimensionInfo {
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub schema: ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>,
+    pub schema:
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
     #[allow(missing_docs)] // documentation missing in model
     pub position: i32,
     #[allow(missing_docs)] // documentation missing in model
     pub dimension_type: crate::types::DimensionType,
     #[allow(missing_docs)] // documentation missing in model
-    pub dependency_graph: ::std::collections::HashMap::<::std::string::String, ::std::vec::Vec::<::std::string::String>>,
+    pub dependency_graph: ::std::collections::HashMap<
+        ::std::string::String,
+        ::std::vec::Vec<::std::string::String>,
+    >,
     #[allow(missing_docs)] // documentation missing in model
     pub value_compute_function_name: ::std::option::Option<::std::string::String>,
 }
-impl  DimensionInfo  {
+impl DimensionInfo {
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub fn schema(&self) -> &::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document> {
+    pub fn schema(
+        &self,
+    ) -> &::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>
+    {
         &self.schema
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -28,7 +35,12 @@ impl  DimensionInfo  {
         &self.dimension_type
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn dependency_graph(&self) -> &::std::collections::HashMap::<::std::string::String, ::std::vec::Vec::<::std::string::String>> {
+    pub fn dependency_graph(
+        &self,
+    ) -> &::std::collections::HashMap<
+        ::std::string::String,
+        ::std::vec::Vec<::std::string::String>,
+    > {
         &self.dependency_graph
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -44,13 +56,22 @@ impl DimensionInfo {
 }
 
 /// A builder for [`DimensionInfo`](crate::types::DimensionInfo).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct DimensionInfoBuilder {
-    pub(crate) schema: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub(crate) schema: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    >,
     pub(crate) position: ::std::option::Option<i32>,
     pub(crate) dimension_type: ::std::option::Option<crate::types::DimensionType>,
-    pub(crate) dependency_graph: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::vec::Vec::<::std::string::String>>>,
+    pub(crate) dependency_graph: ::std::option::Option<
+        ::std::collections::HashMap<
+            ::std::string::String,
+            ::std::vec::Vec<::std::string::String>,
+        >,
+    >,
     pub(crate) value_compute_function_name: ::std::option::Option<::std::string::String>,
 }
 impl DimensionInfoBuilder {
@@ -59,18 +80,35 @@ impl DimensionInfoBuilder {
     /// To override the contents of this collection use [`set_schema`](Self::set_schema).
     ///
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub fn schema(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
+    pub fn schema(
+        mut self,
+        k: impl ::std::convert::Into<::std::string::String>,
+        v: ::aws_smithy_types::Document,
+    ) -> Self {
         let mut hash_map = self.schema.unwrap_or_default();
-                        hash_map.insert(k.into(), v);
-                        self.schema = ::std::option::Option::Some(hash_map);
-                        self
+        hash_map.insert(k.into(), v);
+        self.schema = ::std::option::Option::Some(hash_map);
+        self
     }
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub fn set_schema(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
-        self.schema = input; self
+    pub fn set_schema(
+        mut self,
+        input: ::std::option::Option<
+            ::std::collections::HashMap<
+                ::std::string::String,
+                ::aws_smithy_types::Document,
+            >,
+        >,
+    ) -> Self {
+        self.schema = input;
+        self
     }
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub fn get_schema(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    pub fn get_schema(
+        &self,
+    ) -> &::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
         &self.schema
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -81,7 +119,8 @@ impl DimensionInfoBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_position(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.position = input; self
+        self.position = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_position(&self) -> &::std::option::Option<i32> {
@@ -94,42 +133,77 @@ impl DimensionInfoBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_dimension_type(mut self, input: ::std::option::Option<crate::types::DimensionType>) -> Self {
-        self.dimension_type = input; self
+    pub fn set_dimension_type(
+        mut self,
+        input: ::std::option::Option<crate::types::DimensionType>,
+    ) -> Self {
+        self.dimension_type = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_dimension_type(&self) -> &::std::option::Option<crate::types::DimensionType> {
+    pub fn get_dimension_type(
+        &self,
+    ) -> &::std::option::Option<crate::types::DimensionType> {
         &self.dimension_type
     }
     /// Adds a key-value pair to `dependency_graph`.
     ///
     /// To override the contents of this collection use [`set_dependency_graph`](Self::set_dependency_graph).
     ///
-    pub fn dependency_graph(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::std::vec::Vec::<::std::string::String>) -> Self {
+    pub fn dependency_graph(
+        mut self,
+        k: impl ::std::convert::Into<::std::string::String>,
+        v: ::std::vec::Vec<::std::string::String>,
+    ) -> Self {
         let mut hash_map = self.dependency_graph.unwrap_or_default();
-                        hash_map.insert(k.into(), v);
-                        self.dependency_graph = ::std::option::Option::Some(hash_map);
-                        self
+        hash_map.insert(k.into(), v);
+        self.dependency_graph = ::std::option::Option::Some(hash_map);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_dependency_graph(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::vec::Vec::<::std::string::String>>>) -> Self {
-        self.dependency_graph = input; self
+    pub fn set_dependency_graph(
+        mut self,
+        input: ::std::option::Option<
+            ::std::collections::HashMap<
+                ::std::string::String,
+                ::std::vec::Vec<::std::string::String>,
+            >,
+        >,
+    ) -> Self {
+        self.dependency_graph = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_dependency_graph(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::vec::Vec::<::std::string::String>>> {
+    pub fn get_dependency_graph(
+        &self,
+    ) -> &::std::option::Option<
+        ::std::collections::HashMap<
+            ::std::string::String,
+            ::std::vec::Vec<::std::string::String>,
+        >,
+    > {
         &self.dependency_graph
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn value_compute_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn value_compute_function_name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.value_compute_function_name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_value_compute_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.value_compute_function_name = input; self
+    pub fn set_value_compute_function_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.value_compute_function_name = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_value_compute_function_name(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_value_compute_function_name(
+        &self,
+    ) -> &::std::option::Option<::std::string::String> {
         &self.value_compute_function_name
     }
     /// Consumes the builder and constructs a [`DimensionInfo`](crate::types::DimensionInfo).
@@ -138,7 +212,12 @@ impl DimensionInfoBuilder {
     /// - [`position`](crate::types::builders::DimensionInfoBuilder::position)
     /// - [`dimension_type`](crate::types::builders::DimensionInfoBuilder::dimension_type)
     /// - [`dependency_graph`](crate::types::builders::DimensionInfoBuilder::dependency_graph)
-    pub fn build(self) -> ::std::result::Result<crate::types::DimensionInfo, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::types::DimensionInfo,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::types::DimensionInfo {
                 schema: self.schema
@@ -167,4 +246,3 @@ impl DimensionInfoBuilder {
         )
     }
 }
-

@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct DeleteFunctionInput  {
+pub struct DeleteFunctionInput {
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -10,7 +10,7 @@ pub struct DeleteFunctionInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub function_name: ::std::option::Option<::std::string::String>,
 }
-impl  DeleteFunctionInput  {
+impl DeleteFunctionInput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(&self) -> ::std::option::Option<&str> {
         self.workspace_id.as_deref()
@@ -26,13 +26,16 @@ impl  DeleteFunctionInput  {
 }
 impl DeleteFunctionInput {
     /// Creates a new builder-style object to manufacture [`DeleteFunctionInput`](crate::operation::delete_function::DeleteFunctionInput).
-    pub fn builder() -> crate::operation::delete_function::builders::DeleteFunctionInputBuilder {
+    pub fn builder(
+    ) -> crate::operation::delete_function::builders::DeleteFunctionInputBuilder {
         crate::operation::delete_function::builders::DeleteFunctionInputBuilder::default()
     }
 }
 
 /// A builder for [`DeleteFunctionInput`](crate::operation::delete_function::DeleteFunctionInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct DeleteFunctionInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
@@ -42,13 +45,20 @@ pub struct DeleteFunctionInputBuilder {
 impl DeleteFunctionInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_id = input; self
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -56,13 +66,20 @@ impl DeleteFunctionInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -70,30 +87,38 @@ impl DeleteFunctionInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn function_name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.function_name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.function_name = input; self
+    pub fn set_function_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.function_name = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_function_name(&self) -> &::std::option::Option<::std::string::String> {
         &self.function_name
     }
     /// Consumes the builder and constructs a [`DeleteFunctionInput`](crate::operation::delete_function::DeleteFunctionInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::delete_function::DeleteFunctionInput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::delete_function::DeleteFunctionInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::delete_function::DeleteFunctionInput {
-                workspace_id: self.workspace_id
-                ,
-                org_id: self.org_id
-                ,
-                function_name: self.function_name
-                ,
-            }
+                workspace_id: self.workspace_id,
+                org_id: self.org_id,
+                function_name: self.function_name,
+            },
         )
     }
 }
-

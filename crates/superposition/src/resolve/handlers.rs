@@ -11,7 +11,7 @@ use experimentation_platform::api::experiments::handlers::get_applicable_variant
 use service_utils::{
     helpers::is_not_modified,
     redis::{CONFIG_KEY_SUFFIX, LAST_MODIFIED_KEY_SUFFIX, read_through_cache},
-    service::types::{AppHeader, AppState, WorkspaceContext},
+    service::types::{AppHeader, AppState, ResolvedMergeStrategy, WorkspaceContext},
 };
 use superposition_derives::{authorized, declare_resource};
 use superposition_macros::unexpected_error;
@@ -38,7 +38,7 @@ pub fn endpoints() -> Scope {
 async fn resolve_with_exp_handler(
     req: HttpRequest,
     body: Option<Json<ContextPayload>>,
-    merge_strategy: Header<MergeStrategy>,
+    merge_strategy: ResolvedMergeStrategy,
     dimension_params: DimensionQuery<QueryMap>,
     query_filters: superposition_query::Query<ResolveConfigQuery>,
     identifier_query: superposition_query::Query<IdentifierQuery>,

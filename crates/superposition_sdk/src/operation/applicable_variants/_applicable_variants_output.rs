@@ -2,28 +2,33 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct ApplicableVariantsOutput  {
+pub struct ApplicableVariantsOutput {
     #[allow(missing_docs)] // documentation missing in model
-    pub data: ::std::vec::Vec::<crate::types::Variant>,
+    pub data: ::std::vec::Vec<crate::types::Variant>,
 }
-impl  ApplicableVariantsOutput  {
+impl ApplicableVariantsOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn data(&self) -> &[crate::types::Variant] {
-        use std::ops::Deref; self.data.deref()
+        use std::ops::Deref;
+        self.data.deref()
     }
 }
 impl ApplicableVariantsOutput {
     /// Creates a new builder-style object to manufacture [`ApplicableVariantsOutput`](crate::operation::applicable_variants::ApplicableVariantsOutput).
-    pub fn builder() -> crate::operation::applicable_variants::builders::ApplicableVariantsOutputBuilder {
+    pub fn builder(
+    ) -> crate::operation::applicable_variants::builders::ApplicableVariantsOutputBuilder
+    {
         crate::operation::applicable_variants::builders::ApplicableVariantsOutputBuilder::default()
     }
 }
 
 /// A builder for [`ApplicableVariantsOutput`](crate::operation::applicable_variants::ApplicableVariantsOutput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct ApplicableVariantsOutputBuilder {
-    pub(crate) data: ::std::option::Option<::std::vec::Vec::<crate::types::Variant>>,
+    pub(crate) data: ::std::option::Option<::std::vec::Vec<crate::types::Variant>>,
 }
 impl ApplicableVariantsOutputBuilder {
     /// Appends an item to `data`.
@@ -32,22 +37,33 @@ impl ApplicableVariantsOutputBuilder {
     ///
     pub fn data(mut self, input: crate::types::Variant) -> Self {
         let mut v = self.data.unwrap_or_default();
-                        v.push(input);
-                        self.data = ::std::option::Option::Some(v);
-                        self
+        v.push(input);
+        self.data = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_data(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::Variant>>) -> Self {
-        self.data = input; self
+    pub fn set_data(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<crate::types::Variant>>,
+    ) -> Self {
+        self.data = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_data(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::Variant>> {
+    pub fn get_data(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<crate::types::Variant>> {
         &self.data
     }
     /// Consumes the builder and constructs a [`ApplicableVariantsOutput`](crate::operation::applicable_variants::ApplicableVariantsOutput).
     /// This method will fail if any of the following fields are not set:
     /// - [`data`](crate::operation::applicable_variants::builders::ApplicableVariantsOutputBuilder::data)
-    pub fn build(self) -> ::std::result::Result<crate::operation::applicable_variants::ApplicableVariantsOutput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::applicable_variants::ApplicableVariantsOutput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::applicable_variants::ApplicableVariantsOutput {
                 data: self.data
@@ -59,4 +75,3 @@ impl ApplicableVariantsOutputBuilder {
         )
     }
 }
-

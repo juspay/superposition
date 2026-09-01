@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct CreateExperimentInput  {
+pub struct CreateExperimentInput {
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -12,9 +12,11 @@ pub struct CreateExperimentInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub experiment_type: ::std::option::Option<crate::types::ExperimentType>,
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub context: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    >,
     #[allow(missing_docs)] // documentation missing in model
-    pub variants: ::std::option::Option<::std::vec::Vec::<crate::types::Variant>>,
+    pub variants: ::std::option::Option<::std::vec::Vec<crate::types::Variant>>,
     #[allow(missing_docs)] // documentation missing in model
     pub description: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -28,7 +30,7 @@ pub struct CreateExperimentInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub config_tags: ::std::option::Option<::std::string::String>,
 }
-impl  CreateExperimentInput  {
+impl CreateExperimentInput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(&self) -> ::std::option::Option<&str> {
         self.workspace_id.as_deref()
@@ -42,19 +44,24 @@ impl  CreateExperimentInput  {
         self.name.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn experiment_type(&self) -> ::std::option::Option<&crate::types::ExperimentType> {
+    pub fn experiment_type(
+        &self,
+    ) -> ::std::option::Option<&crate::types::ExperimentType> {
         self.experiment_type.as_ref()
     }
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn context(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    pub fn context(
+        &self,
+    ) -> ::std::option::Option<
+        &::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
         self.context.as_ref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.variants.is_none()`.
     pub fn variants(&self) -> &[crate::types::Variant] {
-        self.variants.as_deref()
-        .unwrap_or_default()
+        self.variants.as_deref().unwrap_or_default()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn description(&self) -> ::std::option::Option<&str> {
@@ -83,21 +90,26 @@ impl  CreateExperimentInput  {
 }
 impl CreateExperimentInput {
     /// Creates a new builder-style object to manufacture [`CreateExperimentInput`](crate::operation::create_experiment::CreateExperimentInput).
-    pub fn builder() -> crate::operation::create_experiment::builders::CreateExperimentInputBuilder {
+    pub fn builder(
+    ) -> crate::operation::create_experiment::builders::CreateExperimentInputBuilder {
         crate::operation::create_experiment::builders::CreateExperimentInputBuilder::default()
     }
 }
 
 /// A builder for [`CreateExperimentInput`](crate::operation::create_experiment::CreateExperimentInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct CreateExperimentInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
     pub(crate) name: ::std::option::Option<::std::string::String>,
     pub(crate) experiment_type: ::std::option::Option<crate::types::ExperimentType>,
-    pub(crate) context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
-    pub(crate) variants: ::std::option::Option<::std::vec::Vec::<crate::types::Variant>>,
+    pub(crate) context: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    >,
+    pub(crate) variants: ::std::option::Option<::std::vec::Vec<crate::types::Variant>>,
     pub(crate) description: ::std::option::Option<::std::string::String>,
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
     pub(crate) metrics: ::std::option::Option<::aws_smithy_types::Document>,
@@ -108,13 +120,20 @@ pub struct CreateExperimentInputBuilder {
 impl CreateExperimentInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_id = input; self
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -122,13 +141,20 @@ impl CreateExperimentInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -136,13 +162,20 @@ impl CreateExperimentInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.name = input; self
+    pub fn set_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.name = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_name(&self) -> &::std::option::Option<::std::string::String> {
@@ -154,11 +187,17 @@ impl CreateExperimentInputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_experiment_type(mut self, input: ::std::option::Option<crate::types::ExperimentType>) -> Self {
-        self.experiment_type = input; self
+    pub fn set_experiment_type(
+        mut self,
+        input: ::std::option::Option<crate::types::ExperimentType>,
+    ) -> Self {
+        self.experiment_type = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_experiment_type(&self) -> &::std::option::Option<crate::types::ExperimentType> {
+    pub fn get_experiment_type(
+        &self,
+    ) -> &::std::option::Option<crate::types::ExperimentType> {
         &self.experiment_type
     }
     /// Adds a key-value pair to `context`.
@@ -166,18 +205,35 @@ impl CreateExperimentInputBuilder {
     /// To override the contents of this collection use [`set_context`](Self::set_context).
     ///
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn context(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
+    pub fn context(
+        mut self,
+        k: impl ::std::convert::Into<::std::string::String>,
+        v: ::aws_smithy_types::Document,
+    ) -> Self {
         let mut hash_map = self.context.unwrap_or_default();
-                        hash_map.insert(k.into(), v);
-                        self.context = ::std::option::Option::Some(hash_map);
-                        self
+        hash_map.insert(k.into(), v);
+        self.context = ::std::option::Option::Some(hash_map);
+        self
     }
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn set_context(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
-        self.context = input; self
+    pub fn set_context(
+        mut self,
+        input: ::std::option::Option<
+            ::std::collections::HashMap<
+                ::std::string::String,
+                ::aws_smithy_types::Document,
+            >,
+        >,
+    ) -> Self {
+        self.context = input;
+        self
     }
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn get_context(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    pub fn get_context(
+        &self,
+    ) -> &::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
         &self.context
     }
     /// Appends an item to `variants`.
@@ -186,27 +242,40 @@ impl CreateExperimentInputBuilder {
     ///
     pub fn variants(mut self, input: crate::types::Variant) -> Self {
         let mut v = self.variants.unwrap_or_default();
-                        v.push(input);
-                        self.variants = ::std::option::Option::Some(v);
-                        self
+        v.push(input);
+        self.variants = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_variants(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::Variant>>) -> Self {
-        self.variants = input; self
+    pub fn set_variants(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<crate::types::Variant>>,
+    ) -> Self {
+        self.variants = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_variants(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::Variant>> {
+    pub fn get_variants(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<crate::types::Variant>> {
         &self.variants
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn description(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn description(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.description = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_description(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.description = input; self
+    pub fn set_description(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.description = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_description(&self) -> &::std::option::Option<::std::string::String> {
@@ -214,13 +283,20 @@ impl CreateExperimentInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn change_reason(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn change_reason(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.change_reason = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_change_reason(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.change_reason = input; self
+    pub fn set_change_reason(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.change_reason = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
@@ -232,82 +308,101 @@ impl CreateExperimentInputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_metrics(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
-        self.metrics = input; self
+    pub fn set_metrics(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::Document>,
+    ) -> Self {
+        self.metrics = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_metrics(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
         &self.metrics
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn experiment_group_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn experiment_group_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.experiment_group_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_experiment_group_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.experiment_group_id = input; self
+    pub fn set_experiment_group_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.experiment_group_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_experiment_group_id(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_experiment_group_id(
+        &self,
+    ) -> &::std::option::Option<::std::string::String> {
         &self.experiment_group_id
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn idempotency_key(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn idempotency_key(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.idempotency_key = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_idempotency_key(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.idempotency_key = input; self
+    pub fn set_idempotency_key(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.idempotency_key = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_idempotency_key(&self) -> &::std::option::Option<::std::string::String> {
         &self.idempotency_key
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn config_tags(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn config_tags(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.config_tags = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_config_tags(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.config_tags = input; self
+    pub fn set_config_tags(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.config_tags = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_config_tags(&self) -> &::std::option::Option<::std::string::String> {
         &self.config_tags
     }
     /// Consumes the builder and constructs a [`CreateExperimentInput`](crate::operation::create_experiment::CreateExperimentInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::create_experiment::CreateExperimentInput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::create_experiment::CreateExperimentInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::create_experiment::CreateExperimentInput {
-                workspace_id: self.workspace_id
-                ,
-                org_id: self.org_id
-                ,
-                name: self.name
-                ,
-                experiment_type: self.experiment_type
-                ,
-                context: self.context
-                ,
-                variants: self.variants
-                ,
-                description: self.description
-                ,
-                change_reason: self.change_reason
-                ,
-                metrics: self.metrics
-                ,
-                experiment_group_id: self.experiment_group_id
-                ,
-                idempotency_key: self.idempotency_key
-                ,
-                config_tags: self.config_tags
-                ,
-            }
+                workspace_id: self.workspace_id,
+                org_id: self.org_id,
+                name: self.name,
+                experiment_type: self.experiment_type,
+                context: self.context,
+                variants: self.variants,
+                description: self.description,
+                change_reason: self.change_reason,
+                metrics: self.metrics,
+                experiment_group_id: self.experiment_group_id,
+                idempotency_key: self.idempotency_key,
+                config_tags: self.config_tags,
+            },
         )
     }
 }
-

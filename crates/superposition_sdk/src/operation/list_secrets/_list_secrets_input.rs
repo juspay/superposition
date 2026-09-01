@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct ListSecretsInput  {
+pub struct ListSecretsInput {
     /// Number of items to be returned in each page.
     pub count: ::std::option::Option<i32>,
     /// Page number to retrieve, starting from 1.
@@ -14,17 +14,17 @@ pub struct ListSecretsInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub org_id: ::std::option::Option<::std::string::String>,
     /// Filter by secret name.
-    pub name: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub name: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
     /// Filter by the user who created the secret.
-    pub created_by: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub created_by: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
     /// Filter by the user who last modified the secret.
-    pub last_modified_by: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub last_modified_by: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
     /// Field to sort the results by.
     pub sort_on: ::std::option::Option<crate::types::SecretSortOn>,
     /// Sort order (ascending or descending).
     pub sort_by: ::std::option::Option<crate::types::SortBy>,
 }
-impl  ListSecretsInput  {
+impl ListSecretsInput {
     /// Number of items to be returned in each page.
     pub fn count(&self) -> ::std::option::Option<i32> {
         self.count
@@ -46,25 +46,22 @@ impl  ListSecretsInput  {
         self.org_id.as_deref()
     }
     /// Filter by secret name.
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.name.is_none()`.
     pub fn name(&self) -> &[::std::string::String] {
-        self.name.as_deref()
-        .unwrap_or_default()
+        self.name.as_deref().unwrap_or_default()
     }
     /// Filter by the user who created the secret.
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.created_by.is_none()`.
     pub fn created_by(&self) -> &[::std::string::String] {
-        self.created_by.as_deref()
-        .unwrap_or_default()
+        self.created_by.as_deref().unwrap_or_default()
     }
     /// Filter by the user who last modified the secret.
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.last_modified_by.is_none()`.
     pub fn last_modified_by(&self) -> &[::std::string::String] {
-        self.last_modified_by.as_deref()
-        .unwrap_or_default()
+        self.last_modified_by.as_deref().unwrap_or_default()
     }
     /// Field to sort the results by.
     pub fn sort_on(&self) -> ::std::option::Option<&crate::types::SecretSortOn> {
@@ -77,13 +74,16 @@ impl  ListSecretsInput  {
 }
 impl ListSecretsInput {
     /// Creates a new builder-style object to manufacture [`ListSecretsInput`](crate::operation::list_secrets::ListSecretsInput).
-    pub fn builder() -> crate::operation::list_secrets::builders::ListSecretsInputBuilder {
+    pub fn builder() -> crate::operation::list_secrets::builders::ListSecretsInputBuilder
+    {
         crate::operation::list_secrets::builders::ListSecretsInputBuilder::default()
     }
 }
 
 /// A builder for [`ListSecretsInput`](crate::operation::list_secrets::ListSecretsInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct ListSecretsInputBuilder {
     pub(crate) count: ::std::option::Option<i32>,
@@ -91,9 +91,10 @@ pub struct ListSecretsInputBuilder {
     pub(crate) all: ::std::option::Option<bool>,
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
-    pub(crate) name: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
-    pub(crate) created_by: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
-    pub(crate) last_modified_by: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub(crate) name: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    pub(crate) created_by: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    pub(crate) last_modified_by:
+        ::std::option::Option<::std::vec::Vec<::std::string::String>>,
     pub(crate) sort_on: ::std::option::Option<crate::types::SecretSortOn>,
     pub(crate) sort_by: ::std::option::Option<crate::types::SortBy>,
 }
@@ -105,7 +106,8 @@ impl ListSecretsInputBuilder {
     }
     /// Number of items to be returned in each page.
     pub fn set_count(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.count = input; self
+        self.count = input;
+        self
     }
     /// Number of items to be returned in each page.
     pub fn get_count(&self) -> &::std::option::Option<i32> {
@@ -118,7 +120,8 @@ impl ListSecretsInputBuilder {
     }
     /// Page number to retrieve, starting from 1.
     pub fn set_page(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.page = input; self
+        self.page = input;
+        self
     }
     /// Page number to retrieve, starting from 1.
     pub fn get_page(&self) -> &::std::option::Option<i32> {
@@ -131,7 +134,8 @@ impl ListSecretsInputBuilder {
     }
     /// If true, returns all requested items, ignoring pagination parameters page and count.
     pub fn set_all(mut self, input: ::std::option::Option<bool>) -> Self {
-        self.all = input; self
+        self.all = input;
+        self
     }
     /// If true, returns all requested items, ignoring pagination parameters page and count.
     pub fn get_all(&self) -> &::std::option::Option<bool> {
@@ -139,13 +143,20 @@ impl ListSecretsInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_id = input; self
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -153,13 +164,20 @@ impl ListSecretsInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -170,18 +188,27 @@ impl ListSecretsInputBuilder {
     /// To override the contents of this collection use [`set_name`](Self::set_name).
     ///
     /// Filter by secret name.
-    pub fn name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         let mut v = self.name.unwrap_or_default();
-                        v.push(input.into());
-                        self.name = ::std::option::Option::Some(v);
-                        self
+        v.push(input.into());
+        self.name = ::std::option::Option::Some(v);
+        self
     }
     /// Filter by secret name.
-    pub fn set_name(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-        self.name = input; self
+    pub fn set_name(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    ) -> Self {
+        self.name = input;
+        self
     }
     /// Filter by secret name.
-    pub fn get_name(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
+    pub fn get_name(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<::std::string::String>> {
         &self.name
     }
     /// Appends an item to `created_by`.
@@ -189,18 +216,27 @@ impl ListSecretsInputBuilder {
     /// To override the contents of this collection use [`set_created_by`](Self::set_created_by).
     ///
     /// Filter by the user who created the secret.
-    pub fn created_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn created_by(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         let mut v = self.created_by.unwrap_or_default();
-                        v.push(input.into());
-                        self.created_by = ::std::option::Option::Some(v);
-                        self
+        v.push(input.into());
+        self.created_by = ::std::option::Option::Some(v);
+        self
     }
     /// Filter by the user who created the secret.
-    pub fn set_created_by(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-        self.created_by = input; self
+    pub fn set_created_by(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    ) -> Self {
+        self.created_by = input;
+        self
     }
     /// Filter by the user who created the secret.
-    pub fn get_created_by(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
+    pub fn get_created_by(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<::std::string::String>> {
         &self.created_by
     }
     /// Appends an item to `last_modified_by`.
@@ -208,18 +244,27 @@ impl ListSecretsInputBuilder {
     /// To override the contents of this collection use [`set_last_modified_by`](Self::set_last_modified_by).
     ///
     /// Filter by the user who last modified the secret.
-    pub fn last_modified_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn last_modified_by(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         let mut v = self.last_modified_by.unwrap_or_default();
-                        v.push(input.into());
-                        self.last_modified_by = ::std::option::Option::Some(v);
-                        self
+        v.push(input.into());
+        self.last_modified_by = ::std::option::Option::Some(v);
+        self
     }
     /// Filter by the user who last modified the secret.
-    pub fn set_last_modified_by(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-        self.last_modified_by = input; self
+    pub fn set_last_modified_by(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    ) -> Self {
+        self.last_modified_by = input;
+        self
     }
     /// Filter by the user who last modified the secret.
-    pub fn get_last_modified_by(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
+    pub fn get_last_modified_by(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<::std::string::String>> {
         &self.last_modified_by
     }
     /// Field to sort the results by.
@@ -228,8 +273,12 @@ impl ListSecretsInputBuilder {
         self
     }
     /// Field to sort the results by.
-    pub fn set_sort_on(mut self, input: ::std::option::Option<crate::types::SecretSortOn>) -> Self {
-        self.sort_on = input; self
+    pub fn set_sort_on(
+        mut self,
+        input: ::std::option::Option<crate::types::SecretSortOn>,
+    ) -> Self {
+        self.sort_on = input;
+        self
     }
     /// Field to sort the results by.
     pub fn get_sort_on(&self) -> &::std::option::Option<crate::types::SecretSortOn> {
@@ -241,39 +290,35 @@ impl ListSecretsInputBuilder {
         self
     }
     /// Sort order (ascending or descending).
-    pub fn set_sort_by(mut self, input: ::std::option::Option<crate::types::SortBy>) -> Self {
-        self.sort_by = input; self
+    pub fn set_sort_by(
+        mut self,
+        input: ::std::option::Option<crate::types::SortBy>,
+    ) -> Self {
+        self.sort_by = input;
+        self
     }
     /// Sort order (ascending or descending).
     pub fn get_sort_by(&self) -> &::std::option::Option<crate::types::SortBy> {
         &self.sort_by
     }
     /// Consumes the builder and constructs a [`ListSecretsInput`](crate::operation::list_secrets::ListSecretsInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::list_secrets::ListSecretsInput, ::aws_smithy_types::error::operation::BuildError> {
-        ::std::result::Result::Ok(
-            crate::operation::list_secrets::ListSecretsInput {
-                count: self.count
-                ,
-                page: self.page
-                ,
-                all: self.all
-                ,
-                workspace_id: self.workspace_id
-                ,
-                org_id: self.org_id
-                ,
-                name: self.name
-                ,
-                created_by: self.created_by
-                ,
-                last_modified_by: self.last_modified_by
-                ,
-                sort_on: self.sort_on
-                ,
-                sort_by: self.sort_by
-                ,
-            }
-        )
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::list_secrets::ListSecretsInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
+        ::std::result::Result::Ok(crate::operation::list_secrets::ListSecretsInput {
+            count: self.count,
+            page: self.page,
+            all: self.all,
+            workspace_id: self.workspace_id,
+            org_id: self.org_id,
+            name: self.name,
+            created_by: self.created_by,
+            last_modified_by: self.last_modified_by,
+            sort_on: self.sort_on,
+            sort_by: self.sort_by,
+        })
     }
 }
-

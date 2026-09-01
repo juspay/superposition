@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct ListOrganisationInput  {
+pub struct ListOrganisationInput {
     /// Number of items to be returned in each page.
     pub count: ::std::option::Option<i32>,
     /// Page number to retrieve, starting from 1.
@@ -10,7 +10,7 @@ pub struct ListOrganisationInput  {
     /// If true, returns all requested items, ignoring pagination parameters page and count.
     pub all: ::std::option::Option<bool>,
 }
-impl  ListOrganisationInput  {
+impl ListOrganisationInput {
     /// Number of items to be returned in each page.
     pub fn count(&self) -> ::std::option::Option<i32> {
         self.count
@@ -26,13 +26,16 @@ impl  ListOrganisationInput  {
 }
 impl ListOrganisationInput {
     /// Creates a new builder-style object to manufacture [`ListOrganisationInput`](crate::operation::list_organisation::ListOrganisationInput).
-    pub fn builder() -> crate::operation::list_organisation::builders::ListOrganisationInputBuilder {
+    pub fn builder(
+    ) -> crate::operation::list_organisation::builders::ListOrganisationInputBuilder {
         crate::operation::list_organisation::builders::ListOrganisationInputBuilder::default()
     }
 }
 
 /// A builder for [`ListOrganisationInput`](crate::operation::list_organisation::ListOrganisationInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct ListOrganisationInputBuilder {
     pub(crate) count: ::std::option::Option<i32>,
@@ -47,7 +50,8 @@ impl ListOrganisationInputBuilder {
     }
     /// Number of items to be returned in each page.
     pub fn set_count(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.count = input; self
+        self.count = input;
+        self
     }
     /// Number of items to be returned in each page.
     pub fn get_count(&self) -> &::std::option::Option<i32> {
@@ -60,7 +64,8 @@ impl ListOrganisationInputBuilder {
     }
     /// Page number to retrieve, starting from 1.
     pub fn set_page(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.page = input; self
+        self.page = input;
+        self
     }
     /// Page number to retrieve, starting from 1.
     pub fn get_page(&self) -> &::std::option::Option<i32> {
@@ -73,24 +78,26 @@ impl ListOrganisationInputBuilder {
     }
     /// If true, returns all requested items, ignoring pagination parameters page and count.
     pub fn set_all(mut self, input: ::std::option::Option<bool>) -> Self {
-        self.all = input; self
+        self.all = input;
+        self
     }
     /// If true, returns all requested items, ignoring pagination parameters page and count.
     pub fn get_all(&self) -> &::std::option::Option<bool> {
         &self.all
     }
     /// Consumes the builder and constructs a [`ListOrganisationInput`](crate::operation::list_organisation::ListOrganisationInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::list_organisation::ListOrganisationInput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::list_organisation::ListOrganisationInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::list_organisation::ListOrganisationInput {
-                count: self.count
-                ,
-                page: self.page
-                ,
-                all: self.all
-                ,
-            }
+                count: self.count,
+                page: self.page,
+                all: self.all,
+            },
         )
     }
 }
-

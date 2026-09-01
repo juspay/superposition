@@ -9,6 +9,7 @@ use crate::database::models::{Metrics, NonEmptyString, Workspace, WorkspaceStatu
 use crate::database::superposition_schema::superposition::workspaces;
 use crate::{custom_query::QueryParam, IsEmpty};
 
+use super::config::MergeStrategy;
 use super::{default_true, deserialize_option_i64, I64Update};
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -30,6 +31,7 @@ pub struct WorkspaceResponse {
     pub auto_populate_control: bool,
     pub enable_context_validation: bool,
     pub enable_change_reason_validation: bool,
+    pub merge_strategy: MergeStrategy,
     pub workspace_lock: Option<WorkspaceLock>,
 }
 
@@ -97,6 +99,7 @@ impl From<Workspace> for WorkspaceResponse {
             auto_populate_control: workspace.auto_populate_control,
             enable_context_validation: workspace.enable_context_validation,
             enable_change_reason_validation: workspace.enable_change_reason_validation,
+            merge_strategy: workspace.merge_strategy,
             workspace_lock,
         }
     }
@@ -116,6 +119,8 @@ pub struct CreateWorkspaceRequest {
     pub enable_context_validation: bool,
     #[serde(default)]
     pub enable_change_reason_validation: bool,
+    #[serde(default)]
+    pub merge_strategy: MergeStrategy,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -132,6 +137,7 @@ pub struct UpdateWorkspaceRequest {
     pub auto_populate_control: Option<bool>,
     pub enable_context_validation: Option<bool>,
     pub enable_change_reason_validation: Option<bool>,
+    pub merge_strategy: Option<MergeStrategy>,
 }
 
 #[derive(Deserialize, Debug, IsEmpty, QueryParam, Default, Clone)]

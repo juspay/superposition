@@ -4,261 +4,352 @@ pub use crate::operation::create_webhook::_create_webhook_output::CreateWebhookO
 pub use crate::operation::create_webhook::_create_webhook_input::CreateWebhookInputBuilder;
 
 impl crate::operation::create_webhook::builders::CreateWebhookInputBuilder {
-                    /// Sends a request with this input using the given client.
-                    pub async fn send_with(self, client: &crate::Client) -> ::std::result::Result<
-                        crate::operation::create_webhook::CreateWebhookOutput,
-                        ::aws_smithy_runtime_api::client::result::SdkError<
-                            crate::operation::create_webhook::CreateWebhookError,
-                            ::aws_smithy_runtime_api::client::orchestrator::HttpResponse
-                        >
-                    > {
-                        let mut fluent_builder = client.create_webhook();
-                        fluent_builder.inner = self;
-                        fluent_builder.send().await
-                    }
-                }
+    /// Sends a request with this input using the given client.
+    pub async fn send_with(
+        self,
+        client: &crate::Client,
+    ) -> ::std::result::Result<
+        crate::operation::create_webhook::CreateWebhookOutput,
+        ::aws_smithy_runtime_api::client::result::SdkError<
+            crate::operation::create_webhook::CreateWebhookError,
+            ::aws_smithy_runtime_api::client::orchestrator::HttpResponse,
+        >,
+    > {
+        let mut fluent_builder = client.create_webhook();
+        fluent_builder.inner = self;
+        fluent_builder.send().await
+    }
+}
 /// Fluent builder constructing a request to `CreateWebhook`.
-/// 
+///
 /// Creates a new webhook config to receive HTTP notifications when specified events occur in the system.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct CreateWebhookFluentBuilder {
-                handle: ::std::sync::Arc<crate::client::Handle>,
-                inner: crate::operation::create_webhook::builders::CreateWebhookInputBuilder,
-config_override: ::std::option::Option<crate::config::Builder>,
-            }
+    handle: ::std::sync::Arc<crate::client::Handle>,
+    inner: crate::operation::create_webhook::builders::CreateWebhookInputBuilder,
+    config_override: ::std::option::Option<crate::config::Builder>,
+}
 impl
-                crate::client::customize::internal::CustomizableSend<
-                    crate::operation::create_webhook::CreateWebhookOutput,
-                    crate::operation::create_webhook::CreateWebhookError,
-                > for CreateWebhookFluentBuilder
-            {
-                fn send(
-                    self,
-                    config_override: crate::config::Builder,
-                ) -> crate::client::customize::internal::BoxFuture<
-                    crate::client::customize::internal::SendResult<
-                        crate::operation::create_webhook::CreateWebhookOutput,
-                        crate::operation::create_webhook::CreateWebhookError,
-                    >,
-                > {
-                    ::std::boxed::Box::pin(async move { self.config_override(config_override).send().await })
-                }
-            }
+    crate::client::customize::internal::CustomizableSend<
+        crate::operation::create_webhook::CreateWebhookOutput,
+        crate::operation::create_webhook::CreateWebhookError,
+    > for CreateWebhookFluentBuilder
+{
+    fn send(
+        self,
+        config_override: crate::config::Builder,
+    ) -> crate::client::customize::internal::BoxFuture<
+        crate::client::customize::internal::SendResult<
+            crate::operation::create_webhook::CreateWebhookOutput,
+            crate::operation::create_webhook::CreateWebhookError,
+        >,
+    > {
+        ::std::boxed::Box::pin(async move {
+            self.config_override(config_override).send().await
+        })
+    }
+}
 impl CreateWebhookFluentBuilder {
     /// Creates a new `CreateWebhookFluentBuilder`.
-                    pub(crate) fn new(handle: ::std::sync::Arc<crate::client::Handle>) -> Self {
-                        Self {
-                            handle,
-                            inner: ::std::default::Default::default(),
-    config_override: ::std::option::Option::None,
-                        }
-                    }
+    pub(crate) fn new(handle: ::std::sync::Arc<crate::client::Handle>) -> Self {
+        Self {
+            handle,
+            inner: ::std::default::Default::default(),
+            config_override: ::std::option::Option::None,
+        }
+    }
     /// Access the CreateWebhook as a reference.
-                    pub fn as_input(&self) -> &crate::operation::create_webhook::builders::CreateWebhookInputBuilder {
-                        &self.inner
-                    }
+    pub fn as_input(
+        &self,
+    ) -> &crate::operation::create_webhook::builders::CreateWebhookInputBuilder {
+        &self.inner
+    }
     /// Sends the request and returns the response.
-                    ///
-                    /// If an error occurs, an `SdkError` will be returned with additional details that
-                    /// can be matched against.
-                    ///
-                    /// By default, any retryable failures will be retried twice. Retry behavior
-                    /// is configurable with the [RetryConfig](aws_smithy_types::retry::RetryConfig), which can be
-                    /// set when configuring the client.
-                    pub async fn send(self) -> ::std::result::Result<crate::operation::create_webhook::CreateWebhookOutput, ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::create_webhook::CreateWebhookError, ::aws_smithy_runtime_api::client::orchestrator::HttpResponse>> {
-                        let input = self.inner.build().map_err(::aws_smithy_runtime_api::client::result::SdkError::construction_failure)?;
-                        let runtime_plugins = crate::operation::create_webhook::CreateWebhook::operation_runtime_plugins(
-                            self.handle.runtime_plugins.clone(),
-                            &self.handle.conf,
-                            self.config_override,
-                        );
-                        crate::operation::create_webhook::CreateWebhook::orchestrate(&runtime_plugins, input).await
-                    }
-    
-                    /// Consumes this builder, creating a customizable operation that can be modified before being sent.
-                    pub fn customize(
-                        self,
-                    ) -> crate::client::customize::CustomizableOperation<crate::operation::create_webhook::CreateWebhookOutput, crate::operation::create_webhook::CreateWebhookError, Self> {
-                        crate::client::customize::CustomizableOperation::new(self)
-                    }
+    ///
+    /// If an error occurs, an `SdkError` will be returned with additional details that
+    /// can be matched against.
+    ///
+    /// By default, any retryable failures will be retried twice. Retry behavior
+    /// is configurable with the [RetryConfig](aws_smithy_types::retry::RetryConfig), which can be
+    /// set when configuring the client.
+    pub async fn send(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::create_webhook::CreateWebhookOutput,
+        ::aws_smithy_runtime_api::client::result::SdkError<
+            crate::operation::create_webhook::CreateWebhookError,
+            ::aws_smithy_runtime_api::client::orchestrator::HttpResponse,
+        >,
+    > {
+        let input = self.inner.build().map_err(
+            ::aws_smithy_runtime_api::client::result::SdkError::construction_failure,
+        )?;
+        let runtime_plugins =
+            crate::operation::create_webhook::CreateWebhook::operation_runtime_plugins(
+                self.handle.runtime_plugins.clone(),
+                &self.handle.conf,
+                self.config_override,
+            );
+        crate::operation::create_webhook::CreateWebhook::orchestrate(
+            &runtime_plugins,
+            input,
+        )
+        .await
+    }
+
+    /// Consumes this builder, creating a customizable operation that can be modified before being sent.
+    pub fn customize(
+        self,
+    ) -> crate::client::customize::CustomizableOperation<
+        crate::operation::create_webhook::CreateWebhookOutput,
+        crate::operation::create_webhook::CreateWebhookError,
+        Self,
+    > {
+        crate::client::customize::CustomizableOperation::new(self)
+    }
     pub(crate) fn config_override(
-                            mut self,
-                            config_override: impl ::std::convert::Into<crate::config::Builder>,
-                        ) -> Self {
-                            self.set_config_override(::std::option::Option::Some(config_override.into()));
-                            self
-                        }
-    
-                        pub(crate) fn set_config_override(
-                            &mut self,
-                            config_override: ::std::option::Option<crate::config::Builder>,
-                        ) -> &mut Self {
-                            self.config_override = config_override;
-                            self
-                        }
+        mut self,
+        config_override: impl ::std::convert::Into<crate::config::Builder>,
+    ) -> Self {
+        self.set_config_override(::std::option::Option::Some(config_override.into()));
+        self
+    }
+
+    pub(crate) fn set_config_override(
+        &mut self,
+        config_override: ::std::option::Option<crate::config::Builder>,
+    ) -> &mut Self {
+        self.config_override = config_override;
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.workspace_id(input.into());
-                    self
-                }
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.workspace_id(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_workspace_id(input);
-                    self
-                }
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_workspace_id(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_workspace_id()
-                }
+        self.inner.get_workspace_id()
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.org_id(input.into());
-                    self
-                }
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.org_id(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_org_id(input);
-                    self
-                }
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_org_id(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_org_id()
-                }
+        self.inner.get_org_id()
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.name(input.into());
-                    self
-                }
+    pub fn name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.name(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_name(input);
-                    self
-                }
+    pub fn set_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_name(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_name(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_name()
-                }
+        self.inner.get_name()
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn description(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.description(input.into());
-                    self
-                }
+    pub fn description(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.description(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_description(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_description(input);
-                    self
-                }
+    pub fn set_description(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_description(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_description(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_description()
-                }
+        self.inner.get_description()
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn enabled(mut self, input: bool) -> Self {
-                    self.inner = self.inner.enabled(input);
-                    self
-                }
+        self.inner = self.inner.enabled(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_enabled(mut self, input: ::std::option::Option<bool>) -> Self {
-                    self.inner = self.inner.set_enabled(input);
-                    self
-                }
+        self.inner = self.inner.set_enabled(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_enabled(&self) -> &::std::option::Option<bool> {
-                    self.inner.get_enabled()
-                }
+        self.inner.get_enabled()
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn url(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.url(input.into());
-                    self
-                }
+    pub fn url(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.url(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_url(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_url(input);
-                    self
-                }
+    pub fn set_url(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_url(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_url(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_url()
-                }
+        self.inner.get_url()
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn method(mut self, input: crate::types::HttpMethod) -> Self {
-                    self.inner = self.inner.method(input);
-                    self
-                }
+        self.inner = self.inner.method(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_method(mut self, input: ::std::option::Option<crate::types::HttpMethod>) -> Self {
-                    self.inner = self.inner.set_method(input);
-                    self
-                }
+    pub fn set_method(
+        mut self,
+        input: ::std::option::Option<crate::types::HttpMethod>,
+    ) -> Self {
+        self.inner = self.inner.set_method(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_method(&self) -> &::std::option::Option<crate::types::HttpMethod> {
-                    self.inner.get_method()
-                }
+        self.inner.get_method()
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn version(mut self, input: crate::types::Version) -> Self {
-                    self.inner = self.inner.version(input);
-                    self
-                }
+        self.inner = self.inner.version(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_version(mut self, input: ::std::option::Option<crate::types::Version>) -> Self {
-                    self.inner = self.inner.set_version(input);
-                    self
-                }
+    pub fn set_version(
+        mut self,
+        input: ::std::option::Option<crate::types::Version>,
+    ) -> Self {
+        self.inner = self.inner.set_version(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_version(&self) -> &::std::option::Option<crate::types::Version> {
-                    self.inner.get_version()
-                }
-    /// 
+        self.inner.get_version()
+    }
+    ///
     /// Adds a key-value pair to `custom_headers`.
-    /// 
+    ///
     /// To override the contents of this collection use [`set_custom_headers`](Self::set_custom_headers).
-    /// 
+    ///
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub fn custom_headers(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
-                    self.inner = self.inner.custom_headers(k.into(), v);
-                    self
-                }
+    pub fn custom_headers(
+        mut self,
+        k: impl ::std::convert::Into<::std::string::String>,
+        v: ::aws_smithy_types::Document,
+    ) -> Self {
+        self.inner = self.inner.custom_headers(k.into(), v);
+        self
+    }
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub fn set_custom_headers(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
-                    self.inner = self.inner.set_custom_headers(input);
-                    self
-                }
+    pub fn set_custom_headers(
+        mut self,
+        input: ::std::option::Option<
+            ::std::collections::HashMap<
+                ::std::string::String,
+                ::aws_smithy_types::Document,
+            >,
+        >,
+    ) -> Self {
+        self.inner = self.inner.set_custom_headers(input);
+        self
+    }
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub fn get_custom_headers(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
-                    self.inner.get_custom_headers()
-                }
-    /// 
+    pub fn get_custom_headers(
+        &self,
+    ) -> &::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
+        self.inner.get_custom_headers()
+    }
+    ///
     /// Appends an item to `events`.
-    /// 
+    ///
     /// To override the contents of this collection use [`set_events`](Self::set_events).
-    /// 
+    ///
     #[allow(missing_docs)] // documentation missing in model
-    pub fn events(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                        self.inner = self.inner.events(input.into());
-                        self
-                    }
+    pub fn events(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.events(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_events(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-                    self.inner = self.inner.set_events(input);
-                    self
-                }
+    pub fn set_events(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    ) -> Self {
+        self.inner = self.inner.set_events(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_events(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
-                    self.inner.get_events()
-                }
+    pub fn get_events(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<::std::string::String>> {
+        self.inner.get_events()
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn change_reason(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.change_reason(input.into());
-                    self
-                }
+    pub fn change_reason(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.change_reason(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_change_reason(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_change_reason(input);
-                    self
-                }
+    pub fn set_change_reason(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_change_reason(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_change_reason()
-                }
+        self.inner.get_change_reason()
+    }
 }
-

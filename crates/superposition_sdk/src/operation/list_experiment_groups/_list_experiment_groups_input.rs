@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct ListExperimentGroupsInput  {
+pub struct ListExperimentGroupsInput {
     /// Number of items to be returned in each page.
     pub count: ::std::option::Option<i32>,
     /// Page number to retrieve, starting from 1.
@@ -26,15 +26,20 @@ pub struct ListExperimentGroupsInput  {
     /// Sort order (ascending or descending).
     pub sort_by: ::std::option::Option<crate::types::SortBy>,
     /// Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
-    pub group_type: ::std::option::Option<::std::vec::Vec::<crate::types::GroupType>>,
+    pub group_type: ::std::option::Option<::std::vec::Vec<crate::types::GroupType>>,
     /// Strategy to follow while filter items based on the context
-    pub dimension_match_strategy: ::std::option::Option<crate::types::DimensionMatchStrategy>,
+    pub dimension_match_strategy:
+        ::std::option::Option<crate::types::DimensionMatchStrategy>,
     /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
-    pub dimension_params: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>>,
+    pub dimension_params: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::std::string::String>,
+    >,
     /// Map representing the context. Keys correspond to the names of the dimensions.
-    pub context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub context: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    >,
 }
-impl  ListExperimentGroupsInput  {
+impl ListExperimentGroupsInput {
     /// Number of items to be returned in each page.
     pub fn count(&self) -> ::std::option::Option<i32> {
         self.count
@@ -56,7 +61,9 @@ impl  ListExperimentGroupsInput  {
         self.org_id.as_deref()
     }
     /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
-    pub fn if_modified_since(&self) -> ::std::option::Option<&::aws_smithy_types::DateTime> {
+    pub fn if_modified_since(
+        &self,
+    ) -> ::std::option::Option<&::aws_smithy_types::DateTime> {
         self.if_modified_since.as_ref()
     }
     /// Filter by experiment group name (exact match or substring, depending on backend implementation).
@@ -80,34 +87,45 @@ impl  ListExperimentGroupsInput  {
         self.sort_by.as_ref()
     }
     /// Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.group_type.is_none()`.
     pub fn group_type(&self) -> &[crate::types::GroupType] {
-        self.group_type.as_deref()
-        .unwrap_or_default()
+        self.group_type.as_deref().unwrap_or_default()
     }
     /// Strategy to follow while filter items based on the context
-    pub fn dimension_match_strategy(&self) -> ::std::option::Option<&crate::types::DimensionMatchStrategy> {
+    pub fn dimension_match_strategy(
+        &self,
+    ) -> ::std::option::Option<&crate::types::DimensionMatchStrategy> {
         self.dimension_match_strategy.as_ref()
     }
     /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
-    pub fn dimension_params(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::std::string::String>> {
+    pub fn dimension_params(
+        &self,
+    ) -> ::std::option::Option<
+        &::std::collections::HashMap<::std::string::String, ::std::string::String>,
+    > {
         self.dimension_params.as_ref()
     }
     /// Map representing the context. Keys correspond to the names of the dimensions.
-    pub fn context(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    pub fn context(
+        &self,
+    ) -> ::std::option::Option<
+        &::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
         self.context.as_ref()
     }
 }
 impl ListExperimentGroupsInput {
     /// Creates a new builder-style object to manufacture [`ListExperimentGroupsInput`](crate::operation::list_experiment_groups::ListExperimentGroupsInput).
-    pub fn builder() -> crate::operation::list_experiment_groups::builders::ListExperimentGroupsInputBuilder {
+    pub fn builder() -> crate::operation::list_experiment_groups::builders::ListExperimentGroupsInputBuilder{
         crate::operation::list_experiment_groups::builders::ListExperimentGroupsInputBuilder::default()
     }
 }
 
 /// A builder for [`ListExperimentGroupsInput`](crate::operation::list_experiment_groups::ListExperimentGroupsInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct ListExperimentGroupsInputBuilder {
     pub(crate) count: ::std::option::Option<i32>,
@@ -121,10 +139,16 @@ pub struct ListExperimentGroupsInputBuilder {
     pub(crate) last_modified_by: ::std::option::Option<::std::string::String>,
     pub(crate) sort_on: ::std::option::Option<crate::types::ExperimentGroupSortOn>,
     pub(crate) sort_by: ::std::option::Option<crate::types::SortBy>,
-    pub(crate) group_type: ::std::option::Option<::std::vec::Vec::<crate::types::GroupType>>,
-    pub(crate) dimension_match_strategy: ::std::option::Option<crate::types::DimensionMatchStrategy>,
-    pub(crate) dimension_params: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>>,
-    pub(crate) context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub(crate) group_type:
+        ::std::option::Option<::std::vec::Vec<crate::types::GroupType>>,
+    pub(crate) dimension_match_strategy:
+        ::std::option::Option<crate::types::DimensionMatchStrategy>,
+    pub(crate) dimension_params: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::std::string::String>,
+    >,
+    pub(crate) context: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    >,
 }
 impl ListExperimentGroupsInputBuilder {
     /// Number of items to be returned in each page.
@@ -134,7 +158,8 @@ impl ListExperimentGroupsInputBuilder {
     }
     /// Number of items to be returned in each page.
     pub fn set_count(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.count = input; self
+        self.count = input;
+        self
     }
     /// Number of items to be returned in each page.
     pub fn get_count(&self) -> &::std::option::Option<i32> {
@@ -147,7 +172,8 @@ impl ListExperimentGroupsInputBuilder {
     }
     /// Page number to retrieve, starting from 1.
     pub fn set_page(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.page = input; self
+        self.page = input;
+        self
     }
     /// Page number to retrieve, starting from 1.
     pub fn get_page(&self) -> &::std::option::Option<i32> {
@@ -160,7 +186,8 @@ impl ListExperimentGroupsInputBuilder {
     }
     /// If true, returns all requested items, ignoring pagination parameters page and count.
     pub fn set_all(mut self, input: ::std::option::Option<bool>) -> Self {
-        self.all = input; self
+        self.all = input;
+        self
     }
     /// If true, returns all requested items, ignoring pagination parameters page and count.
     pub fn get_all(&self) -> &::std::option::Option<bool> {
@@ -168,13 +195,20 @@ impl ListExperimentGroupsInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_id = input; self
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -182,13 +216,20 @@ impl ListExperimentGroupsInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -200,47 +241,74 @@ impl ListExperimentGroupsInputBuilder {
         self
     }
     /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
-    pub fn set_if_modified_since(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.if_modified_since = input; self
+    pub fn set_if_modified_since(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.if_modified_since = input;
+        self
     }
     /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
-    pub fn get_if_modified_since(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
+    pub fn get_if_modified_since(
+        &self,
+    ) -> &::std::option::Option<::aws_smithy_types::DateTime> {
         &self.if_modified_since
     }
     /// Filter by experiment group name (exact match or substring, depending on backend implementation).
-    pub fn name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.name = ::std::option::Option::Some(input.into());
         self
     }
     /// Filter by experiment group name (exact match or substring, depending on backend implementation).
-    pub fn set_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.name = input; self
+    pub fn set_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.name = input;
+        self
     }
     /// Filter by experiment group name (exact match or substring, depending on backend implementation).
     pub fn get_name(&self) -> &::std::option::Option<::std::string::String> {
         &self.name
     }
     /// Filter by the user who created the experiment group.
-    pub fn created_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn created_by(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.created_by = ::std::option::Option::Some(input.into());
         self
     }
     /// Filter by the user who created the experiment group.
-    pub fn set_created_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.created_by = input; self
+    pub fn set_created_by(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.created_by = input;
+        self
     }
     /// Filter by the user who created the experiment group.
     pub fn get_created_by(&self) -> &::std::option::Option<::std::string::String> {
         &self.created_by
     }
     /// Filter by the user who last modified the experiment group.
-    pub fn last_modified_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn last_modified_by(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.last_modified_by = ::std::option::Option::Some(input.into());
         self
     }
     /// Filter by the user who last modified the experiment group.
-    pub fn set_last_modified_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.last_modified_by = input; self
+    pub fn set_last_modified_by(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.last_modified_by = input;
+        self
     }
     /// Filter by the user who last modified the experiment group.
     pub fn get_last_modified_by(&self) -> &::std::option::Option<::std::string::String> {
@@ -252,11 +320,17 @@ impl ListExperimentGroupsInputBuilder {
         self
     }
     /// Field to sort the results by.
-    pub fn set_sort_on(mut self, input: ::std::option::Option<crate::types::ExperimentGroupSortOn>) -> Self {
-        self.sort_on = input; self
+    pub fn set_sort_on(
+        mut self,
+        input: ::std::option::Option<crate::types::ExperimentGroupSortOn>,
+    ) -> Self {
+        self.sort_on = input;
+        self
     }
     /// Field to sort the results by.
-    pub fn get_sort_on(&self) -> &::std::option::Option<crate::types::ExperimentGroupSortOn> {
+    pub fn get_sort_on(
+        &self,
+    ) -> &::std::option::Option<crate::types::ExperimentGroupSortOn> {
         &self.sort_on
     }
     /// Sort order (ascending or descending).
@@ -265,8 +339,12 @@ impl ListExperimentGroupsInputBuilder {
         self
     }
     /// Sort order (ascending or descending).
-    pub fn set_sort_by(mut self, input: ::std::option::Option<crate::types::SortBy>) -> Self {
-        self.sort_by = input; self
+    pub fn set_sort_by(
+        mut self,
+        input: ::std::option::Option<crate::types::SortBy>,
+    ) -> Self {
+        self.sort_by = input;
+        self
     }
     /// Sort order (ascending or descending).
     pub fn get_sort_by(&self) -> &::std::option::Option<crate::types::SortBy> {
@@ -279,29 +357,44 @@ impl ListExperimentGroupsInputBuilder {
     /// Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
     pub fn group_type(mut self, input: crate::types::GroupType) -> Self {
         let mut v = self.group_type.unwrap_or_default();
-                        v.push(input);
-                        self.group_type = ::std::option::Option::Some(v);
-                        self
+        v.push(input);
+        self.group_type = ::std::option::Option::Some(v);
+        self
     }
     /// Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
-    pub fn set_group_type(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::GroupType>>) -> Self {
-        self.group_type = input; self
+    pub fn set_group_type(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<crate::types::GroupType>>,
+    ) -> Self {
+        self.group_type = input;
+        self
     }
     /// Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
-    pub fn get_group_type(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::GroupType>> {
+    pub fn get_group_type(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<crate::types::GroupType>> {
         &self.group_type
     }
     /// Strategy to follow while filter items based on the context
-    pub fn dimension_match_strategy(mut self, input: crate::types::DimensionMatchStrategy) -> Self {
+    pub fn dimension_match_strategy(
+        mut self,
+        input: crate::types::DimensionMatchStrategy,
+    ) -> Self {
         self.dimension_match_strategy = ::std::option::Option::Some(input);
         self
     }
     /// Strategy to follow while filter items based on the context
-    pub fn set_dimension_match_strategy(mut self, input: ::std::option::Option<crate::types::DimensionMatchStrategy>) -> Self {
-        self.dimension_match_strategy = input; self
+    pub fn set_dimension_match_strategy(
+        mut self,
+        input: ::std::option::Option<crate::types::DimensionMatchStrategy>,
+    ) -> Self {
+        self.dimension_match_strategy = input;
+        self
     }
     /// Strategy to follow while filter items based on the context
-    pub fn get_dimension_match_strategy(&self) -> &::std::option::Option<crate::types::DimensionMatchStrategy> {
+    pub fn get_dimension_match_strategy(
+        &self,
+    ) -> &::std::option::Option<crate::types::DimensionMatchStrategy> {
         &self.dimension_match_strategy
     }
     /// Adds a key-value pair to `dimension_params`.
@@ -309,18 +402,32 @@ impl ListExperimentGroupsInputBuilder {
     /// To override the contents of this collection use [`set_dimension_params`](Self::set_dimension_params).
     ///
     /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
-    pub fn dimension_params(mut self, k: impl ::std::convert::Into<::std::string::String>, v: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn dimension_params(
+        mut self,
+        k: impl ::std::convert::Into<::std::string::String>,
+        v: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         let mut hash_map = self.dimension_params.unwrap_or_default();
-                        hash_map.insert(k.into(), v.into());
-                        self.dimension_params = ::std::option::Option::Some(hash_map);
-                        self
+        hash_map.insert(k.into(), v.into());
+        self.dimension_params = ::std::option::Option::Some(hash_map);
+        self
     }
     /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
-    pub fn set_dimension_params(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>>) -> Self {
-        self.dimension_params = input; self
+    pub fn set_dimension_params(
+        mut self,
+        input: ::std::option::Option<
+            ::std::collections::HashMap<::std::string::String, ::std::string::String>,
+        >,
+    ) -> Self {
+        self.dimension_params = input;
+        self
     }
     /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
-    pub fn get_dimension_params(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>> {
+    pub fn get_dimension_params(
+        &self,
+    ) -> &::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::std::string::String>,
+    > {
         &self.dimension_params
     }
     /// Adds a key-value pair to `context`.
@@ -328,56 +435,62 @@ impl ListExperimentGroupsInputBuilder {
     /// To override the contents of this collection use [`set_context`](Self::set_context).
     ///
     /// Map representing the context. Keys correspond to the names of the dimensions.
-    pub fn context(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
+    pub fn context(
+        mut self,
+        k: impl ::std::convert::Into<::std::string::String>,
+        v: ::aws_smithy_types::Document,
+    ) -> Self {
         let mut hash_map = self.context.unwrap_or_default();
-                        hash_map.insert(k.into(), v);
-                        self.context = ::std::option::Option::Some(hash_map);
-                        self
+        hash_map.insert(k.into(), v);
+        self.context = ::std::option::Option::Some(hash_map);
+        self
     }
     /// Map representing the context. Keys correspond to the names of the dimensions.
-    pub fn set_context(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
-        self.context = input; self
+    pub fn set_context(
+        mut self,
+        input: ::std::option::Option<
+            ::std::collections::HashMap<
+                ::std::string::String,
+                ::aws_smithy_types::Document,
+            >,
+        >,
+    ) -> Self {
+        self.context = input;
+        self
     }
     /// Map representing the context. Keys correspond to the names of the dimensions.
-    pub fn get_context(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    pub fn get_context(
+        &self,
+    ) -> &::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
         &self.context
     }
     /// Consumes the builder and constructs a [`ListExperimentGroupsInput`](crate::operation::list_experiment_groups::ListExperimentGroupsInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::list_experiment_groups::ListExperimentGroupsInput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::list_experiment_groups::ListExperimentGroupsInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::list_experiment_groups::ListExperimentGroupsInput {
-                count: self.count
-                ,
-                page: self.page
-                ,
-                all: self.all
-                ,
-                workspace_id: self.workspace_id
-                ,
-                org_id: self.org_id
-                ,
-                if_modified_since: self.if_modified_since
-                ,
-                name: self.name
-                ,
-                created_by: self.created_by
-                ,
-                last_modified_by: self.last_modified_by
-                ,
-                sort_on: self.sort_on
-                ,
-                sort_by: self.sort_by
-                ,
-                group_type: self.group_type
-                ,
-                dimension_match_strategy: self.dimension_match_strategy
-                ,
-                dimension_params: self.dimension_params
-                ,
-                context: self.context
-                ,
-            }
+                count: self.count,
+                page: self.page,
+                all: self.all,
+                workspace_id: self.workspace_id,
+                org_id: self.org_id,
+                if_modified_since: self.if_modified_since,
+                name: self.name,
+                created_by: self.created_by,
+                last_modified_by: self.last_modified_by,
+                sort_on: self.sort_on,
+                sort_by: self.sort_by,
+                group_type: self.group_type,
+                dimension_match_strategy: self.dimension_match_strategy,
+                dimension_params: self.dimension_params,
+                context: self.context,
+            },
         )
     }
 }
-

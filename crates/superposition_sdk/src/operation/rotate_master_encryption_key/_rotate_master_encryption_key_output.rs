@@ -2,13 +2,13 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct RotateMasterEncryptionKeyOutput  {
+pub struct RotateMasterEncryptionKeyOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub workspaces_rotated: i64,
     #[allow(missing_docs)] // documentation missing in model
     pub total_secrets_re_encrypted: i64,
 }
-impl  RotateMasterEncryptionKeyOutput  {
+impl RotateMasterEncryptionKeyOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspaces_rotated(&self) -> i64 {
         self.workspaces_rotated
@@ -20,13 +20,15 @@ impl  RotateMasterEncryptionKeyOutput  {
 }
 impl RotateMasterEncryptionKeyOutput {
     /// Creates a new builder-style object to manufacture [`RotateMasterEncryptionKeyOutput`](crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKeyOutput).
-    pub fn builder() -> crate::operation::rotate_master_encryption_key::builders::RotateMasterEncryptionKeyOutputBuilder {
+    pub fn builder() -> crate::operation::rotate_master_encryption_key::builders::RotateMasterEncryptionKeyOutputBuilder{
         crate::operation::rotate_master_encryption_key::builders::RotateMasterEncryptionKeyOutputBuilder::default()
     }
 }
 
 /// A builder for [`RotateMasterEncryptionKeyOutput`](crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKeyOutput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct RotateMasterEncryptionKeyOutputBuilder {
     pub(crate) workspaces_rotated: ::std::option::Option<i64>,
@@ -41,7 +43,8 @@ impl RotateMasterEncryptionKeyOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_workspaces_rotated(mut self, input: ::std::option::Option<i64>) -> Self {
-        self.workspaces_rotated = input; self
+        self.workspaces_rotated = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspaces_rotated(&self) -> &::std::option::Option<i64> {
@@ -54,8 +57,12 @@ impl RotateMasterEncryptionKeyOutputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_total_secrets_re_encrypted(mut self, input: ::std::option::Option<i64>) -> Self {
-        self.total_secrets_re_encrypted = input; self
+    pub fn set_total_secrets_re_encrypted(
+        mut self,
+        input: ::std::option::Option<i64>,
+    ) -> Self {
+        self.total_secrets_re_encrypted = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_total_secrets_re_encrypted(&self) -> &::std::option::Option<i64> {
@@ -65,7 +72,12 @@ impl RotateMasterEncryptionKeyOutputBuilder {
     /// This method will fail if any of the following fields are not set:
     /// - [`workspaces_rotated`](crate::operation::rotate_master_encryption_key::builders::RotateMasterEncryptionKeyOutputBuilder::workspaces_rotated)
     /// - [`total_secrets_re_encrypted`](crate::operation::rotate_master_encryption_key::builders::RotateMasterEncryptionKeyOutputBuilder::total_secrets_re_encrypted)
-    pub fn build(self) -> ::std::result::Result<crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKeyOutput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKeyOutput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKeyOutput {
                 workspaces_rotated: self.workspaces_rotated
@@ -82,4 +94,3 @@ impl RotateMasterEncryptionKeyOutputBuilder {
         )
     }
 }
-

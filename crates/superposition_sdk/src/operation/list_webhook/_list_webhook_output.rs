@@ -2,15 +2,15 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct ListWebhookOutput  {
+pub struct ListWebhookOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub total_pages: i32,
     #[allow(missing_docs)] // documentation missing in model
     pub total_items: i32,
     #[allow(missing_docs)] // documentation missing in model
-    pub data: ::std::vec::Vec::<crate::types::WebhookResponse>,
+    pub data: ::std::vec::Vec<crate::types::WebhookResponse>,
 }
-impl  ListWebhookOutput  {
+impl ListWebhookOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn total_pages(&self) -> i32 {
         self.total_pages
@@ -21,23 +21,28 @@ impl  ListWebhookOutput  {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn data(&self) -> &[crate::types::WebhookResponse] {
-        use std::ops::Deref; self.data.deref()
+        use std::ops::Deref;
+        self.data.deref()
     }
 }
 impl ListWebhookOutput {
     /// Creates a new builder-style object to manufacture [`ListWebhookOutput`](crate::operation::list_webhook::ListWebhookOutput).
-    pub fn builder() -> crate::operation::list_webhook::builders::ListWebhookOutputBuilder {
+    pub fn builder() -> crate::operation::list_webhook::builders::ListWebhookOutputBuilder
+    {
         crate::operation::list_webhook::builders::ListWebhookOutputBuilder::default()
     }
 }
 
 /// A builder for [`ListWebhookOutput`](crate::operation::list_webhook::ListWebhookOutput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct ListWebhookOutputBuilder {
     pub(crate) total_pages: ::std::option::Option<i32>,
     pub(crate) total_items: ::std::option::Option<i32>,
-    pub(crate) data: ::std::option::Option<::std::vec::Vec::<crate::types::WebhookResponse>>,
+    pub(crate) data:
+        ::std::option::Option<::std::vec::Vec<crate::types::WebhookResponse>>,
 }
 impl ListWebhookOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -48,7 +53,8 @@ impl ListWebhookOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_total_pages(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.total_pages = input; self
+        self.total_pages = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_total_pages(&self) -> &::std::option::Option<i32> {
@@ -62,7 +68,8 @@ impl ListWebhookOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_total_items(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.total_items = input; self
+        self.total_items = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_total_items(&self) -> &::std::option::Option<i32> {
@@ -74,16 +81,22 @@ impl ListWebhookOutputBuilder {
     ///
     pub fn data(mut self, input: crate::types::WebhookResponse) -> Self {
         let mut v = self.data.unwrap_or_default();
-                        v.push(input);
-                        self.data = ::std::option::Option::Some(v);
-                        self
+        v.push(input);
+        self.data = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_data(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::WebhookResponse>>) -> Self {
-        self.data = input; self
+    pub fn set_data(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<crate::types::WebhookResponse>>,
+    ) -> Self {
+        self.data = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_data(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::WebhookResponse>> {
+    pub fn get_data(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<crate::types::WebhookResponse>> {
         &self.data
     }
     /// Consumes the builder and constructs a [`ListWebhookOutput`](crate::operation::list_webhook::ListWebhookOutput).
@@ -91,7 +104,12 @@ impl ListWebhookOutputBuilder {
     /// - [`total_pages`](crate::operation::list_webhook::builders::ListWebhookOutputBuilder::total_pages)
     /// - [`total_items`](crate::operation::list_webhook::builders::ListWebhookOutputBuilder::total_items)
     /// - [`data`](crate::operation::list_webhook::builders::ListWebhookOutputBuilder::data)
-    pub fn build(self) -> ::std::result::Result<crate::operation::list_webhook::ListWebhookOutput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::list_webhook::ListWebhookOutput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::list_webhook::ListWebhookOutput {
                 total_pages: self.total_pages
@@ -113,4 +131,3 @@ impl ListWebhookOutputBuilder {
         )
     }
 }
-

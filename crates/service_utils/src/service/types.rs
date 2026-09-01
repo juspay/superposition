@@ -16,7 +16,9 @@ use diesel::r2d2::{ConnectionManager, PooledConnection};
 use reqwest::header::HeaderValue;
 use secrecy::SecretString;
 use snowflake::SnowflakeIdGenerator;
-use superposition_types::{User, database::models::Workspace};
+use superposition_types::{
+    User, api::config::MergeStrategy, database::models::Workspace,
+};
 
 use crate::{
     db::{PgSchemaConnectionPool, checkout_connection},
@@ -45,6 +47,7 @@ pub enum AppEnv {
 pub enum AppHeader {
     XConfigVersion,
     LastModified,
+    XMergeStrategy,
 }
 
 impl AppHeader {
@@ -85,6 +88,18 @@ impl AppHeader {
                 val.clone().to_string(),
             ));
         }
+    }
+
+    /// Lets a provider learn the workspace's strategy from the config call it
+    /// already makes, instead of a separate workspace lookup.
+    pub fn add_merge_strategy(
+        merge_strategy: MergeStrategy,
+        resp_builder: &mut HttpResponseBuilder,
+    ) {
+        resp_builder.insert_header((
+            Self::XMergeStrategy.to_string(),
+            merge_strategy.to_string(),
+        ));
     }
 }
 
@@ -374,6 +389,50 @@ impl FromRequest for WorkspaceWritePermit {
         _: &mut actix_web::dev::Payload,
     ) -> Self::Future {
         ready(Self::acquire(req))
+    }
+}
+
+/// `x-merge-strategy` if present, else the workspace's `merge_strategy` setting.
+#[derive(Clone, Copy, Debug)]
+pub struct ResolvedMergeStrategy(pub MergeStrategy);
+
+impl ResolvedMergeStrategy {
+    pub fn into_inner(self) -> MergeStrategy {
+        self.0
+    }
+}
+
+impl FromRequest for ResolvedMergeStrategy {
+    type Error = Error;
+    type Future = Ready<Result<Self, Self::Error>>;
+
+    fn from_request(
+        req: &actix_web::HttpRequest,
+        _: &mut actix_web::dev::Payload,
+    ) -> Self::Future {
+        let from_header = req
+            .headers()
+            .get("x-merge-strategy")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| {
+                let parsed = MergeStrategy::from_str(&v.trim().to_lowercase()).ok();
+                if parsed.is_none() {
+                    log::warn!(
+                        "ignoring x-merge-strategy: expected merge/replace, got {v:?}"
+                    );
+                }
+                parsed
+            });
+
+        let strategy = from_header
+            .or_else(|| {
+                req.extensions()
+                    .get::<WorkspaceContext>()
+                    .map(|w| w.settings.merge_strategy)
+            })
+            .unwrap_or_default();
+
+        ready(Ok(Self(strategy)))
     }
 }
 

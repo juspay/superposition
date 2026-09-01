@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct GetTypeTemplatesListInput  {
+pub struct GetTypeTemplatesListInput {
     /// Number of items to be returned in each page.
     pub count: ::std::option::Option<i32>,
     /// Page number to retrieve, starting from 1.
@@ -14,7 +14,7 @@ pub struct GetTypeTemplatesListInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub org_id: ::std::option::Option<::std::string::String>,
 }
-impl  GetTypeTemplatesListInput  {
+impl GetTypeTemplatesListInput {
     /// Number of items to be returned in each page.
     pub fn count(&self) -> ::std::option::Option<i32> {
         self.count
@@ -38,13 +38,15 @@ impl  GetTypeTemplatesListInput  {
 }
 impl GetTypeTemplatesListInput {
     /// Creates a new builder-style object to manufacture [`GetTypeTemplatesListInput`](crate::operation::get_type_templates_list::GetTypeTemplatesListInput).
-    pub fn builder() -> crate::operation::get_type_templates_list::builders::GetTypeTemplatesListInputBuilder {
+    pub fn builder() -> crate::operation::get_type_templates_list::builders::GetTypeTemplatesListInputBuilder{
         crate::operation::get_type_templates_list::builders::GetTypeTemplatesListInputBuilder::default()
     }
 }
 
 /// A builder for [`GetTypeTemplatesListInput`](crate::operation::get_type_templates_list::GetTypeTemplatesListInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct GetTypeTemplatesListInputBuilder {
     pub(crate) count: ::std::option::Option<i32>,
@@ -61,7 +63,8 @@ impl GetTypeTemplatesListInputBuilder {
     }
     /// Number of items to be returned in each page.
     pub fn set_count(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.count = input; self
+        self.count = input;
+        self
     }
     /// Number of items to be returned in each page.
     pub fn get_count(&self) -> &::std::option::Option<i32> {
@@ -74,7 +77,8 @@ impl GetTypeTemplatesListInputBuilder {
     }
     /// Page number to retrieve, starting from 1.
     pub fn set_page(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.page = input; self
+        self.page = input;
+        self
     }
     /// Page number to retrieve, starting from 1.
     pub fn get_page(&self) -> &::std::option::Option<i32> {
@@ -87,7 +91,8 @@ impl GetTypeTemplatesListInputBuilder {
     }
     /// If true, returns all requested items, ignoring pagination parameters page and count.
     pub fn set_all(mut self, input: ::std::option::Option<bool>) -> Self {
-        self.all = input; self
+        self.all = input;
+        self
     }
     /// If true, returns all requested items, ignoring pagination parameters page and count.
     pub fn get_all(&self) -> &::std::option::Option<bool> {
@@ -95,13 +100,20 @@ impl GetTypeTemplatesListInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_id = input; self
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -109,34 +121,40 @@ impl GetTypeTemplatesListInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
         &self.org_id
     }
     /// Consumes the builder and constructs a [`GetTypeTemplatesListInput`](crate::operation::get_type_templates_list::GetTypeTemplatesListInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::get_type_templates_list::GetTypeTemplatesListInput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::get_type_templates_list::GetTypeTemplatesListInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::get_type_templates_list::GetTypeTemplatesListInput {
-                count: self.count
-                ,
-                page: self.page
-                ,
-                all: self.all
-                ,
-                workspace_id: self.workspace_id
-                ,
-                org_id: self.org_id
-                ,
-            }
+                count: self.count,
+                page: self.page,
+                all: self.all,
+                workspace_id: self.workspace_id,
+                org_id: self.org_id,
+            },
         )
     }
 }
-

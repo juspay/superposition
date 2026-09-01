@@ -2,11 +2,11 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct RotateWorkspaceEncryptionKeyOutput  {
+pub struct RotateWorkspaceEncryptionKeyOutput {
     /// Number of secrets that were re-encrypted with the new key.
     pub total_secrets_re_encrypted: i64,
 }
-impl  RotateWorkspaceEncryptionKeyOutput  {
+impl RotateWorkspaceEncryptionKeyOutput {
     /// Number of secrets that were re-encrypted with the new key.
     pub fn total_secrets_re_encrypted(&self) -> i64 {
         self.total_secrets_re_encrypted
@@ -14,13 +14,15 @@ impl  RotateWorkspaceEncryptionKeyOutput  {
 }
 impl RotateWorkspaceEncryptionKeyOutput {
     /// Creates a new builder-style object to manufacture [`RotateWorkspaceEncryptionKeyOutput`](crate::operation::rotate_workspace_encryption_key::RotateWorkspaceEncryptionKeyOutput).
-    pub fn builder() -> crate::operation::rotate_workspace_encryption_key::builders::RotateWorkspaceEncryptionKeyOutputBuilder {
+    pub fn builder() -> crate::operation::rotate_workspace_encryption_key::builders::RotateWorkspaceEncryptionKeyOutputBuilder{
         crate::operation::rotate_workspace_encryption_key::builders::RotateWorkspaceEncryptionKeyOutputBuilder::default()
     }
 }
 
 /// A builder for [`RotateWorkspaceEncryptionKeyOutput`](crate::operation::rotate_workspace_encryption_key::RotateWorkspaceEncryptionKeyOutput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct RotateWorkspaceEncryptionKeyOutputBuilder {
     pub(crate) total_secrets_re_encrypted: ::std::option::Option<i64>,
@@ -33,8 +35,12 @@ impl RotateWorkspaceEncryptionKeyOutputBuilder {
         self
     }
     /// Number of secrets that were re-encrypted with the new key.
-    pub fn set_total_secrets_re_encrypted(mut self, input: ::std::option::Option<i64>) -> Self {
-        self.total_secrets_re_encrypted = input; self
+    pub fn set_total_secrets_re_encrypted(
+        mut self,
+        input: ::std::option::Option<i64>,
+    ) -> Self {
+        self.total_secrets_re_encrypted = input;
+        self
     }
     /// Number of secrets that were re-encrypted with the new key.
     pub fn get_total_secrets_re_encrypted(&self) -> &::std::option::Option<i64> {
@@ -43,7 +49,7 @@ impl RotateWorkspaceEncryptionKeyOutputBuilder {
     /// Consumes the builder and constructs a [`RotateWorkspaceEncryptionKeyOutput`](crate::operation::rotate_workspace_encryption_key::RotateWorkspaceEncryptionKeyOutput).
     /// This method will fail if any of the following fields are not set:
     /// - [`total_secrets_re_encrypted`](crate::operation::rotate_workspace_encryption_key::builders::RotateWorkspaceEncryptionKeyOutputBuilder::total_secrets_re_encrypted)
-    pub fn build(self) -> ::std::result::Result<crate::operation::rotate_workspace_encryption_key::RotateWorkspaceEncryptionKeyOutput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(self) -> ::std::result::Result<crate::operation::rotate_workspace_encryption_key::RotateWorkspaceEncryptionKeyOutput, ::aws_smithy_types::error::operation::BuildError>{
         ::std::result::Result::Ok(
             crate::operation::rotate_workspace_encryption_key::RotateWorkspaceEncryptionKeyOutput {
                 total_secrets_re_encrypted: self.total_secrets_re_encrypted
@@ -55,4 +61,3 @@ impl RotateWorkspaceEncryptionKeyOutputBuilder {
         )
     }
 }
-

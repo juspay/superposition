@@ -2,25 +2,27 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct DeleteDefaultConfigOutput  {
-}
+pub struct DeleteDefaultConfigOutput {}
 impl DeleteDefaultConfigOutput {
     /// Creates a new builder-style object to manufacture [`DeleteDefaultConfigOutput`](crate::operation::delete_default_config::DeleteDefaultConfigOutput).
-    pub fn builder() -> crate::operation::delete_default_config::builders::DeleteDefaultConfigOutputBuilder {
+    pub fn builder(
+    ) -> crate::operation::delete_default_config::builders::DeleteDefaultConfigOutputBuilder
+    {
         crate::operation::delete_default_config::builders::DeleteDefaultConfigOutputBuilder::default()
     }
 }
 
 /// A builder for [`DeleteDefaultConfigOutput`](crate::operation::delete_default_config::DeleteDefaultConfigOutput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
-pub struct DeleteDefaultConfigOutputBuilder {
-}
+pub struct DeleteDefaultConfigOutputBuilder {}
 impl DeleteDefaultConfigOutputBuilder {
     /// Consumes the builder and constructs a [`DeleteDefaultConfigOutput`](crate::operation::delete_default_config::DeleteDefaultConfigOutput).
-    pub fn build(self) -> crate::operation::delete_default_config::DeleteDefaultConfigOutput {
-        crate::operation::delete_default_config::DeleteDefaultConfigOutput {
-        }
+    pub fn build(
+        self,
+    ) -> crate::operation::delete_default_config::DeleteDefaultConfigOutput {
+        crate::operation::delete_default_config::DeleteDefaultConfigOutput {}
     }
 }
-

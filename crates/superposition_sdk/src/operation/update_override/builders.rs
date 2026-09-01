@@ -4,153 +4,201 @@ pub use crate::operation::update_override::_update_override_output::UpdateOverri
 pub use crate::operation::update_override::_update_override_input::UpdateOverrideInputBuilder;
 
 impl crate::operation::update_override::builders::UpdateOverrideInputBuilder {
-                    /// Sends a request with this input using the given client.
-                    pub async fn send_with(self, client: &crate::Client) -> ::std::result::Result<
-                        crate::operation::update_override::UpdateOverrideOutput,
-                        ::aws_smithy_runtime_api::client::result::SdkError<
-                            crate::operation::update_override::UpdateOverrideError,
-                            ::aws_smithy_runtime_api::client::orchestrator::HttpResponse
-                        >
-                    > {
-                        let mut fluent_builder = client.update_override();
-                        fluent_builder.inner = self;
-                        fluent_builder.send().await
-                    }
-                }
+    /// Sends a request with this input using the given client.
+    pub async fn send_with(
+        self,
+        client: &crate::Client,
+    ) -> ::std::result::Result<
+        crate::operation::update_override::UpdateOverrideOutput,
+        ::aws_smithy_runtime_api::client::result::SdkError<
+            crate::operation::update_override::UpdateOverrideError,
+            ::aws_smithy_runtime_api::client::orchestrator::HttpResponse,
+        >,
+    > {
+        let mut fluent_builder = client.update_override();
+        fluent_builder.inner = self;
+        fluent_builder.send().await
+    }
+}
 /// Fluent builder constructing a request to `UpdateOverride`.
-/// 
+///
 /// Updates the overrides for an existing context. Allows modification of override values while maintaining the context's conditions.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct UpdateOverrideFluentBuilder {
-                handle: ::std::sync::Arc<crate::client::Handle>,
-                inner: crate::operation::update_override::builders::UpdateOverrideInputBuilder,
-config_override: ::std::option::Option<crate::config::Builder>,
-            }
+    handle: ::std::sync::Arc<crate::client::Handle>,
+    inner: crate::operation::update_override::builders::UpdateOverrideInputBuilder,
+    config_override: ::std::option::Option<crate::config::Builder>,
+}
 impl
-                crate::client::customize::internal::CustomizableSend<
-                    crate::operation::update_override::UpdateOverrideOutput,
-                    crate::operation::update_override::UpdateOverrideError,
-                > for UpdateOverrideFluentBuilder
-            {
-                fn send(
-                    self,
-                    config_override: crate::config::Builder,
-                ) -> crate::client::customize::internal::BoxFuture<
-                    crate::client::customize::internal::SendResult<
-                        crate::operation::update_override::UpdateOverrideOutput,
-                        crate::operation::update_override::UpdateOverrideError,
-                    >,
-                > {
-                    ::std::boxed::Box::pin(async move { self.config_override(config_override).send().await })
-                }
-            }
+    crate::client::customize::internal::CustomizableSend<
+        crate::operation::update_override::UpdateOverrideOutput,
+        crate::operation::update_override::UpdateOverrideError,
+    > for UpdateOverrideFluentBuilder
+{
+    fn send(
+        self,
+        config_override: crate::config::Builder,
+    ) -> crate::client::customize::internal::BoxFuture<
+        crate::client::customize::internal::SendResult<
+            crate::operation::update_override::UpdateOverrideOutput,
+            crate::operation::update_override::UpdateOverrideError,
+        >,
+    > {
+        ::std::boxed::Box::pin(async move {
+            self.config_override(config_override).send().await
+        })
+    }
+}
 impl UpdateOverrideFluentBuilder {
     /// Creates a new `UpdateOverrideFluentBuilder`.
-                    pub(crate) fn new(handle: ::std::sync::Arc<crate::client::Handle>) -> Self {
-                        Self {
-                            handle,
-                            inner: ::std::default::Default::default(),
-    config_override: ::std::option::Option::None,
-                        }
-                    }
+    pub(crate) fn new(handle: ::std::sync::Arc<crate::client::Handle>) -> Self {
+        Self {
+            handle,
+            inner: ::std::default::Default::default(),
+            config_override: ::std::option::Option::None,
+        }
+    }
     /// Access the UpdateOverride as a reference.
-                    pub fn as_input(&self) -> &crate::operation::update_override::builders::UpdateOverrideInputBuilder {
-                        &self.inner
-                    }
+    pub fn as_input(
+        &self,
+    ) -> &crate::operation::update_override::builders::UpdateOverrideInputBuilder {
+        &self.inner
+    }
     /// Sends the request and returns the response.
-                    ///
-                    /// If an error occurs, an `SdkError` will be returned with additional details that
-                    /// can be matched against.
-                    ///
-                    /// By default, any retryable failures will be retried twice. Retry behavior
-                    /// is configurable with the [RetryConfig](aws_smithy_types::retry::RetryConfig), which can be
-                    /// set when configuring the client.
-                    pub async fn send(self) -> ::std::result::Result<crate::operation::update_override::UpdateOverrideOutput, ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::update_override::UpdateOverrideError, ::aws_smithy_runtime_api::client::orchestrator::HttpResponse>> {
-                        let input = self.inner.build().map_err(::aws_smithy_runtime_api::client::result::SdkError::construction_failure)?;
-                        let runtime_plugins = crate::operation::update_override::UpdateOverride::operation_runtime_plugins(
-                            self.handle.runtime_plugins.clone(),
-                            &self.handle.conf,
-                            self.config_override,
-                        );
-                        crate::operation::update_override::UpdateOverride::orchestrate(&runtime_plugins, input).await
-                    }
-    
-                    /// Consumes this builder, creating a customizable operation that can be modified before being sent.
-                    pub fn customize(
-                        self,
-                    ) -> crate::client::customize::CustomizableOperation<crate::operation::update_override::UpdateOverrideOutput, crate::operation::update_override::UpdateOverrideError, Self> {
-                        crate::client::customize::CustomizableOperation::new(self)
-                    }
+    ///
+    /// If an error occurs, an `SdkError` will be returned with additional details that
+    /// can be matched against.
+    ///
+    /// By default, any retryable failures will be retried twice. Retry behavior
+    /// is configurable with the [RetryConfig](aws_smithy_types::retry::RetryConfig), which can be
+    /// set when configuring the client.
+    pub async fn send(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::update_override::UpdateOverrideOutput,
+        ::aws_smithy_runtime_api::client::result::SdkError<
+            crate::operation::update_override::UpdateOverrideError,
+            ::aws_smithy_runtime_api::client::orchestrator::HttpResponse,
+        >,
+    > {
+        let input = self.inner.build().map_err(
+            ::aws_smithy_runtime_api::client::result::SdkError::construction_failure,
+        )?;
+        let runtime_plugins =
+            crate::operation::update_override::UpdateOverride::operation_runtime_plugins(
+                self.handle.runtime_plugins.clone(),
+                &self.handle.conf,
+                self.config_override,
+            );
+        crate::operation::update_override::UpdateOverride::orchestrate(
+            &runtime_plugins,
+            input,
+        )
+        .await
+    }
+
+    /// Consumes this builder, creating a customizable operation that can be modified before being sent.
+    pub fn customize(
+        self,
+    ) -> crate::client::customize::CustomizableOperation<
+        crate::operation::update_override::UpdateOverrideOutput,
+        crate::operation::update_override::UpdateOverrideError,
+        Self,
+    > {
+        crate::client::customize::CustomizableOperation::new(self)
+    }
     pub(crate) fn config_override(
-                            mut self,
-                            config_override: impl ::std::convert::Into<crate::config::Builder>,
-                        ) -> Self {
-                            self.set_config_override(::std::option::Option::Some(config_override.into()));
-                            self
-                        }
-    
-                        pub(crate) fn set_config_override(
-                            &mut self,
-                            config_override: ::std::option::Option<crate::config::Builder>,
-                        ) -> &mut Self {
-                            self.config_override = config_override;
-                            self
-                        }
+        mut self,
+        config_override: impl ::std::convert::Into<crate::config::Builder>,
+    ) -> Self {
+        self.set_config_override(::std::option::Option::Some(config_override.into()));
+        self
+    }
+
+    pub(crate) fn set_config_override(
+        &mut self,
+        config_override: ::std::option::Option<crate::config::Builder>,
+    ) -> &mut Self {
+        self.config_override = config_override;
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.workspace_id(input.into());
-                    self
-                }
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.workspace_id(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_workspace_id(input);
-                    self
-                }
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_workspace_id(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_workspace_id()
-                }
+        self.inner.get_workspace_id()
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.org_id(input.into());
-                    self
-                }
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.org_id(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_org_id(input);
-                    self
-                }
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_org_id(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_org_id()
-                }
+        self.inner.get_org_id()
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn config_tags(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.config_tags(input.into());
-                    self
-                }
+    pub fn config_tags(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.config_tags(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_config_tags(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_config_tags(input);
-                    self
-                }
+    pub fn set_config_tags(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_config_tags(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_config_tags(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_config_tags()
-                }
+        self.inner.get_config_tags()
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn request(mut self, input: crate::types::UpdateContextOverrideRequest) -> Self {
-                    self.inner = self.inner.request(input);
-                    self
-                }
+        self.inner = self.inner.request(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_request(mut self, input: ::std::option::Option<crate::types::UpdateContextOverrideRequest>) -> Self {
-                    self.inner = self.inner.set_request(input);
-                    self
-                }
+    pub fn set_request(
+        mut self,
+        input: ::std::option::Option<crate::types::UpdateContextOverrideRequest>,
+    ) -> Self {
+        self.inner = self.inner.set_request(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_request(&self) -> &::std::option::Option<crate::types::UpdateContextOverrideRequest> {
-                    self.inner.get_request()
-                }
+    pub fn get_request(
+        &self,
+    ) -> &::std::option::Option<crate::types::UpdateContextOverrideRequest> {
+        self.inner.get_request()
+    }
 }
-

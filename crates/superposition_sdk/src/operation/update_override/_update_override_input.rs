@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct UpdateOverrideInput  {
+pub struct UpdateOverrideInput {
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -12,7 +12,7 @@ pub struct UpdateOverrideInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub request: ::std::option::Option<crate::types::UpdateContextOverrideRequest>,
 }
-impl  UpdateOverrideInput  {
+impl UpdateOverrideInput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(&self) -> ::std::option::Option<&str> {
         self.workspace_id.as_deref()
@@ -26,19 +26,24 @@ impl  UpdateOverrideInput  {
         self.config_tags.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn request(&self) -> ::std::option::Option<&crate::types::UpdateContextOverrideRequest> {
+    pub fn request(
+        &self,
+    ) -> ::std::option::Option<&crate::types::UpdateContextOverrideRequest> {
         self.request.as_ref()
     }
 }
 impl UpdateOverrideInput {
     /// Creates a new builder-style object to manufacture [`UpdateOverrideInput`](crate::operation::update_override::UpdateOverrideInput).
-    pub fn builder() -> crate::operation::update_override::builders::UpdateOverrideInputBuilder {
+    pub fn builder(
+    ) -> crate::operation::update_override::builders::UpdateOverrideInputBuilder {
         crate::operation::update_override::builders::UpdateOverrideInputBuilder::default()
     }
 }
 
 /// A builder for [`UpdateOverrideInput`](crate::operation::update_override::UpdateOverrideInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct UpdateOverrideInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
@@ -49,13 +54,20 @@ pub struct UpdateOverrideInputBuilder {
 impl UpdateOverrideInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_id = input; self
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -63,26 +75,40 @@ impl UpdateOverrideInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
         &self.org_id
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn config_tags(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn config_tags(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.config_tags = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_config_tags(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.config_tags = input; self
+    pub fn set_config_tags(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.config_tags = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_config_tags(&self) -> &::std::option::Option<::std::string::String> {
@@ -95,27 +121,33 @@ impl UpdateOverrideInputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_request(mut self, input: ::std::option::Option<crate::types::UpdateContextOverrideRequest>) -> Self {
-        self.request = input; self
+    pub fn set_request(
+        mut self,
+        input: ::std::option::Option<crate::types::UpdateContextOverrideRequest>,
+    ) -> Self {
+        self.request = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_request(&self) -> &::std::option::Option<crate::types::UpdateContextOverrideRequest> {
+    pub fn get_request(
+        &self,
+    ) -> &::std::option::Option<crate::types::UpdateContextOverrideRequest> {
         &self.request
     }
     /// Consumes the builder and constructs a [`UpdateOverrideInput`](crate::operation::update_override::UpdateOverrideInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::update_override::UpdateOverrideInput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::update_override::UpdateOverrideInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::update_override::UpdateOverrideInput {
-                workspace_id: self.workspace_id
-                ,
-                org_id: self.org_id
-                ,
-                config_tags: self.config_tags
-                ,
-                request: self.request
-                ,
-            }
+                workspace_id: self.workspace_id,
+                org_id: self.org_id,
+                config_tags: self.config_tags,
+                request: self.request,
+            },
         )
     }
 }
-

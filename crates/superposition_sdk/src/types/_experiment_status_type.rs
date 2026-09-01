@@ -6,9 +6,9 @@
 /// variant in a current version of SDK, your code should continue to work when you
 /// upgrade SDK to a future version in which the enum does include a variant for that
 /// feature.
-/// 
+///
 /// Here is an example of how you can make a match expression forward-compatible:
-/// 
+///
 /// ```text
 /// # let experimentstatustype = unimplemented!();
 /// match experimentstatustype {
@@ -33,15 +33,23 @@
 /// Specifically, when `experimentstatustype` represents `NewFeature`,
 /// the execution path will hit the second last match arm as before by virtue of
 /// calling `as_str` on `ExperimentStatusType::NewFeature` also yielding `"NewFeature"`.
-/// 
+///
 /// Explicitly matching on the `Unknown` variant should
 /// be avoided for two reasons:
 /// - The inner data `UnknownVariantValue` is opaque, and no further information can be extracted.
 /// - It might inadvertently shadow other intended match arms.
-/// 
+///
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
-#[derive(::std::clone::Clone, ::std::cmp::Eq, ::std::cmp::Ord, ::std::cmp::PartialEq, ::std::cmp::PartialOrd, ::std::fmt::Debug, ::std::hash::Hash)]
+#[derive(
+    ::std::clone::Clone,
+    ::std::cmp::Eq,
+    ::std::cmp::Ord,
+    ::std::cmp::PartialEq,
+    ::std::cmp::PartialOrd,
+    ::std::fmt::Debug,
+    ::std::hash::Hash,
+)]
 pub enum ExperimentStatusType {
     #[allow(missing_docs)] // documentation missing in model
     Concluded,
@@ -54,72 +62,83 @@ pub enum ExperimentStatusType {
     #[allow(missing_docs)] // documentation missing in model
     Paused,
     /// `Unknown` contains new variants that have been added since this code was generated.
-    #[deprecated(note = "Don't directly match on `Unknown`. See the docs on this enum for the correct way to handle unknown variants.")]
-    Unknown(crate::primitives::sealed_enum_unknown::UnknownVariantValue)
+    #[deprecated(
+        note = "Don't directly match on `Unknown`. See the docs on this enum for the correct way to handle unknown variants."
+    )]
+    Unknown(crate::primitives::sealed_enum_unknown::UnknownVariantValue),
 }
 impl ::std::convert::From<&str> for ExperimentStatusType {
-                    fn from(s: &str) -> Self {
-                        match s {
-                            "CONCLUDED" => ExperimentStatusType::Concluded,
-"CREATED" => ExperimentStatusType::Created,
-"DISCARDED" => ExperimentStatusType::Discarded,
-"INPROGRESS" => ExperimentStatusType::Inprogress,
-"PAUSED" => ExperimentStatusType::Paused,
-other => ExperimentStatusType::Unknown(crate::primitives::sealed_enum_unknown::UnknownVariantValue(other.to_owned()))
-                        }
-                    }
-                }
-impl ::std::str::FromStr for ExperimentStatusType {
-                    type Err = ::std::convert::Infallible;
-
-                    fn from_str(s: &str) -> ::std::result::Result<Self, <Self as ::std::str::FromStr>::Err> {
-                        ::std::result::Result::Ok(ExperimentStatusType::from(s))
-                    }
-                }
-impl ExperimentStatusType {
-                /// Returns the `&str` value of the enum member.
-                pub fn as_str(&self) -> &str {
-                    match self {
-    ExperimentStatusType::Concluded => "CONCLUDED",
-    ExperimentStatusType::Created => "CREATED",
-    ExperimentStatusType::Discarded => "DISCARDED",
-    ExperimentStatusType::Inprogress => "INPROGRESS",
-    ExperimentStatusType::Paused => "PAUSED",
-    ExperimentStatusType::Unknown(value) => value.as_str()
+    fn from(s: &str) -> Self {
+        match s {
+            "CONCLUDED" => ExperimentStatusType::Concluded,
+            "CREATED" => ExperimentStatusType::Created,
+            "DISCARDED" => ExperimentStatusType::Discarded,
+            "INPROGRESS" => ExperimentStatusType::Inprogress,
+            "PAUSED" => ExperimentStatusType::Paused,
+            other => ExperimentStatusType::Unknown(
+                crate::primitives::sealed_enum_unknown::UnknownVariantValue(
+                    other.to_owned(),
+                ),
+            ),
+        }
+    }
 }
-                }
-                /// Returns all the `&str` representations of the enum members.
-                pub const fn values() -> &'static [&'static str] {
-                    &["CONCLUDED", "CREATED", "DISCARDED", "INPROGRESS", "PAUSED"]
-                }
-            }
-impl ::std::convert::AsRef<str> for ExperimentStatusType {
-                fn as_ref(&self) -> &str {
-                    self.as_str()
-                }
-            }
-impl ExperimentStatusType {
-                        /// Parses the enum value while disallowing unknown variants.
-                        ///
-                        /// Unknown variants will result in an error.
-                        pub fn try_parse(value: &str) -> ::std::result::Result<Self, crate::error::UnknownVariantError> {
-                            match Self::from(value) {
-                                #[allow(deprecated)]
-                                Self::Unknown(_) => ::std::result::Result::Err(crate::error::UnknownVariantError::new(value)),
-                                known => Ok(known),
-                            }
-                        }
-                    }
-impl ::std::fmt::Display for ExperimentStatusType {
-                        fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                            match self {
-                                ExperimentStatusType::Concluded => write!(f, "CONCLUDED"),
-ExperimentStatusType::Created => write!(f, "CREATED"),
-ExperimentStatusType::Discarded => write!(f, "DISCARDED"),
-ExperimentStatusType::Inprogress => write!(f, "INPROGRESS"),
-ExperimentStatusType::Paused => write!(f, "PAUSED"),
-ExperimentStatusType::Unknown(value) => write!(f, "{}", value)
-                            }
-                        }
-                    }
+impl ::std::str::FromStr for ExperimentStatusType {
+    type Err = ::std::convert::Infallible;
 
+    fn from_str(
+        s: &str,
+    ) -> ::std::result::Result<Self, <Self as ::std::str::FromStr>::Err> {
+        ::std::result::Result::Ok(ExperimentStatusType::from(s))
+    }
+}
+impl ExperimentStatusType {
+    /// Returns the `&str` value of the enum member.
+    pub fn as_str(&self) -> &str {
+        match self {
+            ExperimentStatusType::Concluded => "CONCLUDED",
+            ExperimentStatusType::Created => "CREATED",
+            ExperimentStatusType::Discarded => "DISCARDED",
+            ExperimentStatusType::Inprogress => "INPROGRESS",
+            ExperimentStatusType::Paused => "PAUSED",
+            ExperimentStatusType::Unknown(value) => value.as_str(),
+        }
+    }
+    /// Returns all the `&str` representations of the enum members.
+    pub const fn values() -> &'static [&'static str] {
+        &["CONCLUDED", "CREATED", "DISCARDED", "INPROGRESS", "PAUSED"]
+    }
+}
+impl ::std::convert::AsRef<str> for ExperimentStatusType {
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
+impl ExperimentStatusType {
+    /// Parses the enum value while disallowing unknown variants.
+    ///
+    /// Unknown variants will result in an error.
+    pub fn try_parse(
+        value: &str,
+    ) -> ::std::result::Result<Self, crate::error::UnknownVariantError> {
+        match Self::from(value) {
+            #[allow(deprecated)]
+            Self::Unknown(_) => {
+                ::std::result::Result::Err(crate::error::UnknownVariantError::new(value))
+            }
+            known => Ok(known),
+        }
+    }
+}
+impl ::std::fmt::Display for ExperimentStatusType {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        match self {
+            ExperimentStatusType::Concluded => write!(f, "CONCLUDED"),
+            ExperimentStatusType::Created => write!(f, "CREATED"),
+            ExperimentStatusType::Discarded => write!(f, "DISCARDED"),
+            ExperimentStatusType::Inprogress => write!(f, "INPROGRESS"),
+            ExperimentStatusType::Paused => write!(f, "PAUSED"),
+            ExperimentStatusType::Unknown(value) => write!(f, "{}", value),
+        }
+    }
+}

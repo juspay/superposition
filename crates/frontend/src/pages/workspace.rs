@@ -2,6 +2,7 @@ use leptos::*;
 use leptos_router::A;
 use serde_json::{Map, Value, json};
 use superposition_types::{
+    api::config::MergeStrategy,
     custom_query::{CustomQuery, PaginationParams, Query},
     database::models::{Metrics, WorkspaceStatus},
 };
@@ -99,6 +100,11 @@ pub fn Workspace() -> impl IntoView {
                 .as_bool()
                 .unwrap_or_default();
 
+            let merge_strategy = row["merge_strategy"]
+                .as_str()
+                .map(|s| MergeStrategy::from(s.to_string()))
+                .unwrap_or_default();
+
             let workspace_name_clone = workspace_name.clone();
 
             let edit_click_handler = move |_| {
@@ -118,6 +124,7 @@ pub fn Workspace() -> impl IntoView {
                     auto_populate_control,
                     enable_context_validation,
                     enable_change_reason_validation,
+                    merge_strategy,
                 };
                 logging::log!("{:?}", row_data);
                 selected_workspace.set(Some(row_data));
@@ -220,6 +227,7 @@ pub fn Workspace() -> impl IntoView {
                                     .enable_context_validation
                                 enable_change_reason_validation=selected_workspace_data
                                     .enable_change_reason_validation
+                                merge_strategy=selected_workspace_data.merge_strategy
                                 handle_submit=move |_| {
                                     workspace_resource.refetch();
                                     selected_workspace.set(None);

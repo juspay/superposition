@@ -6,9 +6,9 @@
 /// variant in a current version of SDK, your code should continue to work when you
 /// upgrade SDK to a future version in which the enum does include a variant for that
 /// feature.
-/// 
+///
 /// Here is an example of how you can make a match expression forward-compatible:
-/// 
+///
 /// ```text
 /// # let dimensionmatchstrategy = unimplemented!();
 /// match dimensionmatchstrategy {
@@ -31,15 +31,23 @@
 /// Specifically, when `dimensionmatchstrategy` represents `NewFeature`,
 /// the execution path will hit the second last match arm as before by virtue of
 /// calling `as_str` on `DimensionMatchStrategy::NewFeature` also yielding `"NewFeature"`.
-/// 
+///
 /// Explicitly matching on the `Unknown` variant should
 /// be avoided for two reasons:
 /// - The inner data `UnknownVariantValue` is opaque, and no further information can be extracted.
 /// - It might inadvertently shadow other intended match arms.
-/// 
+///
 /// Strategy to follow while filter items based on the context
 #[non_exhaustive]
-#[derive(::std::clone::Clone, ::std::cmp::Eq, ::std::cmp::Ord, ::std::cmp::PartialEq, ::std::cmp::PartialOrd, ::std::fmt::Debug, ::std::hash::Hash)]
+#[derive(
+    ::std::clone::Clone,
+    ::std::cmp::Eq,
+    ::std::cmp::Ord,
+    ::std::cmp::PartialEq,
+    ::std::cmp::PartialOrd,
+    ::std::fmt::Debug,
+    ::std::hash::Hash,
+)]
 pub enum DimensionMatchStrategy {
     /// Match the overrides which have the exact context
     Exact,
@@ -48,66 +56,77 @@ pub enum DimensionMatchStrategy {
     /// Match the overrides which have the given context as subset
     Subset,
     /// `Unknown` contains new variants that have been added since this code was generated.
-    #[deprecated(note = "Don't directly match on `Unknown`. See the docs on this enum for the correct way to handle unknown variants.")]
-    Unknown(crate::primitives::sealed_enum_unknown::UnknownVariantValue)
+    #[deprecated(
+        note = "Don't directly match on `Unknown`. See the docs on this enum for the correct way to handle unknown variants."
+    )]
+    Unknown(crate::primitives::sealed_enum_unknown::UnknownVariantValue),
 }
 impl ::std::convert::From<&str> for DimensionMatchStrategy {
-                    fn from(s: &str) -> Self {
-                        match s {
-                            "exact" => DimensionMatchStrategy::Exact,
-"non_conflicting" => DimensionMatchStrategy::NonConflicting,
-"subset" => DimensionMatchStrategy::Subset,
-other => DimensionMatchStrategy::Unknown(crate::primitives::sealed_enum_unknown::UnknownVariantValue(other.to_owned()))
-                        }
-                    }
-                }
-impl ::std::str::FromStr for DimensionMatchStrategy {
-                    type Err = ::std::convert::Infallible;
-
-                    fn from_str(s: &str) -> ::std::result::Result<Self, <Self as ::std::str::FromStr>::Err> {
-                        ::std::result::Result::Ok(DimensionMatchStrategy::from(s))
-                    }
-                }
-impl DimensionMatchStrategy {
-                /// Returns the `&str` value of the enum member.
-                pub fn as_str(&self) -> &str {
-                    match self {
-    DimensionMatchStrategy::Exact => "exact",
-    DimensionMatchStrategy::NonConflicting => "non_conflicting",
-    DimensionMatchStrategy::Subset => "subset",
-    DimensionMatchStrategy::Unknown(value) => value.as_str()
+    fn from(s: &str) -> Self {
+        match s {
+            "exact" => DimensionMatchStrategy::Exact,
+            "non_conflicting" => DimensionMatchStrategy::NonConflicting,
+            "subset" => DimensionMatchStrategy::Subset,
+            other => DimensionMatchStrategy::Unknown(
+                crate::primitives::sealed_enum_unknown::UnknownVariantValue(
+                    other.to_owned(),
+                ),
+            ),
+        }
+    }
 }
-                }
-                /// Returns all the `&str` representations of the enum members.
-                pub const fn values() -> &'static [&'static str] {
-                    &["exact", "non_conflicting", "subset"]
-                }
-            }
-impl ::std::convert::AsRef<str> for DimensionMatchStrategy {
-                fn as_ref(&self) -> &str {
-                    self.as_str()
-                }
-            }
-impl DimensionMatchStrategy {
-                        /// Parses the enum value while disallowing unknown variants.
-                        ///
-                        /// Unknown variants will result in an error.
-                        pub fn try_parse(value: &str) -> ::std::result::Result<Self, crate::error::UnknownVariantError> {
-                            match Self::from(value) {
-                                #[allow(deprecated)]
-                                Self::Unknown(_) => ::std::result::Result::Err(crate::error::UnknownVariantError::new(value)),
-                                known => Ok(known),
-                            }
-                        }
-                    }
-impl ::std::fmt::Display for DimensionMatchStrategy {
-                        fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                            match self {
-                                DimensionMatchStrategy::Exact => write!(f, "exact"),
-DimensionMatchStrategy::NonConflicting => write!(f, "non_conflicting"),
-DimensionMatchStrategy::Subset => write!(f, "subset"),
-DimensionMatchStrategy::Unknown(value) => write!(f, "{}", value)
-                            }
-                        }
-                    }
+impl ::std::str::FromStr for DimensionMatchStrategy {
+    type Err = ::std::convert::Infallible;
 
+    fn from_str(
+        s: &str,
+    ) -> ::std::result::Result<Self, <Self as ::std::str::FromStr>::Err> {
+        ::std::result::Result::Ok(DimensionMatchStrategy::from(s))
+    }
+}
+impl DimensionMatchStrategy {
+    /// Returns the `&str` value of the enum member.
+    pub fn as_str(&self) -> &str {
+        match self {
+            DimensionMatchStrategy::Exact => "exact",
+            DimensionMatchStrategy::NonConflicting => "non_conflicting",
+            DimensionMatchStrategy::Subset => "subset",
+            DimensionMatchStrategy::Unknown(value) => value.as_str(),
+        }
+    }
+    /// Returns all the `&str` representations of the enum members.
+    pub const fn values() -> &'static [&'static str] {
+        &["exact", "non_conflicting", "subset"]
+    }
+}
+impl ::std::convert::AsRef<str> for DimensionMatchStrategy {
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
+impl DimensionMatchStrategy {
+    /// Parses the enum value while disallowing unknown variants.
+    ///
+    /// Unknown variants will result in an error.
+    pub fn try_parse(
+        value: &str,
+    ) -> ::std::result::Result<Self, crate::error::UnknownVariantError> {
+        match Self::from(value) {
+            #[allow(deprecated)]
+            Self::Unknown(_) => {
+                ::std::result::Result::Err(crate::error::UnknownVariantError::new(value))
+            }
+            known => Ok(known),
+        }
+    }
+}
+impl ::std::fmt::Display for DimensionMatchStrategy {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        match self {
+            DimensionMatchStrategy::Exact => write!(f, "exact"),
+            DimensionMatchStrategy::NonConflicting => write!(f, "non_conflicting"),
+            DimensionMatchStrategy::Subset => write!(f, "subset"),
+            DimensionMatchStrategy::Unknown(value) => write!(f, "{}", value),
+        }
+    }
+}

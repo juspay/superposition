@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct GetExperimentConfigInput  {
+pub struct GetExperimentConfigInput {
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -10,15 +10,18 @@ pub struct GetExperimentConfigInput  {
     /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
     pub if_modified_since: ::std::option::Option<::aws_smithy_types::DateTime>,
     #[allow(missing_docs)] // documentation missing in model
-    pub prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub prefix: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
     #[allow(missing_docs)] // documentation missing in model
-    pub exclude_prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub exclude_prefix: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
     /// Map representing the context. Keys correspond to the names of the dimensions.
-    pub context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub context: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    >,
     /// Strategy to follow while filter items based on the context
-    pub dimension_match_strategy: ::std::option::Option<crate::types::DimensionMatchStrategy>,
+    pub dimension_match_strategy:
+        ::std::option::Option<crate::types::DimensionMatchStrategy>,
 }
-impl  GetExperimentConfigInput  {
+impl GetExperimentConfigInput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(&self) -> ::std::option::Option<&str> {
         self.workspace_id.as_deref()
@@ -28,61 +31,82 @@ impl  GetExperimentConfigInput  {
         self.org_id.as_deref()
     }
     /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
-    pub fn if_modified_since(&self) -> ::std::option::Option<&::aws_smithy_types::DateTime> {
+    pub fn if_modified_since(
+        &self,
+    ) -> ::std::option::Option<&::aws_smithy_types::DateTime> {
         self.if_modified_since.as_ref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.prefix.is_none()`.
     pub fn prefix(&self) -> &[::std::string::String] {
-        self.prefix.as_deref()
-        .unwrap_or_default()
+        self.prefix.as_deref().unwrap_or_default()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.exclude_prefix.is_none()`.
     pub fn exclude_prefix(&self) -> &[::std::string::String] {
-        self.exclude_prefix.as_deref()
-        .unwrap_or_default()
+        self.exclude_prefix.as_deref().unwrap_or_default()
     }
     /// Map representing the context. Keys correspond to the names of the dimensions.
-    pub fn context(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    pub fn context(
+        &self,
+    ) -> ::std::option::Option<
+        &::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
         self.context.as_ref()
     }
     /// Strategy to follow while filter items based on the context
-    pub fn dimension_match_strategy(&self) -> ::std::option::Option<&crate::types::DimensionMatchStrategy> {
+    pub fn dimension_match_strategy(
+        &self,
+    ) -> ::std::option::Option<&crate::types::DimensionMatchStrategy> {
         self.dimension_match_strategy.as_ref()
     }
 }
 impl GetExperimentConfigInput {
     /// Creates a new builder-style object to manufacture [`GetExperimentConfigInput`](crate::operation::get_experiment_config::GetExperimentConfigInput).
-    pub fn builder() -> crate::operation::get_experiment_config::builders::GetExperimentConfigInputBuilder {
+    pub fn builder(
+    ) -> crate::operation::get_experiment_config::builders::GetExperimentConfigInputBuilder
+    {
         crate::operation::get_experiment_config::builders::GetExperimentConfigInputBuilder::default()
     }
 }
 
 /// A builder for [`GetExperimentConfigInput`](crate::operation::get_experiment_config::GetExperimentConfigInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct GetExperimentConfigInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
     pub(crate) if_modified_since: ::std::option::Option<::aws_smithy_types::DateTime>,
-    pub(crate) prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
-    pub(crate) exclude_prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
-    pub(crate) context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
-    pub(crate) dimension_match_strategy: ::std::option::Option<crate::types::DimensionMatchStrategy>,
+    pub(crate) prefix: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    pub(crate) exclude_prefix:
+        ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    pub(crate) context: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    >,
+    pub(crate) dimension_match_strategy:
+        ::std::option::Option<crate::types::DimensionMatchStrategy>,
 }
 impl GetExperimentConfigInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_id = input; self
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -90,13 +114,20 @@ impl GetExperimentConfigInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -108,47 +139,71 @@ impl GetExperimentConfigInputBuilder {
         self
     }
     /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
-    pub fn set_if_modified_since(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.if_modified_since = input; self
+    pub fn set_if_modified_since(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.if_modified_since = input;
+        self
     }
     /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
-    pub fn get_if_modified_since(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
+    pub fn get_if_modified_since(
+        &self,
+    ) -> &::std::option::Option<::aws_smithy_types::DateTime> {
         &self.if_modified_since
     }
     /// Appends an item to `prefix`.
     ///
     /// To override the contents of this collection use [`set_prefix`](Self::set_prefix).
     ///
-    pub fn prefix(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn prefix(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         let mut v = self.prefix.unwrap_or_default();
-                        v.push(input.into());
-                        self.prefix = ::std::option::Option::Some(v);
-                        self
+        v.push(input.into());
+        self.prefix = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_prefix(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-        self.prefix = input; self
+    pub fn set_prefix(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    ) -> Self {
+        self.prefix = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_prefix(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
+    pub fn get_prefix(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<::std::string::String>> {
         &self.prefix
     }
     /// Appends an item to `exclude_prefix`.
     ///
     /// To override the contents of this collection use [`set_exclude_prefix`](Self::set_exclude_prefix).
     ///
-    pub fn exclude_prefix(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn exclude_prefix(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         let mut v = self.exclude_prefix.unwrap_or_default();
-                        v.push(input.into());
-                        self.exclude_prefix = ::std::option::Option::Some(v);
-                        self
+        v.push(input.into());
+        self.exclude_prefix = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_exclude_prefix(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-        self.exclude_prefix = input; self
+    pub fn set_exclude_prefix(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    ) -> Self {
+        self.exclude_prefix = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_exclude_prefix(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
+    pub fn get_exclude_prefix(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<::std::string::String>> {
         &self.exclude_prefix
     }
     /// Adds a key-value pair to `context`.
@@ -156,53 +211,76 @@ impl GetExperimentConfigInputBuilder {
     /// To override the contents of this collection use [`set_context`](Self::set_context).
     ///
     /// Map representing the context. Keys correspond to the names of the dimensions.
-    pub fn context(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
+    pub fn context(
+        mut self,
+        k: impl ::std::convert::Into<::std::string::String>,
+        v: ::aws_smithy_types::Document,
+    ) -> Self {
         let mut hash_map = self.context.unwrap_or_default();
-                        hash_map.insert(k.into(), v);
-                        self.context = ::std::option::Option::Some(hash_map);
-                        self
+        hash_map.insert(k.into(), v);
+        self.context = ::std::option::Option::Some(hash_map);
+        self
     }
     /// Map representing the context. Keys correspond to the names of the dimensions.
-    pub fn set_context(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
-        self.context = input; self
+    pub fn set_context(
+        mut self,
+        input: ::std::option::Option<
+            ::std::collections::HashMap<
+                ::std::string::String,
+                ::aws_smithy_types::Document,
+            >,
+        >,
+    ) -> Self {
+        self.context = input;
+        self
     }
     /// Map representing the context. Keys correspond to the names of the dimensions.
-    pub fn get_context(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    pub fn get_context(
+        &self,
+    ) -> &::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
         &self.context
     }
     /// Strategy to follow while filter items based on the context
-    pub fn dimension_match_strategy(mut self, input: crate::types::DimensionMatchStrategy) -> Self {
+    pub fn dimension_match_strategy(
+        mut self,
+        input: crate::types::DimensionMatchStrategy,
+    ) -> Self {
         self.dimension_match_strategy = ::std::option::Option::Some(input);
         self
     }
     /// Strategy to follow while filter items based on the context
-    pub fn set_dimension_match_strategy(mut self, input: ::std::option::Option<crate::types::DimensionMatchStrategy>) -> Self {
-        self.dimension_match_strategy = input; self
+    pub fn set_dimension_match_strategy(
+        mut self,
+        input: ::std::option::Option<crate::types::DimensionMatchStrategy>,
+    ) -> Self {
+        self.dimension_match_strategy = input;
+        self
     }
     /// Strategy to follow while filter items based on the context
-    pub fn get_dimension_match_strategy(&self) -> &::std::option::Option<crate::types::DimensionMatchStrategy> {
+    pub fn get_dimension_match_strategy(
+        &self,
+    ) -> &::std::option::Option<crate::types::DimensionMatchStrategy> {
         &self.dimension_match_strategy
     }
     /// Consumes the builder and constructs a [`GetExperimentConfigInput`](crate::operation::get_experiment_config::GetExperimentConfigInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::get_experiment_config::GetExperimentConfigInput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::get_experiment_config::GetExperimentConfigInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::get_experiment_config::GetExperimentConfigInput {
-                workspace_id: self.workspace_id
-                ,
-                org_id: self.org_id
-                ,
-                if_modified_since: self.if_modified_since
-                ,
-                prefix: self.prefix
-                ,
-                exclude_prefix: self.exclude_prefix
-                ,
-                context: self.context
-                ,
-                dimension_match_strategy: self.dimension_match_strategy
-                ,
-            }
+                workspace_id: self.workspace_id,
+                org_id: self.org_id,
+                if_modified_since: self.if_modified_since,
+                prefix: self.prefix,
+                exclude_prefix: self.exclude_prefix,
+                context: self.context,
+                dimension_match_strategy: self.dimension_match_strategy,
+            },
         )
     }
 }
-

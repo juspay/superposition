@@ -2,25 +2,24 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct DeleteWebhookOutput  {
-}
+pub struct DeleteWebhookOutput {}
 impl DeleteWebhookOutput {
     /// Creates a new builder-style object to manufacture [`DeleteWebhookOutput`](crate::operation::delete_webhook::DeleteWebhookOutput).
-    pub fn builder() -> crate::operation::delete_webhook::builders::DeleteWebhookOutputBuilder {
+    pub fn builder(
+    ) -> crate::operation::delete_webhook::builders::DeleteWebhookOutputBuilder {
         crate::operation::delete_webhook::builders::DeleteWebhookOutputBuilder::default()
     }
 }
 
 /// A builder for [`DeleteWebhookOutput`](crate::operation::delete_webhook::DeleteWebhookOutput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
-pub struct DeleteWebhookOutputBuilder {
-}
+pub struct DeleteWebhookOutputBuilder {}
 impl DeleteWebhookOutputBuilder {
     /// Consumes the builder and constructs a [`DeleteWebhookOutput`](crate::operation::delete_webhook::DeleteWebhookOutput).
     pub fn build(self) -> crate::operation::delete_webhook::DeleteWebhookOutput {
-        crate::operation::delete_webhook::DeleteWebhookOutput {
-        }
+        crate::operation::delete_webhook::DeleteWebhookOutput {}
     }
 }
-

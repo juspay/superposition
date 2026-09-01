@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct UpdateDefaultConfigInput  {
+pub struct UpdateDefaultConfigInput {
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -14,7 +14,9 @@ pub struct UpdateDefaultConfigInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub value: ::std::option::Option<::aws_smithy_types::Document>,
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub schema: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub schema: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    >,
     /// To unset the function name, pass "null" string.
     pub value_validation_function_name: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -22,7 +24,7 @@ pub struct UpdateDefaultConfigInput  {
     /// To unset the function name, pass "null" string.
     pub value_compute_function_name: ::std::option::Option<::std::string::String>,
 }
-impl  UpdateDefaultConfigInput  {
+impl UpdateDefaultConfigInput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(&self) -> ::std::option::Option<&str> {
         self.workspace_id.as_deref()
@@ -44,7 +46,11 @@ impl  UpdateDefaultConfigInput  {
         self.value.as_ref()
     }
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub fn schema(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    pub fn schema(
+        &self,
+    ) -> ::std::option::Option<
+        &::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
         self.schema.as_ref()
     }
     /// To unset the function name, pass "null" string.
@@ -62,13 +68,17 @@ impl  UpdateDefaultConfigInput  {
 }
 impl UpdateDefaultConfigInput {
     /// Creates a new builder-style object to manufacture [`UpdateDefaultConfigInput`](crate::operation::update_default_config::UpdateDefaultConfigInput).
-    pub fn builder() -> crate::operation::update_default_config::builders::UpdateDefaultConfigInputBuilder {
+    pub fn builder(
+    ) -> crate::operation::update_default_config::builders::UpdateDefaultConfigInputBuilder
+    {
         crate::operation::update_default_config::builders::UpdateDefaultConfigInputBuilder::default()
     }
 }
 
 /// A builder for [`UpdateDefaultConfigInput`](crate::operation::update_default_config::UpdateDefaultConfigInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct UpdateDefaultConfigInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
@@ -76,21 +86,31 @@ pub struct UpdateDefaultConfigInputBuilder {
     pub(crate) key: ::std::option::Option<::std::string::String>,
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
     pub(crate) value: ::std::option::Option<::aws_smithy_types::Document>,
-    pub(crate) schema: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
-    pub(crate) value_validation_function_name: ::std::option::Option<::std::string::String>,
+    pub(crate) schema: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    >,
+    pub(crate) value_validation_function_name:
+        ::std::option::Option<::std::string::String>,
     pub(crate) description: ::std::option::Option<::std::string::String>,
     pub(crate) value_compute_function_name: ::std::option::Option<::std::string::String>,
 }
 impl UpdateDefaultConfigInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_id = input; self
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -98,13 +118,20 @@ impl UpdateDefaultConfigInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -112,13 +139,20 @@ impl UpdateDefaultConfigInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn key(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn key(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.key = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_key(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.key = input; self
+    pub fn set_key(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.key = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_key(&self) -> &::std::option::Option<::std::string::String> {
@@ -126,13 +160,20 @@ impl UpdateDefaultConfigInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn change_reason(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn change_reason(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.change_reason = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_change_reason(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.change_reason = input; self
+    pub fn set_change_reason(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.change_reason = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
@@ -144,8 +185,12 @@ impl UpdateDefaultConfigInputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_value(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
-        self.value = input; self
+    pub fn set_value(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::Document>,
+    ) -> Self {
+        self.value = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_value(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
@@ -156,83 +201,120 @@ impl UpdateDefaultConfigInputBuilder {
     /// To override the contents of this collection use [`set_schema`](Self::set_schema).
     ///
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub fn schema(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
+    pub fn schema(
+        mut self,
+        k: impl ::std::convert::Into<::std::string::String>,
+        v: ::aws_smithy_types::Document,
+    ) -> Self {
         let mut hash_map = self.schema.unwrap_or_default();
-                        hash_map.insert(k.into(), v);
-                        self.schema = ::std::option::Option::Some(hash_map);
-                        self
+        hash_map.insert(k.into(), v);
+        self.schema = ::std::option::Option::Some(hash_map);
+        self
     }
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub fn set_schema(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
-        self.schema = input; self
+    pub fn set_schema(
+        mut self,
+        input: ::std::option::Option<
+            ::std::collections::HashMap<
+                ::std::string::String,
+                ::aws_smithy_types::Document,
+            >,
+        >,
+    ) -> Self {
+        self.schema = input;
+        self
     }
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub fn get_schema(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    pub fn get_schema(
+        &self,
+    ) -> &::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
         &self.schema
     }
     /// To unset the function name, pass "null" string.
-    pub fn value_validation_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn value_validation_function_name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.value_validation_function_name = ::std::option::Option::Some(input.into());
         self
     }
     /// To unset the function name, pass "null" string.
-    pub fn set_value_validation_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.value_validation_function_name = input; self
+    pub fn set_value_validation_function_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.value_validation_function_name = input;
+        self
     }
     /// To unset the function name, pass "null" string.
-    pub fn get_value_validation_function_name(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_value_validation_function_name(
+        &self,
+    ) -> &::std::option::Option<::std::string::String> {
         &self.value_validation_function_name
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn description(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn description(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.description = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_description(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.description = input; self
+    pub fn set_description(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.description = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_description(&self) -> &::std::option::Option<::std::string::String> {
         &self.description
     }
     /// To unset the function name, pass "null" string.
-    pub fn value_compute_function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn value_compute_function_name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.value_compute_function_name = ::std::option::Option::Some(input.into());
         self
     }
     /// To unset the function name, pass "null" string.
-    pub fn set_value_compute_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.value_compute_function_name = input; self
+    pub fn set_value_compute_function_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.value_compute_function_name = input;
+        self
     }
     /// To unset the function name, pass "null" string.
-    pub fn get_value_compute_function_name(&self) -> &::std::option::Option<::std::string::String> {
+    pub fn get_value_compute_function_name(
+        &self,
+    ) -> &::std::option::Option<::std::string::String> {
         &self.value_compute_function_name
     }
     /// Consumes the builder and constructs a [`UpdateDefaultConfigInput`](crate::operation::update_default_config::UpdateDefaultConfigInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::update_default_config::UpdateDefaultConfigInput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::update_default_config::UpdateDefaultConfigInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::update_default_config::UpdateDefaultConfigInput {
-                workspace_id: self.workspace_id
-                ,
-                org_id: self.org_id
-                ,
-                key: self.key
-                ,
-                change_reason: self.change_reason
-                ,
-                value: self.value
-                ,
-                schema: self.schema
-                ,
-                value_validation_function_name: self.value_validation_function_name
-                ,
-                description: self.description
-                ,
-                value_compute_function_name: self.value_compute_function_name
-                ,
-            }
+                workspace_id: self.workspace_id,
+                org_id: self.org_id,
+                key: self.key,
+                change_reason: self.change_reason,
+                value: self.value,
+                schema: self.schema,
+                value_validation_function_name: self.value_validation_function_name,
+                description: self.description,
+                value_compute_function_name: self.value_compute_function_name,
+            },
         )
     }
 }
-

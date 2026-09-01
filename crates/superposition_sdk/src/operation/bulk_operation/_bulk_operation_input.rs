@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct BulkOperationInput  {
+pub struct BulkOperationInput {
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -10,9 +10,9 @@ pub struct BulkOperationInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub config_tags: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
-    pub operations: ::std::option::Option<::std::vec::Vec::<crate::types::ContextAction>>,
+    pub operations: ::std::option::Option<::std::vec::Vec<crate::types::ContextAction>>,
 }
-impl  BulkOperationInput  {
+impl BulkOperationInput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(&self) -> ::std::option::Option<&str> {
         self.workspace_id.as_deref()
@@ -26,39 +26,49 @@ impl  BulkOperationInput  {
         self.config_tags.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.operations.is_none()`.
     pub fn operations(&self) -> &[crate::types::ContextAction] {
-        self.operations.as_deref()
-        .unwrap_or_default()
+        self.operations.as_deref().unwrap_or_default()
     }
 }
 impl BulkOperationInput {
     /// Creates a new builder-style object to manufacture [`BulkOperationInput`](crate::operation::bulk_operation::BulkOperationInput).
-    pub fn builder() -> crate::operation::bulk_operation::builders::BulkOperationInputBuilder {
+    pub fn builder(
+    ) -> crate::operation::bulk_operation::builders::BulkOperationInputBuilder {
         crate::operation::bulk_operation::builders::BulkOperationInputBuilder::default()
     }
 }
 
 /// A builder for [`BulkOperationInput`](crate::operation::bulk_operation::BulkOperationInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct BulkOperationInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
     pub(crate) config_tags: ::std::option::Option<::std::string::String>,
-    pub(crate) operations: ::std::option::Option<::std::vec::Vec::<crate::types::ContextAction>>,
+    pub(crate) operations:
+        ::std::option::Option<::std::vec::Vec<crate::types::ContextAction>>,
 }
 impl BulkOperationInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_id = input; self
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -66,26 +76,40 @@ impl BulkOperationInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
         &self.org_id
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn config_tags(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn config_tags(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.config_tags = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_config_tags(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.config_tags = input; self
+    pub fn set_config_tags(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.config_tags = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_config_tags(&self) -> &::std::option::Option<::std::string::String> {
@@ -97,32 +121,36 @@ impl BulkOperationInputBuilder {
     ///
     pub fn operations(mut self, input: crate::types::ContextAction) -> Self {
         let mut v = self.operations.unwrap_or_default();
-                        v.push(input);
-                        self.operations = ::std::option::Option::Some(v);
-                        self
+        v.push(input);
+        self.operations = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_operations(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::ContextAction>>) -> Self {
-        self.operations = input; self
+    pub fn set_operations(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<crate::types::ContextAction>>,
+    ) -> Self {
+        self.operations = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_operations(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::ContextAction>> {
+    pub fn get_operations(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<crate::types::ContextAction>> {
         &self.operations
     }
     /// Consumes the builder and constructs a [`BulkOperationInput`](crate::operation::bulk_operation::BulkOperationInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::bulk_operation::BulkOperationInput, ::aws_smithy_types::error::operation::BuildError> {
-        ::std::result::Result::Ok(
-            crate::operation::bulk_operation::BulkOperationInput {
-                workspace_id: self.workspace_id
-                ,
-                org_id: self.org_id
-                ,
-                config_tags: self.config_tags
-                ,
-                operations: self.operations
-                ,
-            }
-        )
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::bulk_operation::BulkOperationInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
+        ::std::result::Result::Ok(crate::operation::bulk_operation::BulkOperationInput {
+            workspace_id: self.workspace_id,
+            org_id: self.org_id,
+            config_tags: self.config_tags,
+            operations: self.operations,
+        })
     }
 }
-

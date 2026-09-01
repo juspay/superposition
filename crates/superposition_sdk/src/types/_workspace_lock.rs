@@ -3,7 +3,7 @@
 /// Metadata for an active workspace write lock. Present only while another write operation is holding the workspace lease.
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct WorkspaceLock  {
+pub struct WorkspaceLock {
     /// Unique identifier for the active workspace lock.
     pub lock_id: ::std::string::String,
     /// Write operation that currently holds the workspace lock.
@@ -15,18 +15,21 @@ pub struct WorkspaceLock  {
     /// Timestamp at which the workspace lock expires if it is not released first.
     pub expires_at: ::aws_smithy_types::DateTime,
 }
-impl  WorkspaceLock  {
+impl WorkspaceLock {
     /// Unique identifier for the active workspace lock.
     pub fn lock_id(&self) -> &str {
-        use std::ops::Deref; self.lock_id.deref()
+        use std::ops::Deref;
+        self.lock_id.deref()
     }
     /// Write operation that currently holds the workspace lock.
     pub fn operation(&self) -> &str {
-        use std::ops::Deref; self.operation.deref()
+        use std::ops::Deref;
+        self.operation.deref()
     }
     /// User that acquired the workspace lock.
     pub fn locked_by(&self) -> &str {
-        use std::ops::Deref; self.locked_by.deref()
+        use std::ops::Deref;
+        self.locked_by.deref()
     }
     /// Timestamp at which the workspace lock was acquired.
     pub fn acquired_at(&self) -> &::aws_smithy_types::DateTime {
@@ -45,7 +48,9 @@ impl WorkspaceLock {
 }
 
 /// A builder for [`WorkspaceLock`](crate::types::WorkspaceLock).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct WorkspaceLockBuilder {
     pub(crate) lock_id: ::std::option::Option<::std::string::String>,
@@ -57,13 +62,20 @@ pub struct WorkspaceLockBuilder {
 impl WorkspaceLockBuilder {
     /// Unique identifier for the active workspace lock.
     /// This field is required.
-    pub fn lock_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn lock_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.lock_id = ::std::option::Option::Some(input.into());
         self
     }
     /// Unique identifier for the active workspace lock.
-    pub fn set_lock_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.lock_id = input; self
+    pub fn set_lock_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.lock_id = input;
+        self
     }
     /// Unique identifier for the active workspace lock.
     pub fn get_lock_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -71,13 +83,20 @@ impl WorkspaceLockBuilder {
     }
     /// Write operation that currently holds the workspace lock.
     /// This field is required.
-    pub fn operation(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn operation(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.operation = ::std::option::Option::Some(input.into());
         self
     }
     /// Write operation that currently holds the workspace lock.
-    pub fn set_operation(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.operation = input; self
+    pub fn set_operation(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.operation = input;
+        self
     }
     /// Write operation that currently holds the workspace lock.
     pub fn get_operation(&self) -> &::std::option::Option<::std::string::String> {
@@ -85,13 +104,20 @@ impl WorkspaceLockBuilder {
     }
     /// User that acquired the workspace lock.
     /// This field is required.
-    pub fn locked_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn locked_by(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.locked_by = ::std::option::Option::Some(input.into());
         self
     }
     /// User that acquired the workspace lock.
-    pub fn set_locked_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.locked_by = input; self
+    pub fn set_locked_by(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.locked_by = input;
+        self
     }
     /// User that acquired the workspace lock.
     pub fn get_locked_by(&self) -> &::std::option::Option<::std::string::String> {
@@ -104,11 +130,17 @@ impl WorkspaceLockBuilder {
         self
     }
     /// Timestamp at which the workspace lock was acquired.
-    pub fn set_acquired_at(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.acquired_at = input; self
+    pub fn set_acquired_at(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.acquired_at = input;
+        self
     }
     /// Timestamp at which the workspace lock was acquired.
-    pub fn get_acquired_at(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
+    pub fn get_acquired_at(
+        &self,
+    ) -> &::std::option::Option<::aws_smithy_types::DateTime> {
         &self.acquired_at
     }
     /// Timestamp at which the workspace lock expires if it is not released first.
@@ -118,8 +150,12 @@ impl WorkspaceLockBuilder {
         self
     }
     /// Timestamp at which the workspace lock expires if it is not released first.
-    pub fn set_expires_at(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.expires_at = input; self
+    pub fn set_expires_at(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.expires_at = input;
+        self
     }
     /// Timestamp at which the workspace lock expires if it is not released first.
     pub fn get_expires_at(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
@@ -132,7 +168,12 @@ impl WorkspaceLockBuilder {
     /// - [`locked_by`](crate::types::builders::WorkspaceLockBuilder::locked_by)
     /// - [`acquired_at`](crate::types::builders::WorkspaceLockBuilder::acquired_at)
     /// - [`expires_at`](crate::types::builders::WorkspaceLockBuilder::expires_at)
-    pub fn build(self) -> ::std::result::Result<crate::types::WorkspaceLock, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::types::WorkspaceLock,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::types::WorkspaceLock {
                 lock_id: self.lock_id
@@ -164,4 +205,3 @@ impl WorkspaceLockBuilder {
         )
     }
 }
-

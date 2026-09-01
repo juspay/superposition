@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct CreateFunctionOutput  {
+pub struct CreateFunctionOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub function_name: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
@@ -10,7 +10,8 @@ pub struct CreateFunctionOutput  {
     #[allow(missing_docs)] // documentation missing in model
     pub draft_code: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
-    pub published_runtime_version: ::std::option::Option<crate::types::FunctionRuntimeVersion>,
+    pub published_runtime_version:
+        ::std::option::Option<crate::types::FunctionRuntimeVersion>,
     #[allow(missing_docs)] // documentation missing in model
     pub draft_runtime_version: crate::types::FunctionRuntimeVersion,
     #[allow(missing_docs)] // documentation missing in model
@@ -32,10 +33,11 @@ pub struct CreateFunctionOutput  {
     #[allow(missing_docs)] // documentation missing in model
     pub function_type: crate::types::FunctionTypes,
 }
-impl  CreateFunctionOutput  {
+impl CreateFunctionOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn function_name(&self) -> &str {
-        use std::ops::Deref; self.function_name.deref()
+        use std::ops::Deref;
+        self.function_name.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn published_code(&self) -> ::std::option::Option<&str> {
@@ -43,10 +45,13 @@ impl  CreateFunctionOutput  {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn draft_code(&self) -> &str {
-        use std::ops::Deref; self.draft_code.deref()
+        use std::ops::Deref;
+        self.draft_code.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn published_runtime_version(&self) -> ::std::option::Option<&crate::types::FunctionRuntimeVersion> {
+    pub fn published_runtime_version(
+        &self,
+    ) -> ::std::option::Option<&crate::types::FunctionRuntimeVersion> {
         self.published_runtime_version.as_ref()
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -67,7 +72,8 @@ impl  CreateFunctionOutput  {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn draft_edited_by(&self) -> &str {
-        use std::ops::Deref; self.draft_edited_by.deref()
+        use std::ops::Deref;
+        self.draft_edited_by.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn last_modified_at(&self) -> &::aws_smithy_types::DateTime {
@@ -75,15 +81,18 @@ impl  CreateFunctionOutput  {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn last_modified_by(&self) -> &str {
-        use std::ops::Deref; self.last_modified_by.deref()
+        use std::ops::Deref;
+        self.last_modified_by.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn change_reason(&self) -> &str {
-        use std::ops::Deref; self.change_reason.deref()
+        use std::ops::Deref;
+        self.change_reason.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn description(&self) -> &str {
-        use std::ops::Deref; self.description.deref()
+        use std::ops::Deref;
+        self.description.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn function_type(&self) -> &crate::types::FunctionTypes {
@@ -92,20 +101,26 @@ impl  CreateFunctionOutput  {
 }
 impl CreateFunctionOutput {
     /// Creates a new builder-style object to manufacture [`CreateFunctionOutput`](crate::operation::create_function::CreateFunctionOutput).
-    pub fn builder() -> crate::operation::create_function::builders::CreateFunctionOutputBuilder {
-        crate::operation::create_function::builders::CreateFunctionOutputBuilder::default()
+    pub fn builder(
+    ) -> crate::operation::create_function::builders::CreateFunctionOutputBuilder {
+        crate::operation::create_function::builders::CreateFunctionOutputBuilder::default(
+        )
     }
 }
 
 /// A builder for [`CreateFunctionOutput`](crate::operation::create_function::CreateFunctionOutput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct CreateFunctionOutputBuilder {
     pub(crate) function_name: ::std::option::Option<::std::string::String>,
     pub(crate) published_code: ::std::option::Option<::std::string::String>,
     pub(crate) draft_code: ::std::option::Option<::std::string::String>,
-    pub(crate) published_runtime_version: ::std::option::Option<crate::types::FunctionRuntimeVersion>,
-    pub(crate) draft_runtime_version: ::std::option::Option<crate::types::FunctionRuntimeVersion>,
+    pub(crate) published_runtime_version:
+        ::std::option::Option<crate::types::FunctionRuntimeVersion>,
+    pub(crate) draft_runtime_version:
+        ::std::option::Option<crate::types::FunctionRuntimeVersion>,
     pub(crate) published_at: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) draft_edited_at: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) published_by: ::std::option::Option<::std::string::String>,
@@ -119,26 +134,40 @@ pub struct CreateFunctionOutputBuilder {
 impl CreateFunctionOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn function_name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.function_name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.function_name = input; self
+    pub fn set_function_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.function_name = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_function_name(&self) -> &::std::option::Option<::std::string::String> {
         &self.function_name
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn published_code(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn published_code(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.published_code = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_published_code(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.published_code = input; self
+    pub fn set_published_code(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.published_code = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_published_code(&self) -> &::std::option::Option<::std::string::String> {
@@ -146,43 +175,68 @@ impl CreateFunctionOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn draft_code(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn draft_code(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.draft_code = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_draft_code(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.draft_code = input; self
+    pub fn set_draft_code(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.draft_code = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_draft_code(&self) -> &::std::option::Option<::std::string::String> {
         &self.draft_code
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn published_runtime_version(mut self, input: crate::types::FunctionRuntimeVersion) -> Self {
+    pub fn published_runtime_version(
+        mut self,
+        input: crate::types::FunctionRuntimeVersion,
+    ) -> Self {
         self.published_runtime_version = ::std::option::Option::Some(input);
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_published_runtime_version(mut self, input: ::std::option::Option<crate::types::FunctionRuntimeVersion>) -> Self {
-        self.published_runtime_version = input; self
+    pub fn set_published_runtime_version(
+        mut self,
+        input: ::std::option::Option<crate::types::FunctionRuntimeVersion>,
+    ) -> Self {
+        self.published_runtime_version = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_published_runtime_version(&self) -> &::std::option::Option<crate::types::FunctionRuntimeVersion> {
+    pub fn get_published_runtime_version(
+        &self,
+    ) -> &::std::option::Option<crate::types::FunctionRuntimeVersion> {
         &self.published_runtime_version
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn draft_runtime_version(mut self, input: crate::types::FunctionRuntimeVersion) -> Self {
+    pub fn draft_runtime_version(
+        mut self,
+        input: crate::types::FunctionRuntimeVersion,
+    ) -> Self {
         self.draft_runtime_version = ::std::option::Option::Some(input);
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_draft_runtime_version(mut self, input: ::std::option::Option<crate::types::FunctionRuntimeVersion>) -> Self {
-        self.draft_runtime_version = input; self
+    pub fn set_draft_runtime_version(
+        mut self,
+        input: ::std::option::Option<crate::types::FunctionRuntimeVersion>,
+    ) -> Self {
+        self.draft_runtime_version = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_draft_runtime_version(&self) -> &::std::option::Option<crate::types::FunctionRuntimeVersion> {
+    pub fn get_draft_runtime_version(
+        &self,
+    ) -> &::std::option::Option<crate::types::FunctionRuntimeVersion> {
         &self.draft_runtime_version
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -191,11 +245,17 @@ impl CreateFunctionOutputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_published_at(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.published_at = input; self
+    pub fn set_published_at(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.published_at = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_published_at(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
+    pub fn get_published_at(
+        &self,
+    ) -> &::std::option::Option<::aws_smithy_types::DateTime> {
         &self.published_at
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -205,21 +265,34 @@ impl CreateFunctionOutputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_draft_edited_at(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.draft_edited_at = input; self
+    pub fn set_draft_edited_at(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.draft_edited_at = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_draft_edited_at(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
+    pub fn get_draft_edited_at(
+        &self,
+    ) -> &::std::option::Option<::aws_smithy_types::DateTime> {
         &self.draft_edited_at
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn published_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn published_by(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.published_by = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_published_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.published_by = input; self
+    pub fn set_published_by(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.published_by = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_published_by(&self) -> &::std::option::Option<::std::string::String> {
@@ -227,13 +300,20 @@ impl CreateFunctionOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn draft_edited_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn draft_edited_by(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.draft_edited_by = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_draft_edited_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.draft_edited_by = input; self
+    pub fn set_draft_edited_by(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.draft_edited_by = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_draft_edited_by(&self) -> &::std::option::Option<::std::string::String> {
@@ -246,22 +326,35 @@ impl CreateFunctionOutputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_last_modified_at(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.last_modified_at = input; self
+    pub fn set_last_modified_at(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.last_modified_at = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_last_modified_at(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
+    pub fn get_last_modified_at(
+        &self,
+    ) -> &::std::option::Option<::aws_smithy_types::DateTime> {
         &self.last_modified_at
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn last_modified_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn last_modified_by(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.last_modified_by = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_last_modified_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.last_modified_by = input; self
+    pub fn set_last_modified_by(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.last_modified_by = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_last_modified_by(&self) -> &::std::option::Option<::std::string::String> {
@@ -269,13 +362,20 @@ impl CreateFunctionOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn change_reason(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn change_reason(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.change_reason = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_change_reason(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.change_reason = input; self
+    pub fn set_change_reason(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.change_reason = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
@@ -283,13 +383,20 @@ impl CreateFunctionOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn description(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn description(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.description = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_description(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.description = input; self
+    pub fn set_description(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.description = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_description(&self) -> &::std::option::Option<::std::string::String> {
@@ -302,11 +409,17 @@ impl CreateFunctionOutputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_function_type(mut self, input: ::std::option::Option<crate::types::FunctionTypes>) -> Self {
-        self.function_type = input; self
+    pub fn set_function_type(
+        mut self,
+        input: ::std::option::Option<crate::types::FunctionTypes>,
+    ) -> Self {
+        self.function_type = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_function_type(&self) -> &::std::option::Option<crate::types::FunctionTypes> {
+    pub fn get_function_type(
+        &self,
+    ) -> &::std::option::Option<crate::types::FunctionTypes> {
         &self.function_type
     }
     /// Consumes the builder and constructs a [`CreateFunctionOutput`](crate::operation::create_function::CreateFunctionOutput).
@@ -321,7 +434,12 @@ impl CreateFunctionOutputBuilder {
     /// - [`change_reason`](crate::operation::create_function::builders::CreateFunctionOutputBuilder::change_reason)
     /// - [`description`](crate::operation::create_function::builders::CreateFunctionOutputBuilder::description)
     /// - [`function_type`](crate::operation::create_function::builders::CreateFunctionOutputBuilder::function_type)
-    pub fn build(self) -> ::std::result::Result<crate::operation::create_function::CreateFunctionOutput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::create_function::CreateFunctionOutput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::create_function::CreateFunctionOutput {
                 function_name: self.function_name
@@ -386,4 +504,3 @@ impl CreateFunctionOutputBuilder {
         )
     }
 }
-

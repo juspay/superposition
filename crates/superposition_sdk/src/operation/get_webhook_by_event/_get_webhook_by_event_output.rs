@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct GetWebhookByEventOutput  {
+pub struct GetWebhookByEventOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub name: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
@@ -16,9 +16,11 @@ pub struct GetWebhookByEventOutput  {
     #[allow(missing_docs)] // documentation missing in model
     pub version: crate::types::Version,
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub custom_headers: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub custom_headers: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    >,
     #[allow(missing_docs)] // documentation missing in model
-    pub events: ::std::vec::Vec::<::std::string::String>,
+    pub events: ::std::vec::Vec<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub max_retries: i32,
     #[allow(missing_docs)] // documentation missing in model
@@ -34,14 +36,16 @@ pub struct GetWebhookByEventOutput  {
     #[allow(missing_docs)] // documentation missing in model
     pub last_modified_at: ::aws_smithy_types::DateTime,
 }
-impl  GetWebhookByEventOutput  {
+impl GetWebhookByEventOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn name(&self) -> &str {
-        use std::ops::Deref; self.name.deref()
+        use std::ops::Deref;
+        self.name.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn description(&self) -> &str {
-        use std::ops::Deref; self.description.deref()
+        use std::ops::Deref;
+        self.description.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn enabled(&self) -> bool {
@@ -49,7 +53,8 @@ impl  GetWebhookByEventOutput  {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn url(&self) -> &str {
-        use std::ops::Deref; self.url.deref()
+        use std::ops::Deref;
+        self.url.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn method(&self) -> &crate::types::HttpMethod {
@@ -60,28 +65,37 @@ impl  GetWebhookByEventOutput  {
         &self.version
     }
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub fn custom_headers(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    pub fn custom_headers(
+        &self,
+    ) -> ::std::option::Option<
+        &::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
         self.custom_headers.as_ref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn events(&self) -> &[::std::string::String] {
-        use std::ops::Deref; self.events.deref()
+        use std::ops::Deref;
+        self.events.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn max_retries(&self) -> i32 {
         self.max_retries
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn last_triggered_at(&self) -> ::std::option::Option<&::aws_smithy_types::DateTime> {
+    pub fn last_triggered_at(
+        &self,
+    ) -> ::std::option::Option<&::aws_smithy_types::DateTime> {
         self.last_triggered_at.as_ref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn change_reason(&self) -> &str {
-        use std::ops::Deref; self.change_reason.deref()
+        use std::ops::Deref;
+        self.change_reason.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn created_by(&self) -> &str {
-        use std::ops::Deref; self.created_by.deref()
+        use std::ops::Deref;
+        self.created_by.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn created_at(&self) -> &::aws_smithy_types::DateTime {
@@ -89,7 +103,8 @@ impl  GetWebhookByEventOutput  {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn last_modified_by(&self) -> &str {
-        use std::ops::Deref; self.last_modified_by.deref()
+        use std::ops::Deref;
+        self.last_modified_by.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn last_modified_at(&self) -> &::aws_smithy_types::DateTime {
@@ -98,13 +113,17 @@ impl  GetWebhookByEventOutput  {
 }
 impl GetWebhookByEventOutput {
     /// Creates a new builder-style object to manufacture [`GetWebhookByEventOutput`](crate::operation::get_webhook_by_event::GetWebhookByEventOutput).
-    pub fn builder() -> crate::operation::get_webhook_by_event::builders::GetWebhookByEventOutputBuilder {
+    pub fn builder(
+    ) -> crate::operation::get_webhook_by_event::builders::GetWebhookByEventOutputBuilder
+    {
         crate::operation::get_webhook_by_event::builders::GetWebhookByEventOutputBuilder::default()
     }
 }
 
 /// A builder for [`GetWebhookByEventOutput`](crate::operation::get_webhook_by_event::GetWebhookByEventOutput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct GetWebhookByEventOutputBuilder {
     pub(crate) name: ::std::option::Option<::std::string::String>,
@@ -113,8 +132,10 @@ pub struct GetWebhookByEventOutputBuilder {
     pub(crate) url: ::std::option::Option<::std::string::String>,
     pub(crate) method: ::std::option::Option<crate::types::HttpMethod>,
     pub(crate) version: ::std::option::Option<crate::types::Version>,
-    pub(crate) custom_headers: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
-    pub(crate) events: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub(crate) custom_headers: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    >,
+    pub(crate) events: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
     pub(crate) max_retries: ::std::option::Option<i32>,
     pub(crate) last_triggered_at: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
@@ -126,13 +147,20 @@ pub struct GetWebhookByEventOutputBuilder {
 impl GetWebhookByEventOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.name = input; self
+    pub fn set_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.name = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_name(&self) -> &::std::option::Option<::std::string::String> {
@@ -140,13 +168,20 @@ impl GetWebhookByEventOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn description(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn description(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.description = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_description(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.description = input; self
+    pub fn set_description(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.description = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_description(&self) -> &::std::option::Option<::std::string::String> {
@@ -160,7 +195,8 @@ impl GetWebhookByEventOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_enabled(mut self, input: ::std::option::Option<bool>) -> Self {
-        self.enabled = input; self
+        self.enabled = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_enabled(&self) -> &::std::option::Option<bool> {
@@ -168,13 +204,20 @@ impl GetWebhookByEventOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn url(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn url(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.url = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_url(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.url = input; self
+    pub fn set_url(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.url = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_url(&self) -> &::std::option::Option<::std::string::String> {
@@ -187,8 +230,12 @@ impl GetWebhookByEventOutputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_method(mut self, input: ::std::option::Option<crate::types::HttpMethod>) -> Self {
-        self.method = input; self
+    pub fn set_method(
+        mut self,
+        input: ::std::option::Option<crate::types::HttpMethod>,
+    ) -> Self {
+        self.method = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_method(&self) -> &::std::option::Option<crate::types::HttpMethod> {
@@ -201,8 +248,12 @@ impl GetWebhookByEventOutputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_version(mut self, input: ::std::option::Option<crate::types::Version>) -> Self {
-        self.version = input; self
+    pub fn set_version(
+        mut self,
+        input: ::std::option::Option<crate::types::Version>,
+    ) -> Self {
+        self.version = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_version(&self) -> &::std::option::Option<crate::types::Version> {
@@ -213,36 +264,62 @@ impl GetWebhookByEventOutputBuilder {
     /// To override the contents of this collection use [`set_custom_headers`](Self::set_custom_headers).
     ///
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub fn custom_headers(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
+    pub fn custom_headers(
+        mut self,
+        k: impl ::std::convert::Into<::std::string::String>,
+        v: ::aws_smithy_types::Document,
+    ) -> Self {
         let mut hash_map = self.custom_headers.unwrap_or_default();
-                        hash_map.insert(k.into(), v);
-                        self.custom_headers = ::std::option::Option::Some(hash_map);
-                        self
+        hash_map.insert(k.into(), v);
+        self.custom_headers = ::std::option::Option::Some(hash_map);
+        self
     }
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub fn set_custom_headers(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
-        self.custom_headers = input; self
+    pub fn set_custom_headers(
+        mut self,
+        input: ::std::option::Option<
+            ::std::collections::HashMap<
+                ::std::string::String,
+                ::aws_smithy_types::Document,
+            >,
+        >,
+    ) -> Self {
+        self.custom_headers = input;
+        self
     }
     /// Generic key-value object structure used for flexible data representation throughout the API.
-    pub fn get_custom_headers(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    pub fn get_custom_headers(
+        &self,
+    ) -> &::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
         &self.custom_headers
     }
     /// Appends an item to `events`.
     ///
     /// To override the contents of this collection use [`set_events`](Self::set_events).
     ///
-    pub fn events(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn events(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         let mut v = self.events.unwrap_or_default();
-                        v.push(input.into());
-                        self.events = ::std::option::Option::Some(v);
-                        self
+        v.push(input.into());
+        self.events = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_events(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-        self.events = input; self
+    pub fn set_events(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    ) -> Self {
+        self.events = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_events(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
+    pub fn get_events(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<::std::string::String>> {
         &self.events
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -253,7 +330,8 @@ impl GetWebhookByEventOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_max_retries(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.max_retries = input; self
+        self.max_retries = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_max_retries(&self) -> &::std::option::Option<i32> {
@@ -265,22 +343,35 @@ impl GetWebhookByEventOutputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_last_triggered_at(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.last_triggered_at = input; self
+    pub fn set_last_triggered_at(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.last_triggered_at = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_last_triggered_at(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
+    pub fn get_last_triggered_at(
+        &self,
+    ) -> &::std::option::Option<::aws_smithy_types::DateTime> {
         &self.last_triggered_at
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn change_reason(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn change_reason(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.change_reason = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_change_reason(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.change_reason = input; self
+    pub fn set_change_reason(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.change_reason = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
@@ -288,13 +379,20 @@ impl GetWebhookByEventOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn created_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn created_by(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.created_by = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_created_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.created_by = input; self
+    pub fn set_created_by(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.created_by = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_created_by(&self) -> &::std::option::Option<::std::string::String> {
@@ -307,8 +405,12 @@ impl GetWebhookByEventOutputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_created_at(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.created_at = input; self
+    pub fn set_created_at(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.created_at = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_created_at(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
@@ -316,13 +418,20 @@ impl GetWebhookByEventOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn last_modified_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn last_modified_by(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.last_modified_by = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_last_modified_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.last_modified_by = input; self
+    pub fn set_last_modified_by(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.last_modified_by = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_last_modified_by(&self) -> &::std::option::Option<::std::string::String> {
@@ -335,11 +444,17 @@ impl GetWebhookByEventOutputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_last_modified_at(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.last_modified_at = input; self
+    pub fn set_last_modified_at(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.last_modified_at = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_last_modified_at(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
+    pub fn get_last_modified_at(
+        &self,
+    ) -> &::std::option::Option<::aws_smithy_types::DateTime> {
         &self.last_modified_at
     }
     /// Consumes the builder and constructs a [`GetWebhookByEventOutput`](crate::operation::get_webhook_by_event::GetWebhookByEventOutput).
@@ -357,7 +472,12 @@ impl GetWebhookByEventOutputBuilder {
     /// - [`created_at`](crate::operation::get_webhook_by_event::builders::GetWebhookByEventOutputBuilder::created_at)
     /// - [`last_modified_by`](crate::operation::get_webhook_by_event::builders::GetWebhookByEventOutputBuilder::last_modified_by)
     /// - [`last_modified_at`](crate::operation::get_webhook_by_event::builders::GetWebhookByEventOutputBuilder::last_modified_at)
-    pub fn build(self) -> ::std::result::Result<crate::operation::get_webhook_by_event::GetWebhookByEventOutput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::get_webhook_by_event::GetWebhookByEventOutput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::get_webhook_by_event::GetWebhookByEventOutput {
                 name: self.name
@@ -433,4 +553,3 @@ impl GetWebhookByEventOutputBuilder {
         )
     }
 }
-

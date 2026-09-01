@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct GetResolvedConfigExplanationInput  {
+pub struct GetResolvedConfigExplanationInput {
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -18,9 +18,11 @@ pub struct GetResolvedConfigExplanationInput  {
     /// Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution.
     pub resolve_remote: ::std::option::Option<bool>,
     /// Map representing the context. Keys correspond to the names of the dimensions.
-    pub context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub context: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    >,
 }
-impl  GetResolvedConfigExplanationInput  {
+impl GetResolvedConfigExplanationInput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(&self) -> ::std::option::Option<&str> {
         self.workspace_id.as_deref()
@@ -50,19 +52,25 @@ impl  GetResolvedConfigExplanationInput  {
         self.resolve_remote
     }
     /// Map representing the context. Keys correspond to the names of the dimensions.
-    pub fn context(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    pub fn context(
+        &self,
+    ) -> ::std::option::Option<
+        &::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
         self.context.as_ref()
     }
 }
 impl GetResolvedConfigExplanationInput {
     /// Creates a new builder-style object to manufacture [`GetResolvedConfigExplanationInput`](crate::operation::get_resolved_config_explanation::GetResolvedConfigExplanationInput).
-    pub fn builder() -> crate::operation::get_resolved_config_explanation::builders::GetResolvedConfigExplanationInputBuilder {
+    pub fn builder() -> crate::operation::get_resolved_config_explanation::builders::GetResolvedConfigExplanationInputBuilder{
         crate::operation::get_resolved_config_explanation::builders::GetResolvedConfigExplanationInputBuilder::default()
     }
 }
 
 /// A builder for [`GetResolvedConfigExplanationInput`](crate::operation::get_resolved_config_explanation::GetResolvedConfigExplanationInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct GetResolvedConfigExplanationInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
@@ -72,18 +80,27 @@ pub struct GetResolvedConfigExplanationInputBuilder {
     pub(crate) merge_strategy: ::std::option::Option<crate::types::MergeStrategy>,
     pub(crate) context_id: ::std::option::Option<::std::string::String>,
     pub(crate) resolve_remote: ::std::option::Option<bool>,
-    pub(crate) context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub(crate) context: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    >,
 }
 impl GetResolvedConfigExplanationInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_id = input; self
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -91,13 +108,20 @@ impl GetResolvedConfigExplanationInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -105,26 +129,40 @@ impl GetResolvedConfigExplanationInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn key(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn key(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.key = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_key(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.key = input; self
+    pub fn set_key(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.key = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_key(&self) -> &::std::option::Option<::std::string::String> {
         &self.key
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn version(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn version(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.version = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_version(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.version = input; self
+    pub fn set_version(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.version = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_version(&self) -> &::std::option::Option<::std::string::String> {
@@ -136,21 +174,34 @@ impl GetResolvedConfigExplanationInputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_merge_strategy(mut self, input: ::std::option::Option<crate::types::MergeStrategy>) -> Self {
-        self.merge_strategy = input; self
+    pub fn set_merge_strategy(
+        mut self,
+        input: ::std::option::Option<crate::types::MergeStrategy>,
+    ) -> Self {
+        self.merge_strategy = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_merge_strategy(&self) -> &::std::option::Option<crate::types::MergeStrategy> {
+    pub fn get_merge_strategy(
+        &self,
+    ) -> &::std::option::Option<crate::types::MergeStrategy> {
         &self.merge_strategy
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn context_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn context_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.context_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_context_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.context_id = input; self
+    pub fn set_context_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.context_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_context_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -163,7 +214,8 @@ impl GetResolvedConfigExplanationInputBuilder {
     }
     /// Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution.
     pub fn set_resolve_remote(mut self, input: ::std::option::Option<bool>) -> Self {
-        self.resolve_remote = input; self
+        self.resolve_remote = input;
+        self
     }
     /// Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution.
     pub fn get_resolve_remote(&self) -> &::std::option::Option<bool> {
@@ -174,22 +226,39 @@ impl GetResolvedConfigExplanationInputBuilder {
     /// To override the contents of this collection use [`set_context`](Self::set_context).
     ///
     /// Map representing the context. Keys correspond to the names of the dimensions.
-    pub fn context(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
+    pub fn context(
+        mut self,
+        k: impl ::std::convert::Into<::std::string::String>,
+        v: ::aws_smithy_types::Document,
+    ) -> Self {
         let mut hash_map = self.context.unwrap_or_default();
-                        hash_map.insert(k.into(), v);
-                        self.context = ::std::option::Option::Some(hash_map);
-                        self
+        hash_map.insert(k.into(), v);
+        self.context = ::std::option::Option::Some(hash_map);
+        self
     }
     /// Map representing the context. Keys correspond to the names of the dimensions.
-    pub fn set_context(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
-        self.context = input; self
+    pub fn set_context(
+        mut self,
+        input: ::std::option::Option<
+            ::std::collections::HashMap<
+                ::std::string::String,
+                ::aws_smithy_types::Document,
+            >,
+        >,
+    ) -> Self {
+        self.context = input;
+        self
     }
     /// Map representing the context. Keys correspond to the names of the dimensions.
-    pub fn get_context(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    pub fn get_context(
+        &self,
+    ) -> &::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
         &self.context
     }
     /// Consumes the builder and constructs a [`GetResolvedConfigExplanationInput`](crate::operation::get_resolved_config_explanation::GetResolvedConfigExplanationInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::get_resolved_config_explanation::GetResolvedConfigExplanationInput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(self) -> ::std::result::Result<crate::operation::get_resolved_config_explanation::GetResolvedConfigExplanationInput, ::aws_smithy_types::error::operation::BuildError>{
         ::std::result::Result::Ok(
             crate::operation::get_resolved_config_explanation::GetResolvedConfigExplanationInput {
                 workspace_id: self.workspace_id
@@ -212,4 +281,3 @@ impl GetResolvedConfigExplanationInputBuilder {
         )
     }
 }
-

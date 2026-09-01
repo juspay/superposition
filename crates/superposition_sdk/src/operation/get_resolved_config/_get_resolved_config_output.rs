@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct GetResolvedConfigOutput  {
+pub struct GetResolvedConfigOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub config: ::aws_smithy_types::Document,
     #[allow(missing_docs)] // documentation missing in model
@@ -12,14 +12,15 @@ pub struct GetResolvedConfigOutput  {
     #[allow(missing_docs)] // documentation missing in model
     pub audit_id: ::std::option::Option<::std::string::String>,
 }
-impl  GetResolvedConfigOutput  {
+impl GetResolvedConfigOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn config(&self) -> &::aws_smithy_types::Document {
         &self.config
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn version(&self) -> &str {
-        use std::ops::Deref; self.version.deref()
+        use std::ops::Deref;
+        self.version.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn last_modified(&self) -> &::aws_smithy_types::DateTime {
@@ -32,13 +33,17 @@ impl  GetResolvedConfigOutput  {
 }
 impl GetResolvedConfigOutput {
     /// Creates a new builder-style object to manufacture [`GetResolvedConfigOutput`](crate::operation::get_resolved_config::GetResolvedConfigOutput).
-    pub fn builder() -> crate::operation::get_resolved_config::builders::GetResolvedConfigOutputBuilder {
+    pub fn builder(
+    ) -> crate::operation::get_resolved_config::builders::GetResolvedConfigOutputBuilder
+    {
         crate::operation::get_resolved_config::builders::GetResolvedConfigOutputBuilder::default()
     }
 }
 
 /// A builder for [`GetResolvedConfigOutput`](crate::operation::get_resolved_config::GetResolvedConfigOutput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct GetResolvedConfigOutputBuilder {
     pub(crate) config: ::std::option::Option<::aws_smithy_types::Document>,
@@ -54,8 +59,12 @@ impl GetResolvedConfigOutputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_config(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
-        self.config = input; self
+    pub fn set_config(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::Document>,
+    ) -> Self {
+        self.config = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_config(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
@@ -63,13 +72,20 @@ impl GetResolvedConfigOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn version(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn version(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.version = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_version(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.version = input; self
+    pub fn set_version(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.version = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_version(&self) -> &::std::option::Option<::std::string::String> {
@@ -82,21 +98,34 @@ impl GetResolvedConfigOutputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_last_modified(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.last_modified = input; self
+    pub fn set_last_modified(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.last_modified = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_last_modified(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
+    pub fn get_last_modified(
+        &self,
+    ) -> &::std::option::Option<::aws_smithy_types::DateTime> {
         &self.last_modified
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn audit_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn audit_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.audit_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_audit_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.audit_id = input; self
+    pub fn set_audit_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.audit_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_audit_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -107,7 +136,12 @@ impl GetResolvedConfigOutputBuilder {
     /// - [`config`](crate::operation::get_resolved_config::builders::GetResolvedConfigOutputBuilder::config)
     /// - [`version`](crate::operation::get_resolved_config::builders::GetResolvedConfigOutputBuilder::version)
     /// - [`last_modified`](crate::operation::get_resolved_config::builders::GetResolvedConfigOutputBuilder::last_modified)
-    pub fn build(self) -> ::std::result::Result<crate::operation::get_resolved_config::GetResolvedConfigOutput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::get_resolved_config::GetResolvedConfigOutput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::get_resolved_config::GetResolvedConfigOutput {
                 config: self.config
@@ -131,4 +165,3 @@ impl GetResolvedConfigOutputBuilder {
         )
     }
 }
-

@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct GetTypeTemplateInput  {
+pub struct GetTypeTemplateInput {
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -10,7 +10,7 @@ pub struct GetTypeTemplateInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub type_name: ::std::option::Option<::std::string::String>,
 }
-impl  GetTypeTemplateInput  {
+impl GetTypeTemplateInput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(&self) -> ::std::option::Option<&str> {
         self.workspace_id.as_deref()
@@ -26,13 +26,16 @@ impl  GetTypeTemplateInput  {
 }
 impl GetTypeTemplateInput {
     /// Creates a new builder-style object to manufacture [`GetTypeTemplateInput`](crate::operation::get_type_template::GetTypeTemplateInput).
-    pub fn builder() -> crate::operation::get_type_template::builders::GetTypeTemplateInputBuilder {
+    pub fn builder(
+    ) -> crate::operation::get_type_template::builders::GetTypeTemplateInputBuilder {
         crate::operation::get_type_template::builders::GetTypeTemplateInputBuilder::default()
     }
 }
 
 /// A builder for [`GetTypeTemplateInput`](crate::operation::get_type_template::GetTypeTemplateInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct GetTypeTemplateInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
@@ -42,13 +45,20 @@ pub struct GetTypeTemplateInputBuilder {
 impl GetTypeTemplateInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_id = input; self
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -56,13 +66,20 @@ impl GetTypeTemplateInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -70,30 +87,38 @@ impl GetTypeTemplateInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn type_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn type_name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.type_name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_type_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.type_name = input; self
+    pub fn set_type_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.type_name = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_type_name(&self) -> &::std::option::Option<::std::string::String> {
         &self.type_name
     }
     /// Consumes the builder and constructs a [`GetTypeTemplateInput`](crate::operation::get_type_template::GetTypeTemplateInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::get_type_template::GetTypeTemplateInput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::get_type_template::GetTypeTemplateInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::get_type_template::GetTypeTemplateInput {
-                workspace_id: self.workspace_id
-                ,
-                org_id: self.org_id
-                ,
-                type_name: self.type_name
-                ,
-            }
+                workspace_id: self.workspace_id,
+                org_id: self.org_id,
+                type_name: self.type_name,
+            },
         )
     }
 }
-

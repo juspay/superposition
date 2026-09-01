@@ -18,7 +18,7 @@ impl crate::operation::update_overrides_experiment::builders::UpdateOverridesExp
                     }
                 }
 /// Fluent builder constructing a request to `UpdateOverridesExperiment`.
-/// 
+///
 /// Updates the overrides for specific variants within an experiment, allowing modification of experiment behavior Updates the overrides for specific variants within an experiment, allowing modification of experiment behavior while it is in the created state.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct UpdateOverridesExperimentFluentBuilder {
@@ -27,12 +27,12 @@ pub struct UpdateOverridesExperimentFluentBuilder {
 config_override: ::std::option::Option<crate::config::Builder>,
             }
 impl
-                crate::client::customize::internal::CustomizableSend<
-                    crate::operation::update_overrides_experiment::UpdateOverridesExperimentOutput,
-                    crate::operation::update_overrides_experiment::UpdateOverridesExperimentError,
-                > for UpdateOverridesExperimentFluentBuilder
-            {
-                fn send(
+    crate::client::customize::internal::CustomizableSend<
+        crate::operation::update_overrides_experiment::UpdateOverridesExperimentOutput,
+        crate::operation::update_overrides_experiment::UpdateOverridesExperimentError,
+    > for UpdateOverridesExperimentFluentBuilder
+{
+    fn send(
                     self,
                     config_override: crate::config::Builder,
                 ) -> crate::client::customize::internal::BoxFuture<
@@ -40,192 +40,253 @@ impl
                         crate::operation::update_overrides_experiment::UpdateOverridesExperimentOutput,
                         crate::operation::update_overrides_experiment::UpdateOverridesExperimentError,
                     >,
-                > {
-                    ::std::boxed::Box::pin(async move { self.config_override(config_override).send().await })
-                }
-            }
+    >{
+        ::std::boxed::Box::pin(async move {
+            self.config_override(config_override).send().await
+        })
+    }
+}
 impl UpdateOverridesExperimentFluentBuilder {
     /// Creates a new `UpdateOverridesExperimentFluentBuilder`.
-                    pub(crate) fn new(handle: ::std::sync::Arc<crate::client::Handle>) -> Self {
-                        Self {
-                            handle,
-                            inner: ::std::default::Default::default(),
-    config_override: ::std::option::Option::None,
-                        }
-                    }
+    pub(crate) fn new(handle: ::std::sync::Arc<crate::client::Handle>) -> Self {
+        Self {
+            handle,
+            inner: ::std::default::Default::default(),
+            config_override: ::std::option::Option::None,
+        }
+    }
     /// Access the UpdateOverridesExperiment as a reference.
-                    pub fn as_input(&self) -> &crate::operation::update_overrides_experiment::builders::UpdateOverridesExperimentInputBuilder {
-                        &self.inner
-                    }
+    pub fn as_input(&self) -> &crate::operation::update_overrides_experiment::builders::UpdateOverridesExperimentInputBuilder{
+        &self.inner
+    }
     /// Sends the request and returns the response.
-                    ///
-                    /// If an error occurs, an `SdkError` will be returned with additional details that
-                    /// can be matched against.
-                    ///
-                    /// By default, any retryable failures will be retried twice. Retry behavior
-                    /// is configurable with the [RetryConfig](aws_smithy_types::retry::RetryConfig), which can be
-                    /// set when configuring the client.
-                    pub async fn send(self) -> ::std::result::Result<crate::operation::update_overrides_experiment::UpdateOverridesExperimentOutput, ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::update_overrides_experiment::UpdateOverridesExperimentError, ::aws_smithy_runtime_api::client::orchestrator::HttpResponse>> {
-                        let input = self.inner.build().map_err(::aws_smithy_runtime_api::client::result::SdkError::construction_failure)?;
-                        let runtime_plugins = crate::operation::update_overrides_experiment::UpdateOverridesExperiment::operation_runtime_plugins(
+    ///
+    /// If an error occurs, an `SdkError` will be returned with additional details that
+    /// can be matched against.
+    ///
+    /// By default, any retryable failures will be retried twice. Retry behavior
+    /// is configurable with the [RetryConfig](aws_smithy_types::retry::RetryConfig), which can be
+    /// set when configuring the client.
+    pub async fn send(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::update_overrides_experiment::UpdateOverridesExperimentOutput,
+        ::aws_smithy_runtime_api::client::result::SdkError<
+            crate::operation::update_overrides_experiment::UpdateOverridesExperimentError,
+            ::aws_smithy_runtime_api::client::orchestrator::HttpResponse,
+        >,
+    > {
+        let input = self.inner.build().map_err(
+            ::aws_smithy_runtime_api::client::result::SdkError::construction_failure,
+        )?;
+        let runtime_plugins = crate::operation::update_overrides_experiment::UpdateOverridesExperiment::operation_runtime_plugins(
                             self.handle.runtime_plugins.clone(),
                             &self.handle.conf,
                             self.config_override,
                         );
-                        crate::operation::update_overrides_experiment::UpdateOverridesExperiment::orchestrate(&runtime_plugins, input).await
-                    }
-    
-                    /// Consumes this builder, creating a customizable operation that can be modified before being sent.
-                    pub fn customize(
-                        self,
-                    ) -> crate::client::customize::CustomizableOperation<crate::operation::update_overrides_experiment::UpdateOverridesExperimentOutput, crate::operation::update_overrides_experiment::UpdateOverridesExperimentError, Self> {
-                        crate::client::customize::CustomizableOperation::new(self)
-                    }
+        crate::operation::update_overrides_experiment::UpdateOverridesExperiment::orchestrate(&runtime_plugins, input).await
+    }
+
+    /// Consumes this builder, creating a customizable operation that can be modified before being sent.
+    pub fn customize(
+        self,
+    ) -> crate::client::customize::CustomizableOperation<
+        crate::operation::update_overrides_experiment::UpdateOverridesExperimentOutput,
+        crate::operation::update_overrides_experiment::UpdateOverridesExperimentError,
+        Self,
+    > {
+        crate::client::customize::CustomizableOperation::new(self)
+    }
     pub(crate) fn config_override(
-                            mut self,
-                            config_override: impl ::std::convert::Into<crate::config::Builder>,
-                        ) -> Self {
-                            self.set_config_override(::std::option::Option::Some(config_override.into()));
-                            self
-                        }
-    
-                        pub(crate) fn set_config_override(
-                            &mut self,
-                            config_override: ::std::option::Option<crate::config::Builder>,
-                        ) -> &mut Self {
-                            self.config_override = config_override;
-                            self
-                        }
+        mut self,
+        config_override: impl ::std::convert::Into<crate::config::Builder>,
+    ) -> Self {
+        self.set_config_override(::std::option::Option::Some(config_override.into()));
+        self
+    }
+
+    pub(crate) fn set_config_override(
+        &mut self,
+        config_override: ::std::option::Option<crate::config::Builder>,
+    ) -> &mut Self {
+        self.config_override = config_override;
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.workspace_id(input.into());
-                    self
-                }
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.workspace_id(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_workspace_id(input);
-                    self
-                }
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_workspace_id(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_workspace_id()
-                }
+        self.inner.get_workspace_id()
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.org_id(input.into());
-                    self
-                }
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.org_id(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_org_id(input);
-                    self
-                }
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_org_id(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_org_id()
-                }
+        self.inner.get_org_id()
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.id(input.into());
-                    self
-                }
+        self.inner = self.inner.id(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_id(input);
-                    self
-                }
+        self.inner = self.inner.set_id(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_id(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_id()
-                }
-    /// 
+        self.inner.get_id()
+    }
+    ///
     /// Appends an item to `variant_list`.
-    /// 
+    ///
     /// To override the contents of this collection use [`set_variant_list`](Self::set_variant_list).
-    /// 
+    ///
     #[allow(missing_docs)] // documentation missing in model
     pub fn variant_list(mut self, input: crate::types::VariantUpdateRequest) -> Self {
-                        self.inner = self.inner.variant_list(input);
-                        self
-                    }
+        self.inner = self.inner.variant_list(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_variant_list(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::VariantUpdateRequest>>) -> Self {
-                    self.inner = self.inner.set_variant_list(input);
-                    self
-                }
+    pub fn set_variant_list(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<crate::types::VariantUpdateRequest>>,
+    ) -> Self {
+        self.inner = self.inner.set_variant_list(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_variant_list(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::VariantUpdateRequest>> {
-                    self.inner.get_variant_list()
-                }
+    pub fn get_variant_list(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<crate::types::VariantUpdateRequest>> {
+        self.inner.get_variant_list()
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn description(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.description(input.into());
-                    self
-                }
+    pub fn description(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.description(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_description(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_description(input);
-                    self
-                }
+    pub fn set_description(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_description(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_description(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_description()
-                }
+        self.inner.get_description()
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn change_reason(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.change_reason(input.into());
-                    self
-                }
+    pub fn change_reason(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.change_reason(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_change_reason(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_change_reason(input);
-                    self
-                }
+    pub fn set_change_reason(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_change_reason(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_change_reason()
-                }
+        self.inner.get_change_reason()
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn metrics(mut self, input: ::aws_smithy_types::Document) -> Self {
-                    self.inner = self.inner.metrics(input);
-                    self
-                }
+        self.inner = self.inner.metrics(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_metrics(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
-                    self.inner = self.inner.set_metrics(input);
-                    self
-                }
+    pub fn set_metrics(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::Document>,
+    ) -> Self {
+        self.inner = self.inner.set_metrics(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_metrics(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
-                    self.inner.get_metrics()
-                }
+        self.inner.get_metrics()
+    }
     /// To unset experiment group, pass "null" string.
-    pub fn experiment_group_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.experiment_group_id(input.into());
-                    self
-                }
+    pub fn experiment_group_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.experiment_group_id(input.into());
+        self
+    }
     /// To unset experiment group, pass "null" string.
-    pub fn set_experiment_group_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_experiment_group_id(input);
-                    self
-                }
+    pub fn set_experiment_group_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_experiment_group_id(input);
+        self
+    }
     /// To unset experiment group, pass "null" string.
-    pub fn get_experiment_group_id(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_experiment_group_id()
-                }
+    pub fn get_experiment_group_id(
+        &self,
+    ) -> &::std::option::Option<::std::string::String> {
+        self.inner.get_experiment_group_id()
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn config_tags(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.config_tags(input.into());
-                    self
-                }
+    pub fn config_tags(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.config_tags(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_config_tags(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_config_tags(input);
-                    self
-                }
+    pub fn set_config_tags(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_config_tags(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_config_tags(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_config_tags()
-                }
+        self.inner.get_config_tags()
+    }
 }
-

@@ -2,15 +2,15 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct ListOrganisationOutput  {
+pub struct ListOrganisationOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub total_pages: i32,
     #[allow(missing_docs)] // documentation missing in model
     pub total_items: i32,
     #[allow(missing_docs)] // documentation missing in model
-    pub data: ::std::vec::Vec::<crate::types::OrganisationResponse>,
+    pub data: ::std::vec::Vec<crate::types::OrganisationResponse>,
 }
-impl  ListOrganisationOutput  {
+impl ListOrganisationOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn total_pages(&self) -> i32 {
         self.total_pages
@@ -21,23 +21,29 @@ impl  ListOrganisationOutput  {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn data(&self) -> &[crate::types::OrganisationResponse] {
-        use std::ops::Deref; self.data.deref()
+        use std::ops::Deref;
+        self.data.deref()
     }
 }
 impl ListOrganisationOutput {
     /// Creates a new builder-style object to manufacture [`ListOrganisationOutput`](crate::operation::list_organisation::ListOrganisationOutput).
-    pub fn builder() -> crate::operation::list_organisation::builders::ListOrganisationOutputBuilder {
+    pub fn builder(
+    ) -> crate::operation::list_organisation::builders::ListOrganisationOutputBuilder
+    {
         crate::operation::list_organisation::builders::ListOrganisationOutputBuilder::default()
     }
 }
 
 /// A builder for [`ListOrganisationOutput`](crate::operation::list_organisation::ListOrganisationOutput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct ListOrganisationOutputBuilder {
     pub(crate) total_pages: ::std::option::Option<i32>,
     pub(crate) total_items: ::std::option::Option<i32>,
-    pub(crate) data: ::std::option::Option<::std::vec::Vec::<crate::types::OrganisationResponse>>,
+    pub(crate) data:
+        ::std::option::Option<::std::vec::Vec<crate::types::OrganisationResponse>>,
 }
 impl ListOrganisationOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -48,7 +54,8 @@ impl ListOrganisationOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_total_pages(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.total_pages = input; self
+        self.total_pages = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_total_pages(&self) -> &::std::option::Option<i32> {
@@ -62,7 +69,8 @@ impl ListOrganisationOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_total_items(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.total_items = input; self
+        self.total_items = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_total_items(&self) -> &::std::option::Option<i32> {
@@ -74,16 +82,22 @@ impl ListOrganisationOutputBuilder {
     ///
     pub fn data(mut self, input: crate::types::OrganisationResponse) -> Self {
         let mut v = self.data.unwrap_or_default();
-                        v.push(input);
-                        self.data = ::std::option::Option::Some(v);
-                        self
+        v.push(input);
+        self.data = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_data(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::OrganisationResponse>>) -> Self {
-        self.data = input; self
+    pub fn set_data(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<crate::types::OrganisationResponse>>,
+    ) -> Self {
+        self.data = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_data(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::OrganisationResponse>> {
+    pub fn get_data(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<crate::types::OrganisationResponse>> {
         &self.data
     }
     /// Consumes the builder and constructs a [`ListOrganisationOutput`](crate::operation::list_organisation::ListOrganisationOutput).
@@ -91,7 +105,12 @@ impl ListOrganisationOutputBuilder {
     /// - [`total_pages`](crate::operation::list_organisation::builders::ListOrganisationOutputBuilder::total_pages)
     /// - [`total_items`](crate::operation::list_organisation::builders::ListOrganisationOutputBuilder::total_items)
     /// - [`data`](crate::operation::list_organisation::builders::ListOrganisationOutputBuilder::data)
-    pub fn build(self) -> ::std::result::Result<crate::operation::list_organisation::ListOrganisationOutput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::list_organisation::ListOrganisationOutput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::list_organisation::ListOrganisationOutput {
                 total_pages: self.total_pages
@@ -113,4 +132,3 @@ impl ListOrganisationOutputBuilder {
         )
     }
 }
-

@@ -3,22 +3,27 @@ pub use crate::operation::get_type_templates_list::_get_type_templates_list_outp
 
 pub use crate::operation::get_type_templates_list::_get_type_templates_list_input::GetTypeTemplatesListInputBuilder;
 
-impl crate::operation::get_type_templates_list::builders::GetTypeTemplatesListInputBuilder {
-                    /// Sends a request with this input using the given client.
-                    pub async fn send_with(self, client: &crate::Client) -> ::std::result::Result<
-                        crate::operation::get_type_templates_list::GetTypeTemplatesListOutput,
-                        ::aws_smithy_runtime_api::client::result::SdkError<
-                            crate::operation::get_type_templates_list::GetTypeTemplatesListError,
-                            ::aws_smithy_runtime_api::client::orchestrator::HttpResponse
-                        >
-                    > {
-                        let mut fluent_builder = client.get_type_templates_list();
-                        fluent_builder.inner = self;
-                        fluent_builder.send().await
-                    }
-                }
+impl
+    crate::operation::get_type_templates_list::builders::GetTypeTemplatesListInputBuilder
+{
+    /// Sends a request with this input using the given client.
+    pub async fn send_with(
+        self,
+        client: &crate::Client,
+    ) -> ::std::result::Result<
+        crate::operation::get_type_templates_list::GetTypeTemplatesListOutput,
+        ::aws_smithy_runtime_api::client::result::SdkError<
+            crate::operation::get_type_templates_list::GetTypeTemplatesListError,
+            ::aws_smithy_runtime_api::client::orchestrator::HttpResponse,
+        >,
+    > {
+        let mut fluent_builder = client.get_type_templates_list();
+        fluent_builder.inner = self;
+        fluent_builder.send().await
+    }
+}
 /// Fluent builder constructing a request to `GetTypeTemplatesList`.
-/// 
+///
 /// Retrieves a paginated list of all type templates in the workspace, including their schemas and metadata for type management.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct GetTypeTemplatesListFluentBuilder {
@@ -27,144 +32,175 @@ pub struct GetTypeTemplatesListFluentBuilder {
 config_override: ::std::option::Option<crate::config::Builder>,
             }
 impl
-                crate::client::customize::internal::CustomizableSend<
-                    crate::operation::get_type_templates_list::GetTypeTemplatesListOutput,
-                    crate::operation::get_type_templates_list::GetTypeTemplatesListError,
-                > for GetTypeTemplatesListFluentBuilder
-            {
-                fn send(
-                    self,
-                    config_override: crate::config::Builder,
-                ) -> crate::client::customize::internal::BoxFuture<
-                    crate::client::customize::internal::SendResult<
-                        crate::operation::get_type_templates_list::GetTypeTemplatesListOutput,
-                        crate::operation::get_type_templates_list::GetTypeTemplatesListError,
-                    >,
-                > {
-                    ::std::boxed::Box::pin(async move { self.config_override(config_override).send().await })
-                }
-            }
+    crate::client::customize::internal::CustomizableSend<
+        crate::operation::get_type_templates_list::GetTypeTemplatesListOutput,
+        crate::operation::get_type_templates_list::GetTypeTemplatesListError,
+    > for GetTypeTemplatesListFluentBuilder
+{
+    fn send(
+        self,
+        config_override: crate::config::Builder,
+    ) -> crate::client::customize::internal::BoxFuture<
+        crate::client::customize::internal::SendResult<
+            crate::operation::get_type_templates_list::GetTypeTemplatesListOutput,
+            crate::operation::get_type_templates_list::GetTypeTemplatesListError,
+        >,
+    > {
+        ::std::boxed::Box::pin(async move {
+            self.config_override(config_override).send().await
+        })
+    }
+}
 impl GetTypeTemplatesListFluentBuilder {
     /// Creates a new `GetTypeTemplatesListFluentBuilder`.
-                    pub(crate) fn new(handle: ::std::sync::Arc<crate::client::Handle>) -> Self {
-                        Self {
-                            handle,
-                            inner: ::std::default::Default::default(),
-    config_override: ::std::option::Option::None,
-                        }
-                    }
+    pub(crate) fn new(handle: ::std::sync::Arc<crate::client::Handle>) -> Self {
+        Self {
+            handle,
+            inner: ::std::default::Default::default(),
+            config_override: ::std::option::Option::None,
+        }
+    }
     /// Access the GetTypeTemplatesList as a reference.
-                    pub fn as_input(&self) -> &crate::operation::get_type_templates_list::builders::GetTypeTemplatesListInputBuilder {
-                        &self.inner
-                    }
+    pub fn as_input(&self) -> &crate::operation::get_type_templates_list::builders::GetTypeTemplatesListInputBuilder{
+        &self.inner
+    }
     /// Sends the request and returns the response.
-                    ///
-                    /// If an error occurs, an `SdkError` will be returned with additional details that
-                    /// can be matched against.
-                    ///
-                    /// By default, any retryable failures will be retried twice. Retry behavior
-                    /// is configurable with the [RetryConfig](aws_smithy_types::retry::RetryConfig), which can be
-                    /// set when configuring the client.
-                    pub async fn send(self) -> ::std::result::Result<crate::operation::get_type_templates_list::GetTypeTemplatesListOutput, ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_type_templates_list::GetTypeTemplatesListError, ::aws_smithy_runtime_api::client::orchestrator::HttpResponse>> {
-                        let input = self.inner.build().map_err(::aws_smithy_runtime_api::client::result::SdkError::construction_failure)?;
-                        let runtime_plugins = crate::operation::get_type_templates_list::GetTypeTemplatesList::operation_runtime_plugins(
+    ///
+    /// If an error occurs, an `SdkError` will be returned with additional details that
+    /// can be matched against.
+    ///
+    /// By default, any retryable failures will be retried twice. Retry behavior
+    /// is configurable with the [RetryConfig](aws_smithy_types::retry::RetryConfig), which can be
+    /// set when configuring the client.
+    pub async fn send(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::get_type_templates_list::GetTypeTemplatesListOutput,
+        ::aws_smithy_runtime_api::client::result::SdkError<
+            crate::operation::get_type_templates_list::GetTypeTemplatesListError,
+            ::aws_smithy_runtime_api::client::orchestrator::HttpResponse,
+        >,
+    > {
+        let input = self.inner.build().map_err(
+            ::aws_smithy_runtime_api::client::result::SdkError::construction_failure,
+        )?;
+        let runtime_plugins = crate::operation::get_type_templates_list::GetTypeTemplatesList::operation_runtime_plugins(
                             self.handle.runtime_plugins.clone(),
                             &self.handle.conf,
                             self.config_override,
                         );
-                        crate::operation::get_type_templates_list::GetTypeTemplatesList::orchestrate(&runtime_plugins, input).await
-                    }
-    
-                    /// Consumes this builder, creating a customizable operation that can be modified before being sent.
-                    pub fn customize(
-                        self,
-                    ) -> crate::client::customize::CustomizableOperation<crate::operation::get_type_templates_list::GetTypeTemplatesListOutput, crate::operation::get_type_templates_list::GetTypeTemplatesListError, Self> {
-                        crate::client::customize::CustomizableOperation::new(self)
-                    }
+        crate::operation::get_type_templates_list::GetTypeTemplatesList::orchestrate(
+            &runtime_plugins,
+            input,
+        )
+        .await
+    }
+
+    /// Consumes this builder, creating a customizable operation that can be modified before being sent.
+    pub fn customize(
+        self,
+    ) -> crate::client::customize::CustomizableOperation<
+        crate::operation::get_type_templates_list::GetTypeTemplatesListOutput,
+        crate::operation::get_type_templates_list::GetTypeTemplatesListError,
+        Self,
+    > {
+        crate::client::customize::CustomizableOperation::new(self)
+    }
     pub(crate) fn config_override(
-                            mut self,
-                            config_override: impl ::std::convert::Into<crate::config::Builder>,
-                        ) -> Self {
-                            self.set_config_override(::std::option::Option::Some(config_override.into()));
-                            self
-                        }
-    
-                        pub(crate) fn set_config_override(
-                            &mut self,
-                            config_override: ::std::option::Option<crate::config::Builder>,
-                        ) -> &mut Self {
-                            self.config_override = config_override;
-                            self
-                        }
+        mut self,
+        config_override: impl ::std::convert::Into<crate::config::Builder>,
+    ) -> Self {
+        self.set_config_override(::std::option::Option::Some(config_override.into()));
+        self
+    }
+
+    pub(crate) fn set_config_override(
+        &mut self,
+        config_override: ::std::option::Option<crate::config::Builder>,
+    ) -> &mut Self {
+        self.config_override = config_override;
+        self
+    }
     /// Number of items to be returned in each page.
     pub fn count(mut self, input: i32) -> Self {
-                    self.inner = self.inner.count(input);
-                    self
-                }
+        self.inner = self.inner.count(input);
+        self
+    }
     /// Number of items to be returned in each page.
     pub fn set_count(mut self, input: ::std::option::Option<i32>) -> Self {
-                    self.inner = self.inner.set_count(input);
-                    self
-                }
+        self.inner = self.inner.set_count(input);
+        self
+    }
     /// Number of items to be returned in each page.
     pub fn get_count(&self) -> &::std::option::Option<i32> {
-                    self.inner.get_count()
-                }
+        self.inner.get_count()
+    }
     /// Page number to retrieve, starting from 1.
     pub fn page(mut self, input: i32) -> Self {
-                    self.inner = self.inner.page(input);
-                    self
-                }
+        self.inner = self.inner.page(input);
+        self
+    }
     /// Page number to retrieve, starting from 1.
     pub fn set_page(mut self, input: ::std::option::Option<i32>) -> Self {
-                    self.inner = self.inner.set_page(input);
-                    self
-                }
+        self.inner = self.inner.set_page(input);
+        self
+    }
     /// Page number to retrieve, starting from 1.
     pub fn get_page(&self) -> &::std::option::Option<i32> {
-                    self.inner.get_page()
-                }
+        self.inner.get_page()
+    }
     /// If true, returns all requested items, ignoring pagination parameters page and count.
     pub fn all(mut self, input: bool) -> Self {
-                    self.inner = self.inner.all(input);
-                    self
-                }
+        self.inner = self.inner.all(input);
+        self
+    }
     /// If true, returns all requested items, ignoring pagination parameters page and count.
     pub fn set_all(mut self, input: ::std::option::Option<bool>) -> Self {
-                    self.inner = self.inner.set_all(input);
-                    self
-                }
+        self.inner = self.inner.set_all(input);
+        self
+    }
     /// If true, returns all requested items, ignoring pagination parameters page and count.
     pub fn get_all(&self) -> &::std::option::Option<bool> {
-                    self.inner.get_all()
-                }
+        self.inner.get_all()
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.workspace_id(input.into());
-                    self
-                }
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.workspace_id(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_workspace_id(input);
-                    self
-                }
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_workspace_id(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_workspace_id()
-                }
+        self.inner.get_workspace_id()
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.org_id(input.into());
-                    self
-                }
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.org_id(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_org_id(input);
-                    self
-                }
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_org_id(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_org_id()
-                }
+        self.inner.get_org_id()
+    }
 }
-

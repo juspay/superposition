@@ -14,7 +14,9 @@ use service_utils::{
         CONFIG_KEY_SUFFIX, CONFIG_VERSION_KEY_SUFFIX, LAST_MODIFIED_KEY_SUFFIX,
         read_through_cache,
     },
-    service::types::{AppState, EncryptionKey, SchemaName, WorkspaceContext},
+    service::types::{
+        AppState, EncryptionKey, ResolvedMergeStrategy, SchemaName, WorkspaceContext,
+    },
 };
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
@@ -365,7 +367,7 @@ fn build_resolved_config(
 pub fn resolve(
     config: Config,
     query_data: QueryMap,
-    merge_strategy: Header<MergeStrategy>,
+    merge_strategy: ResolvedMergeStrategy,
     conn: &mut DBConnection,
     query_filters: ResolveConfigQuery,
     workspace_context: &WorkspaceContext,
@@ -395,7 +397,7 @@ pub fn resolve(
 pub fn resolve_detailed(
     config: Config,
     context_data: QueryMap,
-    merge_strategy: Header<MergeStrategy>,
+    merge_strategy: ResolvedMergeStrategy,
     conn: &mut DBConnection,
     resolve_options: ResolveConfigQuery,
     workspace_context: &WorkspaceContext,
@@ -432,7 +434,7 @@ pub fn resolve_detailed(
 pub fn explain_resolved_config(
     mut config: Config,
     context_data: QueryMap,
-    merge_strategy: Header<MergeStrategy>,
+    merge_strategy: ResolvedMergeStrategy,
     conn: &mut DBConnection,
     resolve_options: &ExplainResolveQuery,
     explain_key: &ExplainKeyQuery,

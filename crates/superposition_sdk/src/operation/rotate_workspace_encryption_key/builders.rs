@@ -18,7 +18,7 @@ impl crate::operation::rotate_workspace_encryption_key::builders::RotateWorkspac
                     }
                 }
 /// Fluent builder constructing a request to `RotateWorkspaceEncryptionKey`.
-/// 
+///
 /// Rotates the workspace encryption key. Generates a new encryption key and re-encrypts all secrets with the new key. This is a critical operation that should be done during low-traffic periods.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct RotateWorkspaceEncryptionKeyFluentBuilder {
@@ -46,83 +46,96 @@ impl
             }
 impl RotateWorkspaceEncryptionKeyFluentBuilder {
     /// Creates a new `RotateWorkspaceEncryptionKeyFluentBuilder`.
-                    pub(crate) fn new(handle: ::std::sync::Arc<crate::client::Handle>) -> Self {
-                        Self {
-                            handle,
-                            inner: ::std::default::Default::default(),
-    config_override: ::std::option::Option::None,
-                        }
-                    }
+    pub(crate) fn new(handle: ::std::sync::Arc<crate::client::Handle>) -> Self {
+        Self {
+            handle,
+            inner: ::std::default::Default::default(),
+            config_override: ::std::option::Option::None,
+        }
+    }
     /// Access the RotateWorkspaceEncryptionKey as a reference.
-                    pub fn as_input(&self) -> &crate::operation::rotate_workspace_encryption_key::builders::RotateWorkspaceEncryptionKeyInputBuilder {
-                        &self.inner
-                    }
+    pub fn as_input(&self) -> &crate::operation::rotate_workspace_encryption_key::builders::RotateWorkspaceEncryptionKeyInputBuilder{
+        &self.inner
+    }
     /// Sends the request and returns the response.
-                    ///
-                    /// If an error occurs, an `SdkError` will be returned with additional details that
-                    /// can be matched against.
-                    ///
-                    /// By default, any retryable failures will be retried twice. Retry behavior
-                    /// is configurable with the [RetryConfig](aws_smithy_types::retry::RetryConfig), which can be
-                    /// set when configuring the client.
-                    pub async fn send(self) -> ::std::result::Result<crate::operation::rotate_workspace_encryption_key::RotateWorkspaceEncryptionKeyOutput, ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::rotate_workspace_encryption_key::RotateWorkspaceEncryptionKeyError, ::aws_smithy_runtime_api::client::orchestrator::HttpResponse>> {
-                        let input = self.inner.build().map_err(::aws_smithy_runtime_api::client::result::SdkError::construction_failure)?;
-                        let runtime_plugins = crate::operation::rotate_workspace_encryption_key::RotateWorkspaceEncryptionKey::operation_runtime_plugins(
+    ///
+    /// If an error occurs, an `SdkError` will be returned with additional details that
+    /// can be matched against.
+    ///
+    /// By default, any retryable failures will be retried twice. Retry behavior
+    /// is configurable with the [RetryConfig](aws_smithy_types::retry::RetryConfig), which can be
+    /// set when configuring the client.
+    pub async fn send(self) -> ::std::result::Result<crate::operation::rotate_workspace_encryption_key::RotateWorkspaceEncryptionKeyOutput, ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::rotate_workspace_encryption_key::RotateWorkspaceEncryptionKeyError, ::aws_smithy_runtime_api::client::orchestrator::HttpResponse>>{
+        let input = self.inner.build().map_err(
+            ::aws_smithy_runtime_api::client::result::SdkError::construction_failure,
+        )?;
+        let runtime_plugins = crate::operation::rotate_workspace_encryption_key::RotateWorkspaceEncryptionKey::operation_runtime_plugins(
                             self.handle.runtime_plugins.clone(),
                             &self.handle.conf,
                             self.config_override,
                         );
-                        crate::operation::rotate_workspace_encryption_key::RotateWorkspaceEncryptionKey::orchestrate(&runtime_plugins, input).await
-                    }
-    
-                    /// Consumes this builder, creating a customizable operation that can be modified before being sent.
+        crate::operation::rotate_workspace_encryption_key::RotateWorkspaceEncryptionKey::orchestrate(&runtime_plugins, input).await
+    }
+
+    /// Consumes this builder, creating a customizable operation that can be modified before being sent.
                     pub fn customize(
                         self,
-                    ) -> crate::client::customize::CustomizableOperation<crate::operation::rotate_workspace_encryption_key::RotateWorkspaceEncryptionKeyOutput, crate::operation::rotate_workspace_encryption_key::RotateWorkspaceEncryptionKeyError, Self> {
-                        crate::client::customize::CustomizableOperation::new(self)
-                    }
+    ) -> crate::client::customize::CustomizableOperation<crate::operation::rotate_workspace_encryption_key::RotateWorkspaceEncryptionKeyOutput, crate::operation::rotate_workspace_encryption_key::RotateWorkspaceEncryptionKeyError, Self>{
+        crate::client::customize::CustomizableOperation::new(self)
+    }
     pub(crate) fn config_override(
-                            mut self,
-                            config_override: impl ::std::convert::Into<crate::config::Builder>,
-                        ) -> Self {
-                            self.set_config_override(::std::option::Option::Some(config_override.into()));
-                            self
-                        }
-    
-                        pub(crate) fn set_config_override(
-                            &mut self,
-                            config_override: ::std::option::Option<crate::config::Builder>,
-                        ) -> &mut Self {
-                            self.config_override = config_override;
-                            self
-                        }
+        mut self,
+        config_override: impl ::std::convert::Into<crate::config::Builder>,
+    ) -> Self {
+        self.set_config_override(::std::option::Option::Some(config_override.into()));
+        self
+    }
+
+    pub(crate) fn set_config_override(
+        &mut self,
+        config_override: ::std::option::Option<crate::config::Builder>,
+    ) -> &mut Self {
+        self.config_override = config_override;
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.org_id(input.into());
-                    self
-                }
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.org_id(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_org_id(input);
-                    self
-                }
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_org_id(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_org_id()
-                }
+        self.inner.get_org_id()
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn workspace_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.workspace_name(input.into());
-                    self
-                }
+    pub fn workspace_name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.workspace_name(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_workspace_name(input);
-                    self
-                }
+    pub fn set_workspace_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_workspace_name(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_name(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_workspace_name()
-                }
+        self.inner.get_workspace_name()
+    }
 }
-

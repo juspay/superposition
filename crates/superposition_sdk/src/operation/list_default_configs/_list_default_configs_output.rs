@@ -2,15 +2,15 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct ListDefaultConfigsOutput  {
+pub struct ListDefaultConfigsOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub total_pages: i32,
     #[allow(missing_docs)] // documentation missing in model
     pub total_items: i32,
     #[allow(missing_docs)] // documentation missing in model
-    pub data: ::std::vec::Vec::<crate::types::DefaultConfigResponse>,
+    pub data: ::std::vec::Vec<crate::types::DefaultConfigResponse>,
 }
-impl  ListDefaultConfigsOutput  {
+impl ListDefaultConfigsOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn total_pages(&self) -> i32 {
         self.total_pages
@@ -21,23 +21,29 @@ impl  ListDefaultConfigsOutput  {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn data(&self) -> &[crate::types::DefaultConfigResponse] {
-        use std::ops::Deref; self.data.deref()
+        use std::ops::Deref;
+        self.data.deref()
     }
 }
 impl ListDefaultConfigsOutput {
     /// Creates a new builder-style object to manufacture [`ListDefaultConfigsOutput`](crate::operation::list_default_configs::ListDefaultConfigsOutput).
-    pub fn builder() -> crate::operation::list_default_configs::builders::ListDefaultConfigsOutputBuilder {
+    pub fn builder(
+    ) -> crate::operation::list_default_configs::builders::ListDefaultConfigsOutputBuilder
+    {
         crate::operation::list_default_configs::builders::ListDefaultConfigsOutputBuilder::default()
     }
 }
 
 /// A builder for [`ListDefaultConfigsOutput`](crate::operation::list_default_configs::ListDefaultConfigsOutput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct ListDefaultConfigsOutputBuilder {
     pub(crate) total_pages: ::std::option::Option<i32>,
     pub(crate) total_items: ::std::option::Option<i32>,
-    pub(crate) data: ::std::option::Option<::std::vec::Vec::<crate::types::DefaultConfigResponse>>,
+    pub(crate) data:
+        ::std::option::Option<::std::vec::Vec<crate::types::DefaultConfigResponse>>,
 }
 impl ListDefaultConfigsOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -48,7 +54,8 @@ impl ListDefaultConfigsOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_total_pages(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.total_pages = input; self
+        self.total_pages = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_total_pages(&self) -> &::std::option::Option<i32> {
@@ -62,7 +69,8 @@ impl ListDefaultConfigsOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_total_items(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.total_items = input; self
+        self.total_items = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_total_items(&self) -> &::std::option::Option<i32> {
@@ -74,16 +82,25 @@ impl ListDefaultConfigsOutputBuilder {
     ///
     pub fn data(mut self, input: crate::types::DefaultConfigResponse) -> Self {
         let mut v = self.data.unwrap_or_default();
-                        v.push(input);
-                        self.data = ::std::option::Option::Some(v);
-                        self
+        v.push(input);
+        self.data = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_data(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::DefaultConfigResponse>>) -> Self {
-        self.data = input; self
+    pub fn set_data(
+        mut self,
+        input: ::std::option::Option<
+            ::std::vec::Vec<crate::types::DefaultConfigResponse>,
+        >,
+    ) -> Self {
+        self.data = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_data(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::DefaultConfigResponse>> {
+    pub fn get_data(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<crate::types::DefaultConfigResponse>>
+    {
         &self.data
     }
     /// Consumes the builder and constructs a [`ListDefaultConfigsOutput`](crate::operation::list_default_configs::ListDefaultConfigsOutput).
@@ -91,7 +108,12 @@ impl ListDefaultConfigsOutputBuilder {
     /// - [`total_pages`](crate::operation::list_default_configs::builders::ListDefaultConfigsOutputBuilder::total_pages)
     /// - [`total_items`](crate::operation::list_default_configs::builders::ListDefaultConfigsOutputBuilder::total_items)
     /// - [`data`](crate::operation::list_default_configs::builders::ListDefaultConfigsOutputBuilder::data)
-    pub fn build(self) -> ::std::result::Result<crate::operation::list_default_configs::ListDefaultConfigsOutput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::list_default_configs::ListDefaultConfigsOutput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::list_default_configs::ListDefaultConfigsOutput {
                 total_pages: self.total_pages
@@ -113,4 +135,3 @@ impl ListDefaultConfigsOutputBuilder {
         )
     }
 }
-

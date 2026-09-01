@@ -3,22 +3,27 @@ pub use crate::operation::list_experiment_groups::_list_experiment_groups_output
 
 pub use crate::operation::list_experiment_groups::_list_experiment_groups_input::ListExperimentGroupsInputBuilder;
 
-impl crate::operation::list_experiment_groups::builders::ListExperimentGroupsInputBuilder {
-                    /// Sends a request with this input using the given client.
-                    pub async fn send_with(self, client: &crate::Client) -> ::std::result::Result<
-                        crate::operation::list_experiment_groups::ListExperimentGroupsOutput,
-                        ::aws_smithy_runtime_api::client::result::SdkError<
-                            crate::operation::list_experiment_groups::ListExperimentGroupsError,
-                            ::aws_smithy_runtime_api::client::orchestrator::HttpResponse
-                        >
-                    > {
-                        let mut fluent_builder = client.list_experiment_groups();
-                        fluent_builder.inner = self;
-                        fluent_builder.send().await
-                    }
-                }
+impl
+    crate::operation::list_experiment_groups::builders::ListExperimentGroupsInputBuilder
+{
+    /// Sends a request with this input using the given client.
+    pub async fn send_with(
+        self,
+        client: &crate::Client,
+    ) -> ::std::result::Result<
+        crate::operation::list_experiment_groups::ListExperimentGroupsOutput,
+        ::aws_smithy_runtime_api::client::result::SdkError<
+            crate::operation::list_experiment_groups::ListExperimentGroupsError,
+            ::aws_smithy_runtime_api::client::orchestrator::HttpResponse,
+        >,
+    > {
+        let mut fluent_builder = client.list_experiment_groups();
+        fluent_builder.inner = self;
+        fluent_builder.send().await
+    }
+}
 /// Fluent builder constructing a request to `ListExperimentGroups`.
-/// 
+///
 /// Lists experiment groups, with support for filtering and pagination.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct ListExperimentGroupsFluentBuilder {
@@ -27,299 +32,403 @@ pub struct ListExperimentGroupsFluentBuilder {
 config_override: ::std::option::Option<crate::config::Builder>,
             }
 impl
-                crate::client::customize::internal::CustomizableSend<
-                    crate::operation::list_experiment_groups::ListExperimentGroupsOutput,
-                    crate::operation::list_experiment_groups::ListExperimentGroupsError,
-                > for ListExperimentGroupsFluentBuilder
-            {
-                fn send(
-                    self,
-                    config_override: crate::config::Builder,
-                ) -> crate::client::customize::internal::BoxFuture<
-                    crate::client::customize::internal::SendResult<
-                        crate::operation::list_experiment_groups::ListExperimentGroupsOutput,
-                        crate::operation::list_experiment_groups::ListExperimentGroupsError,
-                    >,
-                > {
-                    ::std::boxed::Box::pin(async move { self.config_override(config_override).send().await })
-                }
-            }
+    crate::client::customize::internal::CustomizableSend<
+        crate::operation::list_experiment_groups::ListExperimentGroupsOutput,
+        crate::operation::list_experiment_groups::ListExperimentGroupsError,
+    > for ListExperimentGroupsFluentBuilder
+{
+    fn send(
+        self,
+        config_override: crate::config::Builder,
+    ) -> crate::client::customize::internal::BoxFuture<
+        crate::client::customize::internal::SendResult<
+            crate::operation::list_experiment_groups::ListExperimentGroupsOutput,
+            crate::operation::list_experiment_groups::ListExperimentGroupsError,
+        >,
+    > {
+        ::std::boxed::Box::pin(async move {
+            self.config_override(config_override).send().await
+        })
+    }
+}
 impl ListExperimentGroupsFluentBuilder {
     /// Creates a new `ListExperimentGroupsFluentBuilder`.
-                    pub(crate) fn new(handle: ::std::sync::Arc<crate::client::Handle>) -> Self {
-                        Self {
-                            handle,
-                            inner: ::std::default::Default::default(),
-    config_override: ::std::option::Option::None,
-                        }
-                    }
+    pub(crate) fn new(handle: ::std::sync::Arc<crate::client::Handle>) -> Self {
+        Self {
+            handle,
+            inner: ::std::default::Default::default(),
+            config_override: ::std::option::Option::None,
+        }
+    }
     /// Access the ListExperimentGroups as a reference.
-                    pub fn as_input(&self) -> &crate::operation::list_experiment_groups::builders::ListExperimentGroupsInputBuilder {
-                        &self.inner
-                    }
+    pub fn as_input(&self) -> &crate::operation::list_experiment_groups::builders::ListExperimentGroupsInputBuilder{
+        &self.inner
+    }
     /// Sends the request and returns the response.
-                    ///
-                    /// If an error occurs, an `SdkError` will be returned with additional details that
-                    /// can be matched against.
-                    ///
-                    /// By default, any retryable failures will be retried twice. Retry behavior
-                    /// is configurable with the [RetryConfig](aws_smithy_types::retry::RetryConfig), which can be
-                    /// set when configuring the client.
-                    pub async fn send(self) -> ::std::result::Result<crate::operation::list_experiment_groups::ListExperimentGroupsOutput, ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::list_experiment_groups::ListExperimentGroupsError, ::aws_smithy_runtime_api::client::orchestrator::HttpResponse>> {
-                        let input = self.inner.build().map_err(::aws_smithy_runtime_api::client::result::SdkError::construction_failure)?;
-                        let runtime_plugins = crate::operation::list_experiment_groups::ListExperimentGroups::operation_runtime_plugins(
+    ///
+    /// If an error occurs, an `SdkError` will be returned with additional details that
+    /// can be matched against.
+    ///
+    /// By default, any retryable failures will be retried twice. Retry behavior
+    /// is configurable with the [RetryConfig](aws_smithy_types::retry::RetryConfig), which can be
+    /// set when configuring the client.
+    pub async fn send(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::list_experiment_groups::ListExperimentGroupsOutput,
+        ::aws_smithy_runtime_api::client::result::SdkError<
+            crate::operation::list_experiment_groups::ListExperimentGroupsError,
+            ::aws_smithy_runtime_api::client::orchestrator::HttpResponse,
+        >,
+    > {
+        let input = self.inner.build().map_err(
+            ::aws_smithy_runtime_api::client::result::SdkError::construction_failure,
+        )?;
+        let runtime_plugins = crate::operation::list_experiment_groups::ListExperimentGroups::operation_runtime_plugins(
                             self.handle.runtime_plugins.clone(),
                             &self.handle.conf,
                             self.config_override,
                         );
-                        crate::operation::list_experiment_groups::ListExperimentGroups::orchestrate(&runtime_plugins, input).await
-                    }
-    
-                    /// Consumes this builder, creating a customizable operation that can be modified before being sent.
-                    pub fn customize(
-                        self,
-                    ) -> crate::client::customize::CustomizableOperation<crate::operation::list_experiment_groups::ListExperimentGroupsOutput, crate::operation::list_experiment_groups::ListExperimentGroupsError, Self> {
-                        crate::client::customize::CustomizableOperation::new(self)
-                    }
+        crate::operation::list_experiment_groups::ListExperimentGroups::orchestrate(
+            &runtime_plugins,
+            input,
+        )
+        .await
+    }
+
+    /// Consumes this builder, creating a customizable operation that can be modified before being sent.
+    pub fn customize(
+        self,
+    ) -> crate::client::customize::CustomizableOperation<
+        crate::operation::list_experiment_groups::ListExperimentGroupsOutput,
+        crate::operation::list_experiment_groups::ListExperimentGroupsError,
+        Self,
+    > {
+        crate::client::customize::CustomizableOperation::new(self)
+    }
     pub(crate) fn config_override(
-                            mut self,
-                            config_override: impl ::std::convert::Into<crate::config::Builder>,
-                        ) -> Self {
-                            self.set_config_override(::std::option::Option::Some(config_override.into()));
-                            self
-                        }
-    
-                        pub(crate) fn set_config_override(
-                            &mut self,
-                            config_override: ::std::option::Option<crate::config::Builder>,
-                        ) -> &mut Self {
-                            self.config_override = config_override;
-                            self
-                        }
+        mut self,
+        config_override: impl ::std::convert::Into<crate::config::Builder>,
+    ) -> Self {
+        self.set_config_override(::std::option::Option::Some(config_override.into()));
+        self
+    }
+
+    pub(crate) fn set_config_override(
+        &mut self,
+        config_override: ::std::option::Option<crate::config::Builder>,
+    ) -> &mut Self {
+        self.config_override = config_override;
+        self
+    }
     /// Number of items to be returned in each page.
     pub fn count(mut self, input: i32) -> Self {
-                    self.inner = self.inner.count(input);
-                    self
-                }
+        self.inner = self.inner.count(input);
+        self
+    }
     /// Number of items to be returned in each page.
     pub fn set_count(mut self, input: ::std::option::Option<i32>) -> Self {
-                    self.inner = self.inner.set_count(input);
-                    self
-                }
+        self.inner = self.inner.set_count(input);
+        self
+    }
     /// Number of items to be returned in each page.
     pub fn get_count(&self) -> &::std::option::Option<i32> {
-                    self.inner.get_count()
-                }
+        self.inner.get_count()
+    }
     /// Page number to retrieve, starting from 1.
     pub fn page(mut self, input: i32) -> Self {
-                    self.inner = self.inner.page(input);
-                    self
-                }
+        self.inner = self.inner.page(input);
+        self
+    }
     /// Page number to retrieve, starting from 1.
     pub fn set_page(mut self, input: ::std::option::Option<i32>) -> Self {
-                    self.inner = self.inner.set_page(input);
-                    self
-                }
+        self.inner = self.inner.set_page(input);
+        self
+    }
     /// Page number to retrieve, starting from 1.
     pub fn get_page(&self) -> &::std::option::Option<i32> {
-                    self.inner.get_page()
-                }
+        self.inner.get_page()
+    }
     /// If true, returns all requested items, ignoring pagination parameters page and count.
     pub fn all(mut self, input: bool) -> Self {
-                    self.inner = self.inner.all(input);
-                    self
-                }
+        self.inner = self.inner.all(input);
+        self
+    }
     /// If true, returns all requested items, ignoring pagination parameters page and count.
     pub fn set_all(mut self, input: ::std::option::Option<bool>) -> Self {
-                    self.inner = self.inner.set_all(input);
-                    self
-                }
+        self.inner = self.inner.set_all(input);
+        self
+    }
     /// If true, returns all requested items, ignoring pagination parameters page and count.
     pub fn get_all(&self) -> &::std::option::Option<bool> {
-                    self.inner.get_all()
-                }
+        self.inner.get_all()
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.workspace_id(input.into());
-                    self
-                }
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.workspace_id(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_workspace_id(input);
-                    self
-                }
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_workspace_id(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_workspace_id()
-                }
+        self.inner.get_workspace_id()
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.org_id(input.into());
-                    self
-                }
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.org_id(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_org_id(input);
-                    self
-                }
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_org_id(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_org_id()
-                }
+        self.inner.get_org_id()
+    }
     /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
     pub fn if_modified_since(mut self, input: ::aws_smithy_types::DateTime) -> Self {
-                    self.inner = self.inner.if_modified_since(input);
-                    self
-                }
+        self.inner = self.inner.if_modified_since(input);
+        self
+    }
     /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
-    pub fn set_if_modified_since(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-                    self.inner = self.inner.set_if_modified_since(input);
-                    self
-                }
+    pub fn set_if_modified_since(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.inner = self.inner.set_if_modified_since(input);
+        self
+    }
     /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
-    pub fn get_if_modified_since(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
-                    self.inner.get_if_modified_since()
-                }
+    pub fn get_if_modified_since(
+        &self,
+    ) -> &::std::option::Option<::aws_smithy_types::DateTime> {
+        self.inner.get_if_modified_since()
+    }
     /// Filter by experiment group name (exact match or substring, depending on backend implementation).
-    pub fn name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.name(input.into());
-                    self
-                }
+    pub fn name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.name(input.into());
+        self
+    }
     /// Filter by experiment group name (exact match or substring, depending on backend implementation).
-    pub fn set_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_name(input);
-                    self
-                }
+    pub fn set_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_name(input);
+        self
+    }
     /// Filter by experiment group name (exact match or substring, depending on backend implementation).
     pub fn get_name(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_name()
-                }
+        self.inner.get_name()
+    }
     /// Filter by the user who created the experiment group.
-    pub fn created_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.created_by(input.into());
-                    self
-                }
+    pub fn created_by(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.created_by(input.into());
+        self
+    }
     /// Filter by the user who created the experiment group.
-    pub fn set_created_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_created_by(input);
-                    self
-                }
+    pub fn set_created_by(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_created_by(input);
+        self
+    }
     /// Filter by the user who created the experiment group.
     pub fn get_created_by(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_created_by()
-                }
+        self.inner.get_created_by()
+    }
     /// Filter by the user who last modified the experiment group.
-    pub fn last_modified_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.last_modified_by(input.into());
-                    self
-                }
+    pub fn last_modified_by(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.last_modified_by(input.into());
+        self
+    }
     /// Filter by the user who last modified the experiment group.
-    pub fn set_last_modified_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_last_modified_by(input);
-                    self
-                }
+    pub fn set_last_modified_by(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_last_modified_by(input);
+        self
+    }
     /// Filter by the user who last modified the experiment group.
     pub fn get_last_modified_by(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_last_modified_by()
-                }
+        self.inner.get_last_modified_by()
+    }
     /// Field to sort the results by.
     pub fn sort_on(mut self, input: crate::types::ExperimentGroupSortOn) -> Self {
-                    self.inner = self.inner.sort_on(input);
-                    self
-                }
+        self.inner = self.inner.sort_on(input);
+        self
+    }
     /// Field to sort the results by.
-    pub fn set_sort_on(mut self, input: ::std::option::Option<crate::types::ExperimentGroupSortOn>) -> Self {
-                    self.inner = self.inner.set_sort_on(input);
-                    self
-                }
+    pub fn set_sort_on(
+        mut self,
+        input: ::std::option::Option<crate::types::ExperimentGroupSortOn>,
+    ) -> Self {
+        self.inner = self.inner.set_sort_on(input);
+        self
+    }
     /// Field to sort the results by.
-    pub fn get_sort_on(&self) -> &::std::option::Option<crate::types::ExperimentGroupSortOn> {
-                    self.inner.get_sort_on()
-                }
+    pub fn get_sort_on(
+        &self,
+    ) -> &::std::option::Option<crate::types::ExperimentGroupSortOn> {
+        self.inner.get_sort_on()
+    }
     /// Sort order (ascending or descending).
     pub fn sort_by(mut self, input: crate::types::SortBy) -> Self {
-                    self.inner = self.inner.sort_by(input);
-                    self
-                }
+        self.inner = self.inner.sort_by(input);
+        self
+    }
     /// Sort order (ascending or descending).
-    pub fn set_sort_by(mut self, input: ::std::option::Option<crate::types::SortBy>) -> Self {
-                    self.inner = self.inner.set_sort_by(input);
-                    self
-                }
+    pub fn set_sort_by(
+        mut self,
+        input: ::std::option::Option<crate::types::SortBy>,
+    ) -> Self {
+        self.inner = self.inner.set_sort_by(input);
+        self
+    }
     /// Sort order (ascending or descending).
     pub fn get_sort_by(&self) -> &::std::option::Option<crate::types::SortBy> {
-                    self.inner.get_sort_by()
-                }
-    /// 
+        self.inner.get_sort_by()
+    }
+    ///
     /// Appends an item to `group_type`.
-    /// 
+    ///
     /// To override the contents of this collection use [`set_group_type`](Self::set_group_type).
-    /// 
+    ///
     /// Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
     pub fn group_type(mut self, input: crate::types::GroupType) -> Self {
-                        self.inner = self.inner.group_type(input);
-                        self
-                    }
+        self.inner = self.inner.group_type(input);
+        self
+    }
     /// Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
-    pub fn set_group_type(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::GroupType>>) -> Self {
-                    self.inner = self.inner.set_group_type(input);
-                    self
-                }
+    pub fn set_group_type(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<crate::types::GroupType>>,
+    ) -> Self {
+        self.inner = self.inner.set_group_type(input);
+        self
+    }
     /// Filter by the type of group (USER_CREATED or SYSTEM_GENERATED).
-    pub fn get_group_type(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::GroupType>> {
-                    self.inner.get_group_type()
-                }
+    pub fn get_group_type(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<crate::types::GroupType>> {
+        self.inner.get_group_type()
+    }
     /// Strategy to follow while filter items based on the context
-    pub fn dimension_match_strategy(mut self, input: crate::types::DimensionMatchStrategy) -> Self {
-                    self.inner = self.inner.dimension_match_strategy(input);
-                    self
-                }
+    pub fn dimension_match_strategy(
+        mut self,
+        input: crate::types::DimensionMatchStrategy,
+    ) -> Self {
+        self.inner = self.inner.dimension_match_strategy(input);
+        self
+    }
     /// Strategy to follow while filter items based on the context
-    pub fn set_dimension_match_strategy(mut self, input: ::std::option::Option<crate::types::DimensionMatchStrategy>) -> Self {
-                    self.inner = self.inner.set_dimension_match_strategy(input);
-                    self
-                }
+    pub fn set_dimension_match_strategy(
+        mut self,
+        input: ::std::option::Option<crate::types::DimensionMatchStrategy>,
+    ) -> Self {
+        self.inner = self.inner.set_dimension_match_strategy(input);
+        self
+    }
     /// Strategy to follow while filter items based on the context
-    pub fn get_dimension_match_strategy(&self) -> &::std::option::Option<crate::types::DimensionMatchStrategy> {
-                    self.inner.get_dimension_match_strategy()
-                }
-    /// 
+    pub fn get_dimension_match_strategy(
+        &self,
+    ) -> &::std::option::Option<crate::types::DimensionMatchStrategy> {
+        self.inner.get_dimension_match_strategy()
+    }
+    ///
     /// Adds a key-value pair to `dimension_params`.
-    /// 
+    ///
     /// To override the contents of this collection use [`set_dimension_params`](Self::set_dimension_params).
-    /// 
+    ///
     /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
-    pub fn dimension_params(mut self, k: impl ::std::convert::Into<::std::string::String>, v: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.dimension_params(k.into(), v.into());
-                    self
-                }
+    pub fn dimension_params(
+        mut self,
+        k: impl ::std::convert::Into<::std::string::String>,
+        v: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.dimension_params(k.into(), v.into());
+        self
+    }
     /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
-    pub fn set_dimension_params(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>>) -> Self {
-                    self.inner = self.inner.set_dimension_params(input);
-                    self
-                }
+    pub fn set_dimension_params(
+        mut self,
+        input: ::std::option::Option<
+            ::std::collections::HashMap<::std::string::String, ::std::string::String>,
+        >,
+    ) -> Self {
+        self.inner = self.inner.set_dimension_params(input);
+        self
+    }
     /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
-    pub fn get_dimension_params(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>> {
-                    self.inner.get_dimension_params()
-                }
-    /// 
+    pub fn get_dimension_params(
+        &self,
+    ) -> &::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::std::string::String>,
+    > {
+        self.inner.get_dimension_params()
+    }
+    ///
     /// Adds a key-value pair to `context`.
-    /// 
+    ///
     /// To override the contents of this collection use [`set_context`](Self::set_context).
-    /// 
+    ///
     /// Map representing the context. Keys correspond to the names of the dimensions.
-    pub fn context(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
-                    self.inner = self.inner.context(k.into(), v);
-                    self
-                }
+    pub fn context(
+        mut self,
+        k: impl ::std::convert::Into<::std::string::String>,
+        v: ::aws_smithy_types::Document,
+    ) -> Self {
+        self.inner = self.inner.context(k.into(), v);
+        self
+    }
     /// Map representing the context. Keys correspond to the names of the dimensions.
-    pub fn set_context(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
-                    self.inner = self.inner.set_context(input);
-                    self
-                }
+    pub fn set_context(
+        mut self,
+        input: ::std::option::Option<
+            ::std::collections::HashMap<
+                ::std::string::String,
+                ::aws_smithy_types::Document,
+            >,
+        >,
+    ) -> Self {
+        self.inner = self.inner.set_context(input);
+        self
+    }
     /// Map representing the context. Keys correspond to the names of the dimensions.
-    pub fn get_context(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
-                    self.inner.get_context()
-                }
+    pub fn get_context(
+        &self,
+    ) -> &::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
+        self.inner.get_context()
+    }
 }
-

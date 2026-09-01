@@ -2,42 +2,50 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct GetExperimentConfigOutput  {
+pub struct GetExperimentConfigOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub last_modified: ::aws_smithy_types::DateTime,
     #[allow(missing_docs)] // documentation missing in model
-    pub experiments: ::std::vec::Vec::<crate::types::ExperimentResponse>,
+    pub experiments: ::std::vec::Vec<crate::types::ExperimentResponse>,
     /// A list of experiment group responses.
-    pub experiment_groups: ::std::vec::Vec::<crate::types::ExperimentGroupResponse>,
+    pub experiment_groups: ::std::vec::Vec<crate::types::ExperimentGroupResponse>,
 }
-impl  GetExperimentConfigOutput  {
+impl GetExperimentConfigOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn last_modified(&self) -> &::aws_smithy_types::DateTime {
         &self.last_modified
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn experiments(&self) -> &[crate::types::ExperimentResponse] {
-        use std::ops::Deref; self.experiments.deref()
+        use std::ops::Deref;
+        self.experiments.deref()
     }
     /// A list of experiment group responses.
     pub fn experiment_groups(&self) -> &[crate::types::ExperimentGroupResponse] {
-        use std::ops::Deref; self.experiment_groups.deref()
+        use std::ops::Deref;
+        self.experiment_groups.deref()
     }
 }
 impl GetExperimentConfigOutput {
     /// Creates a new builder-style object to manufacture [`GetExperimentConfigOutput`](crate::operation::get_experiment_config::GetExperimentConfigOutput).
-    pub fn builder() -> crate::operation::get_experiment_config::builders::GetExperimentConfigOutputBuilder {
+    pub fn builder(
+    ) -> crate::operation::get_experiment_config::builders::GetExperimentConfigOutputBuilder
+    {
         crate::operation::get_experiment_config::builders::GetExperimentConfigOutputBuilder::default()
     }
 }
 
 /// A builder for [`GetExperimentConfigOutput`](crate::operation::get_experiment_config::GetExperimentConfigOutput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct GetExperimentConfigOutputBuilder {
     pub(crate) last_modified: ::std::option::Option<::aws_smithy_types::DateTime>,
-    pub(crate) experiments: ::std::option::Option<::std::vec::Vec::<crate::types::ExperimentResponse>>,
-    pub(crate) experiment_groups: ::std::option::Option<::std::vec::Vec::<crate::types::ExperimentGroupResponse>>,
+    pub(crate) experiments:
+        ::std::option::Option<::std::vec::Vec<crate::types::ExperimentResponse>>,
+    pub(crate) experiment_groups:
+        ::std::option::Option<::std::vec::Vec<crate::types::ExperimentGroupResponse>>,
 }
 impl GetExperimentConfigOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -47,11 +55,17 @@ impl GetExperimentConfigOutputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_last_modified(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.last_modified = input; self
+    pub fn set_last_modified(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.last_modified = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_last_modified(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
+    pub fn get_last_modified(
+        &self,
+    ) -> &::std::option::Option<::aws_smithy_types::DateTime> {
         &self.last_modified
     }
     /// Appends an item to `experiments`.
@@ -60,16 +74,22 @@ impl GetExperimentConfigOutputBuilder {
     ///
     pub fn experiments(mut self, input: crate::types::ExperimentResponse) -> Self {
         let mut v = self.experiments.unwrap_or_default();
-                        v.push(input);
-                        self.experiments = ::std::option::Option::Some(v);
-                        self
+        v.push(input);
+        self.experiments = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_experiments(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::ExperimentResponse>>) -> Self {
-        self.experiments = input; self
+    pub fn set_experiments(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<crate::types::ExperimentResponse>>,
+    ) -> Self {
+        self.experiments = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_experiments(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::ExperimentResponse>> {
+    pub fn get_experiments(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<crate::types::ExperimentResponse>> {
         &self.experiments
     }
     /// Appends an item to `experiment_groups`.
@@ -77,18 +97,30 @@ impl GetExperimentConfigOutputBuilder {
     /// To override the contents of this collection use [`set_experiment_groups`](Self::set_experiment_groups).
     ///
     /// A list of experiment group responses.
-    pub fn experiment_groups(mut self, input: crate::types::ExperimentGroupResponse) -> Self {
+    pub fn experiment_groups(
+        mut self,
+        input: crate::types::ExperimentGroupResponse,
+    ) -> Self {
         let mut v = self.experiment_groups.unwrap_or_default();
-                        v.push(input);
-                        self.experiment_groups = ::std::option::Option::Some(v);
-                        self
+        v.push(input);
+        self.experiment_groups = ::std::option::Option::Some(v);
+        self
     }
     /// A list of experiment group responses.
-    pub fn set_experiment_groups(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::ExperimentGroupResponse>>) -> Self {
-        self.experiment_groups = input; self
+    pub fn set_experiment_groups(
+        mut self,
+        input: ::std::option::Option<
+            ::std::vec::Vec<crate::types::ExperimentGroupResponse>,
+        >,
+    ) -> Self {
+        self.experiment_groups = input;
+        self
     }
     /// A list of experiment group responses.
-    pub fn get_experiment_groups(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::ExperimentGroupResponse>> {
+    pub fn get_experiment_groups(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<crate::types::ExperimentGroupResponse>>
+    {
         &self.experiment_groups
     }
     /// Consumes the builder and constructs a [`GetExperimentConfigOutput`](crate::operation::get_experiment_config::GetExperimentConfigOutput).
@@ -96,7 +128,12 @@ impl GetExperimentConfigOutputBuilder {
     /// - [`last_modified`](crate::operation::get_experiment_config::builders::GetExperimentConfigOutputBuilder::last_modified)
     /// - [`experiments`](crate::operation::get_experiment_config::builders::GetExperimentConfigOutputBuilder::experiments)
     /// - [`experiment_groups`](crate::operation::get_experiment_config::builders::GetExperimentConfigOutputBuilder::experiment_groups)
-    pub fn build(self) -> ::std::result::Result<crate::operation::get_experiment_config::GetExperimentConfigOutput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::get_experiment_config::GetExperimentConfigOutput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::get_experiment_config::GetExperimentConfigOutput {
                 last_modified: self.last_modified
@@ -118,4 +155,3 @@ impl GetExperimentConfigOutputBuilder {
         )
     }
 }
-

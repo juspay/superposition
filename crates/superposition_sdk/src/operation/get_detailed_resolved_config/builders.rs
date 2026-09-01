@@ -18,7 +18,7 @@ impl crate::operation::get_detailed_resolved_config::builders::GetDetailedResolv
                     }
                 }
 /// Fluent builder constructing a request to `GetDetailedResolvedConfig`.
-/// 
+///
 /// Resolves config values and returns each key with default-config metadata.
 #[derive(::std::clone::Clone, ::std::fmt::Debug)]
 pub struct GetDetailedResolvedConfigFluentBuilder {
@@ -27,12 +27,12 @@ pub struct GetDetailedResolvedConfigFluentBuilder {
 config_override: ::std::option::Option<crate::config::Builder>,
             }
 impl
-                crate::client::customize::internal::CustomizableSend<
-                    crate::operation::get_detailed_resolved_config::GetDetailedResolvedConfigOutput,
-                    crate::operation::get_detailed_resolved_config::GetDetailedResolvedConfigError,
-                > for GetDetailedResolvedConfigFluentBuilder
-            {
-                fn send(
+    crate::client::customize::internal::CustomizableSend<
+        crate::operation::get_detailed_resolved_config::GetDetailedResolvedConfigOutput,
+        crate::operation::get_detailed_resolved_config::GetDetailedResolvedConfigError,
+    > for GetDetailedResolvedConfigFluentBuilder
+{
+    fn send(
                     self,
                     config_override: crate::config::Builder,
                 ) -> crate::client::customize::internal::BoxFuture<
@@ -40,216 +40,284 @@ impl
                         crate::operation::get_detailed_resolved_config::GetDetailedResolvedConfigOutput,
                         crate::operation::get_detailed_resolved_config::GetDetailedResolvedConfigError,
                     >,
-                > {
-                    ::std::boxed::Box::pin(async move { self.config_override(config_override).send().await })
-                }
-            }
+    >{
+        ::std::boxed::Box::pin(async move {
+            self.config_override(config_override).send().await
+        })
+    }
+}
 impl GetDetailedResolvedConfigFluentBuilder {
     /// Creates a new `GetDetailedResolvedConfigFluentBuilder`.
-                    pub(crate) fn new(handle: ::std::sync::Arc<crate::client::Handle>) -> Self {
-                        Self {
-                            handle,
-                            inner: ::std::default::Default::default(),
-    config_override: ::std::option::Option::None,
-                        }
-                    }
+    pub(crate) fn new(handle: ::std::sync::Arc<crate::client::Handle>) -> Self {
+        Self {
+            handle,
+            inner: ::std::default::Default::default(),
+            config_override: ::std::option::Option::None,
+        }
+    }
     /// Access the GetDetailedResolvedConfig as a reference.
-                    pub fn as_input(&self) -> &crate::operation::get_detailed_resolved_config::builders::GetDetailedResolvedConfigInputBuilder {
-                        &self.inner
-                    }
+    pub fn as_input(&self) -> &crate::operation::get_detailed_resolved_config::builders::GetDetailedResolvedConfigInputBuilder{
+        &self.inner
+    }
     /// Sends the request and returns the response.
-                    ///
-                    /// If an error occurs, an `SdkError` will be returned with additional details that
-                    /// can be matched against.
-                    ///
-                    /// By default, any retryable failures will be retried twice. Retry behavior
-                    /// is configurable with the [RetryConfig](aws_smithy_types::retry::RetryConfig), which can be
-                    /// set when configuring the client.
-                    pub async fn send(self) -> ::std::result::Result<crate::operation::get_detailed_resolved_config::GetDetailedResolvedConfigOutput, ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_detailed_resolved_config::GetDetailedResolvedConfigError, ::aws_smithy_runtime_api::client::orchestrator::HttpResponse>> {
-                        let input = self.inner.build().map_err(::aws_smithy_runtime_api::client::result::SdkError::construction_failure)?;
-                        let runtime_plugins = crate::operation::get_detailed_resolved_config::GetDetailedResolvedConfig::operation_runtime_plugins(
+    ///
+    /// If an error occurs, an `SdkError` will be returned with additional details that
+    /// can be matched against.
+    ///
+    /// By default, any retryable failures will be retried twice. Retry behavior
+    /// is configurable with the [RetryConfig](aws_smithy_types::retry::RetryConfig), which can be
+    /// set when configuring the client.
+    pub async fn send(self) -> ::std::result::Result<crate::operation::get_detailed_resolved_config::GetDetailedResolvedConfigOutput, ::aws_smithy_runtime_api::client::result::SdkError<crate::operation::get_detailed_resolved_config::GetDetailedResolvedConfigError, ::aws_smithy_runtime_api::client::orchestrator::HttpResponse>>{
+        let input = self.inner.build().map_err(
+            ::aws_smithy_runtime_api::client::result::SdkError::construction_failure,
+        )?;
+        let runtime_plugins = crate::operation::get_detailed_resolved_config::GetDetailedResolvedConfig::operation_runtime_plugins(
                             self.handle.runtime_plugins.clone(),
                             &self.handle.conf,
                             self.config_override,
                         );
-                        crate::operation::get_detailed_resolved_config::GetDetailedResolvedConfig::orchestrate(&runtime_plugins, input).await
-                    }
-    
-                    /// Consumes this builder, creating a customizable operation that can be modified before being sent.
-                    pub fn customize(
-                        self,
-                    ) -> crate::client::customize::CustomizableOperation<crate::operation::get_detailed_resolved_config::GetDetailedResolvedConfigOutput, crate::operation::get_detailed_resolved_config::GetDetailedResolvedConfigError, Self> {
-                        crate::client::customize::CustomizableOperation::new(self)
-                    }
+        crate::operation::get_detailed_resolved_config::GetDetailedResolvedConfig::orchestrate(&runtime_plugins, input).await
+    }
+
+    /// Consumes this builder, creating a customizable operation that can be modified before being sent.
+    pub fn customize(
+        self,
+    ) -> crate::client::customize::CustomizableOperation<
+        crate::operation::get_detailed_resolved_config::GetDetailedResolvedConfigOutput,
+        crate::operation::get_detailed_resolved_config::GetDetailedResolvedConfigError,
+        Self,
+    > {
+        crate::client::customize::CustomizableOperation::new(self)
+    }
     pub(crate) fn config_override(
-                            mut self,
-                            config_override: impl ::std::convert::Into<crate::config::Builder>,
-                        ) -> Self {
-                            self.set_config_override(::std::option::Option::Some(config_override.into()));
-                            self
-                        }
-    
-                        pub(crate) fn set_config_override(
-                            &mut self,
-                            config_override: ::std::option::Option<crate::config::Builder>,
-                        ) -> &mut Self {
-                            self.config_override = config_override;
-                            self
-                        }
+        mut self,
+        config_override: impl ::std::convert::Into<crate::config::Builder>,
+    ) -> Self {
+        self.set_config_override(::std::option::Option::Some(config_override.into()));
+        self
+    }
+
+    pub(crate) fn set_config_override(
+        &mut self,
+        config_override: ::std::option::Option<crate::config::Builder>,
+    ) -> &mut Self {
+        self.config_override = config_override;
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.workspace_id(input.into());
-                    self
-                }
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.workspace_id(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_workspace_id(input);
-                    self
-                }
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_workspace_id(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_workspace_id()
-                }
+        self.inner.get_workspace_id()
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.org_id(input.into());
-                    self
-                }
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.org_id(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_org_id(input);
-                    self
-                }
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_org_id(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_org_id()
-                }
-    /// 
+        self.inner.get_org_id()
+    }
+    ///
     /// Appends an item to `prefix`.
-    /// 
+    ///
     /// To override the contents of this collection use [`set_prefix`](Self::set_prefix).
-    /// 
+    ///
     #[allow(missing_docs)] // documentation missing in model
-    pub fn prefix(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                        self.inner = self.inner.prefix(input.into());
-                        self
-                    }
+    pub fn prefix(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.prefix(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_prefix(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-                    self.inner = self.inner.set_prefix(input);
-                    self
-                }
+    pub fn set_prefix(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    ) -> Self {
+        self.inner = self.inner.set_prefix(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_prefix(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
-                    self.inner.get_prefix()
-                }
-    /// 
+    pub fn get_prefix(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<::std::string::String>> {
+        self.inner.get_prefix()
+    }
+    ///
     /// Appends an item to `exclude_prefix`.
-    /// 
+    ///
     /// To override the contents of this collection use [`set_exclude_prefix`](Self::set_exclude_prefix).
-    /// 
+    ///
     /// Excludes configuration keys that start with any of the supplied prefixes. When combined with prefix, exclusion is applied to the allow-listed keys.
-    pub fn exclude_prefix(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                        self.inner = self.inner.exclude_prefix(input.into());
-                        self
-                    }
+    pub fn exclude_prefix(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.exclude_prefix(input.into());
+        self
+    }
     /// Excludes configuration keys that start with any of the supplied prefixes. When combined with prefix, exclusion is applied to the allow-listed keys.
-    pub fn set_exclude_prefix(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-                    self.inner = self.inner.set_exclude_prefix(input);
-                    self
-                }
+    pub fn set_exclude_prefix(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    ) -> Self {
+        self.inner = self.inner.set_exclude_prefix(input);
+        self
+    }
     /// Excludes configuration keys that start with any of the supplied prefixes. When combined with prefix, exclusion is applied to the allow-listed keys.
-    pub fn get_exclude_prefix(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
-                    self.inner.get_exclude_prefix()
-                }
+    pub fn get_exclude_prefix(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<::std::string::String>> {
+        self.inner.get_exclude_prefix()
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn version(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.version(input.into());
-                    self
-                }
+    pub fn version(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.version(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_version(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_version(input);
-                    self
-                }
+    pub fn set_version(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_version(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_version(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_version()
-                }
+        self.inner.get_version()
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn show_reasoning(mut self, input: bool) -> Self {
-                    self.inner = self.inner.show_reasoning(input);
-                    self
-                }
+        self.inner = self.inner.show_reasoning(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_show_reasoning(mut self, input: ::std::option::Option<bool>) -> Self {
-                    self.inner = self.inner.set_show_reasoning(input);
-                    self
-                }
+        self.inner = self.inner.set_show_reasoning(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_show_reasoning(&self) -> &::std::option::Option<bool> {
-                    self.inner.get_show_reasoning()
-                }
+        self.inner.get_show_reasoning()
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn merge_strategy(mut self, input: crate::types::MergeStrategy) -> Self {
-                    self.inner = self.inner.merge_strategy(input);
-                    self
-                }
+        self.inner = self.inner.merge_strategy(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_merge_strategy(mut self, input: ::std::option::Option<crate::types::MergeStrategy>) -> Self {
-                    self.inner = self.inner.set_merge_strategy(input);
-                    self
-                }
+    pub fn set_merge_strategy(
+        mut self,
+        input: ::std::option::Option<crate::types::MergeStrategy>,
+    ) -> Self {
+        self.inner = self.inner.set_merge_strategy(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_merge_strategy(&self) -> &::std::option::Option<crate::types::MergeStrategy> {
-                    self.inner.get_merge_strategy()
-                }
+    pub fn get_merge_strategy(
+        &self,
+    ) -> &::std::option::Option<crate::types::MergeStrategy> {
+        self.inner.get_merge_strategy()
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn context_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
-                    self.inner = self.inner.context_id(input.into());
-                    self
-                }
+    pub fn context_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.context_id(input.into());
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_context_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-                    self.inner = self.inner.set_context_id(input);
-                    self
-                }
+    pub fn set_context_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.inner = self.inner.set_context_id(input);
+        self
+    }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_context_id(&self) -> &::std::option::Option<::std::string::String> {
-                    self.inner.get_context_id()
-                }
+        self.inner.get_context_id()
+    }
     /// Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution.
     pub fn resolve_remote(mut self, input: bool) -> Self {
-                    self.inner = self.inner.resolve_remote(input);
-                    self
-                }
+        self.inner = self.inner.resolve_remote(input);
+        self
+    }
     /// Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution.
     pub fn set_resolve_remote(mut self, input: ::std::option::Option<bool>) -> Self {
-                    self.inner = self.inner.set_resolve_remote(input);
-                    self
-                }
+        self.inner = self.inner.set_resolve_remote(input);
+        self
+    }
     /// Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution.
     pub fn get_resolve_remote(&self) -> &::std::option::Option<bool> {
-                    self.inner.get_resolve_remote()
-                }
-    /// 
+        self.inner.get_resolve_remote()
+    }
+    ///
     /// Adds a key-value pair to `context`.
-    /// 
+    ///
     /// To override the contents of this collection use [`set_context`](Self::set_context).
-    /// 
+    ///
     /// Map representing the context. Keys correspond to the names of the dimensions.
-    pub fn context(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
-                    self.inner = self.inner.context(k.into(), v);
-                    self
-                }
+    pub fn context(
+        mut self,
+        k: impl ::std::convert::Into<::std::string::String>,
+        v: ::aws_smithy_types::Document,
+    ) -> Self {
+        self.inner = self.inner.context(k.into(), v);
+        self
+    }
     /// Map representing the context. Keys correspond to the names of the dimensions.
-    pub fn set_context(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
-                    self.inner = self.inner.set_context(input);
-                    self
-                }
+    pub fn set_context(
+        mut self,
+        input: ::std::option::Option<
+            ::std::collections::HashMap<
+                ::std::string::String,
+                ::aws_smithy_types::Document,
+            >,
+        >,
+    ) -> Self {
+        self.inner = self.inner.set_context(input);
+        self
+    }
     /// Map representing the context. Keys correspond to the names of the dimensions.
-    pub fn get_context(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
-                    self.inner.get_context()
-                }
+    pub fn get_context(
+        &self,
+    ) -> &::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
+        self.inner.get_context()
+    }
 }
-

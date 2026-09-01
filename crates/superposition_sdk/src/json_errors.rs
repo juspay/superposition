@@ -97,7 +97,9 @@ pub fn parse_error_metadata(
 
 #[cfg(test)]
 mod test {
-    use crate::json_errors::{parse_error_body, parse_error_metadata, sanitize_error_code};
+    use crate::json_errors::{
+        parse_error_body, parse_error_metadata, sanitize_error_code,
+    };
     use aws_smithy_runtime_api::client::orchestrator::HttpResponse;
     use aws_smithy_types::{body::SdkBody, error::ErrorMetadata};
     use std::borrow::Cow;
@@ -147,9 +149,11 @@ mod test {
     fn ignore_unrecognized_fields() {
         assert_eq!(
             Some(Cow::Borrowed("FooError")),
-            parse_error_body(br#"{ "__type": "FooError", "asdf": 5, "fdsa": {}, "foo": "1" }"#)
-                .unwrap()
-                .code
+            parse_error_body(
+                br#"{ "__type": "FooError", "asdf": 5, "fdsa": {}, "foo": "1" }"#
+            )
+            .unwrap()
+            .code
         );
     }
 
@@ -209,4 +213,3 @@ mod test {
         );
     }
 }
-

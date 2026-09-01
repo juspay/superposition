@@ -3,7 +3,7 @@
 /// Standard response structure for an experiment group.
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct UpdateExperimentGroupOutput  {
+pub struct UpdateExperimentGroupOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub id: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
@@ -15,11 +15,12 @@ pub struct UpdateExperimentGroupOutput  {
     #[allow(missing_docs)] // documentation missing in model
     pub change_reason: ::std::string::String,
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub context: ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>,
+    pub context:
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
     #[allow(missing_docs)] // documentation missing in model
     pub traffic_percentage: i32,
     #[allow(missing_docs)] // documentation missing in model
-    pub member_experiment_ids: ::std::vec::Vec::<::std::string::String>,
+    pub member_experiment_ids: ::std::vec::Vec<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub created_at: ::aws_smithy_types::DateTime,
     #[allow(missing_docs)] // documentation missing in model
@@ -29,33 +30,41 @@ pub struct UpdateExperimentGroupOutput  {
     #[allow(missing_docs)] // documentation missing in model
     pub last_modified_by: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
-    pub buckets: ::std::vec::Vec::<::std::option::Option<crate::types::Bucket>>,
+    pub buckets: ::std::vec::Vec<::std::option::Option<crate::types::Bucket>>,
     #[allow(missing_docs)] // documentation missing in model
     pub group_type: crate::types::GroupType,
 }
-impl  UpdateExperimentGroupOutput  {
+impl UpdateExperimentGroupOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn id(&self) -> &str {
-        use std::ops::Deref; self.id.deref()
+        use std::ops::Deref;
+        self.id.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn context_hash(&self) -> &str {
-        use std::ops::Deref; self.context_hash.deref()
+        use std::ops::Deref;
+        self.context_hash.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn name(&self) -> &str {
-        use std::ops::Deref; self.name.deref()
+        use std::ops::Deref;
+        self.name.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn description(&self) -> &str {
-        use std::ops::Deref; self.description.deref()
+        use std::ops::Deref;
+        self.description.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn change_reason(&self) -> &str {
-        use std::ops::Deref; self.change_reason.deref()
+        use std::ops::Deref;
+        self.change_reason.deref()
     }
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn context(&self) -> &::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document> {
+    pub fn context(
+        &self,
+    ) -> &::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>
+    {
         &self.context
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -64,7 +73,8 @@ impl  UpdateExperimentGroupOutput  {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn member_experiment_ids(&self) -> &[::std::string::String] {
-        use std::ops::Deref; self.member_experiment_ids.deref()
+        use std::ops::Deref;
+        self.member_experiment_ids.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn created_at(&self) -> &::aws_smithy_types::DateTime {
@@ -72,7 +82,8 @@ impl  UpdateExperimentGroupOutput  {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn created_by(&self) -> &str {
-        use std::ops::Deref; self.created_by.deref()
+        use std::ops::Deref;
+        self.created_by.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn last_modified_at(&self) -> &::aws_smithy_types::DateTime {
@@ -80,11 +91,13 @@ impl  UpdateExperimentGroupOutput  {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn last_modified_by(&self) -> &str {
-        use std::ops::Deref; self.last_modified_by.deref()
+        use std::ops::Deref;
+        self.last_modified_by.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn buckets(&self) -> &[::std::option::Option<crate::types::Bucket>] {
-        use std::ops::Deref; self.buckets.deref()
+        use std::ops::Deref;
+        self.buckets.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn group_type(&self) -> &crate::types::GroupType {
@@ -93,13 +106,15 @@ impl  UpdateExperimentGroupOutput  {
 }
 impl UpdateExperimentGroupOutput {
     /// Creates a new builder-style object to manufacture [`UpdateExperimentGroupOutput`](crate::operation::update_experiment_group::UpdateExperimentGroupOutput).
-    pub fn builder() -> crate::operation::update_experiment_group::builders::UpdateExperimentGroupOutputBuilder {
+    pub fn builder() -> crate::operation::update_experiment_group::builders::UpdateExperimentGroupOutputBuilder{
         crate::operation::update_experiment_group::builders::UpdateExperimentGroupOutputBuilder::default()
     }
 }
 
 /// A builder for [`UpdateExperimentGroupOutput`](crate::operation::update_experiment_group::UpdateExperimentGroupOutput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct UpdateExperimentGroupOutputBuilder {
     pub(crate) id: ::std::option::Option<::std::string::String>,
@@ -107,14 +122,19 @@ pub struct UpdateExperimentGroupOutputBuilder {
     pub(crate) name: ::std::option::Option<::std::string::String>,
     pub(crate) description: ::std::option::Option<::std::string::String>,
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
-    pub(crate) context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub(crate) context: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    >,
     pub(crate) traffic_percentage: ::std::option::Option<i32>,
-    pub(crate) member_experiment_ids: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub(crate) member_experiment_ids:
+        ::std::option::Option<::std::vec::Vec<::std::string::String>>,
     pub(crate) created_at: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) created_by: ::std::option::Option<::std::string::String>,
     pub(crate) last_modified_at: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) last_modified_by: ::std::option::Option<::std::string::String>,
-    pub(crate) buckets: ::std::option::Option<::std::vec::Vec::<::std::option::Option<crate::types::Bucket>>>,
+    pub(crate) buckets: ::std::option::Option<
+        ::std::vec::Vec<::std::option::Option<crate::types::Bucket>>,
+    >,
     pub(crate) group_type: ::std::option::Option<crate::types::GroupType>,
 }
 impl UpdateExperimentGroupOutputBuilder {
@@ -126,7 +146,8 @@ impl UpdateExperimentGroupOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.id = input; self
+        self.id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -134,13 +155,20 @@ impl UpdateExperimentGroupOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn context_hash(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn context_hash(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.context_hash = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_context_hash(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.context_hash = input; self
+    pub fn set_context_hash(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.context_hash = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_context_hash(&self) -> &::std::option::Option<::std::string::String> {
@@ -148,13 +176,20 @@ impl UpdateExperimentGroupOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.name = input; self
+    pub fn set_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.name = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_name(&self) -> &::std::option::Option<::std::string::String> {
@@ -162,13 +197,20 @@ impl UpdateExperimentGroupOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn description(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn description(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.description = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_description(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.description = input; self
+    pub fn set_description(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.description = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_description(&self) -> &::std::option::Option<::std::string::String> {
@@ -176,13 +218,20 @@ impl UpdateExperimentGroupOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn change_reason(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn change_reason(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.change_reason = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_change_reason(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.change_reason = input; self
+    pub fn set_change_reason(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.change_reason = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
@@ -193,18 +242,35 @@ impl UpdateExperimentGroupOutputBuilder {
     /// To override the contents of this collection use [`set_context`](Self::set_context).
     ///
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn context(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
+    pub fn context(
+        mut self,
+        k: impl ::std::convert::Into<::std::string::String>,
+        v: ::aws_smithy_types::Document,
+    ) -> Self {
         let mut hash_map = self.context.unwrap_or_default();
-                        hash_map.insert(k.into(), v);
-                        self.context = ::std::option::Option::Some(hash_map);
-                        self
+        hash_map.insert(k.into(), v);
+        self.context = ::std::option::Option::Some(hash_map);
+        self
     }
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn set_context(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
-        self.context = input; self
+    pub fn set_context(
+        mut self,
+        input: ::std::option::Option<
+            ::std::collections::HashMap<
+                ::std::string::String,
+                ::aws_smithy_types::Document,
+            >,
+        >,
+    ) -> Self {
+        self.context = input;
+        self
     }
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn get_context(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    pub fn get_context(
+        &self,
+    ) -> &::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
         &self.context
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -215,7 +281,8 @@ impl UpdateExperimentGroupOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_traffic_percentage(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.traffic_percentage = input; self
+        self.traffic_percentage = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_traffic_percentage(&self) -> &::std::option::Option<i32> {
@@ -225,18 +292,27 @@ impl UpdateExperimentGroupOutputBuilder {
     ///
     /// To override the contents of this collection use [`set_member_experiment_ids`](Self::set_member_experiment_ids).
     ///
-    pub fn member_experiment_ids(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn member_experiment_ids(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         let mut v = self.member_experiment_ids.unwrap_or_default();
-                        v.push(input.into());
-                        self.member_experiment_ids = ::std::option::Option::Some(v);
-                        self
+        v.push(input.into());
+        self.member_experiment_ids = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_member_experiment_ids(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-        self.member_experiment_ids = input; self
+    pub fn set_member_experiment_ids(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    ) -> Self {
+        self.member_experiment_ids = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_member_experiment_ids(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
+    pub fn get_member_experiment_ids(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<::std::string::String>> {
         &self.member_experiment_ids
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -246,8 +322,12 @@ impl UpdateExperimentGroupOutputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_created_at(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.created_at = input; self
+    pub fn set_created_at(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.created_at = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_created_at(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
@@ -255,13 +335,20 @@ impl UpdateExperimentGroupOutputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn created_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn created_by(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.created_by = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_created_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.created_by = input; self
+    pub fn set_created_by(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.created_by = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_created_by(&self) -> &::std::option::Option<::std::string::String> {
@@ -274,22 +361,35 @@ impl UpdateExperimentGroupOutputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_last_modified_at(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.last_modified_at = input; self
+    pub fn set_last_modified_at(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.last_modified_at = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_last_modified_at(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
+    pub fn get_last_modified_at(
+        &self,
+    ) -> &::std::option::Option<::aws_smithy_types::DateTime> {
         &self.last_modified_at
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn last_modified_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn last_modified_by(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.last_modified_by = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_last_modified_by(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.last_modified_by = input; self
+    pub fn set_last_modified_by(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.last_modified_by = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_last_modified_by(&self) -> &::std::option::Option<::std::string::String> {
@@ -301,16 +401,26 @@ impl UpdateExperimentGroupOutputBuilder {
     ///
     pub fn buckets(mut self, input: ::std::option::Option<crate::types::Bucket>) -> Self {
         let mut v = self.buckets.unwrap_or_default();
-                        v.push(input);
-                        self.buckets = ::std::option::Option::Some(v);
-                        self
+        v.push(input);
+        self.buckets = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_buckets(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::option::Option<crate::types::Bucket>>>) -> Self {
-        self.buckets = input; self
+    pub fn set_buckets(
+        mut self,
+        input: ::std::option::Option<
+            ::std::vec::Vec<::std::option::Option<crate::types::Bucket>>,
+        >,
+    ) -> Self {
+        self.buckets = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_buckets(&self) -> &::std::option::Option<::std::vec::Vec::<::std::option::Option<crate::types::Bucket>>> {
+    pub fn get_buckets(
+        &self,
+    ) -> &::std::option::Option<
+        ::std::vec::Vec<::std::option::Option<crate::types::Bucket>>,
+    > {
         &self.buckets
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -320,8 +430,12 @@ impl UpdateExperimentGroupOutputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_group_type(mut self, input: ::std::option::Option<crate::types::GroupType>) -> Self {
-        self.group_type = input; self
+    pub fn set_group_type(
+        mut self,
+        input: ::std::option::Option<crate::types::GroupType>,
+    ) -> Self {
+        self.group_type = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_group_type(&self) -> &::std::option::Option<crate::types::GroupType> {
@@ -343,7 +457,12 @@ impl UpdateExperimentGroupOutputBuilder {
     /// - [`last_modified_by`](crate::operation::update_experiment_group::builders::UpdateExperimentGroupOutputBuilder::last_modified_by)
     /// - [`buckets`](crate::operation::update_experiment_group::builders::UpdateExperimentGroupOutputBuilder::buckets)
     /// - [`group_type`](crate::operation::update_experiment_group::builders::UpdateExperimentGroupOutputBuilder::group_type)
-    pub fn build(self) -> ::std::result::Result<crate::operation::update_experiment_group::UpdateExperimentGroupOutput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::update_experiment_group::UpdateExperimentGroupOutput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::update_experiment_group::UpdateExperimentGroupOutput {
                 id: self.id
@@ -420,4 +539,3 @@ impl UpdateExperimentGroupOutputBuilder {
         )
     }
 }
-

@@ -12,7 +12,8 @@ use service_utils::{
     helpers::{fetch_dimensions_info_map, is_not_modified},
     redis::{CONFIG_KEY_SUFFIX, LAST_MODIFIED_KEY_SUFFIX, read_through_cache},
     service::types::{
-        AppHeader, AppState, DbConnection, WorkspaceContext, WorkspaceWritePermit,
+        AppHeader, AppState, DbConnection, ResolvedMergeStrategy, WorkspaceContext,
+        WorkspaceWritePermit,
     },
 };
 use superposition_core::{
@@ -568,6 +569,10 @@ async fn get_handler(
     }
     AppHeader::add_last_modified(max_created_at, is_smithy, &mut response);
     AppHeader::add_config_version(&Some(version), &mut response);
+    AppHeader::add_merge_strategy(
+        workspace_context.settings.merge_strategy,
+        &mut response,
+    );
     Ok(response.json(config))
 }
 
@@ -673,7 +678,7 @@ async fn get_json_handler(
 async fn detailed_resolve_handler(
     req: HttpRequest,
     body: Option<Json<ContextPayload>>,
-    merge_strategy: Header<MergeStrategy>,
+    merge_strategy: ResolvedMergeStrategy,
     dimension_params: DimensionQuery<QueryMap>,
     query_filters: superposition_query::Query<ResolveConfigQuery>,
     workspace_context: WorkspaceContext,
@@ -729,7 +734,7 @@ async fn detailed_resolve_handler(
 async fn explain_resolve_handler(
     req: HttpRequest,
     body: Option<Json<ContextPayload>>,
-    merge_strategy: Header<MergeStrategy>,
+    merge_strategy: ResolvedMergeStrategy,
     dimension_params: DimensionQuery<QueryMap>,
     query_filters: superposition_query::Query<ExplainResolveQuery>,
     explain_key: Path<ExplainKeyQuery>,
@@ -789,7 +794,7 @@ async fn explain_resolve_handler(
 async fn resolve_handler(
     req: HttpRequest,
     body: Option<Json<ContextPayload>>,
-    merge_strategy: Header<MergeStrategy>,
+    merge_strategy: ResolvedMergeStrategy,
     dimension_params: DimensionQuery<QueryMap>,
     query_filters: superposition_query::Query<ResolveConfigQuery>,
     workspace_context: WorkspaceContext,

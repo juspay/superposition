@@ -2,11 +2,12 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct ResolveExplanationTimelineItem  {
+pub struct ResolveExplanationTimelineItem {
     #[allow(missing_docs)] // documentation missing in model
     pub context_id: ::std::string::String,
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub condition: ::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>,
+    pub condition:
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
     #[allow(missing_docs)] // documentation missing in model
     pub override_id: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
@@ -14,18 +15,23 @@ pub struct ResolveExplanationTimelineItem  {
     #[allow(missing_docs)] // documentation missing in model
     pub value_after: ::aws_smithy_types::Document,
 }
-impl  ResolveExplanationTimelineItem  {
+impl ResolveExplanationTimelineItem {
     #[allow(missing_docs)] // documentation missing in model
     pub fn context_id(&self) -> &str {
-        use std::ops::Deref; self.context_id.deref()
+        use std::ops::Deref;
+        self.context_id.deref()
     }
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn condition(&self) -> &::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document> {
+    pub fn condition(
+        &self,
+    ) -> &::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>
+    {
         &self.condition
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn override_id(&self) -> &str {
-        use std::ops::Deref; self.override_id.deref()
+        use std::ops::Deref;
+        self.override_id.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn value_before(&self) -> &::aws_smithy_types::Document {
@@ -44,11 +50,15 @@ impl ResolveExplanationTimelineItem {
 }
 
 /// A builder for [`ResolveExplanationTimelineItem`](crate::types::ResolveExplanationTimelineItem).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct ResolveExplanationTimelineItemBuilder {
     pub(crate) context_id: ::std::option::Option<::std::string::String>,
-    pub(crate) condition: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub(crate) condition: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    >,
     pub(crate) override_id: ::std::option::Option<::std::string::String>,
     pub(crate) value_before: ::std::option::Option<::aws_smithy_types::Document>,
     pub(crate) value_after: ::std::option::Option<::aws_smithy_types::Document>,
@@ -56,13 +66,20 @@ pub struct ResolveExplanationTimelineItemBuilder {
 impl ResolveExplanationTimelineItemBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn context_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn context_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.context_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_context_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.context_id = input; self
+    pub fn set_context_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.context_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_context_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -73,29 +90,53 @@ impl ResolveExplanationTimelineItemBuilder {
     /// To override the contents of this collection use [`set_condition`](Self::set_condition).
     ///
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn condition(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
+    pub fn condition(
+        mut self,
+        k: impl ::std::convert::Into<::std::string::String>,
+        v: ::aws_smithy_types::Document,
+    ) -> Self {
         let mut hash_map = self.condition.unwrap_or_default();
-                        hash_map.insert(k.into(), v);
-                        self.condition = ::std::option::Option::Some(hash_map);
-                        self
+        hash_map.insert(k.into(), v);
+        self.condition = ::std::option::Option::Some(hash_map);
+        self
     }
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn set_condition(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
-        self.condition = input; self
+    pub fn set_condition(
+        mut self,
+        input: ::std::option::Option<
+            ::std::collections::HashMap<
+                ::std::string::String,
+                ::aws_smithy_types::Document,
+            >,
+        >,
+    ) -> Self {
+        self.condition = input;
+        self
     }
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn get_condition(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    pub fn get_condition(
+        &self,
+    ) -> &::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
         &self.condition
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn override_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn override_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.override_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_override_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.override_id = input; self
+    pub fn set_override_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.override_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_override_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -108,11 +149,17 @@ impl ResolveExplanationTimelineItemBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_value_before(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
-        self.value_before = input; self
+    pub fn set_value_before(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::Document>,
+    ) -> Self {
+        self.value_before = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_value_before(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
+    pub fn get_value_before(
+        &self,
+    ) -> &::std::option::Option<::aws_smithy_types::Document> {
         &self.value_before
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -122,11 +169,17 @@ impl ResolveExplanationTimelineItemBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_value_after(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
-        self.value_after = input; self
+    pub fn set_value_after(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::Document>,
+    ) -> Self {
+        self.value_after = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_value_after(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
+    pub fn get_value_after(
+        &self,
+    ) -> &::std::option::Option<::aws_smithy_types::Document> {
         &self.value_after
     }
     /// Consumes the builder and constructs a [`ResolveExplanationTimelineItem`](crate::types::ResolveExplanationTimelineItem).
@@ -136,7 +189,12 @@ impl ResolveExplanationTimelineItemBuilder {
     /// - [`override_id`](crate::types::builders::ResolveExplanationTimelineItemBuilder::override_id)
     /// - [`value_before`](crate::types::builders::ResolveExplanationTimelineItemBuilder::value_before)
     /// - [`value_after`](crate::types::builders::ResolveExplanationTimelineItemBuilder::value_after)
-    pub fn build(self) -> ::std::result::Result<crate::types::ResolveExplanationTimelineItem, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::types::ResolveExplanationTimelineItem,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::types::ResolveExplanationTimelineItem {
                 context_id: self.context_id
@@ -168,4 +226,3 @@ impl ResolveExplanationTimelineItemBuilder {
         )
     }
 }
-

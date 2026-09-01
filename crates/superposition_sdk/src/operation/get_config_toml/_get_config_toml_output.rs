@@ -2,16 +2,17 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct GetConfigTomlOutput  {
+pub struct GetConfigTomlOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub toml_config: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
     pub last_modified: ::std::option::Option<::aws_smithy_types::DateTime>,
 }
-impl  GetConfigTomlOutput  {
+impl GetConfigTomlOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn toml_config(&self) -> &str {
-        use std::ops::Deref; self.toml_config.deref()
+        use std::ops::Deref;
+        self.toml_config.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn last_modified(&self) -> ::std::option::Option<&::aws_smithy_types::DateTime> {
@@ -20,13 +21,16 @@ impl  GetConfigTomlOutput  {
 }
 impl GetConfigTomlOutput {
     /// Creates a new builder-style object to manufacture [`GetConfigTomlOutput`](crate::operation::get_config_toml::GetConfigTomlOutput).
-    pub fn builder() -> crate::operation::get_config_toml::builders::GetConfigTomlOutputBuilder {
+    pub fn builder(
+    ) -> crate::operation::get_config_toml::builders::GetConfigTomlOutputBuilder {
         crate::operation::get_config_toml::builders::GetConfigTomlOutputBuilder::default()
     }
 }
 
 /// A builder for [`GetConfigTomlOutput`](crate::operation::get_config_toml::GetConfigTomlOutput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct GetConfigTomlOutputBuilder {
     pub(crate) toml_config: ::std::option::Option<::std::string::String>,
@@ -35,13 +39,20 @@ pub struct GetConfigTomlOutputBuilder {
 impl GetConfigTomlOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn toml_config(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn toml_config(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.toml_config = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_toml_config(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.toml_config = input; self
+    pub fn set_toml_config(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.toml_config = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_toml_config(&self) -> &::std::option::Option<::std::string::String> {
@@ -53,17 +64,28 @@ impl GetConfigTomlOutputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_last_modified(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.last_modified = input; self
+    pub fn set_last_modified(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.last_modified = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_last_modified(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
+    pub fn get_last_modified(
+        &self,
+    ) -> &::std::option::Option<::aws_smithy_types::DateTime> {
         &self.last_modified
     }
     /// Consumes the builder and constructs a [`GetConfigTomlOutput`](crate::operation::get_config_toml::GetConfigTomlOutput).
     /// This method will fail if any of the following fields are not set:
     /// - [`toml_config`](crate::operation::get_config_toml::builders::GetConfigTomlOutputBuilder::toml_config)
-    pub fn build(self) -> ::std::result::Result<crate::operation::get_config_toml::GetConfigTomlOutput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::get_config_toml::GetConfigTomlOutput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::get_config_toml::GetConfigTomlOutput {
                 toml_config: self.toml_config
@@ -77,4 +99,3 @@ impl GetConfigTomlOutputBuilder {
         )
     }
 }
-

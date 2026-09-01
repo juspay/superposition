@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct TestInput  {
+pub struct TestInput {
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -14,7 +14,7 @@ pub struct TestInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub request: ::std::option::Option<crate::types::FunctionExecutionRequest>,
 }
-impl  TestInput  {
+impl TestInput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(&self) -> ::std::option::Option<&str> {
         self.workspace_id.as_deref()
@@ -32,7 +32,9 @@ impl  TestInput  {
         self.stage.as_ref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn request(&self) -> ::std::option::Option<&crate::types::FunctionExecutionRequest> {
+    pub fn request(
+        &self,
+    ) -> ::std::option::Option<&crate::types::FunctionExecutionRequest> {
         self.request.as_ref()
     }
 }
@@ -44,7 +46,9 @@ impl TestInput {
 }
 
 /// A builder for [`TestInput`](crate::operation::test::TestInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct TestInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
@@ -56,13 +60,20 @@ pub struct TestInputBuilder {
 impl TestInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_id = input; self
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -70,13 +81,20 @@ impl TestInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -84,13 +102,20 @@ impl TestInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn function_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn function_name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.function_name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_function_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.function_name = input; self
+    pub fn set_function_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.function_name = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_function_name(&self) -> &::std::option::Option<::std::string::String> {
@@ -103,8 +128,12 @@ impl TestInputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_stage(mut self, input: ::std::option::Option<crate::types::Stage>) -> Self {
-        self.stage = input; self
+    pub fn set_stage(
+        mut self,
+        input: ::std::option::Option<crate::types::Stage>,
+    ) -> Self {
+        self.stage = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_stage(&self) -> &::std::option::Option<crate::types::Stage> {
@@ -117,29 +146,32 @@ impl TestInputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_request(mut self, input: ::std::option::Option<crate::types::FunctionExecutionRequest>) -> Self {
-        self.request = input; self
+    pub fn set_request(
+        mut self,
+        input: ::std::option::Option<crate::types::FunctionExecutionRequest>,
+    ) -> Self {
+        self.request = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_request(&self) -> &::std::option::Option<crate::types::FunctionExecutionRequest> {
+    pub fn get_request(
+        &self,
+    ) -> &::std::option::Option<crate::types::FunctionExecutionRequest> {
         &self.request
     }
     /// Consumes the builder and constructs a [`TestInput`](crate::operation::test::TestInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::test::TestInput, ::aws_smithy_types::error::operation::BuildError> {
-        ::std::result::Result::Ok(
-            crate::operation::test::TestInput {
-                workspace_id: self.workspace_id
-                ,
-                org_id: self.org_id
-                ,
-                function_name: self.function_name
-                ,
-                stage: self.stage
-                ,
-                request: self.request
-                ,
-            }
-        )
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::test::TestInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
+        ::std::result::Result::Ok(crate::operation::test::TestInput {
+            workspace_id: self.workspace_id,
+            org_id: self.org_id,
+            function_name: self.function_name,
+            stage: self.stage,
+            request: self.request,
+        })
     }
 }
-

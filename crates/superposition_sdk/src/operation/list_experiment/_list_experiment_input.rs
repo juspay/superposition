@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct ListExperimentInput  {
+pub struct ListExperimentInput {
     /// Number of items to be returned in each page.
     pub count: ::std::option::Option<i32>,
     /// Page number to retrieve, starting from 1.
@@ -16,7 +16,8 @@ pub struct ListExperimentInput  {
     /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
     pub if_modified_since: ::std::option::Option<::aws_smithy_types::DateTime>,
     #[allow(missing_docs)] // documentation missing in model
-    pub status: ::std::option::Option<::std::vec::Vec::<crate::types::ExperimentStatusType>>,
+    pub status:
+        ::std::option::Option<::std::vec::Vec<crate::types::ExperimentStatusType>>,
     #[allow(missing_docs)] // documentation missing in model
     pub from_date: ::std::option::Option<::aws_smithy_types::DateTime>,
     #[allow(missing_docs)] // documentation missing in model
@@ -24,11 +25,12 @@ pub struct ListExperimentInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub experiment_name: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
-    pub experiment_ids: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub experiment_ids: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
     #[allow(missing_docs)] // documentation missing in model
-    pub experiment_group_ids: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub experiment_group_ids:
+        ::std::option::Option<::std::vec::Vec<::std::string::String>>,
     #[allow(missing_docs)] // documentation missing in model
-    pub created_by: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub created_by: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
     #[allow(missing_docs)] // documentation missing in model
     pub sort_on: ::std::option::Option<crate::types::ExperimentSortOn>,
     /// Sort order enumeration for list operations.
@@ -36,17 +38,22 @@ pub struct ListExperimentInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub global_experiments_only: ::std::option::Option<bool>,
     /// Strategy to follow while filter items based on the context
-    pub dimension_match_strategy: ::std::option::Option<crate::types::DimensionMatchStrategy>,
+    pub dimension_match_strategy:
+        ::std::option::Option<crate::types::DimensionMatchStrategy>,
     /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
-    pub dimension_params: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>>,
+    pub dimension_params: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::std::string::String>,
+    >,
     #[allow(missing_docs)] // documentation missing in model
-    pub prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub prefix: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
     #[allow(missing_docs)] // documentation missing in model
-    pub exclude_prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub exclude_prefix: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
     /// Map representing the context. Keys correspond to the names of the dimensions.
-    pub context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub context: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    >,
 }
-impl  ListExperimentInput  {
+impl ListExperimentInput {
     /// Number of items to be returned in each page.
     pub fn count(&self) -> ::std::option::Option<i32> {
         self.count
@@ -68,15 +75,16 @@ impl  ListExperimentInput  {
         self.org_id.as_deref()
     }
     /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
-    pub fn if_modified_since(&self) -> ::std::option::Option<&::aws_smithy_types::DateTime> {
+    pub fn if_modified_since(
+        &self,
+    ) -> ::std::option::Option<&::aws_smithy_types::DateTime> {
         self.if_modified_since.as_ref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.status.is_none()`.
     pub fn status(&self) -> &[crate::types::ExperimentStatusType] {
-        self.status.as_deref()
-        .unwrap_or_default()
+        self.status.as_deref().unwrap_or_default()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn from_date(&self) -> ::std::option::Option<&::aws_smithy_types::DateTime> {
@@ -91,25 +99,22 @@ impl  ListExperimentInput  {
         self.experiment_name.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.experiment_ids.is_none()`.
     pub fn experiment_ids(&self) -> &[::std::string::String] {
-        self.experiment_ids.as_deref()
-        .unwrap_or_default()
+        self.experiment_ids.as_deref().unwrap_or_default()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.experiment_group_ids.is_none()`.
     pub fn experiment_group_ids(&self) -> &[::std::string::String] {
-        self.experiment_group_ids.as_deref()
-        .unwrap_or_default()
+        self.experiment_group_ids.as_deref().unwrap_or_default()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.created_by.is_none()`.
     pub fn created_by(&self) -> &[::std::string::String] {
-        self.created_by.as_deref()
-        .unwrap_or_default()
+        self.created_by.as_deref().unwrap_or_default()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn sort_on(&self) -> ::std::option::Option<&crate::types::ExperimentSortOn> {
@@ -124,41 +129,52 @@ impl  ListExperimentInput  {
         self.global_experiments_only
     }
     /// Strategy to follow while filter items based on the context
-    pub fn dimension_match_strategy(&self) -> ::std::option::Option<&crate::types::DimensionMatchStrategy> {
+    pub fn dimension_match_strategy(
+        &self,
+    ) -> ::std::option::Option<&crate::types::DimensionMatchStrategy> {
         self.dimension_match_strategy.as_ref()
     }
     /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
-    pub fn dimension_params(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::std::string::String>> {
+    pub fn dimension_params(
+        &self,
+    ) -> ::std::option::Option<
+        &::std::collections::HashMap<::std::string::String, ::std::string::String>,
+    > {
         self.dimension_params.as_ref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.prefix.is_none()`.
     pub fn prefix(&self) -> &[::std::string::String] {
-        self.prefix.as_deref()
-        .unwrap_or_default()
+        self.prefix.as_deref().unwrap_or_default()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.exclude_prefix.is_none()`.
     pub fn exclude_prefix(&self) -> &[::std::string::String] {
-        self.exclude_prefix.as_deref()
-        .unwrap_or_default()
+        self.exclude_prefix.as_deref().unwrap_or_default()
     }
     /// Map representing the context. Keys correspond to the names of the dimensions.
-    pub fn context(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    pub fn context(
+        &self,
+    ) -> ::std::option::Option<
+        &::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
         self.context.as_ref()
     }
 }
 impl ListExperimentInput {
     /// Creates a new builder-style object to manufacture [`ListExperimentInput`](crate::operation::list_experiment::ListExperimentInput).
-    pub fn builder() -> crate::operation::list_experiment::builders::ListExperimentInputBuilder {
+    pub fn builder(
+    ) -> crate::operation::list_experiment::builders::ListExperimentInputBuilder {
         crate::operation::list_experiment::builders::ListExperimentInputBuilder::default()
     }
 }
 
 /// A builder for [`ListExperimentInput`](crate::operation::list_experiment::ListExperimentInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct ListExperimentInputBuilder {
     pub(crate) count: ::std::option::Option<i32>,
@@ -167,21 +183,30 @@ pub struct ListExperimentInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
     pub(crate) if_modified_since: ::std::option::Option<::aws_smithy_types::DateTime>,
-    pub(crate) status: ::std::option::Option<::std::vec::Vec::<crate::types::ExperimentStatusType>>,
+    pub(crate) status:
+        ::std::option::Option<::std::vec::Vec<crate::types::ExperimentStatusType>>,
     pub(crate) from_date: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) to_date: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) experiment_name: ::std::option::Option<::std::string::String>,
-    pub(crate) experiment_ids: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
-    pub(crate) experiment_group_ids: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
-    pub(crate) created_by: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub(crate) experiment_ids:
+        ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    pub(crate) experiment_group_ids:
+        ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    pub(crate) created_by: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
     pub(crate) sort_on: ::std::option::Option<crate::types::ExperimentSortOn>,
     pub(crate) sort_by: ::std::option::Option<crate::types::SortBy>,
     pub(crate) global_experiments_only: ::std::option::Option<bool>,
-    pub(crate) dimension_match_strategy: ::std::option::Option<crate::types::DimensionMatchStrategy>,
-    pub(crate) dimension_params: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>>,
-    pub(crate) prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
-    pub(crate) exclude_prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
-    pub(crate) context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub(crate) dimension_match_strategy:
+        ::std::option::Option<crate::types::DimensionMatchStrategy>,
+    pub(crate) dimension_params: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::std::string::String>,
+    >,
+    pub(crate) prefix: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    pub(crate) exclude_prefix:
+        ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    pub(crate) context: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    >,
 }
 impl ListExperimentInputBuilder {
     /// Number of items to be returned in each page.
@@ -191,7 +216,8 @@ impl ListExperimentInputBuilder {
     }
     /// Number of items to be returned in each page.
     pub fn set_count(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.count = input; self
+        self.count = input;
+        self
     }
     /// Number of items to be returned in each page.
     pub fn get_count(&self) -> &::std::option::Option<i32> {
@@ -204,7 +230,8 @@ impl ListExperimentInputBuilder {
     }
     /// Page number to retrieve, starting from 1.
     pub fn set_page(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.page = input; self
+        self.page = input;
+        self
     }
     /// Page number to retrieve, starting from 1.
     pub fn get_page(&self) -> &::std::option::Option<i32> {
@@ -217,7 +244,8 @@ impl ListExperimentInputBuilder {
     }
     /// If true, returns all requested items, ignoring pagination parameters page and count.
     pub fn set_all(mut self, input: ::std::option::Option<bool>) -> Self {
-        self.all = input; self
+        self.all = input;
+        self
     }
     /// If true, returns all requested items, ignoring pagination parameters page and count.
     pub fn get_all(&self) -> &::std::option::Option<bool> {
@@ -225,13 +253,20 @@ impl ListExperimentInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_id = input; self
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -239,13 +274,20 @@ impl ListExperimentInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -257,11 +299,17 @@ impl ListExperimentInputBuilder {
         self
     }
     /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
-    pub fn set_if_modified_since(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.if_modified_since = input; self
+    pub fn set_if_modified_since(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.if_modified_since = input;
+        self
     }
     /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
-    pub fn get_if_modified_since(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
+    pub fn get_if_modified_since(
+        &self,
+    ) -> &::std::option::Option<::aws_smithy_types::DateTime> {
         &self.if_modified_since
     }
     /// Appends an item to `status`.
@@ -270,16 +318,22 @@ impl ListExperimentInputBuilder {
     ///
     pub fn status(mut self, input: crate::types::ExperimentStatusType) -> Self {
         let mut v = self.status.unwrap_or_default();
-                        v.push(input);
-                        self.status = ::std::option::Option::Some(v);
-                        self
+        v.push(input);
+        self.status = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_status(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::ExperimentStatusType>>) -> Self {
-        self.status = input; self
+    pub fn set_status(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<crate::types::ExperimentStatusType>>,
+    ) -> Self {
+        self.status = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_status(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::ExperimentStatusType>> {
+    pub fn get_status(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<crate::types::ExperimentStatusType>> {
         &self.status
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -288,8 +342,12 @@ impl ListExperimentInputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_from_date(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.from_date = input; self
+    pub fn set_from_date(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.from_date = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_from_date(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
@@ -301,21 +359,32 @@ impl ListExperimentInputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_to_date(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.to_date = input; self
+    pub fn set_to_date(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.to_date = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_to_date(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
         &self.to_date
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn experiment_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn experiment_name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.experiment_name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_experiment_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.experiment_name = input; self
+    pub fn set_experiment_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.experiment_name = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_experiment_name(&self) -> &::std::option::Option<::std::string::String> {
@@ -325,54 +394,81 @@ impl ListExperimentInputBuilder {
     ///
     /// To override the contents of this collection use [`set_experiment_ids`](Self::set_experiment_ids).
     ///
-    pub fn experiment_ids(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn experiment_ids(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         let mut v = self.experiment_ids.unwrap_or_default();
-                        v.push(input.into());
-                        self.experiment_ids = ::std::option::Option::Some(v);
-                        self
+        v.push(input.into());
+        self.experiment_ids = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_experiment_ids(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-        self.experiment_ids = input; self
+    pub fn set_experiment_ids(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    ) -> Self {
+        self.experiment_ids = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_experiment_ids(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
+    pub fn get_experiment_ids(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<::std::string::String>> {
         &self.experiment_ids
     }
     /// Appends an item to `experiment_group_ids`.
     ///
     /// To override the contents of this collection use [`set_experiment_group_ids`](Self::set_experiment_group_ids).
     ///
-    pub fn experiment_group_ids(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn experiment_group_ids(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         let mut v = self.experiment_group_ids.unwrap_or_default();
-                        v.push(input.into());
-                        self.experiment_group_ids = ::std::option::Option::Some(v);
-                        self
+        v.push(input.into());
+        self.experiment_group_ids = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_experiment_group_ids(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-        self.experiment_group_ids = input; self
+    pub fn set_experiment_group_ids(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    ) -> Self {
+        self.experiment_group_ids = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_experiment_group_ids(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
+    pub fn get_experiment_group_ids(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<::std::string::String>> {
         &self.experiment_group_ids
     }
     /// Appends an item to `created_by`.
     ///
     /// To override the contents of this collection use [`set_created_by`](Self::set_created_by).
     ///
-    pub fn created_by(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn created_by(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         let mut v = self.created_by.unwrap_or_default();
-                        v.push(input.into());
-                        self.created_by = ::std::option::Option::Some(v);
-                        self
+        v.push(input.into());
+        self.created_by = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_created_by(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-        self.created_by = input; self
+    pub fn set_created_by(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    ) -> Self {
+        self.created_by = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_created_by(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
+    pub fn get_created_by(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<::std::string::String>> {
         &self.created_by
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -381,8 +477,12 @@ impl ListExperimentInputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_sort_on(mut self, input: ::std::option::Option<crate::types::ExperimentSortOn>) -> Self {
-        self.sort_on = input; self
+    pub fn set_sort_on(
+        mut self,
+        input: ::std::option::Option<crate::types::ExperimentSortOn>,
+    ) -> Self {
+        self.sort_on = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_sort_on(&self) -> &::std::option::Option<crate::types::ExperimentSortOn> {
@@ -394,8 +494,12 @@ impl ListExperimentInputBuilder {
         self
     }
     /// Sort order enumeration for list operations.
-    pub fn set_sort_by(mut self, input: ::std::option::Option<crate::types::SortBy>) -> Self {
-        self.sort_by = input; self
+    pub fn set_sort_by(
+        mut self,
+        input: ::std::option::Option<crate::types::SortBy>,
+    ) -> Self {
+        self.sort_by = input;
+        self
     }
     /// Sort order enumeration for list operations.
     pub fn get_sort_by(&self) -> &::std::option::Option<crate::types::SortBy> {
@@ -407,24 +511,37 @@ impl ListExperimentInputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_global_experiments_only(mut self, input: ::std::option::Option<bool>) -> Self {
-        self.global_experiments_only = input; self
+    pub fn set_global_experiments_only(
+        mut self,
+        input: ::std::option::Option<bool>,
+    ) -> Self {
+        self.global_experiments_only = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_global_experiments_only(&self) -> &::std::option::Option<bool> {
         &self.global_experiments_only
     }
     /// Strategy to follow while filter items based on the context
-    pub fn dimension_match_strategy(mut self, input: crate::types::DimensionMatchStrategy) -> Self {
+    pub fn dimension_match_strategy(
+        mut self,
+        input: crate::types::DimensionMatchStrategy,
+    ) -> Self {
         self.dimension_match_strategy = ::std::option::Option::Some(input);
         self
     }
     /// Strategy to follow while filter items based on the context
-    pub fn set_dimension_match_strategy(mut self, input: ::std::option::Option<crate::types::DimensionMatchStrategy>) -> Self {
-        self.dimension_match_strategy = input; self
+    pub fn set_dimension_match_strategy(
+        mut self,
+        input: ::std::option::Option<crate::types::DimensionMatchStrategy>,
+    ) -> Self {
+        self.dimension_match_strategy = input;
+        self
     }
     /// Strategy to follow while filter items based on the context
-    pub fn get_dimension_match_strategy(&self) -> &::std::option::Option<crate::types::DimensionMatchStrategy> {
+    pub fn get_dimension_match_strategy(
+        &self,
+    ) -> &::std::option::Option<crate::types::DimensionMatchStrategy> {
         &self.dimension_match_strategy
     }
     /// Adds a key-value pair to `dimension_params`.
@@ -432,54 +549,86 @@ impl ListExperimentInputBuilder {
     /// To override the contents of this collection use [`set_dimension_params`](Self::set_dimension_params).
     ///
     /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
-    pub fn dimension_params(mut self, k: impl ::std::convert::Into<::std::string::String>, v: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn dimension_params(
+        mut self,
+        k: impl ::std::convert::Into<::std::string::String>,
+        v: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         let mut hash_map = self.dimension_params.unwrap_or_default();
-                        hash_map.insert(k.into(), v.into());
-                        self.dimension_params = ::std::option::Option::Some(hash_map);
-                        self
+        hash_map.insert(k.into(), v.into());
+        self.dimension_params = ::std::option::Option::Some(hash_map);
+        self
     }
     /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
-    pub fn set_dimension_params(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>>) -> Self {
-        self.dimension_params = input; self
+    pub fn set_dimension_params(
+        mut self,
+        input: ::std::option::Option<
+            ::std::collections::HashMap<::std::string::String, ::std::string::String>,
+        >,
+    ) -> Self {
+        self.dimension_params = input;
+        self
     }
     /// Additional dimension filter query parameters. Keys must be full query parameter names accepted by the API, for example `dimension\[country\]`.
-    pub fn get_dimension_params(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::std::string::String>> {
+    pub fn get_dimension_params(
+        &self,
+    ) -> &::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::std::string::String>,
+    > {
         &self.dimension_params
     }
     /// Appends an item to `prefix`.
     ///
     /// To override the contents of this collection use [`set_prefix`](Self::set_prefix).
     ///
-    pub fn prefix(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn prefix(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         let mut v = self.prefix.unwrap_or_default();
-                        v.push(input.into());
-                        self.prefix = ::std::option::Option::Some(v);
-                        self
+        v.push(input.into());
+        self.prefix = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_prefix(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-        self.prefix = input; self
+    pub fn set_prefix(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    ) -> Self {
+        self.prefix = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_prefix(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
+    pub fn get_prefix(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<::std::string::String>> {
         &self.prefix
     }
     /// Appends an item to `exclude_prefix`.
     ///
     /// To override the contents of this collection use [`set_exclude_prefix`](Self::set_exclude_prefix).
     ///
-    pub fn exclude_prefix(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn exclude_prefix(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         let mut v = self.exclude_prefix.unwrap_or_default();
-                        v.push(input.into());
-                        self.exclude_prefix = ::std::option::Option::Some(v);
-                        self
+        v.push(input.into());
+        self.exclude_prefix = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_exclude_prefix(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-        self.exclude_prefix = input; self
+    pub fn set_exclude_prefix(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    ) -> Self {
+        self.exclude_prefix = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_exclude_prefix(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
+    pub fn get_exclude_prefix(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<::std::string::String>> {
         &self.exclude_prefix
     }
     /// Adds a key-value pair to `context`.
@@ -487,68 +636,68 @@ impl ListExperimentInputBuilder {
     /// To override the contents of this collection use [`set_context`](Self::set_context).
     ///
     /// Map representing the context. Keys correspond to the names of the dimensions.
-    pub fn context(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
+    pub fn context(
+        mut self,
+        k: impl ::std::convert::Into<::std::string::String>,
+        v: ::aws_smithy_types::Document,
+    ) -> Self {
         let mut hash_map = self.context.unwrap_or_default();
-                        hash_map.insert(k.into(), v);
-                        self.context = ::std::option::Option::Some(hash_map);
-                        self
+        hash_map.insert(k.into(), v);
+        self.context = ::std::option::Option::Some(hash_map);
+        self
     }
     /// Map representing the context. Keys correspond to the names of the dimensions.
-    pub fn set_context(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
-        self.context = input; self
+    pub fn set_context(
+        mut self,
+        input: ::std::option::Option<
+            ::std::collections::HashMap<
+                ::std::string::String,
+                ::aws_smithy_types::Document,
+            >,
+        >,
+    ) -> Self {
+        self.context = input;
+        self
     }
     /// Map representing the context. Keys correspond to the names of the dimensions.
-    pub fn get_context(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    pub fn get_context(
+        &self,
+    ) -> &::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
         &self.context
     }
     /// Consumes the builder and constructs a [`ListExperimentInput`](crate::operation::list_experiment::ListExperimentInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::list_experiment::ListExperimentInput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::list_experiment::ListExperimentInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::list_experiment::ListExperimentInput {
-                count: self.count
-                ,
-                page: self.page
-                ,
-                all: self.all
-                ,
-                workspace_id: self.workspace_id
-                ,
-                org_id: self.org_id
-                ,
-                if_modified_since: self.if_modified_since
-                ,
-                status: self.status
-                ,
-                from_date: self.from_date
-                ,
-                to_date: self.to_date
-                ,
-                experiment_name: self.experiment_name
-                ,
-                experiment_ids: self.experiment_ids
-                ,
-                experiment_group_ids: self.experiment_group_ids
-                ,
-                created_by: self.created_by
-                ,
-                sort_on: self.sort_on
-                ,
-                sort_by: self.sort_by
-                ,
-                global_experiments_only: self.global_experiments_only
-                ,
-                dimension_match_strategy: self.dimension_match_strategy
-                ,
-                dimension_params: self.dimension_params
-                ,
-                prefix: self.prefix
-                ,
-                exclude_prefix: self.exclude_prefix
-                ,
-                context: self.context
-                ,
-            }
+                count: self.count,
+                page: self.page,
+                all: self.all,
+                workspace_id: self.workspace_id,
+                org_id: self.org_id,
+                if_modified_since: self.if_modified_since,
+                status: self.status,
+                from_date: self.from_date,
+                to_date: self.to_date,
+                experiment_name: self.experiment_name,
+                experiment_ids: self.experiment_ids,
+                experiment_group_ids: self.experiment_group_ids,
+                created_by: self.created_by,
+                sort_on: self.sort_on,
+                sort_by: self.sort_by,
+                global_experiments_only: self.global_experiments_only,
+                dimension_match_strategy: self.dimension_match_strategy,
+                dimension_params: self.dimension_params,
+                prefix: self.prefix,
+                exclude_prefix: self.exclude_prefix,
+                context: self.context,
+            },
         )
     }
 }
-

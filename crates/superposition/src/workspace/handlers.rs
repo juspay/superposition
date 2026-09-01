@@ -156,6 +156,7 @@ async fn create_handler(
         auto_populate_control: request.auto_populate_control,
         enable_context_validation: request.enable_context_validation,
         enable_change_reason_validation: request.enable_change_reason_validation,
+        merge_strategy: request.merge_strategy,
         encryption_key,
         key_rotated_at: None,
         workspace_lock_id: None,

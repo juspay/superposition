@@ -2,21 +2,23 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct ApplicableVariantsInput  {
+pub struct ApplicableVariantsInput {
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub org_id: ::std::option::Option<::std::string::String>,
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub context: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    >,
     #[allow(missing_docs)] // documentation missing in model
     pub identifier: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
-    pub prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub prefix: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
     #[allow(missing_docs)] // documentation missing in model
-    pub exclude_prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub exclude_prefix: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
 }
-impl  ApplicableVariantsInput  {
+impl ApplicableVariantsInput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(&self) -> ::std::option::Option<&str> {
         self.workspace_id.as_deref()
@@ -26,7 +28,11 @@ impl  ApplicableVariantsInput  {
         self.org_id.as_deref()
     }
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn context(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    pub fn context(
+        &self,
+    ) -> ::std::option::Option<
+        &::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
         self.context.as_ref()
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -34,48 +40,60 @@ impl  ApplicableVariantsInput  {
         self.identifier.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.prefix.is_none()`.
     pub fn prefix(&self) -> &[::std::string::String] {
-        self.prefix.as_deref()
-        .unwrap_or_default()
+        self.prefix.as_deref().unwrap_or_default()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.exclude_prefix.is_none()`.
     pub fn exclude_prefix(&self) -> &[::std::string::String] {
-        self.exclude_prefix.as_deref()
-        .unwrap_or_default()
+        self.exclude_prefix.as_deref().unwrap_or_default()
     }
 }
 impl ApplicableVariantsInput {
     /// Creates a new builder-style object to manufacture [`ApplicableVariantsInput`](crate::operation::applicable_variants::ApplicableVariantsInput).
-    pub fn builder() -> crate::operation::applicable_variants::builders::ApplicableVariantsInputBuilder {
+    pub fn builder(
+    ) -> crate::operation::applicable_variants::builders::ApplicableVariantsInputBuilder
+    {
         crate::operation::applicable_variants::builders::ApplicableVariantsInputBuilder::default()
     }
 }
 
 /// A builder for [`ApplicableVariantsInput`](crate::operation::applicable_variants::ApplicableVariantsInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct ApplicableVariantsInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
-    pub(crate) context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub(crate) context: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    >,
     pub(crate) identifier: ::std::option::Option<::std::string::String>,
-    pub(crate) prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
-    pub(crate) exclude_prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub(crate) prefix: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    pub(crate) exclude_prefix:
+        ::std::option::Option<::std::vec::Vec<::std::string::String>>,
 }
 impl ApplicableVariantsInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_id = input; self
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -83,13 +101,20 @@ impl ApplicableVariantsInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -100,29 +125,53 @@ impl ApplicableVariantsInputBuilder {
     /// To override the contents of this collection use [`set_context`](Self::set_context).
     ///
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn context(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
+    pub fn context(
+        mut self,
+        k: impl ::std::convert::Into<::std::string::String>,
+        v: ::aws_smithy_types::Document,
+    ) -> Self {
         let mut hash_map = self.context.unwrap_or_default();
-                        hash_map.insert(k.into(), v);
-                        self.context = ::std::option::Option::Some(hash_map);
-                        self
+        hash_map.insert(k.into(), v);
+        self.context = ::std::option::Option::Some(hash_map);
+        self
     }
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn set_context(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
-        self.context = input; self
+    pub fn set_context(
+        mut self,
+        input: ::std::option::Option<
+            ::std::collections::HashMap<
+                ::std::string::String,
+                ::aws_smithy_types::Document,
+            >,
+        >,
+    ) -> Self {
+        self.context = input;
+        self
     }
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    pub fn get_context(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    pub fn get_context(
+        &self,
+    ) -> &::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
         &self.context
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn identifier(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn identifier(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.identifier = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_identifier(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.identifier = input; self
+    pub fn set_identifier(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.identifier = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_identifier(&self) -> &::std::option::Option<::std::string::String> {
@@ -132,56 +181,72 @@ impl ApplicableVariantsInputBuilder {
     ///
     /// To override the contents of this collection use [`set_prefix`](Self::set_prefix).
     ///
-    pub fn prefix(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn prefix(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         let mut v = self.prefix.unwrap_or_default();
-                        v.push(input.into());
-                        self.prefix = ::std::option::Option::Some(v);
-                        self
+        v.push(input.into());
+        self.prefix = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_prefix(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-        self.prefix = input; self
+    pub fn set_prefix(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    ) -> Self {
+        self.prefix = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_prefix(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
+    pub fn get_prefix(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<::std::string::String>> {
         &self.prefix
     }
     /// Appends an item to `exclude_prefix`.
     ///
     /// To override the contents of this collection use [`set_exclude_prefix`](Self::set_exclude_prefix).
     ///
-    pub fn exclude_prefix(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn exclude_prefix(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         let mut v = self.exclude_prefix.unwrap_or_default();
-                        v.push(input.into());
-                        self.exclude_prefix = ::std::option::Option::Some(v);
-                        self
+        v.push(input.into());
+        self.exclude_prefix = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_exclude_prefix(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-        self.exclude_prefix = input; self
+    pub fn set_exclude_prefix(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    ) -> Self {
+        self.exclude_prefix = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_exclude_prefix(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
+    pub fn get_exclude_prefix(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<::std::string::String>> {
         &self.exclude_prefix
     }
     /// Consumes the builder and constructs a [`ApplicableVariantsInput`](crate::operation::applicable_variants::ApplicableVariantsInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::applicable_variants::ApplicableVariantsInput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::applicable_variants::ApplicableVariantsInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::applicable_variants::ApplicableVariantsInput {
-                workspace_id: self.workspace_id
-                ,
-                org_id: self.org_id
-                ,
-                context: self.context
-                ,
-                identifier: self.identifier
-                ,
-                prefix: self.prefix
-                ,
-                exclude_prefix: self.exclude_prefix
-                ,
-            }
+                workspace_id: self.workspace_id,
+                org_id: self.org_id,
+                context: self.context,
+                identifier: self.identifier,
+                prefix: self.prefix,
+                exclude_prefix: self.exclude_prefix,
+            },
         )
     }
 }
-

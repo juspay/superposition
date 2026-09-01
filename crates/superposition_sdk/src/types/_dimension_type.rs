@@ -22,8 +22,14 @@ pub enum DimensionType {
 impl DimensionType {
     /// Tries to convert the enum instance into [`LocalCohort`](crate::types::DimensionType::LocalCohort), extracting the inner [`String`](::std::string::String).
     /// Returns `Err(&Self)` if it can't be converted.
-    pub fn as_local_cohort(&self) -> ::std::result::Result<&::std::string::String, &Self> {
-        if let DimensionType::LocalCohort(val) = &self { ::std::result::Result::Ok(val) } else { ::std::result::Result::Err(self) }
+    pub fn as_local_cohort(
+        &self,
+    ) -> ::std::result::Result<&::std::string::String, &Self> {
+        if let DimensionType::LocalCohort(val) = &self {
+            ::std::result::Result::Ok(val)
+        } else {
+            ::std::result::Result::Err(self)
+        }
     }
     /// Returns true if this is a [`LocalCohort`](crate::types::DimensionType::LocalCohort).
     pub fn is_local_cohort(&self) -> bool {
@@ -32,7 +38,11 @@ impl DimensionType {
     /// Tries to convert the enum instance into [`Regular`](crate::types::DimensionType::Regular), extracting the inner `()`.
     /// Returns `Err(&Self)` if it can't be converted.
     pub fn as_regular(&self) -> ::std::result::Result<(), &Self> {
-        if let DimensionType::Regular = &self { ::std::result::Result::Ok(()) } else { ::std::result::Result::Err(self) }
+        if let DimensionType::Regular = &self {
+            ::std::result::Result::Ok(())
+        } else {
+            ::std::result::Result::Err(self)
+        }
     }
     /// Returns true if this is a [`Regular`](crate::types::DimensionType::Regular).
     pub fn is_regular(&self) -> bool {
@@ -40,8 +50,14 @@ impl DimensionType {
     }
     /// Tries to convert the enum instance into [`RemoteCohort`](crate::types::DimensionType::RemoteCohort), extracting the inner [`String`](::std::string::String).
     /// Returns `Err(&Self)` if it can't be converted.
-    pub fn as_remote_cohort(&self) -> ::std::result::Result<&::std::string::String, &Self> {
-        if let DimensionType::RemoteCohort(val) = &self { ::std::result::Result::Ok(val) } else { ::std::result::Result::Err(self) }
+    pub fn as_remote_cohort(
+        &self,
+    ) -> ::std::result::Result<&::std::string::String, &Self> {
+        if let DimensionType::RemoteCohort(val) = &self {
+            ::std::result::Result::Ok(val)
+        } else {
+            ::std::result::Result::Err(self)
+        }
     }
     /// Returns true if this is a [`RemoteCohort`](crate::types::DimensionType::RemoteCohort).
     pub fn is_remote_cohort(&self) -> bool {
@@ -52,4 +68,3 @@ impl DimensionType {
         matches!(self, Self::Unknown)
     }
 }
-

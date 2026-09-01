@@ -2,27 +2,31 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct RotateMasterEncryptionKeyInput  {
-}
+pub struct RotateMasterEncryptionKeyInput {}
 impl RotateMasterEncryptionKeyInput {
     /// Creates a new builder-style object to manufacture [`RotateMasterEncryptionKeyInput`](crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKeyInput).
-    pub fn builder() -> crate::operation::rotate_master_encryption_key::builders::RotateMasterEncryptionKeyInputBuilder {
+    pub fn builder() -> crate::operation::rotate_master_encryption_key::builders::RotateMasterEncryptionKeyInputBuilder{
         crate::operation::rotate_master_encryption_key::builders::RotateMasterEncryptionKeyInputBuilder::default()
     }
 }
 
 /// A builder for [`RotateMasterEncryptionKeyInput`](crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKeyInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
-pub struct RotateMasterEncryptionKeyInputBuilder {
-}
+pub struct RotateMasterEncryptionKeyInputBuilder {}
 impl RotateMasterEncryptionKeyInputBuilder {
     /// Consumes the builder and constructs a [`RotateMasterEncryptionKeyInput`](crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKeyInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKeyInput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKeyInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::rotate_master_encryption_key::RotateMasterEncryptionKeyInput {
             }
         )
     }
 }
-

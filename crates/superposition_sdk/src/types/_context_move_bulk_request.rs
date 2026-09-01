@@ -2,16 +2,17 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct ContextMoveBulkRequest  {
+pub struct ContextMoveBulkRequest {
     #[allow(missing_docs)] // documentation missing in model
     pub id: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
     pub request: crate::types::ContextMove,
 }
-impl  ContextMoveBulkRequest  {
+impl ContextMoveBulkRequest {
     #[allow(missing_docs)] // documentation missing in model
     pub fn id(&self) -> &str {
-        use std::ops::Deref; self.id.deref()
+        use std::ops::Deref;
+        self.id.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn request(&self) -> &crate::types::ContextMove {
@@ -26,7 +27,9 @@ impl ContextMoveBulkRequest {
 }
 
 /// A builder for [`ContextMoveBulkRequest`](crate::types::ContextMoveBulkRequest).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct ContextMoveBulkRequestBuilder {
     pub(crate) id: ::std::option::Option<::std::string::String>,
@@ -41,7 +44,8 @@ impl ContextMoveBulkRequestBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.id = input; self
+        self.id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -54,8 +58,12 @@ impl ContextMoveBulkRequestBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_request(mut self, input: ::std::option::Option<crate::types::ContextMove>) -> Self {
-        self.request = input; self
+    pub fn set_request(
+        mut self,
+        input: ::std::option::Option<crate::types::ContextMove>,
+    ) -> Self {
+        self.request = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_request(&self) -> &::std::option::Option<crate::types::ContextMove> {
@@ -65,7 +73,12 @@ impl ContextMoveBulkRequestBuilder {
     /// This method will fail if any of the following fields are not set:
     /// - [`id`](crate::types::builders::ContextMoveBulkRequestBuilder::id)
     /// - [`request`](crate::types::builders::ContextMoveBulkRequestBuilder::request)
-    pub fn build(self) -> ::std::result::Result<crate::types::ContextMoveBulkRequest, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::types::ContextMoveBulkRequest,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::types::ContextMoveBulkRequest {
                 id: self.id
@@ -82,4 +95,3 @@ impl ContextMoveBulkRequestBuilder {
         )
     }
 }
-

@@ -2,16 +2,17 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct GetConfigJsonOutput  {
+pub struct GetConfigJsonOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub json_config: ::std::string::String,
     #[allow(missing_docs)] // documentation missing in model
     pub last_modified: ::std::option::Option<::aws_smithy_types::DateTime>,
 }
-impl  GetConfigJsonOutput  {
+impl GetConfigJsonOutput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn json_config(&self) -> &str {
-        use std::ops::Deref; self.json_config.deref()
+        use std::ops::Deref;
+        self.json_config.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn last_modified(&self) -> ::std::option::Option<&::aws_smithy_types::DateTime> {
@@ -20,13 +21,16 @@ impl  GetConfigJsonOutput  {
 }
 impl GetConfigJsonOutput {
     /// Creates a new builder-style object to manufacture [`GetConfigJsonOutput`](crate::operation::get_config_json::GetConfigJsonOutput).
-    pub fn builder() -> crate::operation::get_config_json::builders::GetConfigJsonOutputBuilder {
+    pub fn builder(
+    ) -> crate::operation::get_config_json::builders::GetConfigJsonOutputBuilder {
         crate::operation::get_config_json::builders::GetConfigJsonOutputBuilder::default()
     }
 }
 
 /// A builder for [`GetConfigJsonOutput`](crate::operation::get_config_json::GetConfigJsonOutput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct GetConfigJsonOutputBuilder {
     pub(crate) json_config: ::std::option::Option<::std::string::String>,
@@ -35,13 +39,20 @@ pub struct GetConfigJsonOutputBuilder {
 impl GetConfigJsonOutputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn json_config(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn json_config(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.json_config = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_json_config(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.json_config = input; self
+    pub fn set_json_config(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.json_config = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_json_config(&self) -> &::std::option::Option<::std::string::String> {
@@ -53,17 +64,28 @@ impl GetConfigJsonOutputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_last_modified(mut self, input: ::std::option::Option<::aws_smithy_types::DateTime>) -> Self {
-        self.last_modified = input; self
+    pub fn set_last_modified(
+        mut self,
+        input: ::std::option::Option<::aws_smithy_types::DateTime>,
+    ) -> Self {
+        self.last_modified = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_last_modified(&self) -> &::std::option::Option<::aws_smithy_types::DateTime> {
+    pub fn get_last_modified(
+        &self,
+    ) -> &::std::option::Option<::aws_smithy_types::DateTime> {
         &self.last_modified
     }
     /// Consumes the builder and constructs a [`GetConfigJsonOutput`](crate::operation::get_config_json::GetConfigJsonOutput).
     /// This method will fail if any of the following fields are not set:
     /// - [`json_config`](crate::operation::get_config_json::builders::GetConfigJsonOutputBuilder::json_config)
-    pub fn build(self) -> ::std::result::Result<crate::operation::get_config_json::GetConfigJsonOutput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::get_config_json::GetConfigJsonOutput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::get_config_json::GetConfigJsonOutput {
                 json_config: self.json_config
@@ -77,4 +99,3 @@ impl GetConfigJsonOutputBuilder {
         )
     }
 }
-

@@ -2,15 +2,15 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct GetDetailedResolvedConfigInput  {
+pub struct GetDetailedResolvedConfigInput {
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub org_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
-    pub prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub prefix: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
     /// Excludes configuration keys that start with any of the supplied prefixes. When combined with prefix, exclusion is applied to the allow-listed keys.
-    pub exclude_prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub exclude_prefix: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
     #[allow(missing_docs)] // documentation missing in model
     pub version: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -22,9 +22,11 @@ pub struct GetDetailedResolvedConfigInput  {
     /// Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution.
     pub resolve_remote: ::std::option::Option<bool>,
     /// Map representing the context. Keys correspond to the names of the dimensions.
-    pub context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub context: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    >,
 }
-impl  GetDetailedResolvedConfigInput  {
+impl GetDetailedResolvedConfigInput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(&self) -> ::std::option::Option<&str> {
         self.workspace_id.as_deref()
@@ -34,18 +36,16 @@ impl  GetDetailedResolvedConfigInput  {
         self.org_id.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.prefix.is_none()`.
     pub fn prefix(&self) -> &[::std::string::String] {
-        self.prefix.as_deref()
-        .unwrap_or_default()
+        self.prefix.as_deref().unwrap_or_default()
     }
     /// Excludes configuration keys that start with any of the supplied prefixes. When combined with prefix, exclusion is applied to the allow-listed keys.
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.exclude_prefix.is_none()`.
     pub fn exclude_prefix(&self) -> &[::std::string::String] {
-        self.exclude_prefix.as_deref()
-        .unwrap_or_default()
+        self.exclude_prefix.as_deref().unwrap_or_default()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn version(&self) -> ::std::option::Option<&str> {
@@ -68,42 +68,58 @@ impl  GetDetailedResolvedConfigInput  {
         self.resolve_remote
     }
     /// Map representing the context. Keys correspond to the names of the dimensions.
-    pub fn context(&self) -> ::std::option::Option<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    pub fn context(
+        &self,
+    ) -> ::std::option::Option<
+        &::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
         self.context.as_ref()
     }
 }
 impl GetDetailedResolvedConfigInput {
     /// Creates a new builder-style object to manufacture [`GetDetailedResolvedConfigInput`](crate::operation::get_detailed_resolved_config::GetDetailedResolvedConfigInput).
-    pub fn builder() -> crate::operation::get_detailed_resolved_config::builders::GetDetailedResolvedConfigInputBuilder {
+    pub fn builder() -> crate::operation::get_detailed_resolved_config::builders::GetDetailedResolvedConfigInputBuilder{
         crate::operation::get_detailed_resolved_config::builders::GetDetailedResolvedConfigInputBuilder::default()
     }
 }
 
 /// A builder for [`GetDetailedResolvedConfigInput`](crate::operation::get_detailed_resolved_config::GetDetailedResolvedConfigInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct GetDetailedResolvedConfigInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
-    pub(crate) prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
-    pub(crate) exclude_prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub(crate) prefix: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    pub(crate) exclude_prefix:
+        ::std::option::Option<::std::vec::Vec<::std::string::String>>,
     pub(crate) version: ::std::option::Option<::std::string::String>,
     pub(crate) show_reasoning: ::std::option::Option<bool>,
     pub(crate) merge_strategy: ::std::option::Option<crate::types::MergeStrategy>,
     pub(crate) context_id: ::std::option::Option<::std::string::String>,
     pub(crate) resolve_remote: ::std::option::Option<bool>,
-    pub(crate) context: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>,
+    pub(crate) context: ::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    >,
 }
 impl GetDetailedResolvedConfigInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_id = input; self
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -111,13 +127,20 @@ impl GetDetailedResolvedConfigInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -127,18 +150,27 @@ impl GetDetailedResolvedConfigInputBuilder {
     ///
     /// To override the contents of this collection use [`set_prefix`](Self::set_prefix).
     ///
-    pub fn prefix(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn prefix(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         let mut v = self.prefix.unwrap_or_default();
-                        v.push(input.into());
-                        self.prefix = ::std::option::Option::Some(v);
-                        self
+        v.push(input.into());
+        self.prefix = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_prefix(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-        self.prefix = input; self
+    pub fn set_prefix(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    ) -> Self {
+        self.prefix = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_prefix(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
+    pub fn get_prefix(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<::std::string::String>> {
         &self.prefix
     }
     /// Appends an item to `exclude_prefix`.
@@ -146,28 +178,44 @@ impl GetDetailedResolvedConfigInputBuilder {
     /// To override the contents of this collection use [`set_exclude_prefix`](Self::set_exclude_prefix).
     ///
     /// Excludes configuration keys that start with any of the supplied prefixes. When combined with prefix, exclusion is applied to the allow-listed keys.
-    pub fn exclude_prefix(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn exclude_prefix(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         let mut v = self.exclude_prefix.unwrap_or_default();
-                        v.push(input.into());
-                        self.exclude_prefix = ::std::option::Option::Some(v);
-                        self
+        v.push(input.into());
+        self.exclude_prefix = ::std::option::Option::Some(v);
+        self
     }
     /// Excludes configuration keys that start with any of the supplied prefixes. When combined with prefix, exclusion is applied to the allow-listed keys.
-    pub fn set_exclude_prefix(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
-        self.exclude_prefix = input; self
+    pub fn set_exclude_prefix(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<::std::string::String>>,
+    ) -> Self {
+        self.exclude_prefix = input;
+        self
     }
     /// Excludes configuration keys that start with any of the supplied prefixes. When combined with prefix, exclusion is applied to the allow-listed keys.
-    pub fn get_exclude_prefix(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
+    pub fn get_exclude_prefix(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<::std::string::String>> {
         &self.exclude_prefix
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn version(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn version(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.version = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_version(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.version = input; self
+    pub fn set_version(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.version = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_version(&self) -> &::std::option::Option<::std::string::String> {
@@ -180,7 +228,8 @@ impl GetDetailedResolvedConfigInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn set_show_reasoning(mut self, input: ::std::option::Option<bool>) -> Self {
-        self.show_reasoning = input; self
+        self.show_reasoning = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_show_reasoning(&self) -> &::std::option::Option<bool> {
@@ -192,21 +241,34 @@ impl GetDetailedResolvedConfigInputBuilder {
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_merge_strategy(mut self, input: ::std::option::Option<crate::types::MergeStrategy>) -> Self {
-        self.merge_strategy = input; self
+    pub fn set_merge_strategy(
+        mut self,
+        input: ::std::option::Option<crate::types::MergeStrategy>,
+    ) -> Self {
+        self.merge_strategy = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_merge_strategy(&self) -> &::std::option::Option<crate::types::MergeStrategy> {
+    pub fn get_merge_strategy(
+        &self,
+    ) -> &::std::option::Option<crate::types::MergeStrategy> {
         &self.merge_strategy
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn context_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn context_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.context_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_context_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.context_id = input; self
+    pub fn set_context_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.context_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_context_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -219,7 +281,8 @@ impl GetDetailedResolvedConfigInputBuilder {
     }
     /// Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution.
     pub fn set_resolve_remote(mut self, input: ::std::option::Option<bool>) -> Self {
-        self.resolve_remote = input; self
+        self.resolve_remote = input;
+        self
     }
     /// Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution.
     pub fn get_resolve_remote(&self) -> &::std::option::Option<bool> {
@@ -230,22 +293,44 @@ impl GetDetailedResolvedConfigInputBuilder {
     /// To override the contents of this collection use [`set_context`](Self::set_context).
     ///
     /// Map representing the context. Keys correspond to the names of the dimensions.
-    pub fn context(mut self, k: impl ::std::convert::Into<::std::string::String>, v: ::aws_smithy_types::Document) -> Self {
+    pub fn context(
+        mut self,
+        k: impl ::std::convert::Into<::std::string::String>,
+        v: ::aws_smithy_types::Document,
+    ) -> Self {
         let mut hash_map = self.context.unwrap_or_default();
-                        hash_map.insert(k.into(), v);
-                        self.context = ::std::option::Option::Some(hash_map);
-                        self
+        hash_map.insert(k.into(), v);
+        self.context = ::std::option::Option::Some(hash_map);
+        self
     }
     /// Map representing the context. Keys correspond to the names of the dimensions.
-    pub fn set_context(mut self, input: ::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>>) -> Self {
-        self.context = input; self
+    pub fn set_context(
+        mut self,
+        input: ::std::option::Option<
+            ::std::collections::HashMap<
+                ::std::string::String,
+                ::aws_smithy_types::Document,
+            >,
+        >,
+    ) -> Self {
+        self.context = input;
+        self
     }
     /// Map representing the context. Keys correspond to the names of the dimensions.
-    pub fn get_context(&self) -> &::std::option::Option<::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>> {
+    pub fn get_context(
+        &self,
+    ) -> &::std::option::Option<
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    > {
         &self.context
     }
     /// Consumes the builder and constructs a [`GetDetailedResolvedConfigInput`](crate::operation::get_detailed_resolved_config::GetDetailedResolvedConfigInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::get_detailed_resolved_config::GetDetailedResolvedConfigInput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::get_detailed_resolved_config::GetDetailedResolvedConfigInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::get_detailed_resolved_config::GetDetailedResolvedConfigInput {
                 workspace_id: self.workspace_id
@@ -272,4 +357,3 @@ impl GetDetailedResolvedConfigInputBuilder {
         )
     }
 }
-

@@ -144,6 +144,15 @@ ADD COLUMN IF NOT EXISTS enable_change_reason_validation BOOLEAN DEFAULT FALSE;
 
 ALTER TABLE superposition.workspaces DROP COLUMN IF EXISTS strict_mode;
 
+DO $$ BEGIN
+    CREATE TYPE superposition.merge_strategy AS ENUM ('MERGE', 'REPLACE');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+ALTER TABLE superposition.workspaces
+ADD COLUMN IF NOT EXISTS merge_strategy superposition.MERGE_STRATEGY NOT NULL DEFAULT 'MERGE';
+
 ALTER TABLE superposition.workspaces
 ADD COLUMN IF NOT EXISTS encryption_key TEXT NOT NULL DEFAULT '',
 ADD COLUMN IF NOT EXISTS key_rotated_at TIMESTAMPTZ;

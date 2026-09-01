@@ -2,13 +2,13 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct MigrateWorkspaceSchemaInput  {
+pub struct MigrateWorkspaceSchemaInput {
     #[allow(missing_docs)] // documentation missing in model
     pub org_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_name: ::std::option::Option<::std::string::String>,
 }
-impl  MigrateWorkspaceSchemaInput  {
+impl MigrateWorkspaceSchemaInput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn org_id(&self) -> ::std::option::Option<&str> {
         self.org_id.as_deref()
@@ -20,13 +20,15 @@ impl  MigrateWorkspaceSchemaInput  {
 }
 impl MigrateWorkspaceSchemaInput {
     /// Creates a new builder-style object to manufacture [`MigrateWorkspaceSchemaInput`](crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaInput).
-    pub fn builder() -> crate::operation::migrate_workspace_schema::builders::MigrateWorkspaceSchemaInputBuilder {
+    pub fn builder() -> crate::operation::migrate_workspace_schema::builders::MigrateWorkspaceSchemaInputBuilder{
         crate::operation::migrate_workspace_schema::builders::MigrateWorkspaceSchemaInputBuilder::default()
     }
 }
 
 /// A builder for [`MigrateWorkspaceSchemaInput`](crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct MigrateWorkspaceSchemaInputBuilder {
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
@@ -35,13 +37,20 @@ pub struct MigrateWorkspaceSchemaInputBuilder {
 impl MigrateWorkspaceSchemaInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -49,28 +58,37 @@ impl MigrateWorkspaceSchemaInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_name(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_name(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_name = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_name(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_name = input; self
+    pub fn set_workspace_name(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_name = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_name(&self) -> &::std::option::Option<::std::string::String> {
         &self.workspace_name
     }
     /// Consumes the builder and constructs a [`MigrateWorkspaceSchemaInput`](crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaInput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaInput {
-                org_id: self.org_id
-                ,
-                workspace_name: self.workspace_name
-                ,
-            }
+                org_id: self.org_id,
+                workspace_name: self.workspace_name,
+            },
         )
     }
 }
-

@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct ListFunctionInput  {
+pub struct ListFunctionInput {
     /// Number of items to be returned in each page.
     pub count: ::std::option::Option<i32>,
     /// Page number to retrieve, starting from 1.
@@ -14,9 +14,10 @@ pub struct ListFunctionInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub org_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
-    pub function_type: ::std::option::Option<::std::vec::Vec::<crate::types::FunctionTypes>>,
+    pub function_type:
+        ::std::option::Option<::std::vec::Vec<crate::types::FunctionTypes>>,
 }
-impl  ListFunctionInput  {
+impl ListFunctionInput {
     /// Number of items to be returned in each page.
     pub fn count(&self) -> ::std::option::Option<i32> {
         self.count
@@ -38,22 +39,24 @@ impl  ListFunctionInput  {
         self.org_id.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.function_type.is_none()`.
     pub fn function_type(&self) -> &[crate::types::FunctionTypes] {
-        self.function_type.as_deref()
-        .unwrap_or_default()
+        self.function_type.as_deref().unwrap_or_default()
     }
 }
 impl ListFunctionInput {
     /// Creates a new builder-style object to manufacture [`ListFunctionInput`](crate::operation::list_function::ListFunctionInput).
-    pub fn builder() -> crate::operation::list_function::builders::ListFunctionInputBuilder {
+    pub fn builder() -> crate::operation::list_function::builders::ListFunctionInputBuilder
+    {
         crate::operation::list_function::builders::ListFunctionInputBuilder::default()
     }
 }
 
 /// A builder for [`ListFunctionInput`](crate::operation::list_function::ListFunctionInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct ListFunctionInputBuilder {
     pub(crate) count: ::std::option::Option<i32>,
@@ -61,7 +64,8 @@ pub struct ListFunctionInputBuilder {
     pub(crate) all: ::std::option::Option<bool>,
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
-    pub(crate) function_type: ::std::option::Option<::std::vec::Vec::<crate::types::FunctionTypes>>,
+    pub(crate) function_type:
+        ::std::option::Option<::std::vec::Vec<crate::types::FunctionTypes>>,
 }
 impl ListFunctionInputBuilder {
     /// Number of items to be returned in each page.
@@ -71,7 +75,8 @@ impl ListFunctionInputBuilder {
     }
     /// Number of items to be returned in each page.
     pub fn set_count(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.count = input; self
+        self.count = input;
+        self
     }
     /// Number of items to be returned in each page.
     pub fn get_count(&self) -> &::std::option::Option<i32> {
@@ -84,7 +89,8 @@ impl ListFunctionInputBuilder {
     }
     /// Page number to retrieve, starting from 1.
     pub fn set_page(mut self, input: ::std::option::Option<i32>) -> Self {
-        self.page = input; self
+        self.page = input;
+        self
     }
     /// Page number to retrieve, starting from 1.
     pub fn get_page(&self) -> &::std::option::Option<i32> {
@@ -97,7 +103,8 @@ impl ListFunctionInputBuilder {
     }
     /// If true, returns all requested items, ignoring pagination parameters page and count.
     pub fn set_all(mut self, input: ::std::option::Option<bool>) -> Self {
-        self.all = input; self
+        self.all = input;
+        self
     }
     /// If true, returns all requested items, ignoring pagination parameters page and count.
     pub fn get_all(&self) -> &::std::option::Option<bool> {
@@ -105,13 +112,20 @@ impl ListFunctionInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_id = input; self
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -119,13 +133,20 @@ impl ListFunctionInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -137,36 +158,38 @@ impl ListFunctionInputBuilder {
     ///
     pub fn function_type(mut self, input: crate::types::FunctionTypes) -> Self {
         let mut v = self.function_type.unwrap_or_default();
-                        v.push(input);
-                        self.function_type = ::std::option::Option::Some(v);
-                        self
+        v.push(input);
+        self.function_type = ::std::option::Option::Some(v);
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_function_type(mut self, input: ::std::option::Option<::std::vec::Vec::<crate::types::FunctionTypes>>) -> Self {
-        self.function_type = input; self
+    pub fn set_function_type(
+        mut self,
+        input: ::std::option::Option<::std::vec::Vec<crate::types::FunctionTypes>>,
+    ) -> Self {
+        self.function_type = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn get_function_type(&self) -> &::std::option::Option<::std::vec::Vec::<crate::types::FunctionTypes>> {
+    pub fn get_function_type(
+        &self,
+    ) -> &::std::option::Option<::std::vec::Vec<crate::types::FunctionTypes>> {
         &self.function_type
     }
     /// Consumes the builder and constructs a [`ListFunctionInput`](crate::operation::list_function::ListFunctionInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::list_function::ListFunctionInput, ::aws_smithy_types::error::operation::BuildError> {
-        ::std::result::Result::Ok(
-            crate::operation::list_function::ListFunctionInput {
-                count: self.count
-                ,
-                page: self.page
-                ,
-                all: self.all
-                ,
-                workspace_id: self.workspace_id
-                ,
-                org_id: self.org_id
-                ,
-                function_type: self.function_type
-                ,
-            }
-        )
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::list_function::ListFunctionInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
+        ::std::result::Result::Ok(crate::operation::list_function::ListFunctionInput {
+            count: self.count,
+            page: self.page,
+            all: self.all,
+            workspace_id: self.workspace_id,
+            org_id: self.org_id,
+            function_type: self.function_type,
+        })
     }
 }
-

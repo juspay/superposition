@@ -2,7 +2,7 @@
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
-pub struct GetWebhookByEventInput  {
+pub struct GetWebhookByEventInput {
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -10,7 +10,7 @@ pub struct GetWebhookByEventInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub event: ::std::option::Option<::std::string::String>,
 }
-impl  GetWebhookByEventInput  {
+impl GetWebhookByEventInput {
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_id(&self) -> ::std::option::Option<&str> {
         self.workspace_id.as_deref()
@@ -26,13 +26,17 @@ impl  GetWebhookByEventInput  {
 }
 impl GetWebhookByEventInput {
     /// Creates a new builder-style object to manufacture [`GetWebhookByEventInput`](crate::operation::get_webhook_by_event::GetWebhookByEventInput).
-    pub fn builder() -> crate::operation::get_webhook_by_event::builders::GetWebhookByEventInputBuilder {
+    pub fn builder(
+    ) -> crate::operation::get_webhook_by_event::builders::GetWebhookByEventInputBuilder
+    {
         crate::operation::get_webhook_by_event::builders::GetWebhookByEventInputBuilder::default()
     }
 }
 
 /// A builder for [`GetWebhookByEventInput`](crate::operation::get_webhook_by_event::GetWebhookByEventInput).
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug)]
+#[derive(
+    ::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug,
+)]
 #[non_exhaustive]
 pub struct GetWebhookByEventInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
@@ -42,13 +46,20 @@ pub struct GetWebhookByEventInputBuilder {
 impl GetWebhookByEventInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn workspace_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn workspace_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.workspace_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_workspace_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.workspace_id = input; self
+    pub fn set_workspace_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.workspace_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_workspace_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -56,13 +67,20 @@ impl GetWebhookByEventInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn org_id(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn org_id(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.org_id = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_org_id(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.org_id = input; self
+    pub fn set_org_id(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.org_id = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
@@ -70,30 +88,38 @@ impl GetWebhookByEventInputBuilder {
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
-    pub fn event(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+    pub fn event(
+        mut self,
+        input: impl ::std::convert::Into<::std::string::String>,
+    ) -> Self {
         self.event = ::std::option::Option::Some(input.into());
         self
     }
     #[allow(missing_docs)] // documentation missing in model
-    pub fn set_event(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
-        self.event = input; self
+    pub fn set_event(
+        mut self,
+        input: ::std::option::Option<::std::string::String>,
+    ) -> Self {
+        self.event = input;
+        self
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_event(&self) -> &::std::option::Option<::std::string::String> {
         &self.event
     }
     /// Consumes the builder and constructs a [`GetWebhookByEventInput`](crate::operation::get_webhook_by_event::GetWebhookByEventInput).
-    pub fn build(self) -> ::std::result::Result<crate::operation::get_webhook_by_event::GetWebhookByEventInput, ::aws_smithy_types::error::operation::BuildError> {
+    pub fn build(
+        self,
+    ) -> ::std::result::Result<
+        crate::operation::get_webhook_by_event::GetWebhookByEventInput,
+        ::aws_smithy_types::error::operation::BuildError,
+    > {
         ::std::result::Result::Ok(
             crate::operation::get_webhook_by_event::GetWebhookByEventInput {
-                workspace_id: self.workspace_id
-                ,
-                org_id: self.org_id
-                ,
-                event: self.event
-                ,
-            }
+                workspace_id: self.workspace_id,
+                org_id: self.org_id,
+                event: self.event,
+            },
         )
     }
 }
-

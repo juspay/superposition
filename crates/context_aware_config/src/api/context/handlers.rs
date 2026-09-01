@@ -19,8 +19,8 @@ use service_utils::{
     },
     middlewares::auth_z::{Action as AuthZAction, AuthZ},
     service::types::{
-        AppHeader, AppState, CustomHeaders, DbConnection, SchemaName, WorkspaceContext,
-        WorkspaceLockTtlPolicy, WorkspaceWritePermit,
+        AppHeader, AppState, CustomHeaders, DbConnection, ResolvedMergeStrategy,
+        SchemaName, WorkspaceContext, WorkspaceLockTtlPolicy, WorkspaceWritePermit,
     },
 };
 use superposition_core::helpers::{calculate_context_weight, hash};
@@ -31,6 +31,7 @@ use superposition_types::{
     Overridden, Overrides, PaginatedResponse, PrefixList, Resource, SortBy, User,
     api::{
         DimensionMatchStrategy,
+        config::MergeStrategy,
         context::{
             BulkOperation, BulkOperationResponse, ContextAction, ContextBulkResponse,
             ContextListFilters, ContextValidationRequest, Identifier, MoveRequest,
@@ -98,6 +99,7 @@ async fn create_handler(
     workspace_context: WorkspaceContext,
     state: Data<AppState>,
     custom_headers: CustomHeaders,
+    merge_strategy: ResolvedMergeStrategy,
     req: Json<PutRequest>,
     mut write_permit: WorkspaceWritePermit,
     user: User,
@@ -105,6 +107,8 @@ async fn create_handler(
 ) -> superposition::Result<HttpResponse> {
     let req = req.into_inner();
     create_authorized(&_auth_z, &req.r#override).await?;
+
+    let replace_existing = matches!(merge_strategy.into_inner(), MergeStrategy::REPLACE);
 
     let conn = write_permit.connection();
     let tags = parse_config_tags(custom_headers.config_tags)?;
@@ -156,7 +160,7 @@ async fn create_handler(
                 true,
                 &user,
                 &workspace_context,
-                false,
+                replace_existing,
                 new_ctx,
             )
             .map_err(|err: superposition::AppError| {
@@ -368,11 +372,13 @@ async fn move_handler(
     state: Data<AppState>,
     path: Path<String>,
     custom_headers: CustomHeaders,
+    merge_strategy: ResolvedMergeStrategy,
     req: Json<MoveRequest>,
     mut write_permit: WorkspaceWritePermit,
     user: User,
     internal_user: InternalUserContext,
 ) -> superposition::Result<HttpResponse> {
+    let replace_existing = matches!(merge_strategy.into_inner(), MergeStrategy::REPLACE);
     let conn = write_permit.connection();
     let ctx_id = path.into_inner();
     move_authorized(&_auth_z, &ctx_id, &workspace_context.schema_name, conn).await?;
@@ -431,6 +437,7 @@ async fn move_handler(
                 true,
                 &user,
                 &dimension_data_map,
+                replace_existing,
             )
             .map_err(|err| {
                 log::error!("move api failed with error: {:?}", err);
@@ -842,12 +849,15 @@ async fn bulk_operations_handler(
     workspace_context: WorkspaceContext,
     state: Data<AppState>,
     custom_headers: CustomHeaders,
+    merge_strategy: ResolvedMergeStrategy,
     req: Either<Json<Vec<ContextAction>>, Json<BulkOperation>>,
     mut write_permit: WorkspaceWritePermit,
     user: User,
     internal_user: InternalUserContext,
 ) -> superposition::Result<HttpResponse> {
     use contexts::dsl::contexts;
+
+    let replace_existing = matches!(merge_strategy.into_inner(), MergeStrategy::REPLACE);
 
     let conn = write_permit.connection();
     let is_v2 = matches!(req, Either::Right(_));
@@ -992,7 +1002,7 @@ async fn bulk_operations_handler(
                             true,
                             &user,
                             &workspace_context,
-                            false,
+                            replace_existing,
                             new_ctx,
                         )
                         .map_err(|err| {
@@ -1086,6 +1096,7 @@ async fn bulk_operations_handler(
                             true,
                             &user,
                             &dimension_data_map,
+                            replace_existing,
                         )
                         .map_err(|err| {
                             log::error!(

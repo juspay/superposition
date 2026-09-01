@@ -4,7 +4,9 @@
 #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::fmt::Debug)]
 pub enum ContextIdentifier {
     /// Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
-    Context(::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>),
+    Context(
+        ::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+    ),
     #[allow(missing_docs)] // documentation missing in model
     Id(::std::string::String),
     /// The `Unknown` variant represents cases where new union variant was received. Consider upgrading the SDK to the latest available version.
@@ -20,8 +22,17 @@ pub enum ContextIdentifier {
 impl ContextIdentifier {
     /// Tries to convert the enum instance into [`Context`](crate::types::ContextIdentifier::Context), extracting the inner [`HashMap`](::std::collections::HashMap).
     /// Returns `Err(&Self)` if it can't be converted.
-    pub fn as_context(&self) -> ::std::result::Result<&::std::collections::HashMap::<::std::string::String, ::aws_smithy_types::Document>, &Self> {
-        if let ContextIdentifier::Context(val) = &self { ::std::result::Result::Ok(val) } else { ::std::result::Result::Err(self) }
+    pub fn as_context(
+        &self,
+    ) -> ::std::result::Result<
+        &::std::collections::HashMap<::std::string::String, ::aws_smithy_types::Document>,
+        &Self,
+    > {
+        if let ContextIdentifier::Context(val) = &self {
+            ::std::result::Result::Ok(val)
+        } else {
+            ::std::result::Result::Err(self)
+        }
     }
     /// Returns true if this is a [`Context`](crate::types::ContextIdentifier::Context).
     pub fn is_context(&self) -> bool {
@@ -30,7 +41,11 @@ impl ContextIdentifier {
     /// Tries to convert the enum instance into [`Id`](crate::types::ContextIdentifier::Id), extracting the inner [`String`](::std::string::String).
     /// Returns `Err(&Self)` if it can't be converted.
     pub fn as_id(&self) -> ::std::result::Result<&::std::string::String, &Self> {
-        if let ContextIdentifier::Id(val) = &self { ::std::result::Result::Ok(val) } else { ::std::result::Result::Err(self) }
+        if let ContextIdentifier::Id(val) = &self {
+            ::std::result::Result::Ok(val)
+        } else {
+            ::std::result::Result::Err(self)
+        }
     }
     /// Returns true if this is a [`Id`](crate::types::ContextIdentifier::Id).
     pub fn is_id(&self) -> bool {
@@ -41,4 +56,3 @@ impl ContextIdentifier {
         matches!(self, Self::Unknown)
     }
 }
-
