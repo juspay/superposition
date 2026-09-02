@@ -1,4 +1,5 @@
 use serde_json::Value;
+use superposition_core::MergeStrategy;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -257,6 +258,8 @@ impl Default for RefreshStrategy {
 pub struct ConfigurationOptions {
     pub fallback_config: Option<serde_json::Map<String, Value>>,
     pub refresh_strategy: RefreshStrategy,
+    /// Strategy used to combine overrides while resolving. Defaults to MERGE.
+    pub merge_strategy: MergeStrategy,
 }
 
 impl ConfigurationOptions {
@@ -267,7 +270,13 @@ impl ConfigurationOptions {
         Self {
             fallback_config,
             refresh_strategy,
+            merge_strategy: MergeStrategy::default(),
         }
+    }
+
+    pub fn with_merge_strategy(mut self, merge_strategy: MergeStrategy) -> Self {
+        self.merge_strategy = merge_strategy;
+        self
     }
 }
 
@@ -292,6 +301,8 @@ pub struct SuperpositionProviderOptions {
     pub fallback_config: Option<serde_json::Map<String, Value>>,
     pub refresh_strategy: RefreshStrategy,
     pub experimentation_options: Option<ExperimentationOptions>,
+    /// Strategy used to combine overrides while resolving. Defaults to MERGE.
+    pub merge_strategy: MergeStrategy,
 }
 
 impl SuperpositionProviderOptions {
@@ -313,7 +324,13 @@ impl SuperpositionProviderOptions {
             fallback_config,
             refresh_strategy,
             experimentation_options,
+            merge_strategy: MergeStrategy::default(),
         }
+    }
+
+    pub fn with_merge_strategy(mut self, merge_strategy: MergeStrategy) -> Self {
+        self.merge_strategy = merge_strategy;
+        self
     }
 }
 

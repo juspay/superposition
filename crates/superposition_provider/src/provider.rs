@@ -37,7 +37,8 @@ impl SuperpositionProvider {
         let cac_options = ConfigurationOptions::new(
             provider_options.refresh_strategy,
             provider_options.fallback_config.clone(),
-        );
+        )
+        .with_merge_strategy(provider_options.merge_strategy);
 
         let cac_config =
             CacConfig::new(superposition_options.clone(), cac_options.clone());

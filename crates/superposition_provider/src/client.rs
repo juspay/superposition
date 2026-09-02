@@ -9,7 +9,6 @@ pub use open_feature::{
 use serde_json::{Map, Value};
 use superposition_core::{
     eval, experiment::ExperimentGroups, get_applicable_variants, Experiments,
-    MergeStrategy,
 };
 use superposition_types::{Config, DimensionInfo};
 use tokio::join;
@@ -252,7 +251,7 @@ impl CacConfig {
                     &cached_config.overrides,
                     &cached_config.dimensions,
                     query_data,
-                    MergeStrategy::MERGE,
+                    self.options.merge_strategy,
                     prefix_filter.map(|p| p.to_vec()),
                     exclude_prefix_filter.map(|p| p.to_vec()),
                 ))

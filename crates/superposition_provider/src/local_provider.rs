@@ -29,6 +29,8 @@ pub struct LocalResolutionProviderInner {
     primary: Arc<dyn SuperpositionDataSource>,
     fallback: Option<Arc<dyn SuperpositionDataSource>>,
     refresh_strategy: RefreshStrategy,
+    /// Strategy used to combine overrides while resolving. Defaults to MERGE.
+    merge_strategy: MergeStrategy,
     cached_config: RwLock<Option<ConfigData>>,
     cached_experiments: RwLock<Option<ExperimentData>>,
     config_checked_at: RwLock<Option<DateTime<Utc>>>,
@@ -48,10 +50,25 @@ impl LocalResolutionProvider {
         fallback: Option<Box<dyn SuperpositionDataSource>>,
         refresh_strategy: RefreshStrategy,
     ) -> Self {
+        Self::with_merge_strategy(
+            primary,
+            fallback,
+            refresh_strategy,
+            MergeStrategy::default(),
+        )
+    }
+
+    pub fn with_merge_strategy(
+        primary: Box<dyn SuperpositionDataSource>,
+        fallback: Option<Box<dyn SuperpositionDataSource>>,
+        refresh_strategy: RefreshStrategy,
+        merge_strategy: MergeStrategy,
+    ) -> Self {
         Self(Arc::new(LocalResolutionProviderInner {
             primary: Arc::from(primary),
             fallback: fallback.map(Arc::from),
             refresh_strategy,
+            merge_strategy,
             cached_config: RwLock::new(None),
             cached_experiments: RwLock::new(None),
             config_checked_at: RwLock::new(None),
@@ -567,7 +584,7 @@ impl LocalResolutionProvider {
                 &config_data.data.overrides,
                 &config_data.data.dimensions,
                 query_data,
-                MergeStrategy::MERGE,
+                self.merge_strategy,
                 prefix_filter,
                 exclude_prefix_filter,
             )),
