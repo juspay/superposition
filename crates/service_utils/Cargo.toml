@@ -15,8 +15,6 @@ async-trait = { workspace = true }
 aws-config = { version = "1.1.7", features = ["behavior-version-latest"] }
 aws-sdk-kms = { workspace = true }
 base64 = { workspace = true }
-google-cloud-kms = { workspace = true }
-vaultrs = { workspace = true }
 casbin = { version = "2.19.0", features = ["glob"] }
 chrono = { workspace = true }
 derive_more = { workspace = true }
@@ -24,6 +22,7 @@ diesel = { workspace = true }
 diesel-adapter = { version = "1.2.0" }
 fred = { workspace = true, features = ["metrics"] }
 futures-util = { workspace = true }
+google-cloud-kms = { workspace = true }
 humantime = { workspace = true }
 inventory = { workspace = true }
 log = { workspace = true }
@@ -58,6 +57,7 @@ thiserror = { workspace = true }
 url = { workspace = true }
 urlencoding = "~2.1.2"
 uuid = {workspace = true}
+vaultrs = { workspace = true }
 tracing-actix-web = { workspace = true }
 
 
