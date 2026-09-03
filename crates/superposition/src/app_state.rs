@@ -20,7 +20,7 @@ use service_utils::{
     },
     encryption::get_master_encryption_keys,
     helpers::{get_from_env_or_default, get_from_env_unsafe},
-    kms::KmsProvider,
+    kms::SecretProviderClient,
     kronos_dispatch::{SuperpositionSchemaProvider, setup_dispatcher},
     service::types::{AppEnv, AppState, ExperimentationFlags},
 };
@@ -29,7 +29,7 @@ use snowflake::SnowflakeIdGenerator;
 pub async fn get(
     app_env: AppEnv,
     port: u16,
-    kms_client: &Option<KmsProvider>,
+    kms_client: &Option<SecretProviderClient>,
     service_prefix: String,
     base: &str,
 ) -> (AppState, Option<WorkerHandle>, u64) {

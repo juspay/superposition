@@ -26,9 +26,9 @@ pub trait SecretProvider: Send + Sync {
     async fn get_secret_opt(&self, key: &str) -> Option<String>;
 }
 
-pub type KmsProvider = Box<dyn SecretProvider>;
+pub type SecretProviderClient = Box<dyn SecretProvider>;
 
-pub async fn new_client() -> KmsProvider {
+pub async fn new_client() -> SecretProviderClient {
     let raw: String = get_from_env_or_default("KMS_PROVIDER", String::new());
     match parse_provider_kind(&raw) {
         ProviderKind::Gcp => Box::new(gcp::new_client().await),

@@ -169,7 +169,7 @@ pub fn decrypt_workspace_key(
 }
 
 pub async fn get_master_encryption_keys(
-    kms_client: &Option<crate::kms::KmsProvider>,
+    kms_client: &Option<crate::kms::SecretProviderClient>,
     app_env: &AppEnv,
 ) -> Result<Option<EncryptionKey>, EncryptionError> {
     match app_env {

@@ -5,11 +5,11 @@ use diesel::{
 use urlencoding::encode;
 
 use crate::helpers::{get_from_env_or_default, get_from_env_unsafe};
-use crate::kms::KmsProvider;
+use crate::kms::SecretProviderClient;
 use crate::service::types::AppEnv;
 
 pub async fn get_superposition_token(
-    kms_client: &Option<KmsProvider>,
+    kms_client: &Option<SecretProviderClient>,
     app_env: &AppEnv,
 ) -> String {
     match app_env {
@@ -27,7 +27,7 @@ pub async fn get_superposition_token(
 }
 
 pub async fn get_kronos_dispatch_token(
-    kms_client: &Option<KmsProvider>,
+    kms_client: &Option<SecretProviderClient>,
     app_env: &AppEnv,
 ) -> String {
     match app_env {
@@ -45,7 +45,7 @@ pub async fn get_kronos_dispatch_token(
 }
 
 pub async fn get_oidc_client_secret(
-    kms_client: &Option<KmsProvider>,
+    kms_client: &Option<SecretProviderClient>,
     app_env: &AppEnv,
 ) -> String {
     match app_env {
@@ -68,7 +68,7 @@ pub async fn get_oidc_client_secret(
 /// environments. Returns `None` when the (optional) API-token flow is not
 /// configured.
 pub async fn get_introspection_auth_header(
-    kms_client: &Option<KmsProvider>,
+    kms_client: &Option<SecretProviderClient>,
     app_env: &AppEnv,
 ) -> Option<String> {
     if std::env::var("OIDC_INTROSPECTION_AUTH_HEADER").is_err() {
@@ -93,7 +93,7 @@ pub async fn get_introspection_auth_header(
 /// secrets in non-dev environments. Returns `None` when unset (static-token
 /// mechanism disabled).
 pub async fn get_static_api_tokens(
-    kms_client: &Option<KmsProvider>,
+    kms_client: &Option<SecretProviderClient>,
     app_env: &AppEnv,
 ) -> Option<String> {
     if std::env::var("OIDC_API_STATIC_TOKENS").is_err() {
@@ -114,7 +114,7 @@ pub async fn get_static_api_tokens(
 }
 
 pub async fn get_kronos_api_key(
-    kms_client: &Option<KmsProvider>,
+    kms_client: &Option<SecretProviderClient>,
     app_env: &AppEnv,
 ) -> String {
     match app_env {
@@ -132,7 +132,7 @@ pub async fn get_kronos_api_key(
 }
 
 pub async fn get_database_url(
-    kms_client: &Option<KmsProvider>,
+    kms_client: &Option<SecretProviderClient>,
     app_env: &AppEnv,
     env_prefix: Option<&str>,
 ) -> String {
@@ -161,7 +161,7 @@ pub async fn get_database_url(
 }
 
 pub async fn init_pool_manager(
-    kms_client: &Option<KmsProvider>,
+    kms_client: &Option<SecretProviderClient>,
     app_env: &AppEnv,
     max_pool_size: u32,
 ) -> Pool<ConnectionManager<PgConnection>> {

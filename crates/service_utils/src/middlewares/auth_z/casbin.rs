@@ -15,7 +15,7 @@ use tokio::sync::RwLock;
 use crate::{
     db::utils::get_database_url,
     helpers::{get_from_env_or_default, get_from_env_unsafe},
-    kms::KmsProvider,
+    kms::SecretProviderClient,
     middlewares::auth_z::AuthZDomain,
     service::types::{AppEnv, SchemaName},
 };
@@ -375,7 +375,7 @@ const MODEL_CONF: &str = include_str!("casbin/model.conf");
 
 impl CasbinPolicyEngine {
     pub async fn new(
-        kms_client: &Option<KmsProvider>,
+        kms_client: &Option<SecretProviderClient>,
         app_env: &AppEnv,
         db_pool_size: Option<u32>,
     ) -> Result<Self, String> {
@@ -443,7 +443,7 @@ impl CasbinPolicyEngine {
     }
 
     pub async fn management(
-        kms_client: &Option<KmsProvider>,
+        kms_client: &Option<SecretProviderClient>,
         app_env: &AppEnv,
     ) -> Result<Self, String> {
         Self::new(kms_client, app_env, Some(1)).await

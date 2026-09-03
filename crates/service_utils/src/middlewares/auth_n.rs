@@ -32,7 +32,7 @@ use crate::{
     },
     extensions::HttpRequestExt,
     helpers::get_from_env_unsafe,
-    kms::KmsProvider,
+    kms::SecretProviderClient,
     kronos_dispatch::DISPATCHER_USERNAME,
     service::types::{AppEnv, AppState},
 };
@@ -253,7 +253,7 @@ impl AuthNHandler {
     }
 
     pub async fn init(
-        kms_client: &Option<KmsProvider>,
+        kms_client: &Option<SecretProviderClient>,
         app_env: &AppEnv,
         path_prefix: String,
     ) -> Self {
