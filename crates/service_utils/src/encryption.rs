@@ -194,7 +194,7 @@ pub async fn get_master_encryption_keys(
         _ => {
             let kms_client = kms_client.as_ref().unwrap();
             let decrypted_master_key = kms_client
-                .decrypt_opt("MASTER_ENCRYPTION_KEY")
+                .get_secret_opt("MASTER_ENCRYPTION_KEY")
                 .await
                 .map(SecretString::from);
             let Some(current_key) = decrypted_master_key else {
@@ -205,7 +205,7 @@ pub async fn get_master_encryption_keys(
             };
 
             let previous_key = kms_client
-                .decrypt_opt("PREVIOUS_MASTER_ENCRYPTION_KEY")
+                .get_secret_opt("PREVIOUS_MASTER_ENCRYPTION_KEY")
                 .await
                 .map(SecretString::from);
 

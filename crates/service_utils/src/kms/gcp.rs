@@ -8,7 +8,7 @@ use google_cloud_kms::{
     grpc::kms::v1::DecryptRequest,
 };
 
-use crate::{helpers::get_from_env_unsafe, kms::KmsClient};
+use crate::{helpers::get_from_env_unsafe, kms::SecretProvider};
 
 pub struct Client {
     inner: GcpKmsClient,
@@ -56,14 +56,14 @@ async fn decrypt_helper(client: &Client, key: &str, ciphertext_b64: String) -> S
 }
 
 #[async_trait]
-impl KmsClient for Client {
-    async fn decrypt(&self, key: &str) -> String {
+impl SecretProvider for Client {
+    async fn get_secret(&self, key: &str) -> String {
         let ciphertext_b64: String = get_from_env_unsafe(key)
             .unwrap_or_else(|_| panic!("{key} not present in env"));
         decrypt_helper(self, key, ciphertext_b64).await
     }
 
-    async fn decrypt_opt(&self, key: &str) -> Option<String> {
+    async fn get_secret_opt(&self, key: &str) -> Option<String> {
         let ciphertext_b64: String = get_from_env_unsafe(key).ok()?;
         Some(decrypt_helper(self, key, ciphertext_b64).await)
     }

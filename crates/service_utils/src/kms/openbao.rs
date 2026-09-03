@@ -10,7 +10,7 @@ use vaultrs::{
     kv2,
 };
 
-use crate::{helpers::get_from_env_unsafe, kms::KmsClient};
+use crate::{helpers::get_from_env_unsafe, kms::SecretProvider};
 
 pub struct Client {
     inner: VaultClient,
@@ -52,14 +52,14 @@ async fn fetch_helper(client: &Client, key: &str, location: String) -> String {
 }
 
 #[async_trait]
-impl KmsClient for Client {
-    async fn decrypt(&self, key: &str) -> String {
+impl SecretProvider for Client {
+    async fn get_secret(&self, key: &str) -> String {
         let location: String = get_from_env_unsafe(key)
             .unwrap_or_else(|_| panic!("{key} not present in env"));
         fetch_helper(self, key, location).await
     }
 
-    async fn decrypt_opt(&self, key: &str) -> Option<String> {
+    async fn get_secret_opt(&self, key: &str) -> Option<String> {
         let location: String = get_from_env_unsafe(key).ok()?;
         Some(fetch_helper(self, key, location).await)
     }

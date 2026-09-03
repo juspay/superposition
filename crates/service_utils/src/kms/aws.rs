@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use aws_sdk_kms::{Client, primitives::Blob};
 use base64::{Engine, engine::general_purpose};
 
-use crate::{helpers::get_from_env_unsafe, kms::KmsClient};
+use crate::{helpers::get_from_env_unsafe, kms::SecretProvider};
 
 async fn decrypt_helper(
     aws_kms_cli: &Client,
@@ -31,14 +31,14 @@ async fn decrypt_helper(
 }
 
 #[async_trait]
-impl KmsClient for Client {
-    async fn decrypt(&self, key: &str) -> String {
+impl SecretProvider for Client {
+    async fn get_secret(&self, key: &str) -> String {
         let key_value_env: String = get_from_env_unsafe(key)
             .unwrap_or_else(|_| panic!("{key} not present in env"));
         decrypt_helper(self, key, key_value_env).await
     }
 
-    async fn decrypt_opt(&self, key: &str) -> Option<String> {
+    async fn get_secret_opt(&self, key: &str) -> Option<String> {
         let key_value_env: String = get_from_env_unsafe(key).ok()?;
         Some(decrypt_helper(self, key, key_value_env).await)
     }

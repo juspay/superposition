@@ -21,12 +21,12 @@ fn parse_provider_kind(raw: &str) -> ProviderKind {
 }
 
 #[async_trait::async_trait]
-pub trait KmsClient: Send + Sync {
-    async fn decrypt(&self, key: &str) -> String;
-    async fn decrypt_opt(&self, key: &str) -> Option<String>;
+pub trait SecretProvider: Send + Sync {
+    async fn get_secret(&self, key: &str) -> String;
+    async fn get_secret_opt(&self, key: &str) -> Option<String>;
 }
 
-pub type KmsProvider = Box<dyn KmsClient>;
+pub type KmsProvider = Box<dyn SecretProvider>;
 
 pub async fn new_client() -> KmsProvider {
     let raw: String = get_from_env_or_default("KMS_PROVIDER", String::new());

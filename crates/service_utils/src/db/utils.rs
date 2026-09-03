@@ -20,7 +20,7 @@ pub async fn get_superposition_token(
             kms_client
                 .as_ref()
                 .unwrap()
-                .decrypt("SUPERPOSITION_TOKEN")
+                .get_secret("SUPERPOSITION_TOKEN")
                 .await
         }
     }
@@ -38,7 +38,7 @@ pub async fn get_kronos_dispatch_token(
             kms_client
                 .as_ref()
                 .unwrap()
-                .decrypt("KRONOS_DISPATCH_TOKEN")
+                .get_secret("KRONOS_DISPATCH_TOKEN")
                 .await
         }
     }
@@ -56,7 +56,7 @@ pub async fn get_oidc_client_secret(
             kms_client
                 .as_ref()
                 .unwrap()
-                .decrypt("OIDC_CLIENT_SECRET")
+                .get_secret("OIDC_CLIENT_SECRET")
                 .await
         }
     }
@@ -82,7 +82,7 @@ pub async fn get_introspection_auth_header(
             kms_client
                 .as_ref()
                 .unwrap()
-                .decrypt("OIDC_INTROSPECTION_AUTH_HEADER")
+                .get_secret("OIDC_INTROSPECTION_AUTH_HEADER")
                 .await,
         ),
     }
@@ -107,7 +107,7 @@ pub async fn get_static_api_tokens(
             kms_client
                 .as_ref()
                 .unwrap()
-                .decrypt("OIDC_API_STATIC_TOKENS")
+                .get_secret("OIDC_API_STATIC_TOKENS")
                 .await,
         ),
     }
@@ -121,7 +121,13 @@ pub async fn get_kronos_api_key(
         AppEnv::DEV | AppEnv::TEST => {
             get_from_env_or_default("KRONOS_API_KEY", "dev-api-key".into())
         }
-        _ => kms_client.as_ref().unwrap().decrypt("KRONOS_API_KEY").await,
+        _ => {
+            kms_client
+                .as_ref()
+                .unwrap()
+                .get_secret("KRONOS_API_KEY")
+                .await
+        }
     }
 }
 
@@ -144,7 +150,7 @@ pub async fn get_database_url(
             let db_password_raw = kms_client
                 .as_ref()
                 .unwrap()
-                .decrypt(&format!("{env_prefix}DB_PASSWORD"))
+                .get_secret(&format!("{env_prefix}DB_PASSWORD"))
                 .await;
             encode(db_password_raw.as_str()).to_string()
         }
