@@ -7,9 +7,10 @@ use actix_web::{
 use bigdecimal::BigDecimal;
 use chrono::Utc;
 use diesel::{
-    Connection, ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl,
-    SelectableHelper,
+    Connection, ExpressionMethods, OptionalExtension, PgConnection, QueryDsl,
+    RunQueryDsl, SelectableHelper,
     dsl::sql,
+    r2d2::{ConnectionManager, PooledConnection},
     sql_types::{Bool, Text},
 };
 use serde_json::{Map, Value};
@@ -17,6 +18,7 @@ use service_utils::{
     helpers::{
         WebhookData, execute_webhook_call, fetch_dimensions_info_map, parse_config_tags,
     },
+    kronos_dispatch::submit_job,
     middlewares::auth_z::{Action as AuthZAction, AuthZ},
     service::types::{
         AppHeader, AppState, CustomHeaders, DbConnection, SchemaName, WorkspaceContext,
@@ -27,8 +29,8 @@ use superposition_core::helpers::{calculate_context_weight, hash};
 use superposition_derives::{authorized, declare_resource};
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
-    Contextual, DBConnection, DimensionInfo, InternalUserContext, ListResponse,
-    Overridden, Overrides, PaginatedResponse, PrefixList, Resource, SortBy, User,
+    Contextual, DBConnection, DimensionInfo, InternalUserContext, Overridden, Overrides,
+    PaginatedResponse, PrefixList, Resource, SortBy, User,
     api::{
         DimensionMatchStrategy,
         context::{
@@ -36,6 +38,7 @@ use superposition_types::{
             ContextListFilters, ContextValidationRequest, Identifier, MoveRequest,
             PutRequest, SortOn, UpdateRequest, WeightRecomputeResponse,
         },
+        jobs::{JobCreateResponse, JobRequest, PriorityRecomputeRequest},
         webhook::Action,
     },
     custom_query::{
@@ -43,7 +46,9 @@ use superposition_types::{
         QueryMap,
     },
     database::{
-        models::{ChangeReason, Description, cac::Context, others::WebhookEvent},
+        models::{
+            ChangeReason, Description, JobWorkspace, cac::Context, others::WebhookEvent,
+        },
         schema::contexts::{self, dsl, id},
     },
     logic::evaluate_local_cohorts_skip_unresolved,
@@ -1161,20 +1166,15 @@ async fn bulk_operations_handler(
     Ok(http_resp)
 }
 
-#[authorized]
-#[put("/weight/recompute")]
-async fn weight_recompute_handler(
-    workspace_context: WorkspaceContext,
-    state: Data<AppState>,
-    custom_headers: CustomHeaders,
-    mut write_permit: WorkspaceWritePermit,
-    user: User,
-) -> superposition::Result<HttpResponse> {
+pub async fn execute_priority_recompute(
+    workspace_context: &WorkspaceContext,
+    state: &Data<AppState>,
+    conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
+    user: &User,
+) -> superposition::Result<()> {
     use superposition_types::database::schema::contexts::dsl::{
         contexts, last_modified_at, last_modified_by, weight,
     };
-
-    let conn = write_permit.connection();
 
     let result: Vec<Context> = contexts
         .schema_name(&workspace_context.schema_name)
@@ -1187,7 +1187,6 @@ async fn weight_recompute_handler(
     let dimension_info_map =
         fetch_dimensions_info_map(conn, &workspace_context.schema_name)?;
     let mut response: Vec<WeightRecomputeResponse> = vec![];
-    let tags = parse_config_tags(custom_headers.config_tags)?;
 
     let contexts_new_weight = result
         .clone()
@@ -1214,7 +1213,6 @@ async fn weight_recompute_handler(
         })
         .collect::<superposition::Result<Vec<(BigDecimal, String)>>>()?;
 
-    // Update database and add config version
     let last_modified_time = Utc::now();
     let config_version =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -1234,16 +1232,13 @@ async fn weight_recompute_handler(
                         db_error!(err)
                     })?;
             }
-            let config_version_desc = Description::try_from("Recomputed weight".to_string()).map_err(|e| unexpected_error!(e))?;
-            add_config_version(&state, tags, config_version_desc, transaction_conn, &workspace_context.schema_name)
+            let config_version_desc = Description::try_from("Recomputed weight".to_string())
+                .map_err(|e| unexpected_error!(e))?;
+            add_config_version(state, None, config_version_desc, transaction_conn, &workspace_context.schema_name)
         })?;
-    let _ = put_config_in_redis(
-        &config_version,
-        &state,
-        &workspace_context.schema_name,
-        conn,
-    )
-    .await;
+    let _ =
+        put_config_in_redis(&config_version, state, &workspace_context.schema_name, conn)
+            .await;
 
     let data = WebhookData {
         payload: &response,
@@ -1253,22 +1248,41 @@ async fn weight_recompute_handler(
         action: Action::Batch(vec![Action::Update; response.len()]),
     };
 
-    let webhook_status =
-        execute_webhook_call(data, &workspace_context, &state, conn).await;
+    let _ = execute_webhook_call(data, workspace_context, state, conn).await;
+    Ok(())
+}
 
-    let mut http_resp = if webhook_status {
-        HttpResponse::Ok()
-    } else {
-        HttpResponse::build(
-            actix_web::http::StatusCode::from_u16(512)
-                .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
-        )
-    };
-    http_resp.insert_header((
-        AppHeader::XConfigVersion.to_string(),
-        config_version.id.to_string(),
-    ));
-    Ok(http_resp.json(ListResponse::new(response)))
+#[authorized]
+#[put("/weight/recompute")]
+async fn weight_recompute_handler(
+    workspace_context: WorkspaceContext,
+    state: Data<AppState>,
+    db_conn: DbConnection,
+) -> superposition::Result<Json<JobCreateResponse>> {
+    let DbConnection(mut conn) = db_conn;
+    let job_request = JobRequest::PriorityRecompute(PriorityRecomputeRequest);
+    let job_workspace = JobWorkspace::from(&workspace_context.schema_name.0);
+    let target_workspace = state
+        .kronos_workspace
+        .as_deref()
+        .unwrap_or(&workspace_context.schema_name);
+
+    let response = submit_job(
+        state.kronos_client.as_ref(),
+        target_workspace,
+        &job_workspace,
+        &workspace_context.organisation_id,
+        &workspace_context.workspace_id,
+        job_request,
+        &state.snowflake_generator,
+        &mut conn,
+        3,
+        "Priority recompute job",
+    )
+    .await
+    .map_err(|e| unexpected_error!("Failed to submit priority recompute job: {}", e))?;
+
+    Ok(Json(response))
 }
 
 #[authorized]

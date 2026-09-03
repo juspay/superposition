@@ -19,7 +19,7 @@ use service_utils::{
         rotate_workspace_encryption_key_helper,
     },
     helpers::get_workspace,
-    kronos_dispatch::setup_dispatcher,
+    kronos_dispatch::{setup_dispatcher, setup_job_dispatcher},
     middlewares::auth_z::AuthZHandler,
     service::types::{
         AppState, DbConnection, OrganisationId, SchemaName, WorkspaceContext, WorkspaceId,
@@ -184,6 +184,12 @@ async fn create_handler(
             &workspace_schema_name.0,
             &state.superposition_host,
             &state.kronos_dispatch_token,
+        )
+        .await;
+        setup_job_dispatcher(
+            state.kronos_client.as_ref(),
+            &workspace_schema_name.0,
+            &state.superposition_host,
         )
         .await;
     }
@@ -478,6 +484,12 @@ async fn migrate_schema_handler(
             &schema_name.0,
             &state.superposition_host,
             &state.kronos_dispatch_token,
+        )
+        .await;
+        setup_job_dispatcher(
+            state.kronos_client.as_ref(),
+            &schema_name.0,
+            &state.superposition_host,
         )
         .await;
     }
