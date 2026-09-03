@@ -583,7 +583,8 @@ export const se_CreateDefaultConfigCommand = async(
   });
   b.bp("/default-config");
   let body: any;
-  body = JSON.stringify(take(input, {
+  body = JSON.stringify({
+    ...take(input, {
     'change_reason': [],
     'description': [],
     'key': [],
@@ -591,7 +592,9 @@ export const se_CreateDefaultConfigCommand = async(
     'value': _ => se_Document(_, context),
     'value_compute_function_name': [],
     'value_validation_function_name': [],
-  }));
+  }),
+    ...('value' in input && input.value === null ? { value: null } : {}),
+  });
   b.m("POST")
   .h(headers)
   .b(body);
@@ -2345,14 +2348,17 @@ export const se_UpdateDefaultConfigCommand = async(
   b.bp("/default-config/{key}");
   b.p('key', () => input.key!, '{key}', false)
   let body: any;
-  body = JSON.stringify(take(input, {
+  body = JSON.stringify({
+    ...take(input, {
     'change_reason': [],
     'description': [],
     'schema': _ => se_Object(_, context),
     'value': _ => se_Document(_, context),
     'value_compute_function_name': [],
     'value_validation_function_name': [],
-  }));
+  }),
+    ...('value' in input && input.value === null ? { value: null } : {}),
+  });
   b.m("PATCH")
   .h(headers)
   .b(body);
@@ -5348,9 +5354,6 @@ const de_CommandError = async(
     context: __SerdeContext
   ): any => {
     return Object.entries(input).reduce((acc: Record<string, any>, [key, value]: [string, any]) => {
-      if (value === null) {
-        return acc;
-      }
       acc[key] = se_Document(value, context);
       return acc;
     }, {});
@@ -5394,9 +5397,6 @@ const de_CommandError = async(
     context: __SerdeContext
   ): any => {
     return Object.entries(input).reduce((acc: Record<string, any>, [key, value]: [string, any]) => {
-      if (value === null) {
-        return acc;
-      }
       acc[key] = se_Document(value, context);
       return acc;
     }, {});
@@ -5510,9 +5510,6 @@ const de_CommandError = async(
     context: __SerdeContext
   ): any => {
     return Object.entries(input).reduce((acc: Record<string, any>, [key, value]: [string, any]) => {
-      if (value === null) {
-        return acc;
-      }
       acc[key] = se_Document(value, context);
       return acc;
     }, {});
@@ -5526,9 +5523,6 @@ const de_CommandError = async(
     context: __SerdeContext
   ): any => {
     return Object.entries(input).reduce((acc: Record<string, any>, [key, value]: [string, any]) => {
-      if (value === null) {
-        return acc;
-      }
       acc[key] = se_Document(value, context);
       return acc;
     }, {});
@@ -5693,9 +5687,6 @@ const de_CommandError = async(
     context: __SerdeContext
   ): Record<string, __DocumentType> => {
     return Object.entries(output).reduce((acc: Record<string, __DocumentType>, [key, value]: [string, any]) => {
-      if (value === null) {
-        return acc;
-      }
       acc[key as string] = de_Document(value, context);
       return acc;
 
@@ -6093,9 +6084,6 @@ const de_CommandError = async(
     context: __SerdeContext
   ): Record<string, __DocumentType> => {
     return Object.entries(output).reduce((acc: Record<string, __DocumentType>, [key, value]: [string, any]) => {
-      if (value === null) {
-        return acc;
-      }
       acc[key as string] = de_Document(value, context);
       return acc;
 
@@ -6145,9 +6133,6 @@ const de_CommandError = async(
     context: __SerdeContext
   ): Record<string, __DocumentType> => {
     return Object.entries(output).reduce((acc: Record<string, __DocumentType>, [key, value]: [string, any]) => {
-      if (value === null) {
-        return acc;
-      }
       acc[key as string] = de_Document(value, context);
       return acc;
 
