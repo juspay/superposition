@@ -104,36 +104,38 @@ impl SuperpositionProvider {
     pub async fn resolve_full_config(
         &self,
         evaluation_context: &EvaluationContext,
-    ) -> Result<serde_json::Map<String, Value>> {
+    ) -> Result<(serde_json::Map<String, Value>, Vec<String>)> {
         self.eval_config(evaluation_context).await
     }
 
     async fn eval_config(
         &self,
         evaluation_context: &EvaluationContext,
-    ) -> Result<serde_json::Map<String, Value>> {
+    ) -> Result<(serde_json::Map<String, Value>, Vec<String>)> {
         // Get cached config from CAC
         let (mut context, targeting_key) =
             conversions::evaluation_context_to_query(evaluation_context.clone());
 
-        // Dimensions are only needed to resolve experiment variants, so avoid
-        // fetching (and cloning) them entirely when experimentation is off.
-        let variant_ids = if let Some(exp_config) = &self.exp_config {
-            let dimensions_info = self.get_dimensions_info().await;
-            exp_config
-                .get_applicable_variants(&dimensions_info, context.clone(), targeting_key)
-                .await?
-        } else {
-            vec![]
+        let variant_ids = match (targeting_key, &self.exp_config) {
+            (Some(key), Some(exp_config)) => {
+                let dimensions_info = self.get_dimensions_info().await;
+                exp_config
+                    .get_applicable_variants(&dimensions_info, context.clone(), Some(key))
+                    .await?
+            }
+            _ => vec![],
         };
 
         context.insert(
             "variantIds".to_string(),
-            Value::Array(variant_ids.into_iter().map(Value::String).collect()),
+            Value::Array(variant_ids.iter().cloned().map(Value::String).collect()),
         );
 
         match &self.cac_config {
-            Some(cac_config) => cac_config.evaluate_config(context, None, None).await,
+            Some(cac_config) => cac_config
+                .evaluate_config(context, None, None)
+                .await
+                .map(|config| (config, variant_ids)),
             None => Err(SuperpositionError::ConfigError(
                 "CAC config not initialized".into(),
             )),
@@ -203,7 +205,7 @@ impl FeatureProvider for SuperpositionProvider {
         evaluation_context: &EvaluationContext,
     ) -> EvaluationResult<ResolutionDetails<bool>> {
         match self.eval_config(evaluation_context).await {
-            Ok(config) => {
+            Ok((config, _)) => {
                 if let Some(value) = config.get(flag_key) {
                     if let Some(bool_val) = value.as_bool() {
                         return Ok(ResolutionDetails::new(bool_val));
@@ -230,7 +232,7 @@ impl FeatureProvider for SuperpositionProvider {
         evaluation_context: &EvaluationContext,
     ) -> EvaluationResult<ResolutionDetails<String>> {
         match self.eval_config(evaluation_context).await {
-            Ok(config) => {
+            Ok((config, _)) => {
                 if let Some(value) = config.get(flag_key) {
                     if let Some(str_val) = value.as_str() {
                         return Ok(ResolutionDetails::new(str_val.to_owned()));
@@ -257,7 +259,7 @@ impl FeatureProvider for SuperpositionProvider {
         evaluation_context: &EvaluationContext,
     ) -> EvaluationResult<ResolutionDetails<i64>> {
         match self.eval_config(evaluation_context).await {
-            Ok(config) => {
+            Ok((config, _)) => {
                 if let Some(value) = config.get(flag_key) {
                     if let Some(int_val) = value.as_i64() {
                         return Ok(ResolutionDetails::new(int_val));
@@ -284,7 +286,7 @@ impl FeatureProvider for SuperpositionProvider {
         evaluation_context: &EvaluationContext,
     ) -> EvaluationResult<ResolutionDetails<f64>> {
         match self.eval_config(evaluation_context).await {
-            Ok(config) => {
+            Ok((config, _)) => {
                 if let Some(value) = config.get(flag_key) {
                     if let Some(int_val) = value.as_f64() {
                         return Ok(ResolutionDetails::new(int_val));
@@ -311,7 +313,7 @@ impl FeatureProvider for SuperpositionProvider {
         evaluation_context: &EvaluationContext,
     ) -> EvaluationResult<ResolutionDetails<StructValue>> {
         match self.eval_config(evaluation_context).await {
-            Ok(mut config) => {
+            Ok((mut config, _)) => {
                 if let Some(value) = config.remove(flag_key) {
                     // Use the conversion utility we added earlier
                     match conversions::value_to_struct(value) {

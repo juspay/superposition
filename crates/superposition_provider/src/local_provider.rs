@@ -567,7 +567,7 @@ impl LocalResolutionProvider {
                 &config_data.data.overrides,
                 &config_data.data.dimensions,
                 query_data,
-                MergeStrategy::MERGE,
+                MergeStrategy::REPLACE,
                 prefix_filter,
                 exclude_prefix_filter,
             )),
