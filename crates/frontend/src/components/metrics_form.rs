@@ -462,13 +462,16 @@ pub fn ExperimentMetricsForm(
                                                     em.selection
                                                         .as_ref()
                                                         .and_then(|s| {
-                                                            (s.guardrail.name != NonEmptyString::default())
-                                                                .then_some(s.guardrail.name.to_string())
+                                                            (s.guardrail != NonEmptyString::default())
+                                                                .then_some(s.guardrail.to_string())
                                                         })
                                                 })
                                                 .unwrap_or_else(|| "Select guardrail metric".to_string())
-                                            dropdown_options=definitions_st.get_value()
-                                            on_select=move |metric: MetricDefinition| {
+                                            dropdown_options=definitions_st
+                                                .with_value(|defs| {
+                                                    defs.iter().map(|def| def.name.clone()).collect()
+                                                })
+                                            on_select=move |metric: NonEmptyString| {
                                                 experiment_metrics_rws
                                                     .update(|em| {
                                                         if em.selection.is_none() {

@@ -985,7 +985,7 @@ mod metric_selection_tests {
         MetricSelection {
             primary: metric("conversion", MetricDirection::Maximize),
             secondary: None,
-            guardrail: metric("latency", MetricDirection::Minimize),
+            guardrail: metric("latency", MetricDirection::Minimize).name,
         }
     }
 
@@ -1003,11 +1003,10 @@ mod metric_selection_tests {
         assert!(validate_metric_selection(&blank, &workspace_metrics(true)).is_err());
 
         let mut unknown = selection();
-        unknown.guardrail.name = "unknown".try_into().unwrap_or_default();
+        unknown.guardrail = "unknown".try_into().unwrap_or_default();
         assert!(validate_metric_selection(&unknown, &workspace_metrics(true)).is_err());
 
-        let mut wrong_direction = selection();
-        wrong_direction.guardrail.direction = MetricDirection::Maximize;
+        let wrong_direction = selection();
         assert!(
             validate_metric_selection(&wrong_direction, &workspace_metrics(true))
                 .is_err()
@@ -1021,7 +1020,7 @@ mod metric_selection_tests {
         );
 
         let mut duplicate = selection();
-        duplicate.guardrail = duplicate.primary.clone();
+        duplicate.guardrail = duplicate.primary.clone().name;
         duplicate.secondary = Some(duplicate.primary.clone());
         assert!(validate_metric_selection(&duplicate, &workspace_metrics(true)).is_ok());
     }

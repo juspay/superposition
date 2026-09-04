@@ -419,10 +419,7 @@ where
                                             <div>
                                                 <div class="stat-title">Guardrail</div>
                                                 <div class="font-medium">
-                                                    {metrics.guardrail.name.to_string()}
-                                                </div>
-                                                <div class="text-xs opacity-70">
-                                                    {metrics.guardrail.direction.label()}
+                                                    {metrics.guardrail.to_string()}
                                                 </div>
                                             </div>
                                         </div>

@@ -387,24 +387,27 @@ pub struct MetricDefinition {
 pub struct MetricSelection {
     pub primary: MetricDefinition,
     pub secondary: Option<MetricDefinition>,
-    pub guardrail: MetricDefinition,
+    pub guardrail: NonEmptyString,
 }
 
 impl MetricSelection {
     pub fn validate(&self, definitions: &[MetricDefinition]) -> Result<(), String> {
         let selected = [
-            ("primary", Some(&self.primary)),
-            ("secondary", self.secondary.as_ref()),
+            ("primary", Some(&self.primary.name)),
+            ("secondary", self.secondary.as_ref().map(|def| &def.name)),
             ("guardrail", Some(&self.guardrail)),
         ];
-        for (category, metric) in selected {
-            let Some(metric) = metric else {
+        for (category, metric_name) in selected {
+            let Some(metric_name) = metric_name else {
                 continue;
             };
-            if !definitions.iter().any(|defined| defined == metric) {
+            if !definitions
+                .iter()
+                .any(|defined| defined.name == *metric_name)
+            {
                 let message = format!(
                 "The {category} metric '{}' and its direction are not defined in the workspace",
-                *metric.name
+                **metric_name
             );
                 return Err(message);
             }
