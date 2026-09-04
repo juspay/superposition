@@ -499,11 +499,13 @@ impl NonEmptyString {
         self.0
     }
 
-    fn validate(value: &str) -> Result<(), String> {
-        if value.trim().is_empty() {
+    /// Trims before storing, so `"x"` and `" x "` are one value, not two.
+    fn new(value: &str) -> Result<Self, String> {
+        let trimmed = value.trim();
+        if trimmed.is_empty() {
             return Err(String::from("Empty value not allowed"));
         }
-        Ok(())
+        Ok(Self(trimmed.to_string()))
     }
 }
 
@@ -531,24 +533,21 @@ impl From<&NonEmptyString> for String {
 impl TryFrom<String> for NonEmptyString {
     type Error = String;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        Self::validate(&value)?;
-        Ok(Self(value))
+        Self::new(&value)
     }
 }
 
 impl TryFrom<&str> for NonEmptyString {
     type Error = String;
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        Self::validate(value)?;
-        Ok(Self(value.to_string()))
+        Self::new(value)
     }
 }
 
 impl FromStr for NonEmptyString {
     type Err = String;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Self::validate(s)?;
-        Ok(Self(s.to_string()))
+        Self::new(s)
     }
 }
 
@@ -578,7 +577,7 @@ pub mod i64_formatter {
 mod metrics_tests {
     use serde_json::json;
 
-    use super::{MetricSelection, Metrics};
+    use super::{MetricSelection, MetricSource, Metrics};
 
     fn enabled_metrics(definitions: serde_json::Value) -> serde_json::Value {
         json!({
@@ -641,22 +640,97 @@ mod metrics_tests {
     }
 
     #[test]
-    fn blank_grafana_source_is_normalized_to_none() {
-        // Enabled + blank source + no definitions: error (blank source counts as absent).
+    fn blank_grafana_source_is_rejected() {
+        // A half-filled source is an error whether or not definitions are set.
         assert!(serde_json::from_value::<Metrics>(json!({
             "enabled": true,
             "source": {"grafana": {"base_url": "", "dashboard_uid": "", "dashboard_slug": ""}}
         }))
         .is_err());
-        // Enabled + blank source + definitions: ok, source is dropped.
-        let metrics = serde_json::from_value::<Metrics>(json!({
+        assert!(serde_json::from_value::<Metrics>(json!({
             "enabled": true,
             "source": {"grafana": {"base_url": "  ", "dashboard_uid": "", "dashboard_slug": ""}},
             "definitions": [{"name": "conversion", "direction": "maximize"}]
         }))
-        .unwrap();
-        assert!(metrics.source.is_none());
+        .is_err());
+        // `dashboard_slug` counts too.
+        assert!(serde_json::from_value::<Metrics>(json!({
+            "enabled": true,
+            "source": {"grafana": {
+                "base_url": "https://grafana.example.com",
+                "dashboard_uid": "experiment-metrics",
+                "dashboard_slug": " "
+            }}
+        }))
+        .is_err());
+    }
+
+    #[test]
+    fn grafana_source_is_trimmed_and_a_blank_alias_is_dropped() {
+        let metrics = serde_json::from_value::<Metrics>(json!({
+            "enabled": true,
+            "source": {"grafana": {
+                "base_url": "  https://grafana.example.com  ",
+                "dashboard_uid": "experiment-metrics",
+                "dashboard_slug": "experiments",
+                "variant_id_alias": "  "
+            }}
+        }))
+        .expect("blank alias is absent, not invalid");
+
+        let Some(MetricSource::Grafana { base_url, variant_id_alias, .. }) = metrics.source
+        else {
+            panic!("expected a grafana source");
+        };
+        assert_eq!(base_url, "https://grafana.example.com");
+        assert_eq!(variant_id_alias, None);
+    }
+
+    #[test]
+    fn empty_definitions_normalise_to_none() {
+        let metrics = serde_json::from_value::<Metrics>(json!({
+            "enabled": false,
+            "definitions": []
+        }))
+        .expect("empty definitions");
+        assert!(metrics.definitions.is_none());
+    }
+
+    #[test]
+    fn a_disabled_workspace_hands_out_no_definitions() {
+        let metrics = serde_json::from_value::<Metrics>(json!({
+            "enabled": false,
+            "definitions": [{"name": "conversion", "direction": "maximize"}]
+        }))
+        .expect("definitions survive while disabled");
+
+        // The field is still populated - only the accessor is gated.
         assert!(metrics.definitions.is_some());
+        assert!(metrics.definitions().is_none());
+    }
+
+    #[test]
+    fn definition_names_are_validated_even_when_disabled() {
+        assert!(serde_json::from_value::<Metrics>(json!({
+            "enabled": false,
+            "definitions": [
+                {"name": "conversion", "direction": "maximize"},
+                {"name": "conversion", "direction": "minimize"}
+            ]
+        }))
+        .is_err());
+    }
+
+    #[test]
+    fn names_differing_only_by_surrounding_space_are_duplicates() {
+        assert!(serde_json::from_value::<Metrics>(json!({
+            "enabled": true,
+            "definitions": [
+                {"name": "conversion", "direction": "maximize"},
+                {"name": " conversion ", "direction": "minimize"}
+            ]
+        }))
+        .is_err());
     }
 
     #[test]

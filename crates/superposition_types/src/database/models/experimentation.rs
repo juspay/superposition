@@ -76,8 +76,10 @@ impl<'de> Deserialize<'de> for ExperimentMetrics {
 
 impl From<Metrics> for ExperimentMetrics {
     fn from(metrics: Metrics) -> Self {
+        // A snapshot has no selection, so it is only enabled if the workspace
+        // gave it a source. Otherwise we write a row we cannot read back.
         Self {
-            enabled: metrics.enabled,
+            enabled: metrics.enabled && metrics.source.is_some(),
             source: metrics.source,
             selection: None,
         }
