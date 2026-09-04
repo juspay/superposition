@@ -12,7 +12,7 @@ use diesel::{
     sql_types::{Json, Text},
     AsChangeset, AsExpression, FromSqlRow, Insertable, QueryId, Queryable, Selectable,
 };
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Serialize};
 #[cfg(all(
     feature = "diesel_derives",
     not(feature = "disable_db_data_validation")
@@ -337,11 +337,6 @@ pub struct MetricDefinition {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
-#[cfg_attr(
-    feature = "diesel_derives",
-    derive(AsExpression, FromSqlRow, JsonFromSql, JsonToSql)
-)]
-#[cfg_attr(feature = "diesel_derives", diesel(sql_type = Json))]
 pub struct MetricSelection {
     pub primary: MetricDefinition,
     pub secondary: Option<MetricDefinition>,
@@ -374,7 +369,8 @@ impl MetricSelection {
 
 // TODO: Add validation for the source - that the given URL is valid and the
 // dashboard UID and slug are present in the URL - possible once API_KEY is added
-#[derive(Clone, Debug, Serialize, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
+#[serde(try_from = "MetricsHelper")]
 #[cfg_attr(
     feature = "diesel_derives",
     derive(AsExpression, FromSqlRow, JsonFromSql, JsonToSql)
@@ -386,78 +382,69 @@ pub struct Metrics {
     pub definitions: Option<Vec<MetricDefinition>>,
 }
 
-impl<'de> Deserialize<'de> for Metrics {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        #[derive(Deserialize)]
-        struct MetricsHelper {
-            enabled: bool,
-            source: Option<MetricSource>,
-            definitions: Option<Vec<MetricDefinition>>,
-        }
-        let helper = MetricsHelper::deserialize(deserializer)?;
-        let is_source_valid = match &helper.source {
-            Some(MetricSource::Grafana {
-                base_url,
-                dashboard_uid,
-                dashboard_slug,
-                variant_id_alias,
-            }) => {
-                !base_url.trim().is_empty()
-                    && !dashboard_uid.trim().is_empty()
-                    && !dashboard_slug.trim().is_empty()
-                    && variant_id_alias
-                        .as_ref()
-                        .map_or(true, |alias| !alias.trim().is_empty())
-            }
-            _ => true,
-        };
+#[derive(Deserialize)]
+struct MetricsHelper {
+    enabled: bool,
+    source: Option<MetricSource>,
+    definitions: Option<Vec<MetricDefinition>>,
+}
 
-        if !is_source_valid {
-            return Err(serde::de::Error::custom(
-                "Invalid Grafana source: base_url, dashboard_uid, and dashboard_slug must be non-empty strings",
-            ));
-        }
+impl TryFrom<MetricsHelper> for Metrics {
+    type Error = String;
 
-        if helper.enabled {
-            let has_source = helper.source.is_some();
-            let has_list = helper
-                .definitions
-                .as_ref()
-                .is_some_and(|list| !list.is_empty());
-            if !has_source && !has_list {
-                return Err(serde::de::Error::custom(
-                    "at least one of `source` or a non-empty `list` must be \
-                     provided when metrics is enabled",
-                ));
-            }
-            if let Some(list) =
-                helper.definitions.as_ref().filter(|list| !list.is_empty())
+    fn try_from(helper: MetricsHelper) -> Result<Self, Self::Error> {
+        // A half-filled Grafana source is rejected outright rather than
+        // silently dropped, so the caller learns their config was ignored.
+        if let Some(MetricSource::Grafana {
+            base_url,
+            dashboard_uid,
+            dashboard_slug,
+            variant_id_alias,
+        }) = helper.source.as_ref()
+        {
+            let is_blank = |value: &str| value.trim().is_empty();
+            if is_blank(base_url)
+                || is_blank(dashboard_uid)
+                || is_blank(dashboard_slug)
+                || variant_id_alias.as_deref().is_some_and(is_blank)
             {
-                if list.iter().any(|metric| metric.name.trim().is_empty()) {
-                    return Err(serde::de::Error::custom(
-                        "metric names in `list` must be non-empty",
-                    ));
+                return Err("Invalid Grafana source: base_url, dashboard_uid, and \
+                     dashboard_slug must be non-empty strings"
+                    .to_string());
+            }
+        }
+
+        let definitions = helper.definitions.filter(|list| !list.is_empty());
+
+        if let Some(definitions) = definitions.as_ref() {
+            let mut seen = HashSet::with_capacity(definitions.len());
+            for metric in definitions {
+                let name = metric.name.trim();
+                if name.is_empty() {
+                    return Err(
+                        "metric names in `definitions` must be non-empty".to_string()
+                    );
                 }
-                if list
-                    .iter()
-                    .map(|metric| &metric.name)
-                    .collect::<HashSet<_>>()
-                    .len()
-                    != list.len()
-                {
-                    return Err(serde::de::Error::custom(
-                        "metric names in `list` must be unique",
+                if !seen.insert(name) {
+                    return Err(format!(
+                        "duplicate metric name in `definitions`: '{name}'"
                     ));
                 }
             }
         }
+
+        if helper.enabled && helper.source.is_none() && definitions.is_none() {
+            return Err(
+                "at least one of `source` or a non-empty `definitions` must \
+                 be provided when metrics is enabled"
+                    .to_string(),
+            );
+        }
+
         Ok(Self {
             enabled: helper.enabled,
             source: helper.source,
-            definitions: helper.definitions,
+            definitions,
         })
     }
 }
