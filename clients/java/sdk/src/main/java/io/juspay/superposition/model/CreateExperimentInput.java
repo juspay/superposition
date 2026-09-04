@@ -131,6 +131,12 @@ public final class CreateExperimentInput implements SerializableStruct {
         return changeReason;
     }
 
+    /**
+     * Optional metrics for the experiment. May carry a selection drawn from the workspace's metric list
+     * (primary and guardrail required, secondary optional) and/or a per-experiment source override; both
+     * are optional independently. A per-experiment source is only accepted when the workspace has a source
+     * configured.
+     */
     public Document metrics() {
         return metrics;
     }
@@ -366,6 +372,11 @@ public final class CreateExperimentInput implements SerializableStruct {
         }
 
         /**
+         * Optional metrics for the experiment. May carry a selection drawn from the workspace's metric list
+         * (primary and guardrail required, secondary optional) and/or a per-experiment source override; both
+         * are optional independently. A per-experiment source is only accepted when the workspace has a source
+         * configured.
+         *
          * @return this builder.
          */
         public Builder metrics(Document metrics) {

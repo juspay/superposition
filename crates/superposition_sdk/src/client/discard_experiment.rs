@@ -27,7 +27,7 @@ impl super::Client {
     ///   - [`started_at(Option<DateTime>)`](crate::operation::discard_experiment::DiscardExperimentOutput::started_at): (undocumented)
     ///   - [`started_by(Option<String>)`](crate::operation::discard_experiment::DiscardExperimentOutput::started_by): (undocumented)
     ///   - [`metrics_url(Option<String>)`](crate::operation::discard_experiment::DiscardExperimentOutput::metrics_url): (undocumented)
-    ///   - [`metrics(Option<Document>)`](crate::operation::discard_experiment::DiscardExperimentOutput::metrics): (undocumented)
+    ///   - [`metrics(Option<Document>)`](crate::operation::discard_experiment::DiscardExperimentOutput::metrics): Optional metrics for this experiment, snapshotted from workspace definitions. May carry a selection (primary and guardrail required, secondary optional) and/or a per-experiment source override; both are optional independently, and omitting both means metrics are disabled.
     ///   - [`experiment_group_id(Option<String>)`](crate::operation::discard_experiment::DiscardExperimentOutput::experiment_group_id): (undocumented)
                             /// - On failure, responds with [`SdkError<DiscardExperimentError>`](crate::operation::discard_experiment::DiscardExperimentError)
     pub fn discard_experiment(&self) -> crate::operation::discard_experiment::builders::DiscardExperimentFluentBuilder {

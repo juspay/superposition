@@ -114,6 +114,10 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
         return workspaceStatus;
     }
 
+    /**
+     * Workspace metric source and catalog. Each metric definition contains a unique name and whether
+     * higher or lower values are better.
+     */
     public Document metrics() {
         return metrics;
     }
@@ -332,6 +336,9 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
         }
 
         /**
+         * Workspace metric source and catalog. Each metric definition contains a unique name and whether
+         * higher or lower values are better.
+         *
          * @return this builder.
          */
         public Builder metrics(Document metrics) {

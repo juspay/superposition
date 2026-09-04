@@ -29,7 +29,7 @@ impl super::Client {
     ///   - [`started_at(Option<DateTime>)`](crate::operation::conclude_experiment::ConcludeExperimentOutput::started_at): (undocumented)
     ///   - [`started_by(Option<String>)`](crate::operation::conclude_experiment::ConcludeExperimentOutput::started_by): (undocumented)
     ///   - [`metrics_url(Option<String>)`](crate::operation::conclude_experiment::ConcludeExperimentOutput::metrics_url): (undocumented)
-    ///   - [`metrics(Option<Document>)`](crate::operation::conclude_experiment::ConcludeExperimentOutput::metrics): (undocumented)
+    ///   - [`metrics(Option<Document>)`](crate::operation::conclude_experiment::ConcludeExperimentOutput::metrics): Optional metrics for this experiment, snapshotted from workspace definitions. May carry a selection (primary and guardrail required, secondary optional) and/or a per-experiment source override; both are optional independently, and omitting both means metrics are disabled.
     ///   - [`experiment_group_id(Option<String>)`](crate::operation::conclude_experiment::ConcludeExperimentOutput::experiment_group_id): (undocumented)
                             /// - On failure, responds with [`SdkError<ConcludeExperimentError>`](crate::operation::conclude_experiment::ConcludeExperimentError)
     pub fn conclude_experiment(&self) -> crate::operation::conclude_experiment::builders::ConcludeExperimentFluentBuilder {

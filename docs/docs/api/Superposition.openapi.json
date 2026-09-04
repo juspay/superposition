@@ -7217,7 +7217,9 @@
                     "metrics_url": {
                         "type": "string"
                     },
-                    "metrics": {},
+                    "metrics": {
+                        "description": "Optional metrics for this experiment, snapshotted from workspace definitions. May carry a selection (primary and guardrail required, secondary optional) and/or a per-experiment source override; both are optional independently, and omitting both means metrics are disabled."
+                    },
                     "experiment_group_id": {
                         "type": "string"
                     }
@@ -7934,7 +7936,9 @@
                     "change_reason": {
                         "type": "string"
                     },
-                    "metrics": {},
+                    "metrics": {
+                        "description": "Optional metrics for the experiment. May carry a selection drawn from the workspace's metric list (primary and guardrail required, secondary optional) and/or a per-experiment source override; both are optional independently. A per-experiment source is only accepted when the workspace has a source configured."
+                    },
                     "experiment_group_id": {
                         "type": "string"
                     }
@@ -8013,7 +8017,9 @@
                     "metrics_url": {
                         "type": "string"
                     },
-                    "metrics": {},
+                    "metrics": {
+                        "description": "Optional metrics for this experiment, snapshotted from workspace definitions. May carry a selection (primary and guardrail required, secondary optional) and/or a per-experiment source override; both are optional independently, and omitting both means metrics are disabled."
+                    },
                     "experiment_group_id": {
                         "type": "string"
                     }
@@ -8525,7 +8531,9 @@
                     "workspace_status": {
                         "$ref": "#/components/schemas/WorkspaceStatus"
                     },
-                    "metrics": {},
+                    "metrics": {
+                        "description": "Workspace metric source and catalog. Each metric definition contains a unique name and whether higher or lower values are better."
+                    },
                     "allow_experiment_self_approval": {
                         "type": "boolean"
                     },
@@ -8588,7 +8596,9 @@
                             "type": "string"
                         }
                     },
-                    "metrics": {},
+                    "metrics": {
+                        "description": "Workspace metric source and catalog. Each metric definition contains a unique name and whether higher or lower values are better."
+                    },
                     "allow_experiment_self_approval": {
                         "type": "boolean"
                     },
@@ -9103,7 +9113,9 @@
                     "metrics_url": {
                         "type": "string"
                     },
-                    "metrics": {},
+                    "metrics": {
+                        "description": "Optional metrics for this experiment, snapshotted from workspace definitions. May carry a selection (primary and guardrail required, secondary optional) and/or a per-experiment source override; both are optional independently, and omitting both means metrics are disabled."
+                    },
                     "experiment_group_id": {
                         "type": "string"
                     }
@@ -9273,7 +9285,9 @@
                     "metrics_url": {
                         "type": "string"
                     },
-                    "metrics": {},
+                    "metrics": {
+                        "description": "Optional metrics for this experiment, snapshotted from workspace definitions. May carry a selection (primary and guardrail required, secondary optional) and/or a per-experiment source override; both are optional independently, and omitting both means metrics are disabled."
+                    },
                     "experiment_group_id": {
                         "type": "string"
                     }
@@ -9888,7 +9902,9 @@
                     "metrics_url": {
                         "type": "string"
                     },
-                    "metrics": {},
+                    "metrics": {
+                        "description": "Optional metrics for this experiment, snapshotted from workspace definitions. May carry a selection (primary and guardrail required, secondary optional) and/or a per-experiment source override; both are optional independently, and omitting both means metrics are disabled."
+                    },
                     "experiment_group_id": {
                         "type": "string"
                     }
@@ -10413,7 +10429,9 @@
                             "type": "string"
                         }
                     },
-                    "metrics": {},
+                    "metrics": {
+                        "description": "Workspace metric source and catalog. Each metric definition contains a unique name and whether higher or lower values are better."
+                    },
                     "allow_experiment_self_approval": {
                         "type": "boolean"
                     },
@@ -10858,7 +10876,9 @@
                             "type": "string"
                         }
                     },
-                    "metrics": {},
+                    "metrics": {
+                        "description": "Workspace metric source and catalog. Each metric definition contains a unique name and whether higher or lower values are better."
+                    },
                     "allow_experiment_self_approval": {
                         "type": "boolean"
                     },
@@ -11101,7 +11121,9 @@
                     "metrics_url": {
                         "type": "string"
                     },
-                    "metrics": {},
+                    "metrics": {
+                        "description": "Optional metrics for this experiment, snapshotted from workspace definitions. May carry a selection (primary and guardrail required, secondary optional) and/or a per-experiment source override; both are optional independently, and omitting both means metrics are disabled."
+                    },
                     "experiment_group_id": {
                         "type": "string"
                     }
@@ -11277,7 +11299,9 @@
                     "metrics_url": {
                         "type": "string"
                     },
-                    "metrics": {},
+                    "metrics": {
+                        "description": "Optional metrics for this experiment, snapshotted from workspace definitions. May carry a selection (primary and guardrail required, secondary optional) and/or a per-experiment source override; both are optional independently, and omitting both means metrics are disabled."
+                    },
                     "experiment_group_id": {
                         "type": "string"
                     }
@@ -11512,7 +11536,9 @@
                     "metrics_url": {
                         "type": "string"
                     },
-                    "metrics": {},
+                    "metrics": {
+                        "description": "Optional metrics for this experiment, snapshotted from workspace definitions. May carry a selection (primary and guardrail required, secondary optional) and/or a per-experiment source override; both are optional independently, and omitting both means metrics are disabled."
+                    },
                     "experiment_group_id": {
                         "type": "string"
                     }
@@ -12195,7 +12221,9 @@
                     "change_reason": {
                         "type": "string"
                     },
-                    "metrics": {},
+                    "metrics": {
+                        "description": "Metric selection update using workspace metric definitions containing name and direction. Omit to preserve the current selection, pass null to clear it, or pass a selection object to replace it. Updates are allowed only while the experiment is in CREATED state."
+                    },
                     "experiment_group_id": {
                         "type": "string",
                         "description": "To unset experiment group, pass \"null\" string."
@@ -12272,7 +12300,9 @@
                     "metrics_url": {
                         "type": "string"
                     },
-                    "metrics": {},
+                    "metrics": {
+                        "description": "Optional metrics for this experiment, snapshotted from workspace definitions. May carry a selection (primary and guardrail required, secondary optional) and/or a per-experiment source override; both are optional independently, and omitting both means metrics are disabled."
+                    },
                     "experiment_group_id": {
                         "type": "string"
                     }
@@ -12592,7 +12622,9 @@
                     "workspace_status": {
                         "$ref": "#/components/schemas/WorkspaceStatus"
                     },
-                    "metrics": {},
+                    "metrics": {
+                        "description": "Workspace metric source and catalog. Each metric definition contains a unique name and whether higher or lower values are better."
+                    },
                     "allow_experiment_self_approval": {
                         "type": "boolean"
                     },
@@ -12651,7 +12683,9 @@
                             "type": "string"
                         }
                     },
-                    "metrics": {},
+                    "metrics": {
+                        "description": "Workspace metric source and catalog. Each metric definition contains a unique name and whether higher or lower values are better."
+                    },
                     "allow_experiment_self_approval": {
                         "type": "boolean"
                     },
@@ -13053,7 +13087,9 @@
                             "type": "string"
                         }
                     },
-                    "metrics": {},
+                    "metrics": {
+                        "description": "Workspace metric source and catalog. Each metric definition contains a unique name and whether higher or lower values are better."
+                    },
                     "allow_experiment_self_approval": {
                         "type": "boolean"
                     },

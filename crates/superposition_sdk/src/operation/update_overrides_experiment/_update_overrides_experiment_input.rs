@@ -15,7 +15,7 @@ pub struct UpdateOverridesExperimentInput  {
     pub description: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub change_reason: ::std::option::Option<::std::string::String>,
-    #[allow(missing_docs)] // documentation missing in model
+    /// Metric selection update using workspace metric definitions containing name and direction. Omit to preserve the current selection, pass null to clear it, or pass a selection object to replace it. Updates are allowed only while the experiment is in CREATED state.
     pub metrics: ::std::option::Option<::aws_smithy_types::Document>,
     /// To unset experiment group, pass "null" string.
     pub experiment_group_id: ::std::option::Option<::std::string::String>,
@@ -50,7 +50,7 @@ impl  UpdateOverridesExperimentInput  {
     pub fn change_reason(&self) -> ::std::option::Option<&str> {
         self.change_reason.as_deref()
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Metric selection update using workspace metric definitions containing name and direction. Omit to preserve the current selection, pass null to clear it, or pass a selection object to replace it. Updates are allowed only while the experiment is in CREATED state.
     pub fn metrics(&self) -> ::std::option::Option<&::aws_smithy_types::Document> {
         self.metrics.as_ref()
     }
@@ -172,16 +172,16 @@ impl UpdateOverridesExperimentInputBuilder {
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
         &self.change_reason
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Metric selection update using workspace metric definitions containing name and direction. Omit to preserve the current selection, pass null to clear it, or pass a selection object to replace it. Updates are allowed only while the experiment is in CREATED state.
     pub fn metrics(mut self, input: ::aws_smithy_types::Document) -> Self {
         self.metrics = ::std::option::Option::Some(input);
         self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Metric selection update using workspace metric definitions containing name and direction. Omit to preserve the current selection, pass null to clear it, or pass a selection object to replace it. Updates are allowed only while the experiment is in CREATED state.
     pub fn set_metrics(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
         self.metrics = input; self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Metric selection update using workspace metric definitions containing name and direction. Omit to preserve the current selection, pass null to clear it, or pass a selection object to replace it. Updates are allowed only while the experiment is in CREATED state.
     pub fn get_metrics(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
         &self.metrics
     }

@@ -678,7 +678,11 @@ mod metrics_tests {
         }))
         .expect("blank alias is absent, not invalid");
 
-        let Some(MetricSource::Grafana { base_url, variant_id_alias, .. }) = metrics.source
+        let Some(MetricSource::Grafana {
+            base_url,
+            variant_id_alias,
+            ..
+        }) = metrics.source
         else {
             panic!("expected a grafana source");
         };
@@ -694,19 +698,6 @@ mod metrics_tests {
         }))
         .expect("empty definitions");
         assert!(metrics.definitions.is_none());
-    }
-
-    #[test]
-    fn a_disabled_workspace_hands_out_no_definitions() {
-        let metrics = serde_json::from_value::<Metrics>(json!({
-            "enabled": false,
-            "definitions": [{"name": "conversion", "direction": "maximize"}]
-        }))
-        .expect("definitions survive while disabled");
-
-        // The field is still populated - only the accessor is gated.
-        assert!(metrics.definitions.is_some());
-        assert!(metrics.definitions().is_none());
     }
 
     #[test]

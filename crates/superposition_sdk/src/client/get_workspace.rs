@@ -18,7 +18,7 @@ impl super::Client {
     ///   - [`last_modified_at(DateTime)`](crate::operation::get_workspace::GetWorkspaceOutput::last_modified_at): (undocumented)
     ///   - [`created_at(DateTime)`](crate::operation::get_workspace::GetWorkspaceOutput::created_at): (undocumented)
     ///   - [`mandatory_dimensions(Option<Vec::<String>>)`](crate::operation::get_workspace::GetWorkspaceOutput::mandatory_dimensions): (undocumented)
-    ///   - [`metrics(Document)`](crate::operation::get_workspace::GetWorkspaceOutput::metrics): (undocumented)
+    ///   - [`metrics(Document)`](crate::operation::get_workspace::GetWorkspaceOutput::metrics): Workspace metric source and catalog. Each metric definition contains a unique name and whether higher or lower values are better.
     ///   - [`allow_experiment_self_approval(bool)`](crate::operation::get_workspace::GetWorkspaceOutput::allow_experiment_self_approval): (undocumented)
     ///   - [`auto_populate_control(bool)`](crate::operation::get_workspace::GetWorkspaceOutput::auto_populate_control): (undocumented)
     ///   - [`enable_context_validation(bool)`](crate::operation::get_workspace::GetWorkspaceOutput::enable_context_validation): (undocumented)
