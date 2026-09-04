@@ -315,11 +315,11 @@ impl DropdownOption for MetricDirection {
 
 impl DropdownOption for MetricDefinition {
     fn key(&self) -> String {
-        self.name.clone()
+        self.name.to_string()
     }
 
     fn label(&self) -> String {
-        format!("{} ({})", self.name, self.direction.label())
+        format!("{} ({})", *self.name, self.direction.label())
     }
 }
 

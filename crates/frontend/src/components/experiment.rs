@@ -8,6 +8,7 @@ use superposition_types::database::models::experimentation::{
 };
 
 use crate::components::datetime::Datetime;
+use crate::components::dropdown::utils::DropdownOption;
 use crate::components::{
     button::Button,
     table::{Table, types::Column},
@@ -397,16 +398,18 @@ where
                                     let secondary = metrics
                                         .secondary
                                         .map(|metric| {
-                                            format!("{} ({})", metric.name, metric.direction)
+                                            format!("{} ({})", *metric.name, metric.direction.label())
                                         })
                                         .unwrap_or_else(|| "—".to_string());
                                     view! {
                                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                             <div>
                                                 <div class="stat-title">Primary</div>
-                                                <div class="font-medium">{metrics.primary.name}</div>
+                                                <div class="font-medium">
+                                                    {metrics.primary.name.to_string()}
+                                                </div>
                                                 <div class="text-xs opacity-70">
-                                                    {metrics.primary.direction.to_string()}
+                                                    {metrics.primary.direction.label()}
                                                 </div>
                                             </div>
                                             <div>
@@ -415,9 +418,11 @@ where
                                             </div>
                                             <div>
                                                 <div class="stat-title">Guardrail</div>
-                                                <div class="font-medium">{metrics.guardrail.name}</div>
+                                                <div class="font-medium">
+                                                    {metrics.guardrail.name.to_string()}
+                                                </div>
                                                 <div class="text-xs opacity-70">
-                                                    {metrics.guardrail.direction.to_string()}
+                                                    {metrics.guardrail.direction.label()}
                                                 </div>
                                             </div>
                                         </div>

@@ -3,7 +3,7 @@ use serde_json::Value;
 use strum::IntoEnumIterator;
 use superposition_types::database::models::{
     MetricDefinition, MetricDirection, MetricSelection, MetricSource, Metrics,
-    experimentation::ExperimentMetrics,
+    NonEmptyString, experimentation::ExperimentMetrics,
 };
 
 use crate::{
@@ -35,7 +35,7 @@ fn SourceForm(
                 && dashboard_slug.is_empty()
                 && variant_id_alias
                 .as_ref()
-                .map_or(true, |alias| alias.is_empty()));
+                .is_none_or(|alias| alias.is_empty()));
 
         on_change.call(source.filter(|_| !is_empty));
     });
@@ -219,7 +219,7 @@ pub fn MetricsForm(
                                         .as_deref()
                                         .unwrap_or_default()
                                         .iter()
-                                        .map(|metric| metric.name.clone())
+                                        .map(|metric| metric.name.to_string())
                                         .collect()
                                 })
                             unique=true
@@ -236,11 +236,11 @@ pub fn MetricsForm(
                                             .map(|name| {
                                                 let direction = existing
                                                     .iter()
-                                                    .find(|metric| metric.name == name)
+                                                    .find(|metric| *metric.name == name)
                                                     .map(|metric| metric.direction)
                                                     .unwrap_or_default();
                                                 MetricDefinition {
-                                                    name,
+                                                    name: name.try_into().unwrap_or_default(),
                                                     direction,
                                                 }
                                             })
@@ -264,7 +264,7 @@ pub fn MetricsForm(
                                     <div class="flex flex-col first:border-t border-dashed">
                                         <label class="label">
                                             <span class="label-text-alt">
-                                                {metric_name.get_value()}
+                                                {metric_name.get_value().to_string()}
                                             </span>
                                         </label>
                                         <Dropdown
@@ -331,7 +331,7 @@ pub fn ExperimentMetricsForm(
     Effect::new(move |_| on_change.call(experiment_metrics_rws.get()));
 
     view! {
-        <div class="flex flex-col gap-2">
+        <div class="flex flex-col">
             <div class="w-fit flex items-center gap-2">
                 <Toggle
                     value=experiment_metrics_rws.with_untracked(|m| m.enabled)
@@ -342,108 +342,152 @@ pub fn ExperimentMetricsForm(
                     extra_info="To view metrics from Grafana, make sure that your setup allows iframe embedding. Also, experiment viewers must have access to the Grafana instance, to view the metrics."
                 />
             </div>
-            <Show when=move || experiment_metrics_rws.with(|m| m.enabled)>
-                <SourceForm
-                    source=experiment_metrics_rws.with_untracked(|m| m.source.clone())
-                    on_change=move |source| {
-                        experiment_metrics_rws.update_untracked(|m| m.source = source);
-                        on_change.call(experiment_metrics_rws.get_untracked());
-                    }
-                />
-                <Show when=move || has_workspace_list>
-                    <div class="form-control">
-                        <Label title="Metric Selections" />
-                        <div class="max-w-md pl-2.5 border-t border-dashed">
+            <div>
+                <Show when=move || experiment_metrics_rws.with(|m| m.enabled)>
+                    <div class="max-w-md w-full pl-2.5 flex flex-col gap-2">
+                        <SourceForm
+                            source=experiment_metrics_rws.with_untracked(|m| m.source.clone())
+                            on_change=move |source| {
+                                experiment_metrics_rws.update_untracked(|m| m.source = source);
+                                on_change.call(experiment_metrics_rws.get_untracked());
+                            }
+                        />
+                        <Show when=move || has_workspace_list>
                             <div class="form-control">
-                                <label class="label">
-                                    <span class="label-text-alt">"Primary Metric"</span>
-                                </label>
-                                <Dropdown
-                                    dropdown_width="w-full"
-                                    dropdown_direction=DropdownDirection::Down
-                                    dropdown_btn_type=DropdownBtnType::Select
-                                    dropdown_text=experiment_metrics_rws
-                                        .with_untracked(|em| {
-                                            em.selection.as_ref().map(|s| s.primary.name.clone())
-                                        })
-                                        .unwrap_or_else(|| "Select primary metric".to_string())
-                                    dropdown_options=definitions_st.get_value()
-                                    on_select=move |metric: MetricDefinition| {
-                                        experiment_metrics_rws
-                                            .update(|em| {
-                                                if em.selection.is_none() {
-                                                    em.selection = Some(MetricSelection::default());
+                                <Label title="Metric Selections" />
+                                <div class="max-w-md pl-2.5 border-t border-dashed">
+                                    <div class="form-control">
+                                        <label class="label">
+                                            <span class="label-text-alt">"Primary Metric"</span>
+                                        </label>
+                                        <Dropdown
+                                            dropdown_width="w-full"
+                                            dropdown_direction=DropdownDirection::Down
+                                            dropdown_btn_type=DropdownBtnType::Select
+                                            dropdown_text=experiment_metrics_rws
+                                                .with_untracked(|em| {
+                                                    em.selection
+                                                        .as_ref()
+                                                        .and_then(|s| {
+                                                            (s.primary.name != NonEmptyString::default())
+                                                                .then_some(s.primary.name.to_string())
+                                                        })
+                                                })
+                                                .unwrap_or_else(|| "Select primary metric".to_string())
+                                            dropdown_options=definitions_st.get_value()
+                                            on_select=move |metric: MetricDefinition| {
+                                                experiment_metrics_rws
+                                                    .update(|em| {
+                                                        if em.selection.is_none() {
+                                                            em.selection = Some(MetricSelection::default());
+                                                        }
+                                                        if let Some(ref mut selection) = em.selection {
+                                                            selection.primary = metric;
+                                                        }
+                                                    })
+                                            }
+                                        />
+                                    </div>
+                                    <div class="form-control">
+                                        <label class="label">
+                                            <span class="label-text-alt">
+                                                "Secondary Metric (Optional)"
+                                            </span>
+                                        </label>
+                                        <div class="flex gap-2">
+                                            <Dropdown
+                                                dropdown_width="w-full"
+                                                dropdown_direction=DropdownDirection::Down
+                                                dropdown_btn_type=DropdownBtnType::Select
+                                                dropdown_text=experiment_metrics_rws
+                                                    .with(|em| {
+                                                        em.selection
+                                                            .as_ref()
+                                                            .and_then(|s| s.secondary.as_ref())
+                                                            .map(|m| m.name.to_string())
+                                                    })
+                                                    .unwrap_or_else(|| "Select secondary metric".to_string())
+                                                dropdown_options=definitions_st.get_value()
+                                                on_select=move |metric: MetricDefinition| {
+                                                    experiment_metrics_rws
+                                                        .update(|em| {
+                                                            if em.selection.is_none() {
+                                                                em.selection = Some(MetricSelection::default());
+                                                            }
+                                                            if let Some(ref mut selection) = em.selection {
+                                                                selection.secondary = Some(metric);
+                                                            }
+                                                        })
                                                 }
-                                                if let Some(ref mut selection) = em.selection {
-                                                    selection.primary = metric;
+                                            />
+                                            {move || {
+                                                if experiment_metrics_rws
+                                                    .with(|em| {
+                                                        em.selection
+                                                            .as_ref()
+                                                            .map(|s| s.secondary.is_some())
+                                                            .unwrap_or_default()
+                                                    })
+                                                {
+                                                    view! {
+                                                        <i
+                                                            class="ri-close-circle-fill self-center"
+                                                            on:click=move |ev| {
+                                                                ev.prevent_default();
+                                                                experiment_metrics_rws
+                                                                    .update(|em| {
+                                                                        if let Some(ref mut selection) = em.selection {
+                                                                            selection.secondary = None;
+                                                                        }
+                                                                    })
+                                                            }
+                                                        />
+                                                    }
+                                                        .into_view()
+                                                } else {
+                                                    ().into_view()
                                                 }
-                                            })
-                                    }
-                                />
+                                            }}
+                                        </div>
+                                    </div>
+                                    <div class="form-control">
+                                        <label class="label">
+                                            <span class="label-text-alt">"Guardrail Metric"</span>
+                                        </label>
+                                        <Dropdown
+                                            dropdown_width="w-full"
+                                            dropdown_direction=DropdownDirection::Down
+                                            dropdown_btn_type=DropdownBtnType::Select
+                                            dropdown_text=experiment_metrics_rws
+                                                .with_untracked(|em| {
+                                                    em.selection
+                                                        .as_ref()
+                                                        .and_then(|s| {
+                                                            (s.guardrail.name != NonEmptyString::default())
+                                                                .then_some(s.guardrail.name.to_string())
+                                                        })
+                                                })
+                                                .unwrap_or_else(|| "Select guardrail metric".to_string())
+                                            dropdown_options=definitions_st.get_value()
+                                            on_select=move |metric: MetricDefinition| {
+                                                experiment_metrics_rws
+                                                    .update(|em| {
+                                                        if em.selection.is_none() {
+                                                            em.selection = Some(MetricSelection::default());
+                                                        }
+                                                        if let Some(ref mut selection) = em.selection {
+                                                            selection.guardrail = metric;
+                                                        }
+                                                    })
+                                            }
+                                        />
+                                    </div>
+                                </div>
                             </div>
-                            <div class="form-control">
-                                <label class="label">
-                                    <span class="label-text-alt">
-                                        "Secondary Metric (Optional)"
-                                    </span>
-                                </label>
-                                <Dropdown
-                                    dropdown_width="w-full"
-                                    dropdown_direction=DropdownDirection::Down
-                                    dropdown_btn_type=DropdownBtnType::Select
-                                    dropdown_text=experiment_metrics_rws
-                                        .with_untracked(|em| {
-                                            em.selection
-                                                .as_ref()
-                                                .and_then(|s| s.secondary.as_ref())
-                                                .map(|m| m.name.clone())
-                                        })
-                                        .unwrap_or_else(|| "Select secondary metric".to_string())
-                                    dropdown_options=definitions_st.get_value()
-                                    on_select=move |metric: MetricDefinition| {
-                                        experiment_metrics_rws
-                                            .update(|em| {
-                                                if em.selection.is_none() {
-                                                    em.selection = Some(MetricSelection::default());
-                                                }
-                                                if let Some(ref mut selection) = em.selection {
-                                                    selection.secondary = Some(metric);
-                                                }
-                                            })
-                                    }
-                                />
-                            </div>
-                            <div class="form-control">
-                                <label class="label">
-                                    <span class="label-text-alt">"Guardrail Metric"</span>
-                                </label>
-                                <Dropdown
-                                    dropdown_width="w-full"
-                                    dropdown_direction=DropdownDirection::Down
-                                    dropdown_btn_type=DropdownBtnType::Select
-                                    dropdown_text=experiment_metrics_rws
-                                        .with_untracked(|em| {
-                                            em.selection.as_ref().map(|s| s.guardrail.name.clone())
-                                        })
-                                        .unwrap_or_else(|| "Select guardrail metric".to_string())
-                                    dropdown_options=definitions_st.get_value()
-                                    on_select=move |metric: MetricDefinition| {
-                                        experiment_metrics_rws
-                                            .update(|em| {
-                                                if em.selection.is_none() {
-                                                    em.selection = Some(MetricSelection::default());
-                                                }
-                                                if let Some(ref mut selection) = em.selection {
-                                                    selection.guardrail = metric;
-                                                }
-                                            })
-                                    }
-                                />
-                            </div>
-                        </div>
+                        </Show>
                     </div>
                 </Show>
-            </Show>
+            </div>
         </div>
     }
 }

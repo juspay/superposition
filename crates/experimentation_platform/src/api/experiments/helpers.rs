@@ -957,7 +957,7 @@ mod metric_selection_tests {
 
     fn metric(name: &str, direction: MetricDirection) -> MetricDefinition {
         MetricDefinition {
-            name: name.to_string(),
+            name: name.try_into().unwrap_or_default(),
             direction,
         }
     }
@@ -999,11 +999,11 @@ mod metric_selection_tests {
     #[test]
     fn rejects_blank_or_unknown_metric_names() {
         let mut blank = selection();
-        blank.primary.name = " ".to_string();
+        blank.primary.name = " ".try_into().unwrap_or_default();
         assert!(validate_metric_selection(&blank, &workspace_metrics(true)).is_err());
 
         let mut unknown = selection();
-        unknown.guardrail.name = "unknown".to_string();
+        unknown.guardrail.name = "unknown".try_into().unwrap_or_default();
         assert!(validate_metric_selection(&unknown, &workspace_metrics(true)).is_err());
 
         let mut wrong_direction = selection();

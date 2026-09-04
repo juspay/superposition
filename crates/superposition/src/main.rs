@@ -13,7 +13,7 @@ use actix_files::Files;
 use actix_web::{
     App, HttpRequest, HttpResponse, HttpServer, Scope,
     middleware::{Compress, Condition},
-    web::{self, Data, PathConfig, QueryConfig, get, scope},
+    web::{self, Data, JsonConfig, PathConfig, QueryConfig, get, scope},
 };
 use context_aware_config::api::*;
 use experimentation_platform::api::*;
@@ -246,6 +246,7 @@ async fn main() -> Result<()> {
             .app_data(Data::new(reload_handle.clone()))
             .app_data(PathConfig::default().error_handler(|err, _| bad_argument!(err).into()))
             .app_data(QueryConfig::default().error_handler(|err, _| bad_argument!(err).into()))
+            .app_data(JsonConfig::default().error_handler(|err, _| bad_argument!(err).into()))
             .leptos_routes(
                 leptos_options.to_owned(),
                 routes.to_owned(),
