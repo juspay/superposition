@@ -4,6 +4,7 @@ import {
   GetFunctionCommand,
   ListFunctionCommand,
   UpdateFunctionCommand,
+  DeleteFunctionCommand,
   PublishCommand,
   FunctionTypes,
   FunctionRuntimeVersion,
@@ -263,7 +264,47 @@ When(
   }
 );
 
+When(
+  "I delete function {string}",
+  async function (this: SuperpositionWorld, _name: string) {
+    try {
+      this.lastResponse = await this.client.send(
+        new DeleteFunctionCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          function_name: this.functionName,
+        })
+      );
+      this.createdFunctions = this.createdFunctions.filter(
+        (f) => f !== this.functionName
+      );
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
+
 // ── Then ────────────────────────────────────────────────────────────
+
+Then(
+  "getting function {string} should fail",
+  async function (this: SuperpositionWorld, _name: string) {
+    try {
+      await this.client.send(
+        new GetFunctionCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          function_name: this.functionName,
+        })
+      );
+      assert.fail("Expected an error but got success");
+    } catch (e: any) {
+      assert.ok(e, "Expected an error");
+    }
+  }
+);
 
 Then(
   "the response should have function type {string}",

@@ -27,6 +27,14 @@ Feature: Type Template Management
     Then the operation should succeed
     And the response schema should have pattern ".*"
 
+  # ── Get ────────────────────────────────────────────────────────────
+
+  Scenario: Get a single type template by name
+    Given a type template "GetTest" exists with schema type "integer"
+    When I get type template "GetTest"
+    Then the operation should succeed
+    And the response should have type name "GetTest"
+
   # ── Update ─────────────────────────────────────────────────────────
 
   Scenario: Update a type template with range constraints

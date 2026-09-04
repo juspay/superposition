@@ -41,6 +41,14 @@ Feature: Secret Management
     Then the operation should succeed
     And getting secret "DELETE_TEST_SECRET" should fail with "No records found"
 
+  # ── List ───────────────────────────────────────────────────────────
+
+  Scenario: List secrets
+    Given a secret "LIST_TEST_SECRET" exists with value "list-test-value"
+    When I list secrets with count 10 and page 1
+    Then the operation should succeed
+    And the response should contain a list with at least 1 item(s)
+
   # ── Error Cases ────────────────────────────────────────────────────
 
   Scenario: Fail to create a duplicate secret

@@ -2,6 +2,7 @@ import { Given, When, Then } from "@cucumber/cucumber";
 import {
   CreateSecretCommand,
   GetSecretCommand,
+  ListSecretsCommand,
   UpdateSecretCommand,
   DeleteSecretCommand,
   CreateFunctionCommand,
@@ -9,6 +10,7 @@ import {
   FunctionTypes,
   FunctionRuntimeVersion,
 } from "@juspay/superposition-sdk";
+
 import { SuperpositionWorld } from "../support/world.ts";
 import * as assert from "node:assert";
 
@@ -171,6 +173,26 @@ When(
               environment: { context: {}, overrides: {} },
             },
           },
+        })
+      );
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
+
+When(
+  "I list secrets with count {int} and page {int}",
+  async function (this: SuperpositionWorld, count: number, page: number) {
+    try {
+      this.lastResponse = await this.client.send(
+        new ListSecretsCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          count,
+          page,
         })
       );
       this.lastError = undefined;

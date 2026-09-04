@@ -43,6 +43,14 @@ Feature: Variable Management
     Then the operation should succeed
     And getting variable "DELETE_TEST_VAR" should fail with "No records found"
 
+  # ── List ───────────────────────────────────────────────────────────
+
+  Scenario: List variables
+    Given a variable "LIST_TEST_VAR" exists with value "list-test-value"
+    When I list variables with count 10 and page 1
+    Then the operation should succeed
+    And the response should contain a list with at least 1 item(s)
+
   # ── Error Cases ────────────────────────────────────────────────────
 
   Scenario: Fail to create a duplicate variable

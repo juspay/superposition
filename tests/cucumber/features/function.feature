@@ -55,6 +55,14 @@ Feature: Function Management
     When I publish function "non-existent-function"
     Then the operation should fail with error matching "No records found"
 
+  # ── Delete ─────────────────────────────────────────────────────────
+
+  Scenario: Delete a function
+    Given a value_validation function "test-del-func" exists
+    When I delete function "test-del-func"
+    Then the operation should succeed
+    And getting function "test-del-func" should fail
+
   # ── Error Cases ────────────────────────────────────────────────────
 
   Scenario: Fail to create a function with invalid code

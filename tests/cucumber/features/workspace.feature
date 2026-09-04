@@ -23,6 +23,14 @@ Feature: Workspace Management
     And the response should have workspace status "ENABLED"
     And the response should have workspace admin email "admin@example.com"
 
+  # ── Get ────────────────────────────────────────────────────────────
+
+  Scenario: Get a single workspace by name
+    Given a workspace exists with name "cucumbertestws"
+    When I get workspace "cucumbertestws"
+    Then the operation should succeed
+    And the response should have workspace name "cucumbertestws"
+
   # ── Get via List ────────────────────────────────────────────────────
 
   Scenario: Find a created workspace in the list

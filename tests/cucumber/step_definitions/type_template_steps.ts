@@ -1,6 +1,7 @@
 import { Given, When, Then } from "@cucumber/cucumber";
 import {
   CreateTypeTemplatesCommand,
+  GetTypeTemplateCommand,
   UpdateTypeTemplatesCommand,
   DeleteTypeTemplatesCommand,
   GetTypeTemplatesListCommand,
@@ -92,6 +93,25 @@ When(
         })
       );
       this.createdTypeTemplates.push(uniqueName);
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
+
+When(
+  "I get type template {string}",
+  async function (this: SuperpositionWorld, _name: string) {
+    try {
+      this.lastResponse = await this.client.send(
+        new GetTypeTemplateCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          type_name: this.typeTemplateName,
+        })
+      );
       this.lastError = undefined;
     } catch (e: any) {
       this.lastError = e;
