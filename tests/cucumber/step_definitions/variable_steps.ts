@@ -2,6 +2,7 @@ import { Given, When, Then } from "@cucumber/cucumber";
 import {
   CreateVariableCommand,
   GetVariableCommand,
+  ListVariablesCommand,
   UpdateVariableCommand,
   DeleteVariableCommand,
   CreateFunctionCommand,
@@ -189,6 +190,26 @@ When(
         })
       );
       this.createdVariables = this.createdVariables.filter((v) => v !== name);
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
+
+When(
+  "I list variables with count {int} and page {int}",
+  async function (this: SuperpositionWorld, count: number, page: number) {
+    try {
+      this.lastResponse = await this.client.send(
+        new ListVariablesCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          count,
+          page,
+        })
+      );
       this.lastError = undefined;
     } catch (e: any) {
       this.lastError = e;

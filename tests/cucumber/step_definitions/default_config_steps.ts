@@ -1,6 +1,8 @@
 import { Given, When, Then } from "@cucumber/cucumber";
 import {
   CreateDefaultConfigCommand,
+  GetDefaultConfigCommand,
+  ListDefaultConfigsCommand,
   UpdateDefaultConfigCommand,
   DeleteDefaultConfigCommand,
   CreateFunctionCommand,
@@ -485,5 +487,89 @@ Then(
   function (this: SuperpositionWorld, email: string) {
     assert.ok(this.lastResponse, "No response");
     assert.strictEqual(this.lastResponse.value?.email, email);
+  }
+);
+
+// ── When: List and Get ─────────────────────────────────────────────
+
+When(
+  "I list default configs with count {int} and page {int}",
+  async function (this: SuperpositionWorld, count: number, page: number) {
+    try {
+      this.lastResponse = await this.client.send(
+        new ListDefaultConfigsCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          count,
+          page,
+        })
+      );
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
+
+When(
+  "I get the default config {string}",
+  async function (this: SuperpositionWorld, key: string) {
+    const uniqueKey = this.configKey || this.uniqueName(key);
+    try {
+      this.lastResponse = await this.client.send(
+        new GetDefaultConfigCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          key: uniqueKey,
+        })
+      );
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
+
+When(
+  "I create a default config with key {string} and a null-containing value",
+  async function (this: SuperpositionWorld, key: string) {
+    const uniqueKey = this.uniqueName(key);
+    this.configKey = uniqueKey;
+    try {
+      this.lastResponse = await this.client.send(
+        new CreateDefaultConfigCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          key: uniqueKey,
+          schema: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              optional_field: {},
+            },
+          },
+          value: { name: "test", optional_field: null },
+          description: "Null value round-trip test",
+          change_reason: "Testing null preservation",
+        })
+      );
+      this.createdConfigs.push(uniqueKey);
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
+
+Then(
+  "the response value should preserve the null field",
+  function (this: SuperpositionWorld) {
+    assert.ok(this.lastResponse, "No response");
+    const value = this.lastResponse.value;
+    assert.ok(value !== undefined, "No value in response");
+    assert.strictEqual(value.optional_field, null, `Expected null but got ${JSON.stringify(value.optional_field)}`);
   }
 );

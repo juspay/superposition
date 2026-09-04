@@ -13,3 +13,12 @@ Feature: Config Resolution with Identifier Bucketing
     Then the operation should succeed
     And the response should have a version
     And the config value should be either the default or experimental value
+
+  Scenario: Resolve config without identifier
+    When I resolve the config without an identifier but with matching context
+    Then the operation should succeed
+    And the response should have a version
+
+  Scenario: Get detailed resolved config
+    When I get the detailed resolved config with matching context
+    Then the operation should succeed

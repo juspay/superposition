@@ -1,6 +1,7 @@
 import { Given, When, Then } from "@cucumber/cucumber";
 import {
   CreateWorkspaceCommand,
+  GetWorkspaceCommand,
   ListWorkspaceCommand,
   WorkspaceStatus,
 } from "@juspay/superposition-sdk";
@@ -151,6 +152,25 @@ When(
         new ListWorkspaceCommand({ count, page, org_id: this.orgId })
       );
       this.lastResponse = sdkResponse;
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
+
+When(
+  "I get workspace {string}",
+  async function (this: PlaywrightWorld, name: string) {
+    const uniqueName = this.workspaceName || this.uniqueName(name);
+    try {
+      this.lastResponse = await this.client.send(
+        new GetWorkspaceCommand({
+          org_id: this.orgId,
+          workspace_name: uniqueName,
+        })
+      );
       this.lastError = undefined;
     } catch (e: any) {
       this.lastError = e;

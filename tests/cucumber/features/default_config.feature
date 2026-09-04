@@ -72,3 +72,27 @@ Feature: Default Configuration Management
     Given a default config exists with key "test-key-upd5" and value "Test User" age 30
     When I update default config "test-key-upd5" validation function to "true_function"
     Then the response should have value_validation_function_name "true_function"
+
+  # ── List ───────────────────────────────────────────────────────────
+
+  Scenario: List default configs
+    Given a default config exists with key "test-key-list" and value "List User" age 25
+    When I list default configs with count 10 and page 1
+    Then the operation should succeed
+    And the response should contain a list with at least 1 item(s)
+
+  # ── Get ────────────────────────────────────────────────────────────
+
+  Scenario: Get a single default config by key
+    Given a default config exists with key "test-key-get" and value "Get User" age 40
+    When I get the default config "test-key-get"
+    Then the operation should succeed
+    And the response value should have name "Get User" and age 40
+
+  # ── Null Value ─────────────────────────────────────────────────────
+
+  Scenario: Create config with null value field and verify round-trip
+    When I create a default config with key "test-null-val" and a null-containing value
+    Then the operation should succeed
+    When I get the default config "test-null-val"
+    Then the response value should preserve the null field

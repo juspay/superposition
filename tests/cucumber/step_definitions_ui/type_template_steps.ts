@@ -1,6 +1,7 @@
 import { Given, When, Then } from "@cucumber/cucumber";
 import {
   CreateTypeTemplatesCommand,
+  GetTypeTemplateCommand,
   GetTypeTemplatesListCommand,
 } from "@juspay/superposition-sdk";
 import { PlaywrightWorld } from "../support_ui/world.ts";
@@ -133,6 +134,25 @@ When("I list type templates", async function (this: PlaywrightWorld) {
     this.lastResponse = undefined;
   }
 });
+
+When(
+  "I get type template {string}",
+  async function (this: PlaywrightWorld, _name: string) {
+    try {
+      this.lastResponse = await this.client.send(
+        new GetTypeTemplateCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          type_name: this.typeTemplateName,
+        })
+      );
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
 
 // PLAYWRIGHT: Create type template via UI drawer; SDK fallback for invalid types or Monaco issues
 When(

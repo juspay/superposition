@@ -1,6 +1,8 @@
 import { Given, When, Then } from "@cucumber/cucumber";
 import {
   GetResolvedConfigWithIdentifierCommand,
+  GetResolvedConfigCommand,
+  GetDetailedResolvedConfigCommand,
   CreateDimensionCommand,
   CreateDefaultConfigCommand,
   CreateExperimentCommand,
@@ -114,6 +116,46 @@ When(
           org_id: this.orgId,
           prefix: [this.configKey],
           identifier: BUCKETING_IDENTIFIER,
+          context: { [BUCKETING_DIM]: BUCKETING_CLIENT_ID },
+        })
+      );
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
+
+When(
+  "I resolve the config without an identifier but with matching context",
+  async function (this: PlaywrightWorld) {
+    try {
+      this.lastResponse = await this.client.send(
+        new GetResolvedConfigCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          prefix: [this.configKey],
+          context: { [BUCKETING_DIM]: BUCKETING_CLIENT_ID },
+        })
+      );
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
+
+When(
+  "I get the detailed resolved config with matching context",
+  async function (this: PlaywrightWorld) {
+    try {
+      this.lastResponse = await this.client.send(
+        new GetDetailedResolvedConfigCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          prefix: [this.configKey],
           context: { [BUCKETING_DIM]: BUCKETING_CLIENT_ID },
         })
       );

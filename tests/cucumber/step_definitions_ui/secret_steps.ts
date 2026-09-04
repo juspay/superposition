@@ -2,6 +2,7 @@ import { Given, When, Then } from "@cucumber/cucumber";
 import {
   CreateSecretCommand,
   GetSecretCommand,
+  ListSecretsCommand,
   CreateFunctionCommand,
   TestCommand,
   FunctionTypes,
@@ -169,6 +170,26 @@ When(
 
       const rowCount = await this.page.locator("table tbody tr").count();
       this.lastResponse = { count: rowCount };
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
+
+When(
+  "I list secrets with count {int} and page {int}",
+  async function (this: PlaywrightWorld, count: number, page: number) {
+    try {
+      this.lastResponse = await this.client.send(
+        new ListSecretsCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          count,
+          page,
+        })
+      );
       this.lastError = undefined;
     } catch (e: any) {
       this.lastError = e;
