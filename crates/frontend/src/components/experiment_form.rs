@@ -9,14 +9,12 @@ use superposition_types::{
     api::{
         dimension::DimensionResponse,
         experiment_groups::ExpGroupFilters,
-        experiments::{
-            ExperimentResponse, MetricSelectionUpdate, OverrideKeysUpdateRequest,
-        },
+        experiments::{ExperimentResponse, OverrideKeysUpdateRequest},
         functions::FunctionEnvironment,
-        workspace::WorkspaceResponse,
     },
     custom_query::{DimensionQuery, PaginationParams},
     database::models::{
+        Metrics,
         cac::DefaultConfig,
         experimentation::{
             ExperimentGroup, ExperimentMetrics, ExperimentType, VariantType,
@@ -92,7 +90,8 @@ pub fn ExperimentForm(
     default_config: Vec<DefaultConfig>,
     dimensions: Vec<DimensionResponse>,
     #[prop(default = String::new())] description: String,
-    #[prop(default = ExperimentMetrics::default())] metrics: ExperimentMetrics,
+    metrics: Metrics,
+    #[prop(optional)] experiment_metrics: Option<ExperimentMetrics>,
     #[prop(default = None)] experiment_group_id: Option<String>,
 ) -> impl IntoView {
     let init_variants = get_init_state(&variants);
@@ -101,7 +100,6 @@ pub fn ExperimentForm(
     let dimensions = StoredValue::new(dimensions);
     let experiment_form_type = StoredValue::new(experiment_form_type);
     let workspace = use_context::<Signal<Workspace>>().unwrap();
-    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
 
     let (experiment_name, set_experiment_name) = create_signal(name);
@@ -111,9 +109,9 @@ pub fn ExperimentForm(
 
     let (description_rs, description_ws) = create_signal(description);
     let (change_reason_rs, change_reason_ws) = create_signal(String::new());
-    let metrics = StoredValue::new(metrics);
-    let initial_metrics = metrics;
-    let metrics_rws = RwSignal::new(metrics.get_value());
+    let experiment_metrics_rws = RwSignal::new(
+        experiment_metrics.unwrap_or_else(|| ExperimentMetrics::from(metrics.clone())),
+    );
     let update_request_rws = RwSignal::new(None);
     let (experiment_group_id_rs, experiment_group_id_ws) =
         create_signal(experiment_group_id);
@@ -153,19 +151,6 @@ pub fn ExperimentForm(
     });
 
     let on_submit = move || {
-        if metrics_rws.with_untracked(|metrics| {
-            metrics.selection().is_some_and(|selection| {
-                selection.primary.name.trim().is_empty()
-                    || selection.guardrail.name.trim().is_empty()
-            })
-        }) {
-            enqueue_alert(
-                "Primary and Guardrail metrics are required".to_string(),
-                AlertType::Error,
-                5000,
-            );
-            return;
-        }
         req_inprogress_ws.set(true);
 
         let f_experiment_name = experiment_name.get_untracked();
@@ -196,28 +181,9 @@ pub fn ExperimentForm(
                         future.await.map(ResponseType::Response)
                     }
                     (Some(experiment_id), None) => {
-                        let metrics = metrics_rws.get_untracked();
-                        let initial = initial_metrics.get_value();
-                        let metrics_update = (metrics != initial).then(|| {
-                            if metrics.is_enabled() {
-                                let (selection, source) = metrics.into_parts();
-                                let selection_update = (selection
-                                    != initial.selection().cloned())
-                                .then_some(selection)
-                                .flatten();
-                                let source_update = (source.as_ref() != initial.source())
-                                    .then_some(source);
-                                MetricSelectionUpdate::Set {
-                                    selection: selection_update,
-                                    source: source_update,
-                                }
-                            } else {
-                                MetricSelectionUpdate::Remove
-                            }
-                        });
                         let request_payload = try_update_payload(
                             f_variants,
-                            metrics_update,
+                            Some(experiment_metrics_rws.get_untracked()),
                             description_rs.get_untracked(),
                             change_reason_rs.get_untracked(),
                             experiment_group_id,
@@ -233,7 +199,7 @@ pub fn ExperimentForm(
                     _ => create_experiment(
                         f_context,
                         f_variants,
-                        metrics_rws.get_untracked(),
+                        Some(experiment_metrics_rws.get_untracked()),
                         f_experiment_name,
                         ExperimentType::from(experiment_form_type.get_value()),
                         description_rs.get_untracked(),
@@ -295,9 +261,9 @@ pub fn ExperimentForm(
                 on_change=move |new_description| description_ws.set(new_description)
             />
             <ExperimentMetricsForm
-                workspace_metrics=workspace_settings.with_value(|settings| settings.metrics.clone())
-                metrics=metrics_rws.get_untracked()
-                on_change=Callback::new(move |metrics| metrics_rws.set(metrics))
+                definitions=metrics.definitions.unwrap_or_default()
+                experiment_metrics=experiment_metrics_rws.get_untracked()
+                on_change=Callback::new(move |metrics| experiment_metrics_rws.set(metrics))
             />
             <Suspense fallback=move || {
                 view! { <Skeleton variant=SkeletonVariant::Block style_class="h-10" /> }

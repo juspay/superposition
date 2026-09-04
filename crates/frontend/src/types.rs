@@ -319,11 +319,7 @@ impl DropdownOption for MetricDefinition {
     }
 
     fn label(&self) -> String {
-        let direction = match self.direction {
-            MetricDirection::Maximize => "Maximize",
-            MetricDirection::Minimize => "Minimize",
-        };
-        format!("{} ({direction})", self.name)
+        format!("{} ({})", self.name, self.direction.label())
     }
 }
 

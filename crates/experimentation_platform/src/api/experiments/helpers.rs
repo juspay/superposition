@@ -101,36 +101,21 @@ pub fn validate_metric_selection(
     selection: &MetricSelection,
     workspace_metrics: &Metrics,
 ) -> superposition::Result<()> {
-    if !workspace_metrics.enabled {
-        return Err(bad_argument!("Metrics are not enabled for this workspace"));
-    }
     // Selections must draw from the workspace's list; when the workspace has
     // no list configured, per-experiment selection is not accepted.
-    let Some(metric_names) = workspace_metrics.list.as_ref() else {
+    let Some(metric_names) = workspace_metrics.definitions.as_ref() else {
+        log::error!(
+            "validate_metric_selection : No metric list configured for this workspace"
+        );
         return Err(bad_argument!(
             "A per-experiment metric selection can only be set when the workspace has a metric list configured"
         ));
     };
 
-    let selected = [
-        ("primary", Some(&selection.primary)),
-        ("secondary", selection.secondary.as_ref()),
-        ("guardrail", Some(&selection.guardrail)),
-    ];
-    for (category, metric) in selected {
-        let Some(metric) = metric else {
-            continue;
-        };
-        if !metric_names.iter().any(|defined| defined == metric) {
-            let message = format!(
-                "The {category} metric '{}' and its direction are not defined in the workspace",
-                metric.name
-            );
-            return Err(bad_argument!(message));
-        }
-    }
-
-    Ok(())
+    selection.validate(metric_names).map_err(|e| {
+        log::error!("validate_metric_selection : failed to validate metric selection with error {}", e);
+        bad_argument!(e)
+    })
 }
 
 pub fn hash(val: &Value) -> String {
@@ -986,7 +971,7 @@ mod metric_selection_tests {
                 dashboard_slug: "experiments".to_string(),
                 variant_id_alias: None,
             }),
-            list: enabled.then(|| {
+            definitions: enabled.then(|| {
                 vec![
                     metric("conversion", MetricDirection::Maximize),
                     metric("latency", MetricDirection::Minimize),
@@ -1044,7 +1029,7 @@ mod metric_selection_tests {
     #[test]
     fn rejects_selection_when_workspace_has_no_list() {
         let mut ws = workspace_metrics(true);
-        ws.list = None;
+        ws.definitions = None;
         assert!(validate_metric_selection(&selection(), &ws).is_err());
     }
 }

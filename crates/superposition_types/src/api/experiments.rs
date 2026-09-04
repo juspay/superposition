@@ -16,100 +16,13 @@ use crate::{
             Experiment, ExperimentMetrics, ExperimentStatusType, ExperimentType,
             TrafficPercentage, Variant, Variants,
         },
-        ChangeReason, Description, MetricSelection, MetricSource,
+        ChangeReason, Description, MetricSource,
     },
     experimental::{Experimental, ExperimentalVariants},
     Condition, Exp, IsEmpty, Overrides, SortBy,
 };
 
 use super::I64Update;
-
-/// Update payload for an experiment's metrics.
-///
-/// Serializes to a flat object with optional selection keys (primary,
-/// secondary, guardrail) and an optional `source` key:
-/// - selection keys omitted: keep the experiment's existing selection
-/// - `source` omitted: keep the experiment's existing source
-/// - `source: null`: clear the experiment's source
-/// - `source: {...}`: set a new source
-///
-/// At least one of selection keys or `source` must be present.
-#[derive(Debug, Clone, PartialEq)]
-pub enum MetricSelectionUpdate {
-    Set {
-        selection: Option<MetricSelection>,
-        source: Option<Option<MetricSource>>,
-    },
-    Remove,
-}
-
-impl Serialize for MetricSelectionUpdate {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        match self {
-            Self::Set { selection, source } => {
-                let mut value = match selection {
-                    Some(selection) => serde_json::to_value(selection)
-                        .map_err(serde::ser::Error::custom)?,
-                    None => serde_json::json!({}),
-                };
-                if let Some(source) = source {
-                    value
-                        .as_object_mut()
-                        .expect("selection serializes to object")
-                        .insert(
-                            "source".to_string(),
-                            serde_json::to_value(source)
-                                .map_err(serde::ser::Error::custom)?,
-                        );
-                }
-                value.serialize(serializer)
-            }
-            Self::Remove => serializer.serialize_none(),
-        }
-    }
-}
-
-fn deserialize_metric_selection_update<'de, D>(
-    deserializer: D,
-) -> Result<Option<MetricSelectionUpdate>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let mut value = Value::deserialize(deserializer)?;
-    if value.is_null() {
-        return Ok(Some(MetricSelectionUpdate::Remove));
-    }
-
-    // Extract the `source` key before deserializing the selection, since the
-    // selection itself has no `source` field. `null` means "clear the source",
-    // a missing key means "leave the source unchanged".
-    let source_value = value.as_object_mut().and_then(|map| map.remove("source"));
-    let source = source_value
-        .map(serde_json::from_value::<Option<MetricSource>>)
-        .transpose()
-        .map_err(serde::de::Error::custom)?;
-
-    // Selection keys are optional: a payload with only `source` updates just
-    // the source, leaving the existing selection untouched.
-    let has_selection_keys =
-        value.get("primary").is_some() || value.get("guardrail").is_some();
-    let selection = if has_selection_keys {
-        Some(serde_json::from_value(value).map_err(serde::de::Error::custom)?)
-    } else {
-        None
-    };
-
-    if selection.is_none() && source.is_none() {
-        return Err(serde::de::Error::custom(
-            "metrics update must contain at least one of selection keys or `source`",
-        ));
-    }
-
-    Ok(Some(MetricSelectionUpdate::Set { selection, source }))
-}
 
 /********** Experiment Response Type **************/
 // Same as models::Experiments but `id` field is String
@@ -220,7 +133,6 @@ pub struct ExperimentCreateRequest {
     pub name: String,
     pub context: Exp<Condition>,
     pub variants: Vec<Variant>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub metrics: Option<ExperimentMetrics>,
     #[serde(default)]
     pub experiment_type: ExperimentType,
@@ -377,181 +289,10 @@ pub struct VariantUpdateRequest {
 pub struct OverrideKeysUpdateRequest {
     #[serde(alias = "variant_list")]
     pub variants: Vec<VariantUpdateRequest>,
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_metric_selection_update"
-    )]
-    pub metrics: Option<MetricSelectionUpdate>,
+    pub metrics: Option<ExperimentMetrics>,
     pub description: Option<Description>,
     #[serde(default = "ChangeReason::default")]
     pub change_reason: ChangeReason,
     #[serde(default, deserialize_with = "deserialize_option_i64")]
     pub experiment_group_id: Option<I64Update>,
-}
-
-#[cfg(test)]
-mod metric_selection_update_tests {
-    use serde_json::json;
-
-    use super::{MetricSelectionUpdate, OverrideKeysUpdateRequest};
-    use crate::database::models::ChangeReason;
-
-    #[test]
-    fn omitted_metrics_leave_the_selection_unchanged() {
-        let request = serde_json::from_value::<OverrideKeysUpdateRequest>(json!({
-            "variants": []
-        }))
-        .expect("update request without metrics");
-
-        assert!(request.metrics.is_none());
-    }
-
-    #[test]
-    fn null_metrics_clear_the_selection() {
-        let request = serde_json::from_value::<OverrideKeysUpdateRequest>(json!({
-            "variants": [],
-            "metrics": null
-        }))
-        .expect("update request clearing metrics");
-
-        assert!(matches!(
-            request.metrics,
-            Some(MetricSelectionUpdate::Remove)
-        ));
-    }
-
-    #[test]
-    fn metric_object_replaces_the_selection() {
-        let request = serde_json::from_value::<OverrideKeysUpdateRequest>(json!({
-            "variants": [],
-            "metrics": {
-                "primary": {
-                    "name": "conversion",
-                    "direction": "maximize"
-                },
-                "guardrail": {
-                    "name": "latency",
-                    "direction": "minimize"
-                }
-            }
-        }))
-        .expect("update request setting metrics");
-
-        assert!(matches!(
-            request.metrics,
-            Some(MetricSelectionUpdate::Set { source: None, .. })
-        ));
-    }
-
-    #[test]
-    fn metrics_with_source_sets_the_source() {
-        let request = serde_json::from_value::<OverrideKeysUpdateRequest>(json!({
-            "variants": [],
-            "metrics": {
-                "primary": {
-                    "name": "conversion",
-                    "direction": "maximize"
-                },
-                "guardrail": {
-                    "name": "latency",
-                    "direction": "minimize"
-                },
-                "source": {
-                    "grafana": {
-                        "base_url": "https://grafana.example.com",
-                        "dashboard_uid": "uid",
-                        "dashboard_slug": "slug",
-                        "variant_id_alias": null
-                    }
-                }
-            }
-        }))
-        .expect("update request setting metrics with source");
-
-        match request.metrics {
-            Some(MetricSelectionUpdate::Set {
-                source: Some(Some(_)),
-                ..
-            }) => {}
-            other => panic!("expected Set with Some(Some(source)), got {other:?}"),
-        }
-    }
-
-    #[test]
-    fn null_source_clears_the_source() {
-        let request = serde_json::from_value::<OverrideKeysUpdateRequest>(json!({
-            "variants": [],
-            "metrics": {
-                "primary": {
-                    "name": "conversion",
-                    "direction": "maximize"
-                },
-                "guardrail": {
-                    "name": "latency",
-                    "direction": "minimize"
-                },
-                "source": null
-            }
-        }))
-        .expect("update request clearing the source");
-
-        match request.metrics {
-            Some(MetricSelectionUpdate::Set {
-                source: Some(None), ..
-            }) => {}
-            other => panic!("expected Set with Some(None), got {other:?}"),
-        }
-    }
-
-    #[test]
-    fn remove_serializes_as_explicit_null() {
-        let request = OverrideKeysUpdateRequest {
-            variants: vec![],
-            metrics: Some(MetricSelectionUpdate::Remove),
-            description: None,
-            change_reason: ChangeReason::default(),
-            experiment_group_id: None,
-        };
-
-        assert!(serde_json::to_value(request).unwrap()["metrics"].is_null());
-    }
-
-    #[test]
-    fn set_with_source_round_trips() {
-        use crate::database::models::{
-            MetricDefinition, MetricDirection, MetricSelection, MetricSource,
-        };
-
-        let request = OverrideKeysUpdateRequest {
-            variants: vec![],
-            metrics: Some(MetricSelectionUpdate::Set {
-                selection: Some(MetricSelection {
-                    primary: MetricDefinition {
-                        name: "conversion".to_string(),
-                        direction: MetricDirection::Maximize,
-                    },
-                    secondary: None,
-                    guardrail: MetricDefinition {
-                        name: "latency".to_string(),
-                        direction: MetricDirection::Minimize,
-                    },
-                }),
-                source: Some(Some(MetricSource::Grafana {
-                    base_url: "https://grafana.example.com".to_string(),
-                    dashboard_uid: "uid".to_string(),
-                    dashboard_slug: "slug".to_string(),
-                    variant_id_alias: None,
-                })),
-            }),
-            description: None,
-            change_reason: ChangeReason::default(),
-            experiment_group_id: None,
-        };
-
-        let value = serde_json::to_value(&request).unwrap();
-        let round_tripped =
-            serde_json::from_value::<OverrideKeysUpdateRequest>(value).unwrap();
-        assert_eq!(round_tripped.metrics, request.metrics);
-    }
 }

@@ -12,6 +12,7 @@ use superposition_types::{
         default_config::DefaultConfigFilters,
         dimension::DimensionResponse,
         experiments::{ExperimentListFilters, ExperimentResponse},
+        workspace::WorkspaceResponse,
     },
     custom_query::{CustomQuery, DimensionQuery, PaginationParams, Query, QueryMap},
     database::models::cac::DefaultConfig,
@@ -45,6 +46,7 @@ struct CombinedResource {
 
 #[component]
 pub fn ExperimentList() -> impl IntoView {
+    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
     let (reset_exp_form, set_exp_form) = create_signal(0);
@@ -213,6 +215,7 @@ pub fn ExperimentList() -> impl IntoView {
                                 dimensions=dim.clone()
                                 default_config=def_conf.clone()
                                 handle_submit=handle_submit_experiment_form
+                                metrics=workspace_settings.with_value(|w| w.metrics.clone())
                             />
                         </EditorProvider>
                     </Drawer>

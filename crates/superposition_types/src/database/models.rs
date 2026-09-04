@@ -310,18 +310,6 @@ impl Default for MetricSource {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Default)]
-#[cfg_attr(
-    feature = "diesel_derives",
-    derive(AsExpression, FromSqlRow, JsonFromSql, JsonToSql)
-)]
-#[cfg_attr(feature = "diesel_derives", diesel(sql_type = Json))]
-pub struct Metrics {
-    pub enabled: bool,
-    pub source: Option<MetricSource>,
-    pub list: Option<Vec<MetricDefinition>>,
-}
-
 #[derive(
     Clone,
     Copy,
@@ -332,6 +320,7 @@ pub struct Metrics {
     Serialize,
     Deserialize,
     strum_macros::Display,
+    strum_macros::EnumIter,
 )]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
@@ -347,7 +336,7 @@ pub struct MetricDefinition {
     pub direction: MetricDirection,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
 #[cfg_attr(
     feature = "diesel_derives",
     derive(AsExpression, FromSqlRow, JsonFromSql, JsonToSql)
@@ -359,13 +348,42 @@ pub struct MetricSelection {
     pub guardrail: MetricDefinition,
 }
 
+impl MetricSelection {
+    pub fn validate(&self, definitions: &[MetricDefinition]) -> Result<(), String> {
+        let selected = [
+            ("primary", Some(&self.primary)),
+            ("secondary", self.secondary.as_ref()),
+            ("guardrail", Some(&self.guardrail)),
+        ];
+        for (category, metric) in selected {
+            let Some(metric) = metric else {
+                continue;
+            };
+            if !definitions.iter().any(|defined| defined == metric) {
+                let message = format!(
+                "The {category} metric '{}' and its direction are not defined in the workspace",
+                metric.name
+            );
+                return Err(message);
+            }
+        }
+
+        Ok(())
+    }
+}
+
 // TODO: Add validation for the source - that the given URL is valid and the
 // dashboard UID and slug are present in the URL - possible once API_KEY is added
-
-impl Metrics {
-    pub fn source(&self) -> Option<&MetricSource> {
-        self.enabled.then_some(self.source.as_ref()).flatten()
-    }
+#[derive(Clone, Debug, Serialize, Default)]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(AsExpression, FromSqlRow, JsonFromSql, JsonToSql)
+)]
+#[cfg_attr(feature = "diesel_derives", diesel(sql_type = Json))]
+pub struct Metrics {
+    pub enabled: bool,
+    pub source: Option<MetricSource>,
+    pub definitions: Option<Vec<MetricDefinition>>,
 }
 
 impl<'de> Deserialize<'de> for Metrics {
@@ -377,30 +395,47 @@ impl<'de> Deserialize<'de> for Metrics {
         struct MetricsHelper {
             enabled: bool,
             source: Option<MetricSource>,
-            list: Option<Vec<MetricDefinition>>,
+            definitions: Option<Vec<MetricDefinition>>,
         }
         let helper = MetricsHelper::deserialize(deserializer)?;
-        // Treat a Grafana source with blank required fields as absent.
-        // Keeps the "source is Some ⇔ source is usable" invariant so callers
-        // don't need per-variant emptiness checks, and silently repairs any
-        // legacy rows that were persisted with an empty default source.
-        let source = helper.source.filter(|s| match s {
-            MetricSource::Grafana {
+        let is_source_valid = match &helper.source {
+            Some(MetricSource::Grafana {
                 base_url,
                 dashboard_uid,
-                ..
-            } => !base_url.trim().is_empty() && !dashboard_uid.trim().is_empty(),
-        });
+                dashboard_slug,
+                variant_id_alias,
+            }) => {
+                !base_url.trim().is_empty()
+                    && !dashboard_uid.trim().is_empty()
+                    && !dashboard_slug.trim().is_empty()
+                    && variant_id_alias
+                        .as_ref()
+                        .map_or(true, |alias| !alias.trim().is_empty())
+            }
+            _ => true,
+        };
+
+        if !is_source_valid {
+            return Err(serde::de::Error::custom(
+                "Invalid Grafana source: base_url, dashboard_uid, and dashboard_slug must be non-empty strings",
+            ));
+        }
+
         if helper.enabled {
-            let has_source = source.is_some();
-            let has_list = helper.list.as_ref().is_some_and(|list| !list.is_empty());
+            let has_source = helper.source.is_some();
+            let has_list = helper
+                .definitions
+                .as_ref()
+                .is_some_and(|list| !list.is_empty());
             if !has_source && !has_list {
                 return Err(serde::de::Error::custom(
                     "at least one of `source` or a non-empty `list` must be \
-                     provided when enabled is true",
+                     provided when metrics is enabled",
                 ));
             }
-            if let Some(list) = helper.list.as_ref().filter(|list| !list.is_empty()) {
+            if let Some(list) =
+                helper.definitions.as_ref().filter(|list| !list.is_empty())
+            {
                 if list.iter().any(|metric| metric.name.trim().is_empty()) {
                     return Err(serde::de::Error::custom(
                         "metric names in `list` must be non-empty",
@@ -419,10 +454,10 @@ impl<'de> Deserialize<'de> for Metrics {
                 }
             }
         }
-        Ok(Metrics {
+        Ok(Self {
             enabled: helper.enabled,
-            source,
-            list: helper.list,
+            source: helper.source,
+            definitions: helper.definitions,
         })
     }
 }
@@ -516,7 +551,7 @@ mod metrics_tests {
 
     use super::{MetricSelection, Metrics};
 
-    fn enabled_metrics(list: serde_json::Value) -> serde_json::Value {
+    fn enabled_metrics(definitions: serde_json::Value) -> serde_json::Value {
         json!({
             "enabled": true,
             "source": {
@@ -526,7 +561,7 @@ mod metrics_tests {
                     "dashboard_slug": "experiments"
                 }
             },
-            "list": list
+            "definitions": definitions
         })
     }
 
@@ -552,7 +587,7 @@ mod metrics_tests {
         // List only: ok
         assert!(serde_json::from_value::<Metrics>(json!({
             "enabled": true,
-            "list": [{"name": "conversion", "direction": "maximize"}]
+            "definitions": [{"name": "conversion", "direction": "maximize"}]
         }))
         .is_ok());
         // Both: ok
@@ -592,7 +627,7 @@ mod metrics_tests {
         }))
         .unwrap();
         assert!(metrics.source.is_none());
-        assert!(metrics.list.is_some());
+        assert!(metrics.definitions.is_some());
     }
 
     #[test]

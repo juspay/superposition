@@ -17,6 +17,7 @@ use superposition_types::{
         default_config::DefaultConfigFilters,
         dimension::DimensionResponse,
         functions::FunctionEnvironment,
+        workspace::WorkspaceResponse,
     },
     custom_query::{CustomQuery, DimensionQuery, PaginationParams, Query, QueryMap},
     database::models::{
@@ -319,6 +320,7 @@ fn AutofillExperimentForm(
     default_config: Vec<DefaultConfig>,
     experiment_type: ExperimentType,
 ) -> impl IntoView {
+    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let default_config = StoredValue::new(default_config);
     let dimensions = StoredValue::new(dimensions);
 
@@ -341,6 +343,7 @@ fn AutofillExperimentForm(
                                         default_config=default_config.get_value()
                                         dimensions=dimensions.get_value()
                                         handle_submit
+                                        metrics=workspace_settings.with_value(|w| w.metrics.clone())
                                     />
                                 }
                             }
@@ -354,6 +357,7 @@ fn AutofillExperimentForm(
                                         default_config=default_config.get_value()
                                         dimensions=dimensions.get_value()
                                         handle_submit
+                                        metrics=workspace_settings.with_value(|w| w.metrics.clone())
                                     />
                                 }
                             }

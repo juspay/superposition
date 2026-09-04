@@ -9,13 +9,14 @@ use diesel::{
     sql_types::{Array, Integer, Json, Nullable},
     Insertable, QueryId, Queryable, QueryableByName, Selectable,
 };
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 #[cfg(feature = "diesel_derives")]
 use superposition_derives::{JsonFromSql, JsonToSql};
 use uniffi::deps::anyhow;
 
 use crate::{
+    database::models::Metrics,
     experimental::{Experimental, ExperimentalVariants},
     Condition, Contextual, Exp, Overridden, Overrides,
 };
@@ -24,98 +25,25 @@ use crate::{
 use super::super::schema::*;
 use super::{i64_formatter, ChangeReason, Description, MetricSelection, MetricSource};
 
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq, Serialize)]
 #[cfg_attr(
     feature = "diesel_derives",
     derive(AsExpression, FromSqlRow, JsonFromSql, JsonToSql)
 )]
 #[cfg_attr(feature = "diesel_derives", diesel(sql_type = Json))]
 pub struct ExperimentMetrics {
-    selection: Option<MetricSelection>,
-    source: Option<MetricSource>,
+    pub enabled: bool,
+    pub selection: Option<MetricSelection>,
+    pub source: Option<MetricSource>,
 }
 
 impl ExperimentMetrics {
-    /// Create a new ExperimentMetrics with at least one of selection or source.
-    /// Use `ExperimentMetrics::default()` for disabled metrics.
-    pub fn new(
-        selection: Option<MetricSelection>,
-        source: Option<MetricSource>,
-    ) -> Result<Self, String> {
-        if selection.is_none() && source.is_none() {
-            return Err("At least one of selection or source must be provided. \
-                 Use ExperimentMetrics::default() for disabled metrics."
-                .to_string());
-        }
-        Ok(Self { selection, source })
-    }
-
-    /// Check if metrics are enabled (at least one of selection or source is present)
-    pub fn is_enabled(&self) -> bool {
-        self.selection.is_some() || self.source.is_some()
-    }
-
-    /// Returns a reference to the metric source, if present.
     pub fn source(&self) -> Option<&MetricSource> {
-        self.source.as_ref()
+        self.enabled.then_some(self.source.as_ref()).flatten()
     }
 
-    /// Build directly from optional parts. `(None, None)` is the disabled
-    /// sentinel (equivalent to `default()`); any other combination represents
-    /// enabled metrics. Prefer `new()` when validation of "at least one
-    /// present" is desired.
-    pub fn from_parts(
-        selection: Option<MetricSelection>,
-        source: Option<MetricSource>,
-    ) -> Self {
-        Self { selection, source }
-    }
-
-    /// Returns a reference to the metric selection, if present.
     pub fn selection(&self) -> Option<&MetricSelection> {
-        self.selection.as_ref()
-    }
-
-    /// Consumes self and returns both the selection and source.
-    pub fn into_parts(self) -> (Option<MetricSelection>, Option<MetricSource>) {
-        (self.selection, self.source)
-    }
-}
-
-impl Serialize for ExperimentMetrics {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        match (&self.selection, &self.source) {
-            // Default: Disabled
-            (None, None) => serde_json::json!({ "enabled": false }).serialize(serializer),
-            // Both present: merge into single object
-            (Some(selection), Some(source)) => {
-                let mut value =
-                    serde_json::to_value(selection).map_err(serde::ser::Error::custom)?;
-                value
-                    .as_object_mut()
-                    .expect("selection serializes to object")
-                    .insert(
-                        "source".to_string(),
-                        serde_json::to_value(source)
-                            .map_err(serde::ser::Error::custom)?,
-                    );
-                value.serialize(serializer)
-            }
-            // Only selection
-            (Some(selection), None) => selection.serialize(serializer),
-            // Only source
-            (None, Some(source)) => {
-                let mut map = serde_json::Map::new();
-                map.insert(
-                    "source".to_string(),
-                    serde_json::to_value(source).map_err(serde::ser::Error::custom)?,
-                );
-                Value::Object(map).serialize(serializer)
-            }
-        }
+        self.enabled.then_some(self.selection.as_ref()).flatten()
     }
 }
 
@@ -124,146 +52,35 @@ impl<'de> Deserialize<'de> for ExperimentMetrics {
     where
         D: Deserializer<'de>,
     {
-        let value = Value::deserialize(deserializer)?;
+        #[derive(Deserialize)]
+        struct ExperimentMetricsHelper {
+            enabled: bool,
+            source: Option<MetricSource>,
+            selection: Option<MetricSelection>,
+        }
+        let helper = ExperimentMetricsHelper::deserialize(deserializer)?;
 
-        // Handle disabled/null case (default)
-        if value.is_null() || value.get("enabled") == Some(&Value::Bool(false)) {
-            return Ok(Self::default());
+        if helper.enabled && (helper.source.is_none() && helper.selection.is_none()) {
+            return Err(serde::de::Error::custom(
+                "Experiment metrics cannot be enabled without a source or selection",
+            ));
         }
 
-        // Try to extract source
-        let mut value = value;
-        let source = value
-            .as_object_mut()
-            .and_then(|map| map.remove("source"))
-            .map(serde_json::from_value)
-            .transpose()
-            .map_err(serde::de::Error::custom)?;
-
-        // Try to extract selection (only if it has metric fields)
-        let has_metric_fields =
-            value.get("primary").is_some() || value.get("guardrail").is_some();
-
-        let selection = if has_metric_fields {
-            Some(serde_json::from_value(value).map_err(serde::de::Error::custom)?)
-        } else {
-            None
-        };
-
-        Ok(Self { selection, source })
+        Ok(Self {
+            enabled: helper.enabled,
+            source: helper.source,
+            selection: helper.selection,
+        })
     }
 }
 
-#[cfg(test)]
-mod experiment_metrics_tests {
-    use serde_json::json;
-
-    use super::ExperimentMetrics;
-
-    #[test]
-    fn disabled_metrics_deserialize_to_default() {
-        let metrics = serde_json::from_value::<ExperimentMetrics>(json!({
-            "enabled": false
-        }))
-        .expect("disabled metrics sentinel");
-
-        assert!(metrics.selection().is_none());
-        assert!(metrics.source().is_none());
-        assert!(!metrics.is_enabled());
-    }
-
-    #[test]
-    fn default_serializes_to_disabled() {
-        assert_eq!(
-            serde_json::to_value(ExperimentMetrics::default()).unwrap(),
-            json!({ "enabled": false })
-        );
-    }
-
-    #[test]
-    fn source_only_round_trips() {
-        let value = json!({
-            "source": {
-                "grafana": {
-                    "base_url": "https://grafana.example.com",
-                    "dashboard_uid": "experiment-metrics",
-                    "dashboard_slug": "experiments",
-                    "variant_id_alias": null
-                }
-            }
-        });
-        let metrics = serde_json::from_value::<ExperimentMetrics>(value.clone())
-            .expect("source only");
-
-        assert!(metrics.selection().is_none());
-        assert!(metrics.source().is_some());
-        assert!(metrics.is_enabled());
-        assert_eq!(serde_json::to_value(metrics).unwrap(), value);
-    }
-
-    #[test]
-    fn selection_only_round_trips() {
-        let value = json!({
-            "primary": {"name": "conversion", "direction": "maximize"},
-            "secondary": null,
-            "guardrail": {"name": "latency", "direction": "minimize"}
-        });
-        let metrics = serde_json::from_value::<ExperimentMetrics>(value.clone())
-            .expect("selection only");
-
-        assert!(metrics.selection().is_some());
-        assert!(metrics.source().is_none());
-        assert!(metrics.is_enabled());
-        assert_eq!(serde_json::to_value(metrics).unwrap(), value);
-    }
-
-    #[test]
-    fn both_selection_and_source_round_trips() {
-        let value = json!({
-            "primary": {"name": "conversion", "direction": "maximize"},
-            "secondary": null,
-            "guardrail": {"name": "latency", "direction": "minimize"},
-            "source": {
-                "grafana": {
-                    "base_url": "https://grafana.example.com",
-                    "dashboard_uid": "experiment-metrics",
-                    "dashboard_slug": "experiments",
-                    "variant_id_alias": null
-                }
-            }
-        });
-        let metrics = serde_json::from_value::<ExperimentMetrics>(value.clone())
-            .expect("both selection and source");
-
-        assert!(metrics.selection().is_some());
-        assert!(metrics.source().is_some());
-        assert!(metrics.is_enabled());
-        assert_eq!(serde_json::to_value(metrics).unwrap(), value);
-    }
-
-    #[test]
-    fn new_requires_at_least_one() {
-        use crate::database::models::{MetricDefinition, MetricDirection, MetricSource};
-
-        let selection = crate::database::models::MetricSelection {
-            primary: MetricDefinition {
-                name: "conversion".to_string(),
-                direction: MetricDirection::Maximize,
-            },
-            secondary: None,
-            guardrail: MetricDefinition {
-                name: "latency".to_string(),
-                direction: MetricDirection::Minimize,
-            },
-        };
-
-        assert!(ExperimentMetrics::new(None, None).is_err());
-        assert!(ExperimentMetrics::new(Some(selection.clone()), None).is_ok());
-        assert!(ExperimentMetrics::new(None, Some(MetricSource::default())).is_ok());
-        assert!(
-            ExperimentMetrics::new(Some(selection), Some(MetricSource::default()))
-                .is_ok()
-        );
+impl From<Metrics> for ExperimentMetrics {
+    fn from(metrics: Metrics) -> Self {
+        Self {
+            enabled: metrics.enabled,
+            source: metrics.source,
+            selection: None,
+        }
     }
 }
 

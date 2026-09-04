@@ -1,5 +1,6 @@
 use leptos::*;
 use serde_json::Value;
+use strum::IntoEnumIterator;
 use superposition_types::database::models::{
     MetricDefinition, MetricDirection, MetricSelection, MetricSource, Metrics,
     experimentation::ExperimentMetrics,
@@ -7,7 +8,7 @@ use superposition_types::database::models::{
 
 use crate::{
     components::{
-        dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
+        dropdown::{Dropdown, DropdownBtnType, DropdownDirection, utils::DropdownOption},
         form::label::Label,
         input::{Input, InputType, StringArrayInput, Toggle},
     },
@@ -15,29 +16,34 @@ use crate::{
 };
 
 #[component]
-pub fn MetricsForm(
-    #[prop(default = Metrics::default())] metrics: Metrics,
-    on_change: Callback<Metrics>,
+fn SourceForm(
+    source: Option<MetricSource>,
+    #[prop(into)] on_change: Callback<Option<MetricSource>>,
 ) -> impl IntoView {
-    let metrics_rws = RwSignal::new(metrics);
+    let source_rws = RwSignal::new(source);
 
-    Effect::new(move |_| on_change.call(metrics_rws.get()));
+    Effect::new(move |_| {
+        let source = source_rws.get();
+        let is_empty = matches!(&source,
+            Some(MetricSource::Grafana {
+                base_url,
+                dashboard_uid,
+                dashboard_slug,
+                variant_id_alias
+            }) if base_url.is_empty()
+                && dashboard_uid.is_empty()
+                && dashboard_slug.is_empty()
+                && variant_id_alias
+                .as_ref()
+                .map_or(true, |alias| alias.is_empty()));
 
-    let toggle_enabled = Callback::new(move |v| {
-        metrics_rws.update(|m| {
-            m.enabled = v;
-            if m.enabled
-                && (m.source.is_none()
-                    || !matches!(m.source, Some(MetricSource::Grafana { .. })))
-            {
-                m.source = Some(MetricSource::default());
-            }
-        })
+        on_change.call(source.filter(|_| !is_empty));
     });
 
-    let grafana_form_view = move || {
-        view! {
-            <div class="max-w-md w-full pl-2.5 border-t border-dashed">
+    view! {
+        <div class="form-control">
+            <Label title="Metrics Source" />
+            <div class="max-w-md pl-2.5 border-t border-dashed">
                 <div class="form-control">
                     <label class="label">
                         <span class="label-text-alt">Grafana Base URL</span>
@@ -48,11 +54,9 @@ pub fn MetricsForm(
                         class="input-md w-full max-w-md"
                         schema_type=SchemaType::Single(JsonSchemaType::String)
                         value=Value::String(
-                            metrics_rws
-                                .with(|m| {
-                                    if let Some(MetricSource::Grafana { ref base_url, .. }) = m
-                                        .source
-                                    {
+                            source_rws
+                                .with_untracked(|s| {
+                                    if let Some(MetricSource::Grafana { base_url, .. }) = s {
                                         base_url.clone()
                                     } else {
                                         String::new()
@@ -61,11 +65,12 @@ pub fn MetricsForm(
                         )
                         on_change=move |val: Value| {
                             let new_value = val.as_str().unwrap_or_default().to_string();
-                            metrics_rws
-                                .update(|m| {
-                                    if let Some(MetricSource::Grafana { ref mut base_url, .. }) = m
-                                        .source
-                                    {
+                            source_rws
+                                .update(|s| {
+                                    if s.is_none() {
+                                        *s = Some(MetricSource::default());
+                                    }
+                                    if let Some(MetricSource::Grafana { base_url, .. }) = s {
                                         *base_url = new_value;
                                     }
                                 });
@@ -82,11 +87,9 @@ pub fn MetricsForm(
                         class="input-md w-full max-w-md"
                         schema_type=SchemaType::Single(JsonSchemaType::String)
                         value=Value::String(
-                            metrics_rws
-                                .with(|m| {
-                                    if let Some(MetricSource::Grafana { ref dashboard_uid, .. }) = m
-                                        .source
-                                    {
+                            source_rws
+                                .with_untracked(|s| {
+                                    if let Some(MetricSource::Grafana { dashboard_uid, .. }) = s {
                                         dashboard_uid.clone()
                                     } else {
                                         String::new()
@@ -95,12 +98,12 @@ pub fn MetricsForm(
                         )
                         on_change=move |val: Value| {
                             let new_value = val.as_str().unwrap_or_default().to_string();
-                            metrics_rws
-                                .update(|m| {
-                                    if let Some(
-                                        MetricSource::Grafana { ref mut dashboard_uid, .. },
-                                    ) = m.source
-                                    {
+                            source_rws
+                                .update(|s| {
+                                    if s.is_none() {
+                                        *s = Some(MetricSource::default());
+                                    }
+                                    if let Some(MetricSource::Grafana { dashboard_uid, .. }) = s {
                                         *dashboard_uid = new_value;
                                     }
                                 });
@@ -118,11 +121,9 @@ pub fn MetricsForm(
                         class="input-md w-full max-w-md"
                         schema_type=SchemaType::Single(JsonSchemaType::String)
                         value=Value::String(
-                            metrics_rws
-                                .with(|m| {
-                                    if let Some(MetricSource::Grafana { ref dashboard_slug, .. }) = m
-                                        .source
-                                    {
+                            source_rws
+                                .with_untracked(|s| {
+                                    if let Some(MetricSource::Grafana { dashboard_slug, .. }) = s {
                                         dashboard_slug.clone()
                                     } else {
                                         String::new()
@@ -131,12 +132,12 @@ pub fn MetricsForm(
                         )
                         on_change=move |val: Value| {
                             let new_value = val.as_str().unwrap_or_default().to_string();
-                            metrics_rws
-                                .update(|m| {
-                                    if let Some(
-                                        MetricSource::Grafana { ref mut dashboard_slug, .. },
-                                    ) = m.source
-                                    {
+                            source_rws
+                                .update(|s| {
+                                    if s.is_none() {
+                                        *s = Some(MetricSource::default());
+                                    }
+                                    if let Some(MetricSource::Grafana { dashboard_slug, .. }) = s {
                                         *dashboard_slug = new_value;
                                     }
                                 });
@@ -154,10 +155,9 @@ pub fn MetricsForm(
                         class="input-md w-full max-w-md"
                         schema_type=SchemaType::Single(JsonSchemaType::String)
                         value=Value::String(
-                            metrics_rws
-                                .with(|m| {
-                                    m.source
-                                        .as_ref()
+                            source_rws
+                                .with_untracked(|s| {
+                                    s.as_ref()
                                         .and_then(|s| match s {
                                             MetricSource::Grafana { variant_id_alias, .. } => {
                                                 variant_id_alias.clone()
@@ -168,12 +168,12 @@ pub fn MetricsForm(
                         )
                         on_change=move |val: Value| {
                             let new_value = val.as_str().unwrap_or_default().to_string();
-                            metrics_rws
-                                .update(|m| {
-                                    if let Some(
-                                        MetricSource::Grafana { ref mut variant_id_alias, .. },
-                                    ) = m.source
-                                    {
+                            source_rws
+                                .update(|s| {
+                                    if s.is_none() {
+                                        *s = Some(MetricSource::default());
+                                    }
+                                    if let Some(MetricSource::Grafana { variant_id_alias, .. }) = s {
                                         *variant_id_alias = if new_value.is_empty() {
                                             None
                                         } else {
@@ -184,79 +184,101 @@ pub fn MetricsForm(
                         }
                     />
                 </div>
-                <div class="form-control">
-                    <Label
-                        title="Metric Definitions"
-                        description="Press enter to add a metric name"
-                    />
-                    <StringArrayInput
-                        options=metrics_rws
-                            .with(|metrics| {
-                                metrics
-                                    .list
-                                    .as_deref()
-                                    .unwrap_or_default()
-                                    .iter()
-                                    .map(|metric| metric.name.clone())
-                                    .collect()
-                            })
-                        unique=true
-                        show_label=false
-                        on_change=Callback::new(move |list: Vec<String>| {
-                            metrics_rws
-                                .update(|metrics| {
-                                    let existing = metrics.list.take().unwrap_or_default();
-                                    metrics.list = Some(
-                                        list
+            </div>
+        </div>
+    }
+}
+
+#[component]
+pub fn MetricsForm(
+    #[prop(default = Metrics::default())] metrics: Metrics,
+    on_change: Callback<Metrics>,
+) -> impl IntoView {
+    let metrics_rws = RwSignal::new(metrics);
+
+    Effect::new(move |_| on_change.call(metrics_rws.get()));
+
+    let grafana_form_view = move || {
+        view! {
+            <div class="max-w-md w-full pl-2.5 flex flex-col gap-2">
+                <SourceForm
+                    source=metrics_rws.with_untracked(|m| m.source.clone())
+                    on_change=move |source| {
+                        metrics_rws.update_untracked(|m| m.source = source);
+                        on_change.call(metrics_rws.get_untracked());
+                    }
+                />
+                <div class="form-control gap-2">
+                    <div class="form-control">
+                        <Label title="Metric Definitions" info="Press enter to add a metric name" />
+                        <StringArrayInput
+                            options=metrics_rws
+                                .with(|metrics| {
+                                    metrics
+                                        .definitions
+                                        .as_deref()
+                                        .unwrap_or_default()
+                                        .iter()
+                                        .map(|metric| metric.name.clone())
+                                        .collect()
+                                })
+                            unique=true
+                            show_label=false
+                            on_change=Callback::new(move |list: Vec<String>| {
+                                metrics_rws
+                                    .update(|metrics| {
+                                        let existing = metrics
+                                            .definitions
+                                            .take()
+                                            .unwrap_or_default();
+                                        let new_list = list
                                             .into_iter()
                                             .map(|name| {
-                                                existing
+                                                let direction = existing
                                                     .iter()
                                                     .find(|metric| metric.name == name)
-                                                    .cloned()
-                                                    .unwrap_or(MetricDefinition {
-                                                        name,
-                                                        direction: MetricDirection::Maximize,
-                                                    })
+                                                    .map(|metric| metric.direction)
+                                                    .unwrap_or_default();
+                                                MetricDefinition {
+                                                    name,
+                                                    direction,
+                                                }
                                             })
-                                            .collect(),
-                                    );
-                                });
-                        })
-                    />
-                    <div class="flex flex-col gap-2 mt-3">
+                                            .collect::<Vec<_>>();
+                                        metrics.definitions = (!new_list.is_empty())
+                                            .then_some(new_list);
+                                    });
+                            })
+                        />
+                    </div>
+                    <div class="pl-2.5 flex flex-col">
                         <For
                             each=move || {
-                                metrics_rws.with(|metrics| metrics.list.clone().unwrap_or_default())
+                                metrics_rws
+                                    .with(|metrics| metrics.definitions.clone().unwrap_or_default())
                             }
                             key=|metric| metric.name.clone()
                             children=move |metric| {
                                 let metric_name = StoredValue::new(metric.name);
-                                let direction_label = match metric.direction {
-                                    MetricDirection::Maximize => "Maximize",
-                                    MetricDirection::Minimize => "Minimize",
-                                };
-                                let direction_options: Vec<MetricDirection> = vec![
-                                    MetricDirection::Maximize,
-                                    MetricDirection::Minimize,
-                                ];
                                 view! {
-                                    <div class="flex items-center justify-between gap-4">
-                                        <span class="text-sm truncate">
-                                            {metric_name.get_value()}
-                                        </span>
+                                    <div class="flex flex-col first:border-t border-dashed">
+                                        <label class="label">
+                                            <span class="label-text-alt">
+                                                {metric_name.get_value()}
+                                            </span>
+                                        </label>
                                         <Dropdown
                                             dropdown_width="w-44"
                                             dropdown_direction=DropdownDirection::Down
                                             dropdown_btn_type=DropdownBtnType::Select
                                             searchable=false
-                                            dropdown_text=direction_label.to_string()
-                                            dropdown_options=direction_options
-                                            on_select=Callback::new(move |direction: MetricDirection| {
+                                            dropdown_text=metric.direction.label()
+                                            dropdown_options=MetricDirection::iter().collect()
+                                            on_select=move |direction: MetricDirection| {
                                                 metrics_rws
                                                     .update(|metrics| {
                                                         if let Some(metric) = metrics
-                                                            .list
+                                                            .definitions
                                                             .as_mut()
                                                             .and_then(|list| {
                                                                 list.iter_mut()
@@ -266,7 +288,7 @@ pub fn MetricsForm(
                                                             metric.direction = direction;
                                                         }
                                                     });
-                                            })
+                                            }
                                         />
                                     </div>
                                 }
@@ -281,314 +303,146 @@ pub fn MetricsForm(
     view! {
         <div class="flex flex-col">
             <div class="w-fit flex items-center gap-2">
-                <Toggle value=metrics_rws.with_untracked(|m| m.enabled) on_change=toggle_enabled />
+                <Toggle
+                    value=metrics_rws.with_untracked(|m| m.enabled)
+                    on_change=move |v| metrics_rws.update(|m| m.enabled = v)
+                />
                 <Label
                     title="Metrics"
                     extra_info="To view metrics from Grafana, make sure that your setup allows iframe embedding. Also, experiment viewers must have access to the Grafana instance, to view the metrics."
                 />
             </div>
-
-            <Show when=move || {
-                metrics_rws
-                    .with(|m| m.enabled && matches!(m.source, Some(MetricSource::Grafana { .. })))
-            }>{grafana_form_view}</Show>
+            <Show when=move || metrics_rws.with(|m| m.enabled)>{grafana_form_view}</Show>
         </div>
     }
 }
 
 #[component]
 pub fn ExperimentMetricsForm(
-    workspace_metrics: Metrics,
-    #[prop(default = ExperimentMetrics::default())] metrics: ExperimentMetrics,
+    definitions: Vec<MetricDefinition>,
+    experiment_metrics: ExperimentMetrics,
     on_change: Callback<ExperimentMetrics>,
 ) -> impl IntoView {
-    let available_metrics =
-        StoredValue::new(workspace_metrics.list.clone().unwrap_or_default());
-    let workspace_source = StoredValue::new(workspace_metrics.source.clone());
-    let workspace_enabled = workspace_metrics.enabled;
-    // Selection is only offered when the workspace defines a metric list;
-    // matches the server rule at helpers.rs::validate_metric_selection.
-    let has_workspace_list = workspace_metrics
-        .list
-        .as_ref()
-        .is_some_and(|list| !list.is_empty());
+    let has_workspace_list = !definitions.is_empty();
 
-    let selection = metrics.selection().cloned();
-    let can_toggle = workspace_enabled || selection.is_some();
-    let enabled = RwSignal::new(selection.is_some());
-    let primary = RwSignal::new(
-        selection
-            .as_ref()
-            .map(|selection| selection.primary.clone())
-            .unwrap_or_default(),
-    );
-    let secondary = RwSignal::new(
-        selection
-            .as_ref()
-            .and_then(|selection| selection.secondary.clone()),
-    );
-    let guardrail = RwSignal::new(
-        selection
-            .as_ref()
-            .map(|selection| selection.guardrail.clone())
-            .unwrap_or_default(),
-    );
-    // Per-experiment source override is offered whenever the workspace has a
-    // source. `Metrics` deserialization guarantees a `Some` source is usable
-    // (blank Grafana fields are normalized to `None`), so a bare `is_some()`
-    // matches the server-side rule at handlers.rs.
-    let has_workspace_source = workspace_source.with_value(|s| s.as_ref().is_some());
-    let initial_source = if has_workspace_source {
-        metrics
-            .source()
-            .cloned()
-            .or_else(|| workspace_source.get_value())
-    } else {
-        None
-    };
-    let custom_source = RwSignal::new(initial_source);
+    let definitions_st = StoredValue::new(definitions);
+    let experiment_metrics_rws = RwSignal::new(experiment_metrics);
 
-    let emit = move || {
-        let selection = (enabled.get_untracked() && has_workspace_list).then(|| {
-            MetricSelection {
-                primary: primary.get_untracked(),
-                secondary: secondary.get_untracked(),
-                guardrail: guardrail.get_untracked(),
-            }
-        });
-        // Only send source when it differs from the workspace source
-        let source = custom_source.get_untracked().filter(|source| {
-            workspace_source.with_value(|ws| ws.as_ref() != Some(source))
-        });
-        on_change.call(ExperimentMetrics::from_parts(selection, source));
-    };
-
-    let grafana_source_fields = move |source_rws: RwSignal<Option<MetricSource>>| {
-        let get_field = move |f: fn(&MetricSource) -> String| {
-            source_rws.with(|s| s.as_ref().map(f).unwrap_or_default())
-        };
-
-        view! {
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pl-2.5 border-t border-dashed">
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text-alt">Grafana Base URL</span>
-                    </label>
-                    <Input
-                        r#type=InputType::Text
-                        placeholder="Base URL".to_string()
-                        class="input-md w-full"
-                        schema_type=SchemaType::Single(JsonSchemaType::String)
-                        value=Value::String(
-                            get_field(|s| match s {
-                                MetricSource::Grafana { base_url, .. } => base_url.clone(),
-                            }),
-                        )
-                        on_change=move |val: Value| {
-                            let v = val.as_str().unwrap_or_default().to_string();
-                            source_rws
-                                .update(|s| {
-                                    if let Some(MetricSource::Grafana { base_url, .. }) = s.as_mut()
-                                    {
-                                        *base_url = v;
-                                    }
-                                });
-                            emit();
-                        }
-                    />
-                </div>
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text-alt">Dashboard UID</span>
-                    </label>
-                    <Input
-                        r#type=InputType::Text
-                        placeholder="Dashboard UID".to_string()
-                        class="input-md w-full"
-                        schema_type=SchemaType::Single(JsonSchemaType::String)
-                        value=Value::String(
-                            get_field(|s| match s {
-                                MetricSource::Grafana { dashboard_uid, .. } => dashboard_uid.clone(),
-                            }),
-                        )
-                        on_change=move |val: Value| {
-                            let v = val.as_str().unwrap_or_default().to_string();
-                            source_rws
-                                .update(|s| {
-                                    if let Some(MetricSource::Grafana { dashboard_uid, .. }) = s
-                                        .as_mut()
-                                    {
-                                        *dashboard_uid = v;
-                                    }
-                                });
-                            emit();
-                        }
-                    />
-                </div>
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text-alt">Dashboard Slug</span>
-                    </label>
-                    <Input
-                        r#type=InputType::Text
-                        placeholder="Dashboard Slug".to_string()
-                        class="input-md w-full"
-                        schema_type=SchemaType::Single(JsonSchemaType::String)
-                        value=Value::String(
-                            get_field(|s| match s {
-                                MetricSource::Grafana { dashboard_slug, .. } => {
-                                    dashboard_slug.clone()
-                                }
-                            }),
-                        )
-                        on_change=move |val: Value| {
-                            let v = val.as_str().unwrap_or_default().to_string();
-                            source_rws
-                                .update(|s| {
-                                    if let Some(MetricSource::Grafana { dashboard_slug, .. }) = s
-                                        .as_mut()
-                                    {
-                                        *dashboard_slug = v;
-                                    }
-                                });
-                            emit();
-                        }
-                    />
-                </div>
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text-alt">Variant ID Alias (Optional)</span>
-                    </label>
-                    <Input
-                        r#type=InputType::Text
-                        placeholder="Variant ID Alias".to_string()
-                        class="input-md w-full"
-                        schema_type=SchemaType::Single(JsonSchemaType::String)
-                        value=Value::String(
-                            get_field(|s| match s {
-                                MetricSource::Grafana { variant_id_alias, .. } => {
-                                    variant_id_alias.clone().unwrap_or_default()
-                                }
-                            }),
-                        )
-                        on_change=move |val: Value| {
-                            let v = val.as_str().unwrap_or_default().to_string();
-                            source_rws
-                                .update(|s| {
-                                    if let Some(MetricSource::Grafana { variant_id_alias, .. }) = s
-                                        .as_mut()
-                                    {
-                                        *variant_id_alias = if v.is_empty() {
-                                            None
-                                        } else {
-                                            Some(v)
-                                        };
-                                    }
-                                });
-                            emit();
-                        }
-                    />
-                </div>
-            </div>
-        }
-    };
+    Effect::new(move |_| on_change.call(experiment_metrics_rws.get()));
 
     view! {
-        <div class="flex flex-col gap-3">
+        <div class="flex flex-col gap-2">
             <div class="w-fit flex items-center gap-2">
                 <Toggle
-                    value=enabled.get_untracked()
-                    disabled=!can_toggle
-                    on_change=move |value| {
-                        enabled.set(value);
-                        emit();
-                    }
+                    value=experiment_metrics_rws.with_untracked(|m| m.enabled)
+                    on_change=move |v| experiment_metrics_rws.update(|em| em.enabled = v)
                 />
                 <Label
                     title="Experiment Metrics"
-                    info=if workspace_enabled {
-                        String::new()
-                    } else {
-                        "Disabled at workspace level".to_string()
-                    }
+                    extra_info="To view metrics from Grafana, make sure that your setup allows iframe embedding. Also, experiment viewers must have access to the Grafana instance, to view the metrics."
                 />
             </div>
-            <Show when=move || enabled.get()>
+            <Show when=move || experiment_metrics_rws.with(|m| m.enabled)>
+                <SourceForm
+                    source=experiment_metrics_rws.with_untracked(|m| m.source.clone())
+                    on_change=move |source| {
+                        experiment_metrics_rws.update_untracked(|m| m.source = source);
+                        on_change.call(experiment_metrics_rws.get_untracked());
+                    }
+                />
                 <Show when=move || has_workspace_list>
-                    <div class="flex flex-col gap-4 max-w-md">
-                        <div class="form-control">
-                            <Label title="Primary Metric" />
-                            <Dropdown
-                                dropdown_width="w-full"
-                                dropdown_direction=DropdownDirection::Down
-                                dropdown_btn_type=DropdownBtnType::Select
-                                dropdown_text={
-                                    let name = primary.get_untracked().name;
-                                    if name.is_empty() {
-                                        "Select primary metric".to_string()
-                                    } else {
-                                        name
+                    <div class="form-control">
+                        <Label title="Metric Selections" />
+                        <div class="max-w-md pl-2.5 border-t border-dashed">
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text-alt">"Primary Metric"</span>
+                                </label>
+                                <Dropdown
+                                    dropdown_width="w-full"
+                                    dropdown_direction=DropdownDirection::Down
+                                    dropdown_btn_type=DropdownBtnType::Select
+                                    dropdown_text=experiment_metrics_rws
+                                        .with_untracked(|em| {
+                                            em.selection.as_ref().map(|s| s.primary.name.clone())
+                                        })
+                                        .unwrap_or_else(|| "Select primary metric".to_string())
+                                    dropdown_options=definitions_st.get_value()
+                                    on_select=move |metric: MetricDefinition| {
+                                        experiment_metrics_rws
+                                            .update(|em| {
+                                                if em.selection.is_none() {
+                                                    em.selection = Some(MetricSelection::default());
+                                                }
+                                                if let Some(ref mut selection) = em.selection {
+                                                    selection.primary = metric;
+                                                }
+                                            })
                                     }
-                                }
-                                dropdown_options=available_metrics.get_value()
-                                on_select=Callback::new(move |metric: MetricDefinition| {
-                                    primary.set(metric);
-                                    emit();
-                                })
-                            />
-                        </div>
-                        <div class="form-control">
-                            <Label title="Secondary Metric" info="(Optional)" />
-                            <Dropdown
-                                dropdown_width="w-full"
-                                dropdown_direction=DropdownDirection::Down
-                                dropdown_btn_type=DropdownBtnType::Select
-                                dropdown_text=secondary
-                                    .get_untracked()
-                                    .map(|metric| metric.name)
-                                    .unwrap_or_else(|| "No secondary metric".to_string())
-                                dropdown_options=available_metrics.get_value()
-                                on_select=Callback::new(move |metric: MetricDefinition| {
-                                    secondary.set(Some(metric));
-                                    emit();
-                                })
-                            />
-                        </div>
-                        <div class="form-control">
-                            <Label title="Guardrail Metric" />
-                            <Dropdown
-                                dropdown_width="w-full"
-                                dropdown_direction=DropdownDirection::Down
-                                dropdown_btn_type=DropdownBtnType::Select
-                                dropdown_text={
-                                    let name = guardrail.get_untracked().name;
-                                    if name.is_empty() {
-                                        "Select guardrail metric".to_string()
-                                    } else {
-                                        name
+                                />
+                            </div>
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text-alt">
+                                        "Secondary Metric (Optional)"
+                                    </span>
+                                </label>
+                                <Dropdown
+                                    dropdown_width="w-full"
+                                    dropdown_direction=DropdownDirection::Down
+                                    dropdown_btn_type=DropdownBtnType::Select
+                                    dropdown_text=experiment_metrics_rws
+                                        .with_untracked(|em| {
+                                            em.selection
+                                                .as_ref()
+                                                .and_then(|s| s.secondary.as_ref())
+                                                .map(|m| m.name.clone())
+                                        })
+                                        .unwrap_or_else(|| "Select secondary metric".to_string())
+                                    dropdown_options=definitions_st.get_value()
+                                    on_select=move |metric: MetricDefinition| {
+                                        experiment_metrics_rws
+                                            .update(|em| {
+                                                if em.selection.is_none() {
+                                                    em.selection = Some(MetricSelection::default());
+                                                }
+                                                if let Some(ref mut selection) = em.selection {
+                                                    selection.secondary = Some(metric);
+                                                }
+                                            })
                                     }
-                                }
-                                dropdown_options=available_metrics.get_value()
-                                on_select=Callback::new(move |metric: MetricDefinition| {
-                                    guardrail.set(metric);
-                                    emit();
-                                })
-                            />
+                                />
+                            </div>
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text-alt">"Guardrail Metric"</span>
+                                </label>
+                                <Dropdown
+                                    dropdown_width="w-full"
+                                    dropdown_direction=DropdownDirection::Down
+                                    dropdown_btn_type=DropdownBtnType::Select
+                                    dropdown_text=experiment_metrics_rws
+                                        .with_untracked(|em| {
+                                            em.selection.as_ref().map(|s| s.guardrail.name.clone())
+                                        })
+                                        .unwrap_or_else(|| "Select guardrail metric".to_string())
+                                    dropdown_options=definitions_st.get_value()
+                                    on_select=move |metric: MetricDefinition| {
+                                        experiment_metrics_rws
+                                            .update(|em| {
+                                                if em.selection.is_none() {
+                                                    em.selection = Some(MetricSelection::default());
+                                                }
+                                                if let Some(ref mut selection) = em.selection {
+                                                    selection.guardrail = metric;
+                                                }
+                                            })
+                                    }
+                                />
+                            </div>
                         </div>
                     </div>
                 </Show>
-                {has_workspace_source
-                    .then(|| {
-                        view! {
-                            <div class="form-control max-w-4xl mt-2">
-                                <Label
-                                    title="Metrics Source"
-                                    info="Override the workspace metrics source for this experiment"
-                                />
-                                {grafana_source_fields(custom_source)}
-                            </div>
-                        }
-                    })}
             </Show>
         </div>
     }

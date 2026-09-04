@@ -3,7 +3,6 @@ use std::collections::HashMap;
 use leptos::*;
 use serde_json::{Map, Value};
 use superposition_types::api::experiments::ExperimentResponse;
-use superposition_types::database::models::MetricDirection;
 use superposition_types::database::models::experimentation::{
     ExperimentStatusType, Variant, VariantType,
 };
@@ -23,13 +22,6 @@ fn badge_class(status_type: ExperimentStatusType) -> &'static str {
         ExperimentStatusType::CONCLUDED => "badge-success",
         ExperimentStatusType::DISCARDED => "badge-neutral",
         ExperimentStatusType::PAUSED => "badge-error",
-    }
-}
-
-fn metric_direction_label(direction: MetricDirection) -> &'static str {
-    match direction {
-        MetricDirection::Maximize => "maximize",
-        MetricDirection::Minimize => "minimize",
     }
 }
 
@@ -391,7 +383,7 @@ where
             <Show when=move || {
                 experiment
                     .with_value(|v| {
-                        v.metrics.is_enabled() || v.status == ExperimentStatusType::CREATED
+                        v.metrics.enabled || v.status == ExperimentStatusType::CREATED
                     })
             }>
                 <div class="card bg-base-100 max-w-screen shadow">
@@ -405,11 +397,7 @@ where
                                     let secondary = metrics
                                         .secondary
                                         .map(|metric| {
-                                            format!(
-                                                "{} ({})",
-                                                metric.name,
-                                                metric_direction_label(metric.direction),
-                                            )
+                                            format!("{} ({})", metric.name, metric.direction)
                                         })
                                         .unwrap_or_else(|| "—".to_string());
                                     view! {
@@ -418,7 +406,7 @@ where
                                                 <div class="stat-title">Primary</div>
                                                 <div class="font-medium">{metrics.primary.name}</div>
                                                 <div class="text-xs opacity-70">
-                                                    {metric_direction_label(metrics.primary.direction)}
+                                                    {metrics.primary.direction.to_string()}
                                                 </div>
                                             </div>
                                             <div>
@@ -429,7 +417,7 @@ where
                                                 <div class="stat-title">Guardrail</div>
                                                 <div class="font-medium">{metrics.guardrail.name}</div>
                                                 <div class="text-xs opacity-70">
-                                                    {metric_direction_label(metrics.guardrail.direction)}
+                                                    {metrics.guardrail.direction.to_string()}
                                                 </div>
                                             </div>
                                         </div>
@@ -457,7 +445,7 @@ where
                                         _ => {
                                             let message = if experiment
                                                 .with_value(|e| {
-                                                    !e.metrics.is_enabled()
+                                                    !e.metrics.enabled
                                                         && e.status == ExperimentStatusType::CREATED
                                                 })
                                             {
