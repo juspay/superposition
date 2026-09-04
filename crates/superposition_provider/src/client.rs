@@ -252,7 +252,7 @@ impl CacConfig {
                     &cached_config.overrides,
                     &cached_config.dimensions,
                     query_data,
-                    MergeStrategy::MERGE,
+                    MergeStrategy::REPLACE,
                     prefix_filter.map(|p| p.to_vec()),
                     exclude_prefix_filter.map(|p| p.to_vec()),
                 ))
