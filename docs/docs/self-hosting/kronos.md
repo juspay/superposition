@@ -73,9 +73,11 @@ must be no longer than 25 characters.
 - `KRONOS_DISPATCH_TOKEN` authenticates only that callback. Use a random value
   that is different from `SUPERPOSITION_TOKEN`.
 - In `DEV` and `TEST`, the callback token and service API key are read directly
-  from the environment. In `PROD` and `SANDBOX`, provide their AWS KMS
-  ciphertexts. `KRONOS_ENCRYPTION_KEY` is always read directly from the
-  environment, so inject it with your deployment secret manager.
+  from the environment. In `PROD` and `SANDBOX`, provide their KMS
+  ciphertexts (AWS KMS, Google Cloud KMS, or OpenBao/HashiCorp Vault, see
+  `KMS_PROVIDER`).
+  `KRONOS_ENCRYPTION_KEY` is always read directly from the environment, so
+  inject it with your deployment secret manager.
 
 After startup, check the Superposition logs for either
 `Kronos library mode: embedded worker started` or `Kronos service mode` to

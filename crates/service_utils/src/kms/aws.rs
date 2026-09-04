@@ -1,8 +1,14 @@
-use crate::helpers::get_from_env_unsafe;
+use async_trait::async_trait;
 use aws_sdk_kms::{Client, primitives::Blob};
 use base64::{Engine, engine::general_purpose};
 
-async fn decrypt_helper(aws_kms_cli: Client, key: &str, key_value_env: String) -> String {
+use crate::{helpers::get_from_env_unsafe, kms::SecretProvider};
+
+async fn decrypt_helper(
+    aws_kms_cli: &Client,
+    key: &str,
+    key_value_env: String,
+) -> String {
     let key_value_enc = general_purpose::STANDARD
         .decode(key_value_env)
         .expect("Input string does not contain valid base 64 characters.");
@@ -14,7 +20,7 @@ async fn decrypt_helper(aws_kms_cli: Client, key: &str, key_value_env: String) -
         .await;
     let key_value: String = String::from_utf8(
         key_value_bytes_result
-            .unwrap_or_else(|_| panic!("Failed to decrypt {key}"))
+            .unwrap_or_else(|e| panic!("Failed to decrypt {key}: {e:?}"))
             .plaintext()
             .unwrap_or_else(|| panic!("Failed to get plaintext value for {key}"))
             .as_ref()
@@ -24,15 +30,18 @@ async fn decrypt_helper(aws_kms_cli: Client, key: &str, key_value_env: String) -
     key_value
 }
 
-pub async fn decrypt(aws_kms_cli: Client, key: &str) -> String {
-    let key_value_env: String =
-        get_from_env_unsafe(key).unwrap_or_else(|_| panic!("{key} not present in env"));
-    decrypt_helper(aws_kms_cli, key, key_value_env).await
-}
+#[async_trait]
+impl SecretProvider for Client {
+    async fn get_secret(&self, key: &str) -> String {
+        let key_value_env: String = get_from_env_unsafe(key)
+            .unwrap_or_else(|_| panic!("{key} not present in env"));
+        decrypt_helper(self, key, key_value_env).await
+    }
 
-pub async fn decrypt_opt(aws_kms_cli: Client, key: &str) -> Option<String> {
-    let key_value_env: String = get_from_env_unsafe(key).ok()?;
-    Some(decrypt_helper(aws_kms_cli, key, key_value_env).await)
+    async fn get_secret_opt(&self, key: &str) -> Option<String> {
+        let key_value_env: String = get_from_env_unsafe(key).ok()?;
+        Some(decrypt_helper(self, key, key_value_env).await)
+    }
 }
 
 pub async fn new_client() -> Client {

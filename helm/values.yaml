@@ -41,6 +41,12 @@ configs:
   db_name: config
   app_env: DEV
   aws_region_endpoint: http://localhost:4566
+  # KMS backend for the `secrets` block below (non-dev/test). Default: AWS.
+  # kms_provider: AWS  # or GCP, OPENBAO
+  # gcp_kms_key_name: projects/<project>/locations/<location>/keyRings/<ring>/cryptoKeys/<key>  # required for GCP; uses ADC
+  # openbao_addr: https://openbao.example.com:8200  # required for OPENBAO
+  # openbao_token: <openbao-token>                   # required for OPENBAO
+  # Note: with OPENBAO, secrets below hold a KV v2 location ("mount:path[:key]") instead of ciphertext.
   allow_same_keys_overlapping_ctx: true
   allow_diff_keys_overlapping_ctx: true
   allow_same_keys_non_overlapping_ctx: true

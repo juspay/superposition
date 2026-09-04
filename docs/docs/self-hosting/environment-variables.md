@@ -23,6 +23,10 @@ deployment.
 | `ACTIX_WORKER_COUNT` | `5` | Number of Actix workers. |
 | `ACTIX_KEEP_ALIVE` | `120` | Keep-alive timeout in seconds. |
 | `SUPERPOSITION_TOKEN` | secret value | Internal service token. In `DEV`, `TEST`, and `SANDBOX`, it defaults to `123456` if unset. In `PROD`, provide a KMS ciphertext. |
+| `KMS_PROVIDER` | `AWS`, `GCP`, or `OPENBAO` | Optional, defaults to `AWS`. Selects the backend used to resolve secrets in `PROD`/`SANDBOX`. See Secret Loading Modes below. |
+| `GCP_KMS_KEY_NAME` | `projects/<project>/locations/<location>/keyRings/<ring>/cryptoKeys/<key>` | Required when `KMS_PROVIDER=GCP`. Full resource name of the symmetric key used to decrypt secrets. |
+| `OPENBAO_ADDR` | `https://openbao.example.com:8200` | Required when `KMS_PROVIDER=OPENBAO`. Address of the OpenBao (or HashiCorp Vault) server. |
+| `OPENBAO_TOKEN` | secret value | Required when `KMS_PROVIDER=OPENBAO`. Auth token for the OpenBao server. |
 
 ## Database And Cache Settings
 
@@ -79,16 +83,26 @@ TENANT_MIDDLEWARE_EXCLUSION_LIST="/health,/assets/favicon.ico,/pkg/frontend.js,/
 
 Superposition currently has two practical deployment modes:
 
-- `APP_ENV=PROD`: the app initializes AWS KMS and expects encrypted, base64 KMS
-  ciphertext values for sensitive settings such as `DB_PASSWORD`,
-  `SUPERPOSITION_TOKEN`, `KRONOS_API_KEY`, `KRONOS_DISPATCH_TOKEN`,
-  `OIDC_CLIENT_SECRET`, `OIDC_INTROSPECTION_AUTH_HEADER` and
-  `OIDC_API_STATIC_TOKENS` (when API-token auth is enabled),
-  `CASBIN_DB_PASSWORD`, and `MASTER_ENCRYPTION_KEY`.
+- `APP_ENV=PROD`: the app initializes a secrets backend client for sensitive
+  settings such as `DB_PASSWORD`, `SUPERPOSITION_TOKEN`, `KRONOS_API_KEY`,
+  `KRONOS_DISPATCH_TOKEN`, `OIDC_CLIENT_SECRET`,
+  `OIDC_INTROSPECTION_AUTH_HEADER` and `OIDC_API_STATIC_TOKENS` (when
+  API-token auth is enabled), `CASBIN_DB_PASSWORD`, and
+  `MASTER_ENCRYPTION_KEY`. The backend is AWS KMS by default, expecting
+  base64 KMS ciphertext values for each of those. Set `KMS_PROVIDER=GCP` and
+  `GCP_KMS_KEY_NAME` (full resource name of the symmetric key) to use Google
+  Cloud KMS instead — GCP authentication uses Application Default
+  Credentials, a service-account key file via `GOOGLE_APPLICATION_CREDENTIALS`
+  locally, or Workload Identity on GKE. Set `KMS_PROVIDER=OPENBAO` and
+  `OPENBAO_ADDR`/`OPENBAO_TOKEN` to use OpenBao (or HashiCorp Vault, which
+  implements the same API) instead — unlike AWS/GCP, each of those env vars
+  then holds an OpenBao KV v2 location (`mount:path[:key]`, `key` defaults to
+  `value`) rather than a ciphertext, since OpenBao returns the plaintext
+  secret directly.
 - `APP_ENV=DEV`: the app reads those values directly from environment variables.
-  This is useful for local and non-AWS self-hosted deployments. If you use this
-  mode outside local development, inject secrets from your platform secret
-  manager and enable real authentication.
+  This is useful for local and non-cloud self-hosted deployments. If you use
+  this mode outside local development, inject secrets from your platform
+  secret manager and enable real authentication.
 
 If you want to use Superposition secrets, set `MASTER_ENCRYPTION_KEY` to a
 base64-encoded 32-byte key:

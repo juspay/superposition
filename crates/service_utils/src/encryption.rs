@@ -169,7 +169,7 @@ pub fn decrypt_workspace_key(
 }
 
 pub async fn get_master_encryption_keys(
-    kms_client: &Option<aws_sdk_kms::Client>,
+    kms_client: &Option<crate::kms::SecretProviderClient>,
     app_env: &AppEnv,
 ) -> Result<Option<EncryptionKey>, EncryptionError> {
     match app_env {
@@ -192,11 +192,11 @@ pub async fn get_master_encryption_keys(
             }))
         }
         _ => {
-            let kms_client = kms_client.clone().unwrap();
-            let decrypted_master_key =
-                crate::aws::kms::decrypt_opt(kms_client.clone(), "MASTER_ENCRYPTION_KEY")
-                    .await
-                    .map(SecretString::from);
+            let kms_client = kms_client.as_ref().unwrap();
+            let decrypted_master_key = kms_client
+                .get_secret_opt("MASTER_ENCRYPTION_KEY")
+                .await
+                .map(SecretString::from);
             let Some(current_key) = decrypted_master_key else {
                 log::info!(
                     "MASTER_ENCRYPTION_KEY not set - secrets functionality will be disabled."
@@ -204,12 +204,10 @@ pub async fn get_master_encryption_keys(
                 return Ok(None);
             };
 
-            let previous_key = crate::aws::kms::decrypt_opt(
-                kms_client,
-                "PREVIOUS_MASTER_ENCRYPTION_KEY",
-            )
-            .await
-            .map(SecretString::from);
+            let previous_key = kms_client
+                .get_secret_opt("PREVIOUS_MASTER_ENCRYPTION_KEY")
+                .await
+                .map(SecretString::from);
 
             Ok(Some(EncryptionKey {
                 current_key,

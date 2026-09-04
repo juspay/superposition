@@ -3,11 +3,11 @@
 // when compiling tests.
 #[cfg(test)]
 use opentelemetry_otlp as _;
-pub mod aws;
 pub mod db;
 pub mod encryption;
 pub mod extensions;
 pub mod helpers;
+pub mod kms;
 pub mod kronos_dispatch;
 pub mod middlewares;
 pub mod observability;

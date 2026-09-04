@@ -23,7 +23,7 @@ Master Encryption Key (MEK)
 └─────────────────────┘
 ```
 
-- **Master Encryption Key (MEK)**: Stored in environment variable `MASTER_ENCRYPTION_KEY` (or AWS KMS in production). Never stored in the database.
+- **Master Encryption Key (MEK)**: Stored in environment variable `MASTER_ENCRYPTION_KEY` (or AWS KMS / Google Cloud KMS / OpenBao / HashiCorp Vault in production, see `KMS_PROVIDER`). Never stored in the database.
 - **Workspace Encryption Key (WEK)**: Auto-generated per workspace, stored encrypted in the `workspaces` table.
 - **Secrets**: Encrypted with AES-256-GCM and stored in the `secrets` table.
 
