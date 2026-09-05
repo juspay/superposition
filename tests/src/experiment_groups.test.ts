@@ -562,7 +562,7 @@ describe("Experiment Groups API Integration Tests", () => {
                     new CreateExperimentGroupCommand(input),
                 ),
             ).rejects.toThrow(
-                'JSON Parse error: Unexpected identifier "Json"\n  Deserialization error: to see the raw response, inspect the hidden field {error}.$response on this object.',
+                /Traffic percentage must be a number between 0 and 100/i,
             );
         });
     });

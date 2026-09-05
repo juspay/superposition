@@ -185,17 +185,17 @@ impl UpdateOverridesExperimentFluentBuilder {
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_change_reason()
                 }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Metric selection update using workspace metric definitions containing name and direction. Omit to preserve the current selection, pass null to clear it, or pass a selection object to replace it. Updates are allowed only while the experiment is in CREATED state.
     pub fn metrics(mut self, input: ::aws_smithy_types::Document) -> Self {
                     self.inner = self.inner.metrics(input);
                     self
                 }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Metric selection update using workspace metric definitions containing name and direction. Omit to preserve the current selection, pass null to clear it, or pass a selection object to replace it. Updates are allowed only while the experiment is in CREATED state.
     pub fn set_metrics(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
                     self.inner = self.inner.set_metrics(input);
                     self
                 }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Metric selection update using workspace metric definitions containing name and direction. Omit to preserve the current selection, pass null to clear it, or pass a selection object to replace it. Updates are allowed only while the experiment is in CREATED state.
     pub fn get_metrics(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
                     self.inner.get_metrics()
                 }

@@ -26,7 +26,7 @@ impl super::Client {
     ///   - [`started_at(Option<DateTime>)`](crate::operation::resume_experiment::ResumeExperimentOutput::started_at): (undocumented)
     ///   - [`started_by(Option<String>)`](crate::operation::resume_experiment::ResumeExperimentOutput::started_by): (undocumented)
     ///   - [`metrics_url(Option<String>)`](crate::operation::resume_experiment::ResumeExperimentOutput::metrics_url): (undocumented)
-    ///   - [`metrics(Option<Document>)`](crate::operation::resume_experiment::ResumeExperimentOutput::metrics): (undocumented)
+    ///   - [`metrics(Option<Document>)`](crate::operation::resume_experiment::ResumeExperimentOutput::metrics): Optional metrics for this experiment, snapshotted from workspace definitions. May carry a selection (primary and guardrail required, secondary optional) and/or a per-experiment source override; both are optional independently, and omitting both means metrics are disabled.
     ///   - [`experiment_group_id(Option<String>)`](crate::operation::resume_experiment::ResumeExperimentOutput::experiment_group_id): (undocumented)
                             /// - On failure, responds with [`SdkError<ResumeExperimentError>`](crate::operation::resume_experiment::ResumeExperimentError)
     pub fn resume_experiment(&self) -> crate::operation::resume_experiment::builders::ResumeExperimentFluentBuilder {

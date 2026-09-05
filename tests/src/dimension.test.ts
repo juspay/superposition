@@ -273,7 +273,7 @@ describe("Dimension API", () => {
         const cmd = new CreateDimensionCommand(invalidInput);
 
         await expect(superpositionClient.send(cmd)).rejects.toThrow(
-            /JSON Parse error: Unexpected identifier /,
+            /it should obey the regex/i,
         );
     });
 

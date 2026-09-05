@@ -3,7 +3,7 @@ pub mod cac;
 pub mod experimentation;
 pub mod others;
 
-use std::str::FromStr;
+use std::{collections::HashSet, str::FromStr};
 
 use chrono::{DateTime, Utc};
 use derive_more::{Deref, DerefMut};
@@ -288,7 +288,7 @@ pub struct Workspace {
     pub workspace_lock_expires_at: Option<DateTime<Utc>>,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, PartialEq, Serialize, Debug)]
 #[serde(rename_all = "lowercase")]
 pub enum MetricSource {
     Grafana {
@@ -310,7 +310,117 @@ impl Default for MetricSource {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Default)]
+impl<'de> Deserialize<'de> for MetricSource {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        #[serde(rename_all = "lowercase")]
+        enum MetricSourceHelper {
+            Grafana {
+                base_url: String,
+                dashboard_uid: String,
+                dashboard_slug: String,
+                variant_id_alias: Option<String>,
+            },
+        }
+
+        let MetricSourceHelper::Grafana {
+            base_url,
+            dashboard_uid,
+            dashboard_slug,
+            variant_id_alias,
+        } = MetricSourceHelper::deserialize(deserializer)?;
+
+        let base_url = base_url.trim();
+        let dashboard_uid = dashboard_uid.trim();
+        let dashboard_slug = dashboard_slug.trim();
+        // an empty optional alias is absent, not a reason to reject the source
+        let variant_id_alias = variant_id_alias
+            .map(|alias| alias.trim().to_string())
+            .filter(|alias| !alias.is_empty());
+
+        if base_url.is_empty() || dashboard_uid.is_empty() || dashboard_slug.is_empty() {
+            return Err(serde::de::Error::custom(
+                "Invalid Grafana source: base_url, dashboard_uid, and \
+                 dashboard_slug must all be non-empty",
+            ));
+        }
+
+        Ok(Self::Grafana {
+            base_url: base_url.to_string(),
+            dashboard_uid: dashboard_uid.to_string(),
+            dashboard_slug: dashboard_slug.to_string(),
+            variant_id_alias,
+        })
+    }
+}
+
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    Serialize,
+    Deserialize,
+    strum_macros::Display,
+    strum_macros::EnumIter,
+)]
+#[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
+pub enum MetricDirection {
+    #[default]
+    Maximize,
+    Minimize,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+pub struct MetricDefinition {
+    pub name: NonEmptyString,
+    pub direction: MetricDirection,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
+pub struct MetricSelection {
+    pub primary: MetricDefinition,
+    pub secondary: Option<MetricDefinition>,
+    pub guardrail: NonEmptyString,
+}
+
+impl MetricSelection {
+    pub fn validate(&self, definitions: &[MetricDefinition]) -> Result<(), String> {
+        let selected = [
+            ("primary", Some(&self.primary.name)),
+            ("secondary", self.secondary.as_ref().map(|def| &def.name)),
+            ("guardrail", Some(&self.guardrail)),
+        ];
+        for (category, metric_name) in selected {
+            let Some(metric_name) = metric_name else {
+                continue;
+            };
+            if !definitions
+                .iter()
+                .any(|defined| defined.name == *metric_name)
+            {
+                let message = format!(
+                "The {category} metric '{}' and its direction are not defined in the workspace",
+                **metric_name
+            );
+                return Err(message);
+            }
+        }
+
+        Ok(())
+    }
+}
+
+// TODO: Add validation for the source - that the given URL is valid and the
+// dashboard UID and slug are present in the URL - possible once API_KEY is added
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
+#[serde(try_from = "MetricsHelper")]
 #[cfg_attr(
     feature = "diesel_derives",
     derive(AsExpression, FromSqlRow, JsonFromSql, JsonToSql)
@@ -319,41 +429,51 @@ impl Default for MetricSource {
 pub struct Metrics {
     pub enabled: bool,
     pub source: Option<MetricSource>,
+    pub definitions: Option<Vec<MetricDefinition>>,
 }
 
-// TODO: Add validation for the source - that the given URL is valid and the
-// dashboard UID and slug are present in the URL - possible once API_KEY is added
-
-impl Metrics {
-    pub fn source(&self) -> Option<MetricSource> {
-        self.enabled.then(|| self.source.clone()).flatten()
-    }
+#[derive(Deserialize)]
+struct MetricsHelper {
+    enabled: bool,
+    source: Option<MetricSource>,
+    definitions: Option<Vec<MetricDefinition>>,
 }
 
-impl<'de> Deserialize<'de> for Metrics {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        #[derive(Deserialize)]
-        struct MetricsHelper {
-            enabled: bool,
-            source: Option<MetricSource>,
+impl TryFrom<MetricsHelper> for Metrics {
+    type Error = String;
+
+    fn try_from(helper: MetricsHelper) -> Result<Self, Self::Error> {
+        let definitions = helper.definitions.filter(|list| !list.is_empty());
+
+        if let Some(definitions) = definitions.as_ref() {
+            let mut seen = HashSet::with_capacity(definitions.len());
+            for metric in definitions {
+                if !seen.insert(&metric.name) {
+                    return Err(format!(
+                        "duplicate metric name in `definitions`: '{}'",
+                        *metric.name
+                    ));
+                }
+            }
         }
-        let helper = MetricsHelper::deserialize(deserializer)?;
-        if helper.enabled && helper.source.is_none() {
-            return Err(serde::de::Error::custom(
-                "`source` must be provided when enabled is true",
-            ));
+
+        if helper.enabled && helper.source.is_none() && definitions.is_none() {
+            return Err(
+                "at least one of `source` or a non-empty `definitions` must \
+                 be provided when metrics is enabled"
+                    .to_string(),
+            );
         }
-        Ok(Metrics {
+
+        Ok(Self {
             enabled: helper.enabled,
-            source: helper.source.clone(),
+            source: helper.source,
+            definitions,
         })
     }
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Deref, DerefMut)]
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq, Deref, Hash)]
 #[serde(try_from = "String")]
 #[cfg_attr(
     feature = "diesel_derives",
@@ -381,6 +501,15 @@ impl NonEmptyString {
     pub fn into_inner(self) -> String {
         self.0
     }
+
+    /// Trims before storing, so `"x"` and `" x "` are one value, not two.
+    fn new(value: &str) -> Result<Self, String> {
+        let trimmed = value.trim();
+        if trimmed.is_empty() {
+            return Err(String::from("Empty value not allowed"));
+        }
+        Ok(Self(trimmed.to_string()))
+    }
 }
 
 impl Default for NonEmptyString {
@@ -407,10 +536,21 @@ impl From<&NonEmptyString> for String {
 impl TryFrom<String> for NonEmptyString {
     type Error = String;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.is_empty() {
-            return Err(String::from("Empty value not allowed"));
-        }
-        Ok(Self(value))
+        Self::new(&value)
+    }
+}
+
+impl TryFrom<&str> for NonEmptyString {
+    type Error = String;
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Self::new(value)
+    }
+}
+
+impl FromStr for NonEmptyString {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::new(s)
     }
 }
 
@@ -433,5 +573,174 @@ pub mod i64_formatter {
         let s = String::deserialize(deserializer)?;
         s.parse::<i64>()
             .map_err(|e| serde::de::Error::custom(format!("Failed to parse i64: {}", e)))
+    }
+}
+
+#[cfg(test)]
+mod metrics_tests {
+    use serde_json::json;
+
+    use super::{MetricSelection, MetricSource, Metrics};
+
+    fn enabled_metrics(definitions: serde_json::Value) -> serde_json::Value {
+        json!({
+            "enabled": true,
+            "source": {
+                "grafana": {
+                    "base_url": "https://grafana.example.com",
+                    "dashboard_uid": "experiment-metrics",
+                    "dashboard_slug": "experiments"
+                }
+            },
+            "definitions": definitions
+        })
+    }
+
+    #[test]
+    fn enabled_metrics_require_source_or_list() {
+        // Neither source nor list: error
+        assert!(serde_json::from_value::<Metrics>(json!({
+            "enabled": true
+        }))
+        .is_err());
+        // Source only: ok
+        assert!(serde_json::from_value::<Metrics>(json!({
+            "enabled": true,
+            "source": {
+                "grafana": {
+                    "base_url": "https://grafana.example.com",
+                    "dashboard_uid": "experiment-metrics",
+                    "dashboard_slug": "experiments"
+                }
+            }
+        }))
+        .is_ok());
+        // List only: ok
+        assert!(serde_json::from_value::<Metrics>(json!({
+            "enabled": true,
+            "definitions": [{"name": "conversion", "direction": "maximize"}]
+        }))
+        .is_ok());
+        // Both: ok
+        assert!(serde_json::from_value::<Metrics>(enabled_metrics(json!([
+            {"name": "conversion", "direction": "maximize"}
+        ])))
+        .is_ok());
+    }
+
+    #[test]
+    fn enabled_metrics_reject_blank_or_duplicate_names() {
+        assert!(serde_json::from_value::<Metrics>(enabled_metrics(json!([
+            {"name": "conversion", "direction": "maximize"},
+            {"name": " ", "direction": "minimize"}
+        ])))
+        .is_err());
+        assert!(serde_json::from_value::<Metrics>(enabled_metrics(json!([
+            {"name": "conversion", "direction": "maximize"},
+            {"name": "conversion", "direction": "minimize"}
+        ])))
+        .is_err());
+    }
+
+    #[test]
+    fn blank_grafana_source_is_rejected() {
+        // A half-filled source is an error whether or not definitions are set.
+        assert!(serde_json::from_value::<Metrics>(json!({
+            "enabled": true,
+            "source": {"grafana": {"base_url": "", "dashboard_uid": "", "dashboard_slug": ""}}
+        }))
+        .is_err());
+        assert!(serde_json::from_value::<Metrics>(json!({
+            "enabled": true,
+            "source": {"grafana": {"base_url": "  ", "dashboard_uid": "", "dashboard_slug": ""}},
+            "definitions": [{"name": "conversion", "direction": "maximize"}]
+        }))
+        .is_err());
+        // `dashboard_slug` counts too.
+        assert!(serde_json::from_value::<Metrics>(json!({
+            "enabled": true,
+            "source": {"grafana": {
+                "base_url": "https://grafana.example.com",
+                "dashboard_uid": "experiment-metrics",
+                "dashboard_slug": " "
+            }}
+        }))
+        .is_err());
+    }
+
+    #[test]
+    fn grafana_source_is_trimmed_and_a_blank_alias_is_dropped() {
+        let metrics = serde_json::from_value::<Metrics>(json!({
+            "enabled": true,
+            "source": {"grafana": {
+                "base_url": "  https://grafana.example.com  ",
+                "dashboard_uid": "experiment-metrics",
+                "dashboard_slug": "experiments",
+                "variant_id_alias": "  "
+            }}
+        }))
+        .expect("blank alias is absent, not invalid");
+
+        let Some(MetricSource::Grafana {
+            base_url,
+            variant_id_alias,
+            ..
+        }) = metrics.source
+        else {
+            panic!("expected a grafana source");
+        };
+        assert_eq!(base_url, "https://grafana.example.com");
+        assert_eq!(variant_id_alias, None);
+    }
+
+    #[test]
+    fn empty_definitions_normalise_to_none() {
+        let metrics = serde_json::from_value::<Metrics>(json!({
+            "enabled": false,
+            "definitions": []
+        }))
+        .expect("empty definitions");
+        assert!(metrics.definitions.is_none());
+    }
+
+    #[test]
+    fn definition_names_are_validated_even_when_disabled() {
+        assert!(serde_json::from_value::<Metrics>(json!({
+            "enabled": false,
+            "definitions": [
+                {"name": "conversion", "direction": "maximize"},
+                {"name": "conversion", "direction": "minimize"}
+            ]
+        }))
+        .is_err());
+    }
+
+    #[test]
+    fn names_differing_only_by_surrounding_space_are_duplicates() {
+        assert!(serde_json::from_value::<Metrics>(json!({
+            "enabled": true,
+            "definitions": [
+                {"name": "conversion", "direction": "maximize"},
+                {"name": " conversion ", "direction": "minimize"}
+            ]
+        }))
+        .is_err());
+    }
+
+    #[test]
+    fn metric_selection_requires_primary_and_guardrail() {
+        assert!(serde_json::from_value::<MetricSelection>(json!({
+            "primary": {"name": "conversion", "direction": "maximize"}
+        }))
+        .is_err());
+        assert!(serde_json::from_value::<MetricSelection>(json!({
+            "guardrail": "latency"
+        }))
+        .is_err());
+        assert!(serde_json::from_value::<MetricSelection>(json!({
+            "primary": {"name": "conversion", "direction": "maximize"},
+            "guardrail": "latency"
+        }))
+        .is_ok());
     }
 }

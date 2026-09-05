@@ -39,7 +39,7 @@ pub struct ExperimentResponse  {
     pub started_by: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub metrics_url: ::std::option::Option<::std::string::String>,
-    #[allow(missing_docs)] // documentation missing in model
+    /// Optional metrics for this experiment, snapshotted from workspace definitions. May carry a selection (primary and guardrail required, secondary optional) and/or a per-experiment source override; both are optional independently, and omitting both means metrics are disabled.
     pub metrics: ::std::option::Option<::aws_smithy_types::Document>,
     #[allow(missing_docs)] // documentation missing in model
     pub experiment_group_id: ::std::option::Option<::std::string::String>,
@@ -117,7 +117,7 @@ impl  ExperimentResponse  {
     pub fn metrics_url(&self) -> ::std::option::Option<&str> {
         self.metrics_url.as_deref()
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Optional metrics for this experiment, snapshotted from workspace definitions. May carry a selection (primary and guardrail required, secondary optional) and/or a per-experiment source override; both are optional independently, and omitting both means metrics are disabled.
     pub fn metrics(&self) -> ::std::option::Option<&::aws_smithy_types::Document> {
         self.metrics.as_ref()
     }
@@ -420,16 +420,16 @@ impl ExperimentResponseBuilder {
     pub fn get_metrics_url(&self) -> &::std::option::Option<::std::string::String> {
         &self.metrics_url
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Optional metrics for this experiment, snapshotted from workspace definitions. May carry a selection (primary and guardrail required, secondary optional) and/or a per-experiment source override; both are optional independently, and omitting both means metrics are disabled.
     pub fn metrics(mut self, input: ::aws_smithy_types::Document) -> Self {
         self.metrics = ::std::option::Option::Some(input);
         self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Optional metrics for this experiment, snapshotted from workspace definitions. May carry a selection (primary and guardrail required, secondary optional) and/or a per-experiment source override; both are optional independently, and omitting both means metrics are disabled.
     pub fn set_metrics(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
         self.metrics = input; self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Optional metrics for this experiment, snapshotted from workspace definitions. May carry a selection (primary and guardrail required, secondary optional) and/or a per-experiment source override; both are optional independently, and omitting both means metrics are disabled.
     pub fn get_metrics(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
         &self.metrics
     }

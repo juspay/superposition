@@ -35,7 +35,7 @@ use superposition_types::{
     custom_query::{DimensionQuery, QueryParam},
     database::{
         models::{
-            ChangeReason,
+            ChangeReason, MetricSelection, Metrics,
             experimentation::{
                 Experiment, ExperimentStatusType, GroupType, Variant, VariantType,
                 Variants,
@@ -95,6 +95,27 @@ pub fn validate_override_keys(override_keys: &Vec<String>) -> superposition::Res
     }
 
     Ok(())
+}
+
+pub fn validate_metric_selection(
+    selection: &MetricSelection,
+    workspace_metrics: &Metrics,
+) -> superposition::Result<()> {
+    // Selections must draw from the workspace's list; when the workspace has
+    // no list configured, per-experiment selection is not accepted.
+    let Some(metric_names) = workspace_metrics.definitions.as_ref() else {
+        log::error!(
+            "validate_metric_selection : No metric list configured for this workspace"
+        );
+        return Err(bad_argument!(
+            "A per-experiment metric selection can only be set when the workspace has a metric list configured"
+        ));
+    };
+
+    selection.validate(metric_names).map_err(|e| {
+        log::error!("validate_metric_selection : failed to validate metric selection with error {}", e);
+        bad_argument!(e)
+    })
 }
 
 pub fn hash(val: &Value) -> String {
@@ -925,4 +946,83 @@ pub fn get_control_overrides_from_exp_id(
         })?;
 
     Ok(control_overrides.overrides)
+}
+
+#[cfg(test)]
+mod metric_selection_tests {
+    use super::validate_metric_selection;
+    use superposition_types::database::models::{
+        MetricDefinition, MetricDirection, MetricSelection, MetricSource, Metrics,
+    };
+
+    fn metric(name: &str, direction: MetricDirection) -> MetricDefinition {
+        MetricDefinition {
+            name: name.try_into().unwrap_or_default(),
+            direction,
+        }
+    }
+
+    fn workspace_metrics(enabled: bool) -> Metrics {
+        Metrics {
+            enabled,
+            source: enabled.then(|| MetricSource::Grafana {
+                base_url: "https://grafana.example.com".to_string(),
+                dashboard_uid: "experiment-metrics".to_string(),
+                dashboard_slug: "experiments".to_string(),
+                variant_id_alias: None,
+            }),
+            definitions: enabled.then(|| {
+                vec![
+                    metric("conversion", MetricDirection::Maximize),
+                    metric("latency", MetricDirection::Minimize),
+                    metric("errors", MetricDirection::Minimize),
+                ]
+            }),
+        }
+    }
+
+    fn selection() -> MetricSelection {
+        MetricSelection {
+            primary: metric("conversion", MetricDirection::Maximize),
+            secondary: None,
+            guardrail: metric("latency", MetricDirection::Minimize).name,
+        }
+    }
+
+    #[test]
+    fn rejects_selection_when_workspace_metrics_are_disabled() {
+        assert!(
+            validate_metric_selection(&selection(), &workspace_metrics(false)).is_err()
+        );
+    }
+
+    #[test]
+    fn rejects_blank_or_unknown_metric_names() {
+        let mut blank = selection();
+        blank.primary.name = " ".try_into().unwrap_or_default();
+        assert!(validate_metric_selection(&blank, &workspace_metrics(true)).is_err());
+
+        let mut unknown = selection();
+        unknown.guardrail = "unknown".try_into().unwrap_or_default();
+        assert!(validate_metric_selection(&unknown, &workspace_metrics(true)).is_err());
+    }
+
+    #[test]
+    fn accepts_optional_secondary_and_cross_category_duplicates() {
+        assert!(
+            validate_metric_selection(&selection(), &workspace_metrics(true)).is_ok()
+        );
+
+        let mut duplicate = selection();
+        duplicate.guardrail = duplicate.primary.clone().name;
+        duplicate.secondary = Some(duplicate.primary.clone());
+        assert!(validate_metric_selection(&duplicate, &workspace_metrics(true)).is_ok());
+    }
+
+    #[test]
+    fn rejects_selection_when_workspace_has_no_list() {
+        let mut ws = workspace_metrics(true);
+        ws.definitions = None;
+        assert!(validate_metric_selection(&selection(), &ws).is_err());
+    }
 }

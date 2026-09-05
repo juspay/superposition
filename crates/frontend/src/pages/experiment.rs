@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use superposition_types::{
     api::{
         default_config::DefaultConfigFilters, dimension::DimensionResponse,
-        experiments::ExperimentResponse,
+        experiments::ExperimentResponse, workspace::WorkspaceResponse,
     },
     custom_query::PaginationParams,
     database::models::cac::DefaultConfig,
@@ -51,6 +51,7 @@ pub fn ExperimentPage() -> impl IntoView {
     let exp_params = use_params_map();
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
+    let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let source = move || {
         let t = workspace.get().0;
         let org = org.get().0;
@@ -162,7 +163,8 @@ pub fn ExperimentPage() -> impl IntoView {
                                                                 combined_resource.refetch()
                                                             }
                                                             description=(*experiment_ef.description).clone()
-                                                            metrics=experiment_ef.metrics
+                                                            metrics=workspace_settings.with_value(|w| w.metrics.clone())
+                                                            experiment_metrics=experiment_ef.metrics
                                                             experiment_group_id=experiment_ef.experiment_group_id
                                                         />
                                                     </EditorProvider>

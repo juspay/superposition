@@ -218,17 +218,17 @@ impl CreateExperimentFluentBuilder {
     pub fn get_change_reason(&self) -> &::std::option::Option<::std::string::String> {
                     self.inner.get_change_reason()
                 }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Optional metrics for the experiment. May carry a selection drawn from the workspace's metric list (primary and guardrail required, secondary optional) and/or a per-experiment source override; both are optional independently. A per-experiment source is only accepted when the workspace has a source configured.
     pub fn metrics(mut self, input: ::aws_smithy_types::Document) -> Self {
                     self.inner = self.inner.metrics(input);
                     self
                 }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Optional metrics for the experiment. May carry a selection drawn from the workspace's metric list (primary and guardrail required, secondary optional) and/or a per-experiment source override; both are optional independently. A per-experiment source is only accepted when the workspace has a source configured.
     pub fn set_metrics(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
                     self.inner = self.inner.set_metrics(input);
                     self
                 }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Optional metrics for the experiment. May carry a selection drawn from the workspace's metric list (primary and guardrail required, secondary optional) and/or a per-experiment source override; both are optional independently. A per-experiment source is only accepted when the workspace has a source configured.
     pub fn get_metrics(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
                     self.inner.get_metrics()
                 }

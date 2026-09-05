@@ -16,13 +16,75 @@ use superposition_derives::{JsonFromSql, JsonToSql};
 use uniffi::deps::anyhow;
 
 use crate::{
+    database::models::Metrics,
     experimental::{Experimental, ExperimentalVariants},
     Condition, Contextual, Exp, Overridden, Overrides,
 };
 
 #[cfg(feature = "diesel_derives")]
 use super::super::schema::*;
-use super::{i64_formatter, ChangeReason, Description, Metrics};
+use super::{i64_formatter, ChangeReason, Description, MetricSelection, MetricSource};
+
+#[derive(Clone, Debug, Default, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "diesel_derives",
+    derive(AsExpression, FromSqlRow, JsonFromSql, JsonToSql)
+)]
+#[cfg_attr(feature = "diesel_derives", diesel(sql_type = Json))]
+pub struct ExperimentMetrics {
+    pub enabled: bool,
+    pub selection: Option<MetricSelection>,
+    pub source: Option<MetricSource>,
+}
+
+impl ExperimentMetrics {
+    pub fn source(&self) -> Option<&MetricSource> {
+        self.enabled.then_some(self.source.as_ref()).flatten()
+    }
+
+    pub fn selection(&self) -> Option<&MetricSelection> {
+        self.enabled.then_some(self.selection.as_ref()).flatten()
+    }
+}
+
+impl<'de> Deserialize<'de> for ExperimentMetrics {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        struct ExperimentMetricsHelper {
+            enabled: bool,
+            source: Option<MetricSource>,
+            selection: Option<MetricSelection>,
+        }
+        let helper = ExperimentMetricsHelper::deserialize(deserializer)?;
+
+        if helper.enabled && (helper.source.is_none() && helper.selection.is_none()) {
+            return Err(serde::de::Error::custom(
+                "Experiment metrics cannot be enabled without a source or selection",
+            ));
+        }
+
+        Ok(Self {
+            enabled: helper.enabled,
+            source: helper.source,
+            selection: helper.selection,
+        })
+    }
+}
+
+impl From<Metrics> for ExperimentMetrics {
+    fn from(metrics: Metrics) -> Self {
+        // A snapshot has no selection, so it is only enabled if the workspace
+        // gave it a source. Otherwise we write a row we cannot read back.
+        Self {
+            enabled: metrics.enabled && metrics.source.is_some(),
+            source: metrics.source,
+            selection: None,
+        }
+    }
+}
 
 #[derive(
     Debug,
@@ -307,7 +369,7 @@ pub struct Experiment {
     pub chosen_variant: Option<String>,
     pub description: Description,
     pub change_reason: ChangeReason,
-    pub metrics: Metrics,
+    pub metrics: ExperimentMetrics,
     pub experiment_group_id: Option<i64>,
     pub idempotency_key: Option<String>,
 }

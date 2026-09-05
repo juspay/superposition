@@ -743,7 +743,12 @@ export interface ExperimentResponse {
   started_at?: Date | undefined;
   started_by?: string | undefined;
   metrics_url?: string | undefined;
+  /**
+   * Optional metrics for this experiment, snapshotted from workspace definitions. May carry a selection (primary and guardrail required, secondary optional) and/or a per-experiment source override; both are optional independently, and omitting both means metrics are disabled.
+   * @public
+   */
   metrics?: __DocumentType | undefined;
+
   experiment_group_id?: string | undefined;
 }
 
@@ -1515,7 +1520,12 @@ export interface CreateExperimentRequest {
   variants: (Variant)[] | undefined;
   description: string | undefined;
   change_reason: string | undefined;
+  /**
+   * Optional metrics for the experiment. May carry a selection drawn from the workspace's metric list (primary and guardrail required, secondary optional) and/or a per-experiment source override; both are optional independently. A per-experiment source is only accepted when the workspace has a source configured.
+   * @public
+   */
   metrics?: __DocumentType | undefined;
+
   experiment_group_id?: string | undefined;
   idempotency_key?: string | undefined;
   config_tags?: string | undefined;
@@ -1846,7 +1856,12 @@ export interface CreateWorkspaceRequest {
   workspace_admin_email: string | undefined;
   workspace_name: string | undefined;
   workspace_status?: WorkspaceStatus | undefined;
+  /**
+   * Workspace metric source and catalog. Each metric definition contains a unique name and whether higher or lower values are better.
+   * @public
+   */
   metrics?: __DocumentType | undefined;
+
   allow_experiment_self_approval?: boolean | undefined;
   auto_populate_control?: boolean | undefined;
   enable_context_validation?: boolean | undefined;
@@ -1869,7 +1884,12 @@ export interface WorkspaceResponse {
   last_modified_at: Date | undefined;
   created_at: Date | undefined;
   mandatory_dimensions?: (string)[] | undefined;
+  /**
+   * Workspace metric source and catalog. Each metric definition contains a unique name and whether higher or lower values are better.
+   * @public
+   */
   metrics: __DocumentType | undefined;
+
   allow_experiment_self_approval: boolean | undefined;
   auto_populate_control: boolean | undefined;
   enable_context_validation: boolean | undefined;
@@ -2464,7 +2484,12 @@ export interface UpdateOverrideRequest {
   variant_list: (VariantUpdateRequest)[] | undefined;
   description?: string | undefined;
   change_reason: string | undefined;
+  /**
+   * Metric selection update using workspace metric definitions containing name and direction. Omit to preserve the current selection, pass null to clear it, or pass a selection object to replace it. Updates are allowed only while the experiment is in CREATED state.
+   * @public
+   */
   metrics?: __DocumentType | undefined;
+
   /**
    * To unset experiment group, pass "null" string.
    * @public
@@ -3149,7 +3174,12 @@ export interface UpdateWorkspaceRequest {
 
   mandatory_dimensions?: (string)[] | undefined;
   workspace_status?: WorkspaceStatus | undefined;
+  /**
+   * Workspace metric source and catalog. Each metric definition contains a unique name and whether higher or lower values are better.
+   * @public
+   */
   metrics?: __DocumentType | undefined;
+
   allow_experiment_self_approval?: boolean | undefined;
   auto_populate_control?: boolean | undefined;
   enable_context_validation?: boolean | undefined;

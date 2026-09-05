@@ -16,7 +16,9 @@ use superposition_types::{
     database::models::{
         Metrics,
         cac::DefaultConfig,
-        experimentation::{ExperimentGroup, ExperimentType, VariantType},
+        experimentation::{
+            ExperimentGroup, ExperimentMetrics, ExperimentType, VariantType,
+        },
     },
 };
 use utils::{create_experiment, try_update_payload, update_experiment};
@@ -31,7 +33,7 @@ use crate::components::{
     context_form::ContextForm,
     dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
     form::label::Label,
-    metrics_form::MetricsForm,
+    metrics_form::ExperimentMetricsForm,
     skeleton::{Skeleton, SkeletonVariant},
     variant_form::{DeleteVariantForm, VariantForm},
 };
@@ -89,6 +91,7 @@ pub fn ExperimentForm(
     dimensions: Vec<DimensionResponse>,
     #[prop(default = String::new())] description: String,
     metrics: Metrics,
+    #[prop(optional)] experiment_metrics: Option<ExperimentMetrics>,
     #[prop(default = None)] experiment_group_id: Option<String>,
 ) -> impl IntoView {
     let init_variants = get_init_state(&variants);
@@ -106,7 +109,9 @@ pub fn ExperimentForm(
 
     let (description_rs, description_ws) = create_signal(description);
     let (change_reason_rs, change_reason_ws) = create_signal(String::new());
-    let metrics_rws = RwSignal::new(metrics);
+    let experiment_metrics_rws = RwSignal::new(
+        experiment_metrics.unwrap_or_else(|| ExperimentMetrics::from(metrics.clone())),
+    );
     let update_request_rws = RwSignal::new(None);
     let (experiment_group_id_rs, experiment_group_id_ws) =
         create_signal(experiment_group_id);
@@ -178,7 +183,7 @@ pub fn ExperimentForm(
                     (Some(experiment_id), None) => {
                         let request_payload = try_update_payload(
                             f_variants,
-                            Some(metrics_rws.get_untracked()),
+                            Some(experiment_metrics_rws.get_untracked()),
                             description_rs.get_untracked(),
                             change_reason_rs.get_untracked(),
                             experiment_group_id,
@@ -194,7 +199,7 @@ pub fn ExperimentForm(
                     _ => create_experiment(
                         f_context,
                         f_variants,
-                        Some(metrics_rws.get_untracked()),
+                        Some(experiment_metrics_rws.get_untracked()),
                         f_experiment_name,
                         ExperimentType::from(experiment_form_type.get_value()),
                         description_rs.get_untracked(),
@@ -255,11 +260,11 @@ pub fn ExperimentForm(
                 value=description_rs.get_untracked()
                 on_change=move |new_description| description_ws.set(new_description)
             />
-            <MetricsForm
-                metrics=metrics_rws.get_untracked()
-                on_change=Callback::new(move |metrics| metrics_rws.set(metrics))
+            <ExperimentMetricsForm
+                definitions=metrics.definitions.unwrap_or_default()
+                experiment_metrics=experiment_metrics_rws.get_untracked()
+                on_change=Callback::new(move |metrics| experiment_metrics_rws.set(metrics))
             />
-
             <Suspense fallback=move || {
                 view! { <Skeleton variant=SkeletonVariant::Block style_class="h-10" /> }
             }>

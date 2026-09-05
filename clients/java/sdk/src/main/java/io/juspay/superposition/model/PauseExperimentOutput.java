@@ -210,6 +210,11 @@ public final class PauseExperimentOutput implements SerializableStruct {
         return metricsUrl;
     }
 
+    /**
+     * Optional metrics for this experiment, snapshotted from workspace definitions. May carry a selection
+     * (primary and guardrail required, secondary optional) and/or a per-experiment source override; both
+     * are optional independently, and omitting both means metrics are disabled.
+     */
     public Document metrics() {
         return metrics;
     }
@@ -573,6 +578,10 @@ public final class PauseExperimentOutput implements SerializableStruct {
         }
 
         /**
+         * Optional metrics for this experiment, snapshotted from workspace definitions. May carry a selection
+         * (primary and guardrail required, secondary optional) and/or a per-experiment source override; both
+         * are optional independently, and omitting both means metrics are disabled.
+         *
          * @return this builder.
          */
         public Builder metrics(Document metrics) {

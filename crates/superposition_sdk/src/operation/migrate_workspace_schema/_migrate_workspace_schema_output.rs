@@ -27,7 +27,7 @@ pub struct MigrateWorkspaceSchemaOutput  {
     pub created_at: ::aws_smithy_types::DateTime,
     #[allow(missing_docs)] // documentation missing in model
     pub mandatory_dimensions: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
-    #[allow(missing_docs)] // documentation missing in model
+    /// Workspace metric source and catalog. Each metric definition contains a unique name and whether higher or lower values are better.
     pub metrics: ::aws_smithy_types::Document,
     #[allow(missing_docs)] // documentation missing in model
     pub allow_experiment_self_approval: bool,
@@ -92,7 +92,7 @@ impl  MigrateWorkspaceSchemaOutput  {
         self.mandatory_dimensions.as_deref()
         .unwrap_or_default()
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Workspace metric source and catalog. Each metric definition contains a unique name and whether higher or lower values are better.
     pub fn metrics(&self) -> &::aws_smithy_types::Document {
         &self.metrics
     }
@@ -319,17 +319,17 @@ impl MigrateWorkspaceSchemaOutputBuilder {
     pub fn get_mandatory_dimensions(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
         &self.mandatory_dimensions
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Workspace metric source and catalog. Each metric definition contains a unique name and whether higher or lower values are better.
     /// This field is required.
     pub fn metrics(mut self, input: ::aws_smithy_types::Document) -> Self {
         self.metrics = ::std::option::Option::Some(input);
         self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Workspace metric source and catalog. Each metric definition contains a unique name and whether higher or lower values are better.
     pub fn set_metrics(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
         self.metrics = input; self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Workspace metric source and catalog. Each metric definition contains a unique name and whether higher or lower values are better.
     pub fn get_metrics(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
         &self.metrics
     }

@@ -152,17 +152,17 @@ impl CreateWorkspaceFluentBuilder {
     pub fn get_workspace_status(&self) -> &::std::option::Option<crate::types::WorkspaceStatus> {
                     self.inner.get_workspace_status()
                 }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Workspace metric source and catalog. Each metric definition contains a unique name and whether higher or lower values are better.
     pub fn metrics(mut self, input: ::aws_smithy_types::Document) -> Self {
                     self.inner = self.inner.metrics(input);
                     self
                 }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Workspace metric source and catalog. Each metric definition contains a unique name and whether higher or lower values are better.
     pub fn set_metrics(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
                     self.inner = self.inner.set_metrics(input);
                     self
                 }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Workspace metric source and catalog. Each metric definition contains a unique name and whether higher or lower values are better.
     pub fn get_metrics(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
                     self.inner.get_metrics()
                 }

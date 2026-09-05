@@ -2268,6 +2268,12 @@ class ConcludeExperimentOutput:
         **[Required]** - Represents conditional criteria used for context matching. Keys
         define dimension names and values specify the criteria that must be met.
 
+    :param metrics:
+         Optional metrics for this experiment, snapshotted from workspace definitions.
+         May carry a selection (primary and guardrail required, secondary optional)
+         and/or a per-experiment source override; both are optional independently, and
+         omitting both means metrics are disabled.
+
     """
 
     id: str
@@ -6006,6 +6012,13 @@ class CreateExperimentInput:
         **[Required]** - Represents conditional criteria used for context matching. Keys
         define dimension names and values specify the criteria that must be met.
 
+    :param metrics:
+         Optional metrics for the experiment. May carry a selection drawn from the
+         workspace's metric list (primary and guardrail required, secondary optional)
+         and/or a per-experiment source override; both are optional independently. A
+         per-experiment source is only accepted when the workspace has a source
+         configured.
+
     """
 
     workspace_id: str | None = None
@@ -6108,6 +6121,12 @@ class CreateExperimentOutput:
     :param context:
         **[Required]** - Represents conditional criteria used for context matching. Keys
         define dimension names and values specify the criteria that must be met.
+
+    :param metrics:
+         Optional metrics for this experiment, snapshotted from workspace definitions.
+         May carry a selection (primary and guardrail required, secondary optional)
+         and/or a per-experiment source override; both are optional independently, and
+         omitting both means metrics are disabled.
 
     """
 
@@ -7632,6 +7651,13 @@ class WorkspaceStatus(StrEnum):
 
 @dataclass(kw_only=True)
 class CreateWorkspaceInput:
+    """
+
+    :param metrics:
+         Workspace metric source and catalog. Each metric definition contains a unique
+         name and whether higher or lower values are better.
+
+    """
 
     org_id: str | None = None
     workspace_admin_email: str | None = None
@@ -7735,6 +7761,10 @@ def _deserialize_list_mandatory_dimensions(deserializer: ShapeDeserializer, sche
 @dataclass(kw_only=True)
 class CreateWorkspaceOutput:
     """
+
+    :param metrics:
+        **[Required]** - Workspace metric source and catalog. Each metric definition
+        contains a unique name and whether higher or lower values are better.
 
     :param workspace_lock:
          Metadata for an active workspace write lock. Present only while another write
@@ -10077,6 +10107,12 @@ class DiscardExperimentOutput:
         **[Required]** - Represents conditional criteria used for context matching. Keys
         define dimension names and values specify the criteria that must be met.
 
+    :param metrics:
+         Optional metrics for this experiment, snapshotted from workspace definitions.
+         May carry a selection (primary and guardrail required, secondary optional)
+         and/or a per-experiment source override; both are optional independently, and
+         omitting both means metrics are disabled.
+
     """
 
     id: str
@@ -10383,6 +10419,12 @@ class ExperimentResponse:
     :param context:
         **[Required]** - Represents conditional criteria used for context matching. Keys
         define dimension names and values specify the criteria that must be met.
+
+    :param metrics:
+         Optional metrics for this experiment, snapshotted from workspace definitions.
+         May carry a selection (primary and guardrail required, secondary optional)
+         and/or a per-experiment source override; both are optional independently, and
+         omitting both means metrics are disabled.
 
     """
 
@@ -11531,6 +11573,12 @@ class GetExperimentOutput:
         **[Required]** - Represents conditional criteria used for context matching. Keys
         define dimension names and values specify the criteria that must be met.
 
+    :param metrics:
+         Optional metrics for this experiment, snapshotted from workspace definitions.
+         May carry a selection (primary and guardrail required, secondary optional)
+         and/or a per-experiment source override; both are optional independently, and
+         omitting both means metrics are disabled.
+
     """
 
     id: str
@@ -11975,6 +12023,12 @@ class PauseExperimentOutput:
         **[Required]** - Represents conditional criteria used for context matching. Keys
         define dimension names and values specify the criteria that must be met.
 
+    :param metrics:
+         Optional metrics for this experiment, snapshotted from workspace definitions.
+         May carry a selection (primary and guardrail required, secondary optional)
+         and/or a per-experiment source override; both are optional independently, and
+         omitting both means metrics are disabled.
+
     """
 
     id: str
@@ -12199,6 +12253,12 @@ class RampExperimentOutput:
         **[Required]** - Represents conditional criteria used for context matching. Keys
         define dimension names and values specify the criteria that must be met.
 
+    :param metrics:
+         Optional metrics for this experiment, snapshotted from workspace definitions.
+         May carry a selection (primary and guardrail required, secondary optional)
+         and/or a per-experiment source override; both are optional independently, and
+         omitting both means metrics are disabled.
+
     """
 
     id: str
@@ -12415,6 +12475,12 @@ class ResumeExperimentOutput:
     :param context:
         **[Required]** - Represents conditional criteria used for context matching. Keys
         define dimension names and values specify the criteria that must be met.
+
+    :param metrics:
+         Optional metrics for this experiment, snapshotted from workspace definitions.
+         May carry a selection (primary and guardrail required, secondary optional)
+         and/or a per-experiment source override; both are optional independently, and
+         omitting both means metrics are disabled.
 
     """
 
@@ -12647,6 +12713,12 @@ def _deserialize_list_variant_update_request(deserializer: ShapeDeserializer, sc
 class UpdateOverridesExperimentInput:
     """
 
+    :param metrics:
+         Metric selection update using workspace metric definitions containing name and
+         direction. Omit to preserve the current selection, pass null to clear it, or
+         pass a selection object to replace it. Updates are allowed only while the
+         experiment is in CREATED state.
+
     :param experiment_group_id:
          To unset experiment group, pass "null" string.
 
@@ -12731,6 +12803,12 @@ class UpdateOverridesExperimentOutput:
     :param context:
         **[Required]** - Represents conditional criteria used for context matching. Keys
         define dimension names and values specify the criteria that must be met.
+
+    :param metrics:
+         Optional metrics for this experiment, snapshotted from workspace definitions.
+         May carry a selection (primary and guardrail required, secondary optional)
+         and/or a per-experiment source override; both are optional independently, and
+         omitting both means metrics are disabled.
 
     """
 
@@ -15159,6 +15237,10 @@ class GetWorkspaceInput:
 class GetWorkspaceOutput:
     """
 
+    :param metrics:
+        **[Required]** - Workspace metric source and catalog. Each metric definition
+        contains a unique name and whether higher or lower values are better.
+
     :param workspace_lock:
          Metadata for an active workspace write lock. Present only while another write
          operation is holding the workspace lease.
@@ -16345,6 +16427,10 @@ class ListWorkspaceInput:
 class WorkspaceResponse:
     """
 
+    :param metrics:
+        **[Required]** - Workspace metric source and catalog. Each metric definition
+        contains a unique name and whether higher or lower values are better.
+
     :param workspace_lock:
          Metadata for an active workspace write lock. Present only while another write
          operation is holding the workspace lease.
@@ -16671,6 +16757,10 @@ class MigrateWorkspaceSchemaInput:
 @dataclass(kw_only=True)
 class MigrateWorkspaceSchemaOutput:
     """
+
+    :param metrics:
+        **[Required]** - Workspace metric source and catalog. Each metric definition
+        contains a unique name and whether higher or lower values are better.
 
     :param workspace_lock:
          Metadata for an active workspace write lock. Present only while another write
@@ -17803,6 +17893,10 @@ class UpdateWorkspaceInput:
     :param config_version:
          To unset config version, pass "null" string.
 
+    :param metrics:
+         Workspace metric source and catalog. Each metric definition contains a unique
+         name and whether higher or lower values are better.
+
     """
 
     org_id: str | None = None
@@ -17900,6 +17994,10 @@ class UpdateWorkspaceInput:
 @dataclass(kw_only=True)
 class UpdateWorkspaceOutput:
     """
+
+    :param metrics:
+        **[Required]** - Workspace metric source and catalog. Each metric definition
+        contains a unique name and whether higher or lower values are better.
 
     :param workspace_lock:
          Metadata for an active workspace write lock. Present only while another write

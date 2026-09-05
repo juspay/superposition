@@ -13,10 +13,10 @@ use crate::{
     custom_query::{CommaSeparatedQParams, CommaSeparatedStringQParams, QueryParam},
     database::models::{
         experimentation::{
-            Experiment, ExperimentStatusType, ExperimentType, TrafficPercentage, Variant,
-            Variants,
+            Experiment, ExperimentMetrics, ExperimentStatusType, ExperimentType,
+            TrafficPercentage, Variant, Variants,
         },
-        ChangeReason, Description, MetricSource, Metrics,
+        ChangeReason, Description, MetricSource,
     },
     experimental::{Experimental, ExperimentalVariants},
     Condition, Exp, IsEmpty, Overrides, SortBy,
@@ -50,35 +50,44 @@ pub struct ExperimentResponse {
     pub chosen_variant: Option<String>,
     pub description: Description,
     pub change_reason: ChangeReason,
-    pub metrics: Metrics,
+    pub metrics: ExperimentMetrics,
     pub metrics_url: Option<String>,
     pub experiment_group_id: Option<String>,
 }
 
 impl From<Experiment> for ExperimentResponse {
     fn from(experiment: Experiment) -> Self {
-        let metrics_url =
-            experiment.started_at.and_then(|started_at| {
-                experiment.metrics.source().map(|source| {
-                    match source {
-                        MetricSource::Grafana { base_url, dashboard_uid, dashboard_slug, variant_id_alias } => {
-                            let to = if experiment.status.active() {
-                                "now".to_string()
-                            } else {
-                                experiment.last_modified.to_string()
-                            };
-                            let from = started_at.timestamp_millis();
+        let metrics_url = experiment.started_at.and_then(|started_at| {
+            experiment.metrics.source().map(|source| match source {
+                MetricSource::Grafana {
+                    base_url,
+                    dashboard_uid,
+                    dashboard_slug,
+                    variant_id_alias,
+                } => {
+                    let to = if experiment.status.active() {
+                        "now".to_string()
+                    } else {
+                        experiment.last_modified.to_string()
+                    };
+                    let from = started_at.timestamp_millis();
+                    let variant_var = format!(
+                        "var-{}",
+                        variant_id_alias.as_deref().unwrap_or("variantIds")
+                    );
+                    let query = experiment
+                        .variants
+                        .iter()
+                        .map(|variant| format!("{}={}", variant_var, variant.id))
+                        .collect::<Vec<_>>()
+                        .join("&");
 
-                            let variant_var = format!("var-{}", variant_id_alias.unwrap_or_else(|| "variantIds".to_string()));
-                            let query = experiment.variants.iter().map(|v| {
-                                format!("{}={}", variant_var, v.id)
-                            }).collect::<Vec<String>>().join("&");
-
-                            format!("{base_url}/d/{dashboard_uid}/{dashboard_slug}?{query}&from={from}&to={to}&kiosk&theme=light")
-                        }
-                    }
-                })
-            });
+                    format!(
+                        "{base_url}/d/{dashboard_uid}/{dashboard_slug}?{query}&from={from}&to={to}&kiosk&theme=light"
+                    )
+                }
+            })
+        });
 
         Self {
             id: experiment.id.to_string(),
@@ -124,7 +133,7 @@ pub struct ExperimentCreateRequest {
     pub name: String,
     pub context: Exp<Condition>,
     pub variants: Vec<Variant>,
-    pub metrics: Option<Metrics>,
+    pub metrics: Option<ExperimentMetrics>,
     #[serde(default)]
     pub experiment_type: ExperimentType,
     #[serde(default = "Description::default")]
@@ -280,7 +289,7 @@ pub struct VariantUpdateRequest {
 pub struct OverrideKeysUpdateRequest {
     #[serde(alias = "variant_list")]
     pub variants: Vec<VariantUpdateRequest>,
-    pub metrics: Option<Metrics>,
+    pub metrics: Option<ExperimentMetrics>,
     pub description: Option<Description>,
     #[serde(default = "ChangeReason::default")]
     pub change_reason: ChangeReason,

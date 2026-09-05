@@ -105,6 +105,11 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
         return changeReason;
     }
 
+    /**
+     * Metric selection update using workspace metric definitions containing name and direction. Omit to
+     * preserve the current selection, pass null to clear it, or pass a selection object to replace it.
+     * Updates are allowed only while the experiment is in CREATED state.
+     */
     public Document metrics() {
         return metrics;
     }
@@ -302,6 +307,10 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
         }
 
         /**
+         * Metric selection update using workspace metric definitions containing name and direction. Omit to
+         * preserve the current selection, pass null to clear it, or pass a selection object to replace it.
+         * Updates are allowed only while the experiment is in CREATED state.
+         *
          * @return this builder.
          */
         public Builder metrics(Document metrics) {

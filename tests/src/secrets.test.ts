@@ -308,7 +308,7 @@ describe("Secret Operations", () => {
         });
 
         await expect(superpositionClient.send(command)).rejects.toThrow(
-            "Parse error",
+            /it should obey the regex/i,
         );
     });
 
@@ -334,7 +334,7 @@ describe("Secret Operations", () => {
             });
 
             await expect(superpositionClient.send(command)).rejects.toThrow(
-                "Parse error",
+                /it should obey the regex/i,
             );
         }
     });

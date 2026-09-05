@@ -8,6 +8,7 @@ use superposition_types::database::models::experimentation::{
 };
 
 use crate::components::datetime::Datetime;
+use crate::components::dropdown::utils::DropdownOption;
 use crate::components::{
     button::Button,
     table::{Table, types::Column},
@@ -390,7 +391,40 @@ where
                     <div class="card-body collapse collapse-arrow">
                         <input type="checkbox" checked=true />
                         <h2 class="card-title collapse-title h-fit !p-0">Metrics</h2>
-                        <div class="collapse-content !p-0">
+                        <div class="collapse-content !p-0 flex flex-col gap-4">
+                            {experiment
+                                .with_value(|value| value.metrics.selection().cloned())
+                                .map(|metrics| {
+                                    let secondary = metrics
+                                        .secondary
+                                        .map(|metric| {
+                                            format!("{} ({})", *metric.name, metric.direction.label())
+                                        })
+                                        .unwrap_or_else(|| "—".to_string());
+                                    view! {
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <div>
+                                                <div class="stat-title">Primary</div>
+                                                <div class="font-medium">
+                                                    {metrics.primary.name.to_string()}
+                                                </div>
+                                                <div class="text-xs opacity-70">
+                                                    {metrics.primary.direction.label()}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div class="stat-title">Secondary</div>
+                                                <div class="font-medium">{secondary}</div>
+                                            </div>
+                                            <div>
+                                                <div class="stat-title">Guardrail</div>
+                                                <div class="font-medium">
+                                                    {metrics.guardrail.to_string()}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                })}
                             {move || {
                                 view! {
                                     {match experiment.with_value(|v| v.metrics_url.clone()) {

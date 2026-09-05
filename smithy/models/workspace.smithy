@@ -77,6 +77,7 @@ structure CreateWorkspaceRequest for Workspace with [OrganisationMixin] {
 
     $workspace_status
 
+    @documentation("Workspace metric source and catalog. Each metric definition contains a unique name and whether higher or lower values are better.")
     $metrics
 
     $allow_experiment_self_approval
@@ -102,6 +103,7 @@ structure UpdateWorkspaceRequest for Workspace with [OrganisationMixin] {
 
     $workspace_status
 
+    @documentation("Workspace metric source and catalog. Each metric definition contains a unique name and whether higher or lower values are better.")
     $metrics
 
     $allow_experiment_self_approval
@@ -155,6 +157,7 @@ structure WorkspaceResponse for Workspace {
     $mandatory_dimensions
 
     @required
+    @documentation("Workspace metric source and catalog. Each metric definition contains a unique name and whether higher or lower values are better.")
     $metrics
 
     @required

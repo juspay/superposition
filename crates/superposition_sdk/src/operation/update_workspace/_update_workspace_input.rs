@@ -15,7 +15,7 @@ pub struct UpdateWorkspaceInput  {
     pub mandatory_dimensions: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_status: ::std::option::Option<crate::types::WorkspaceStatus>,
-    #[allow(missing_docs)] // documentation missing in model
+    /// Workspace metric source and catalog. Each metric definition contains a unique name and whether higher or lower values are better.
     pub metrics: ::std::option::Option<::aws_smithy_types::Document>,
     #[allow(missing_docs)] // documentation missing in model
     pub allow_experiment_self_approval: ::std::option::Option<bool>,
@@ -54,7 +54,7 @@ impl  UpdateWorkspaceInput  {
     pub fn workspace_status(&self) -> ::std::option::Option<&crate::types::WorkspaceStatus> {
         self.workspace_status.as_ref()
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Workspace metric source and catalog. Each metric definition contains a unique name and whether higher or lower values are better.
     pub fn metrics(&self) -> ::std::option::Option<&::aws_smithy_types::Document> {
         self.metrics.as_ref()
     }
@@ -184,16 +184,16 @@ impl UpdateWorkspaceInputBuilder {
     pub fn get_workspace_status(&self) -> &::std::option::Option<crate::types::WorkspaceStatus> {
         &self.workspace_status
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Workspace metric source and catalog. Each metric definition contains a unique name and whether higher or lower values are better.
     pub fn metrics(mut self, input: ::aws_smithy_types::Document) -> Self {
         self.metrics = ::std::option::Option::Some(input);
         self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Workspace metric source and catalog. Each metric definition contains a unique name and whether higher or lower values are better.
     pub fn set_metrics(mut self, input: ::std::option::Option<::aws_smithy_types::Document>) -> Self {
         self.metrics = input; self
     }
-    #[allow(missing_docs)] // documentation missing in model
+    /// Workspace metric source and catalog. Each metric definition contains a unique name and whether higher or lower values are better.
     pub fn get_metrics(&self) -> &::std::option::Option<::aws_smithy_types::Document> {
         &self.metrics
     }

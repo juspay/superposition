@@ -27,7 +27,7 @@ impl super::Client {
     ///   - [`started_at(Option<DateTime>)`](crate::operation::ramp_experiment::RampExperimentOutput::started_at): (undocumented)
     ///   - [`started_by(Option<String>)`](crate::operation::ramp_experiment::RampExperimentOutput::started_by): (undocumented)
     ///   - [`metrics_url(Option<String>)`](crate::operation::ramp_experiment::RampExperimentOutput::metrics_url): (undocumented)
-    ///   - [`metrics(Option<Document>)`](crate::operation::ramp_experiment::RampExperimentOutput::metrics): (undocumented)
+    ///   - [`metrics(Option<Document>)`](crate::operation::ramp_experiment::RampExperimentOutput::metrics): Optional metrics for this experiment, snapshotted from workspace definitions. May carry a selection (primary and guardrail required, secondary optional) and/or a per-experiment source override; both are optional independently, and omitting both means metrics are disabled.
     ///   - [`experiment_group_id(Option<String>)`](crate::operation::ramp_experiment::RampExperimentOutput::experiment_group_id): (undocumented)
                             /// - On failure, responds with [`SdkError<RampExperimentError>`](crate::operation::ramp_experiment::RampExperimentError)
     pub fn ramp_experiment(&self) -> crate::operation::ramp_experiment::builders::RampExperimentFluentBuilder {

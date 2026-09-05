@@ -66,8 +66,8 @@ use superposition_types::{
         models::{
             ChangeReason,
             experimentation::{
-                Experiment, ExperimentGroup, ExperimentStatusType, ExperimentType,
-                TrafficPercentage, Variant, VariantType, Variants,
+                Experiment, ExperimentGroup, ExperimentMetrics, ExperimentStatusType,
+                ExperimentType, TrafficPercentage, Variant, VariantType, Variants,
             },
             others::WebhookEvent,
         },
@@ -91,7 +91,7 @@ use crate::api::{
         helpers::{
             get_control_overrides_from_exp_id, put_experiments_in_redis,
             validate_change_reason_with_function, validate_control_overrides,
-            validate_delete_experiment_variants,
+            validate_delete_experiment_variants, validate_metric_selection,
         },
         types::StartedByChangeSet,
     },
@@ -186,6 +186,12 @@ async fn create_handler(
         &user,
     )
     .await?;
+
+    if let Some(ref experiment_metrics) = req.metrics {
+        if let Some(selection) = experiment_metrics.selection() {
+            validate_metric_selection(selection, &workspace_context.settings.metrics)?;
+        }
+    }
 
     // Checking if experiment has exactly 1 control variant, and
     // atleast 1 experimental variant
@@ -375,16 +381,15 @@ async fn create_handler(
         status: ExperimentStatusType::CREATED,
         started_by: None,
         started_at: None,
-        context: req.context.clone().into_inner(),
+        context: req.context.into_inner(),
         variants: Variants::new(variants),
         last_modified_by: user.get_email(),
         chosen_variant: None,
         description,
         change_reason,
-        metrics: req
-            .metrics
-            .clone()
-            .unwrap_or(workspace_context.settings.metrics.clone()),
+        metrics: req.metrics.clone().unwrap_or_else(|| {
+            ExperimentMetrics::from(workspace_context.settings.metrics.clone())
+        }),
         experiment_group_id: req.experiment_group_id,
         idempotency_key: custom_headers.idempotency_key.clone(),
     };
@@ -1616,6 +1621,12 @@ async fn update_handler(
         return Err(bad_argument!(
             "Only experiments in CREATED state can be updated"
         ));
+    }
+
+    if let Some(ref experiment_metrics) = payload.metrics {
+        if let Some(selection) = experiment_metrics.selection() {
+            validate_metric_selection(selection, &workspace_context.settings.metrics)?;
+        }
     }
 
     let id_to_existing_variant: HashMap<String, &Variant> = HashMap::from_iter(

@@ -38,9 +38,7 @@ describe("Organisation Tests", () => {
 
             await expect(
                 superpositionClient.send(createCommand),
-            ).rejects.toThrow(
-                /JSON Parse error: Unexpected identifier \"Json\"/,
-            );
+            ).rejects.toThrow(/Empty value not allowed/i);
         });
 
         // no such valdiation

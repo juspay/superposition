@@ -173,6 +173,10 @@ public final class UpdateWorkspaceOutput implements SerializableStruct {
         return mandatoryDimensions != null;
     }
 
+    /**
+     * Workspace metric source and catalog. Each metric definition contains a unique name and whether
+     * higher or lower values are better.
+     */
     public Document metrics() {
         return metrics;
     }
@@ -480,6 +484,9 @@ public final class UpdateWorkspaceOutput implements SerializableStruct {
         }
 
         /**
+         * Workspace metric source and catalog. Each metric definition contains a unique name and whether
+         * higher or lower values are better.
+         *
          * <p><strong>Required</strong>
          * @return this builder.
          */

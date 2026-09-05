@@ -21,6 +21,7 @@ use crate::{
         change_summary::ChangeLogPopup,
         condition_pills::Condition,
         context_form::ContextForm,
+        description::ContentDescription,
         override_form::OverrideForm,
         skeleton::{Skeleton, SkeletonVariant},
         step_indicator::{Step, StepIndicator, StepNavigation, StepType},
@@ -58,7 +59,6 @@ pub fn ContextOverrideForm(
     dimensions: Vec<DimensionResponse>,
     default_config: Vec<DefaultConfig>,
     #[prop(default = String::new())] description: String,
-    #[prop(default = String::new())] change_reason: String,
     #[prop(into)] redirect_url_cancel: String,
     #[prop(into)] redirect_url_success: String,
 ) -> impl IntoView {
@@ -71,7 +71,7 @@ pub fn ContextOverrideForm(
     let (context_rs, context_ws) = create_signal(context);
     let (overrides_rs, overrides_ws) = create_signal(overrides);
     let (description_rs, description_ws) = create_signal(description);
-    let (change_reason_rs, change_reason_ws) = create_signal(change_reason);
+    let (change_reason_rs, change_reason_ws) = create_signal(String::new());
     let (req_inprogress_rs, req_inprogress_ws) = create_signal(false);
     let update_request_rws = RwSignal::new(None);
 
@@ -419,7 +419,7 @@ pub fn OverrideDetailView(
     overrides: Vec<(String, Value)>,
     description: Description,
     override_id: String,
-    change_reason: String,
+    change_reason: ChangeReason,
     created_by: String,
     created_at: chrono::DateTime<chrono::Utc>,
     last_modified_by: String,
@@ -442,24 +442,22 @@ pub fn OverrideDetailView(
 
     view! {
         <div class="flex flex-col gap-4">
-            <div class="block rounded-lg shadow bg-base-100 p-6 flex flex-col gap-4">
-                <div class="flex justify-between items-center">
-                    <div class="flex gap-4 items-center">
-                        <div class="stat-title">"Override ID"</div>
-                        <div class="text-sm font-mono bg-base-200 px-2 py-1 rounded">
-                            {override_id}
-                        </div>
-                    </div>
+            <div class="px-7 py-6 flex flex-row gap-4 bg-base-100 shadow rounded-lg">
+                <div class="stat-title flex items-center justify-center leading-none">
+                    "Override ID"
+                </div>
+                <div class="p-2 flex items-center justify-center font-mono leading-none text-sm bg-base-200 rounded">
+                    {override_id}
                 </div>
             </div>
 
-            <crate::components::description::ContentDescription
-                description=description
-                change_reason=ChangeReason::try_from(change_reason).unwrap_or_default()
-                created_by=created_by
-                created_at=created_at
-                last_modified_by=last_modified_by
-                last_modified_at=last_modified_at
+            <ContentDescription
+                description
+                change_reason
+                created_by
+                created_at
+                last_modified_by
+                last_modified_at
             />
 
             <div class="card bg-base-100 shadow">
@@ -478,9 +476,12 @@ pub fn OverrideDetailView(
             </div>
 
             <div class="card bg-base-100 shadow">
-                <div class="card-body">
-                    <Table rows=override_table_rows key_column="KEY" columns=table_columns />
-                </div>
+                <Table
+                    class="card-body"
+                    rows=override_table_rows
+                    key_column="KEY"
+                    columns=table_columns
+                />
             </div>
         </div>
     }

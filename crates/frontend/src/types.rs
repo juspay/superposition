@@ -10,6 +10,7 @@ use superposition_types::{
     api::dimension::DimensionResponse,
     custom_query::QueryParam,
     database::models::{
+        MetricDefinition, MetricDirection, NonEmptyString,
         cac::{DefaultConfig, DimensionType, TypeTemplate},
         experimentation::{Variant, VariantType},
         others::{HttpMethod, PayloadVersion, WebhookEvent},
@@ -290,6 +291,39 @@ impl From<&DimensionType> for DimensionTypeOptions {
 }
 
 impl DropdownOption for DimensionTypeOptions {
+    fn key(&self) -> String {
+        self.to_string()
+    }
+
+    fn label(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl DropdownOption for MetricDirection {
+    fn key(&self) -> String {
+        self.to_string()
+    }
+
+    fn label(&self) -> String {
+        match self {
+            MetricDirection::Maximize => "Maximize".to_string(),
+            MetricDirection::Minimize => "Minimize".to_string(),
+        }
+    }
+}
+
+impl DropdownOption for MetricDefinition {
+    fn key(&self) -> String {
+        self.name.to_string()
+    }
+
+    fn label(&self) -> String {
+        format!("{} ({})", *self.name, self.direction.label())
+    }
+}
+
+impl DropdownOption for NonEmptyString {
     fn key(&self) -> String {
         self.to_string()
     }
