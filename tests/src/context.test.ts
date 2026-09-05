@@ -506,25 +506,22 @@ describe("Context API Integration Tests", () => {
         });
 
         test("should reject empty context objects", async () => {
-            try {
-                const unwrappedCmd = new CreateContextCommand({
-                    workspace_id: testWorkspaceId,
-                    org_id: testOrgId,
-                    request: {
-                        override: {
-                            key1: "empty-context-value",
-                        },
-                        context: {},
-                        description: "Empty context",
-                        change_reason: "Testing empty context validation",
+            const unwrappedCmd = new CreateContextCommand({
+                workspace_id: testWorkspaceId,
+                org_id: testOrgId,
+                request: {
+                    override: {
+                        key1: "empty-context-value",
                     },
-                });
-                await client.send(unwrappedCmd);
-            } catch (err: any) {
-                expect(err.$response.body).toMatch(
-                    /Context should not be empty/i,
-                );
-            }
+                    context: {},
+                    description: "Empty context",
+                    change_reason: "Testing empty context validation",
+                },
+            });
+
+            await expect(client.send(unwrappedCmd)).rejects.toThrow(
+                /should not be empty/i,
+            );
         });
 
         test("should create context with multiple dimensions and calculate weight correctly", async () => {
