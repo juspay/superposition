@@ -2,6 +2,24 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.118.0 - 2026-09-05
+### Package updates
+- frontend bumped to frontend-v0.58.0
+- superposition_sdk bumped to superposition_sdk-v0.24.0
+- experimentation_platform bumped to experimentation_platform-v0.56.0
+- superposition_types bumped to superposition_types-v0.51.0
+- service_utils bumped to service_utils-v0.46.0
+### Global changes
+#### Bug Fixes
+- fix ts sdk dropping null values (#1143) - (41af6be) - Ankit Kumar Mahato
+#### Features
+- add GCP Cloud KMS and OpenBao/Vault as pluggable KMS backends (#1142) - (476b461) - Harshvardhan Bahukhandi
+- add workspace-defined metric selections with cleanups (#1145) - (948faaa) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.117.2 [skip ci] - (1ba5786) - Superposition Bot
+
+- - -
+
 ## v0.117.2 - 2026-08-31
 ### Package updates
 - haskell_client bumped to haskell_client-v0.24.2

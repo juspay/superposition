@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.51.0 - 2026-09-05
+#### Features
+- add workspace-defined metric selections with cleanups (#1145) - (948faaa) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.116.0 [skip ci] - (4bad497) - Superposition Bot
+#### Performance Improvements
+- **(core)** avoid config clones in prefix-filtered resolution (#1091) - (ca02a21) - sauraww
+#### Refactoring
+- remove unnecessary clone from eval logic (#857) - (41c7a5d) - Ayush Jain
+
+- - -
+
 ## superposition_types-v0.50.0 - 2026-08-03
 #### Bug Fixes
 - **(exp)** Ramp at 0 (#1119) - (8beba19) - Ayush Jain
