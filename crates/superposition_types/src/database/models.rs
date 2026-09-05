@@ -734,12 +734,12 @@ mod metrics_tests {
         }))
         .is_err());
         assert!(serde_json::from_value::<MetricSelection>(json!({
-            "guardrail": {"name": "latency", "direction": "minimize"}
+            "guardrail": "latency"
         }))
         .is_err());
         assert!(serde_json::from_value::<MetricSelection>(json!({
             "primary": {"name": "conversion", "direction": "maximize"},
-            "guardrail": {"name": "latency", "direction": "minimize"}
+            "guardrail": "latency"
         }))
         .is_ok());
     }

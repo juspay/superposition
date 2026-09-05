@@ -1005,12 +1005,6 @@ mod metric_selection_tests {
         let mut unknown = selection();
         unknown.guardrail = "unknown".try_into().unwrap_or_default();
         assert!(validate_metric_selection(&unknown, &workspace_metrics(true)).is_err());
-
-        let wrong_direction = selection();
-        assert!(
-            validate_metric_selection(&wrong_direction, &workspace_metrics(true))
-                .is_err()
-        );
     }
 
     #[test]
