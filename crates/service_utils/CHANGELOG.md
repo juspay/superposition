@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.46.0 - 2026-09-05
+#### Features
+- add GCP Cloud KMS and OpenBao/Vault as pluggable KMS backends (#1142) - (476b461) - Harshvardhan Bahukhandi
+#### Miscellaneous Chores
+- **(version)** v0.116.0 [skip ci] - (4bad497) - Superposition Bot
+
+- - -
+
 ## service_utils-v0.45.0 - 2026-08-03
 #### Features
 - extend workspace lock to CAC write entities (#1069) - (dc5c98f) - sauraww

@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.58.0 - 2026-09-05
+#### Features
+- add workspace-defined metric selections with cleanups (#1145) - (948faaa) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.117.0 [skip ci] - (ff782ff) - Superposition Bot
+
+- - -
+
 ## frontend-v0.57.0 - 2026-08-13
 #### Features
 - added retry functionality in frontend (#1121) - (9650063) - sauraww
