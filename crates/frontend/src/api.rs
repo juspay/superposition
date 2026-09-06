@@ -775,6 +775,7 @@ pub mod workspaces {
         auto_populate_control: bool,
         enable_context_validation: bool,
         enable_change_reason_validation: bool,
+        enable_auto_reduce: bool,
     ) -> Result<UpdateWorkspaceRequest, String> {
         Ok(UpdateWorkspaceRequest {
             workspace_admin_email: Some(workspace_admin_email),
@@ -789,6 +790,7 @@ pub mod workspaces {
             auto_populate_control: Some(auto_populate_control),
             enable_context_validation: Some(enable_context_validation),
             enable_change_reason_validation: Some(enable_change_reason_validation),
+            enable_auto_reduce: Some(enable_auto_reduce),
         })
     }
 
