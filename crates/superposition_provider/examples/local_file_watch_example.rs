@@ -22,7 +22,6 @@ async fn main() {
         Box::new(file_source),
         None,
         RefreshStrategy::Watch(WatchStrategy::default()),
-        None,
     );
     provider.init(EvaluationContext::default()).await.unwrap();
 

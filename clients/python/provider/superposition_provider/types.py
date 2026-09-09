@@ -32,8 +32,7 @@ class EvaluationCacheOptions:
     identical inputs are served from Rust without re-evaluating. It is emptied
     whenever the provider reloads config or experiment data.
     """
-    ttl: Optional[int] = None  # unused: staleness is governed by the refresh strategy
-    size: Optional[int] = None  # memory budget in megabytes; None/0 disables caching
+    max_entries: Optional[int] = None  # maximum number of cached resolutions; None/0 disables caching
 
 
 # ============================================================================

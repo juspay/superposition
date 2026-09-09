@@ -136,9 +136,9 @@ newProviderCache :: IO ProviderCacheHandle
 newProviderCache = provider_cache_new
 
 -- | Create a new ProviderCache handle that memoizes repeated eval_config
--- queries in an in-process LRU cache. The argument is the approximate memory
--- budget for cached evaluations, in megabytes; 0 disables caching. The cache
--- is emptied whenever config or experiment data is (re)initialised.
+-- queries in an in-process LRU cache. The argument is the maximum number of
+-- cached resolutions; 0 disables caching. The cache is emptied whenever
+-- config or experiment data is (re)initialised.
 newProviderCacheWithEvalCache :: Word64 -> IO ProviderCacheHandle
 newProviderCacheWithEvalCache = provider_cache_new_with_eval_cache
 

@@ -253,23 +253,29 @@ impl Default for RefreshStrategy {
     }
 }
 
-/// Options for the in-process LRU cache of repeated resolution queries.
+/// Options for the evaluation result cache: an in-process LRU memoization of
+/// repeated resolutions, keyed by the inputs that discriminate a resolution
+/// (query data, merge strategy, prefix filters, targeting key).
 ///
-/// When enabled, evaluating a flag/context combination that was resolved
-/// before is served from memory without re-running context matching or
-/// variant bucketing. Entries are evicted least-recently-used once the memory
-/// budget is reached, and refreshed config or experiment data invalidates
-/// previously cached resolutions.
-#[derive(Debug, Clone, Copy, Default)]
+/// Only the local provider supports it: the cache is emptied whenever config
+/// or experiment data is reloaded. The remote provider has no invalidation
+/// signal from the server, so it deliberately does not cache.
+#[derive(Debug, Clone, Default)]
 pub struct EvaluationCacheOptions {
-    /// Approximate memory budget for cached resolutions, in megabytes.
-    /// `0` disables caching.
-    pub max_size_mb: u64,
+    /// Maximum number of cached resolutions. `None` or `0` disables caching.
+    pub max_entries: Option<u64>,
 }
 
 impl EvaluationCacheOptions {
-    pub fn new(max_size_mb: u64) -> Self {
-        Self { max_size_mb }
+    pub fn new(max_entries: u64) -> Self {
+        Self {
+            max_entries: Some(max_entries),
+        }
+    }
+
+    /// An empty cache store for these options; `None` when caching is disabled.
+    pub(crate) fn build_cache(&self) -> Option<superposition_core::eval_cache::EvalCache> {
+        superposition_core::eval_cache::new(self.max_entries.unwrap_or(0))
     }
 }
 
@@ -277,7 +283,6 @@ impl EvaluationCacheOptions {
 pub struct ConfigurationOptions {
     pub fallback_config: Option<serde_json::Map<String, Value>>,
     pub refresh_strategy: RefreshStrategy,
-    pub evaluation_cache_options: Option<EvaluationCacheOptions>,
 }
 
 impl ConfigurationOptions {
@@ -288,16 +293,7 @@ impl ConfigurationOptions {
         Self {
             fallback_config,
             refresh_strategy,
-            evaluation_cache_options: None,
         }
-    }
-
-    pub fn with_evaluation_cache(
-        mut self,
-        evaluation_cache_options: EvaluationCacheOptions,
-    ) -> Self {
-        self.evaluation_cache_options = Some(evaluation_cache_options);
-        self
     }
 }
 
@@ -322,7 +318,6 @@ pub struct SuperpositionProviderOptions {
     pub fallback_config: Option<serde_json::Map<String, Value>>,
     pub refresh_strategy: RefreshStrategy,
     pub experimentation_options: Option<ExperimentationOptions>,
-    pub evaluation_cache_options: Option<EvaluationCacheOptions>,
 }
 
 impl SuperpositionProviderOptions {
@@ -344,16 +339,7 @@ impl SuperpositionProviderOptions {
             fallback_config,
             refresh_strategy,
             experimentation_options,
-            evaluation_cache_options: None,
         }
-    }
-
-    pub fn with_evaluation_cache(
-        mut self,
-        evaluation_cache_options: EvaluationCacheOptions,
-    ) -> Self {
-        self.evaluation_cache_options = Some(evaluation_cache_options);
-        self
     }
 }
 

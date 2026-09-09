@@ -54,7 +54,7 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
             fallback_source: Optional fallback data source.
             refresh_strategy: How often to refresh data.
             evaluation_cache_options: Optional FFI evaluation cache settings.
-                `size` is the memory budget in MB; unset/None disables caching.
+                `max_entries` is the maximum number of cached resolutions; unset/None disables caching.
         """
         self.primary_source = primary_source
         self.fallback_source = fallback_source
@@ -86,11 +86,11 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
             self.status = ProviderStatus.NOT_READY
             self.global_context = context
 
-            # Create FFI cache (with evaluation cache if a budget is configured)
+            # Create FFI cache (with evaluation cache if a size is configured)
             eval_opts = self.evaluation_cache_options
-            if eval_opts and eval_opts.size:
-                self.ffi_cache = ProviderCache.new_with_evaluation_cache(eval_opts.size)
-                logger.info(f"Created ProviderCache with evaluation cache ({eval_opts.size} MB)")
+            if eval_opts and eval_opts.max_entries:
+                self.ffi_cache = ProviderCache.new_with_evaluation_cache(eval_opts.max_entries)
+                logger.info(f"Created ProviderCache with evaluation cache ({eval_opts.max_entries} entries)")
             else:
                 self.ffi_cache = ProviderCache()
 

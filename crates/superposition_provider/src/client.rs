@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 
 use log::{debug, error, info, warn};
@@ -29,8 +28,6 @@ pub struct CacConfig {
     cached_config: Arc<RwLock<Option<Config>>>,
     last_updated: Arc<RwLock<Option<chrono::DateTime<chrono::Utc>>>>,
     polling_task_cancellation_token: Arc<RwLock<Option<CancellationToken>>>,
-    /// Bumped on every write to `cached_config`; consumers key caches by it.
-    generation: Arc<AtomicU64>,
 }
 
 impl CacConfig {
@@ -45,16 +42,7 @@ impl CacConfig {
             cached_config: Arc::new(RwLock::new(None)),
             last_updated: Arc::new(RwLock::new(None)),
             polling_task_cancellation_token: Arc::new(RwLock::new(None)),
-            generation: Arc::new(AtomicU64::new(0)),
         }
-    }
-
-    fn bump_generation(&self) {
-        self.generation.fetch_add(1, Ordering::Relaxed);
-    }
-
-    pub fn generation(&self) -> u64 {
-        self.generation.load(Ordering::Relaxed)
     }
 
     pub async fn create_config(&self) -> Result<()> {
@@ -66,7 +54,6 @@ impl CacConfig {
             Ok(config) => {
                 let mut cached_config = self.cached_config.write().await;
                 *cached_config = Some(config);
-                self.bump_generation();
                 let mut last_updated = self.last_updated.write().await;
                 *last_updated = Some(chrono::Utc::now());
                 info!("CAC config fetched successfully");
@@ -78,7 +65,6 @@ impl CacConfig {
                     if let Some(fallback) = &self.fallback_config {
                         *cached_config =
                             Some(ConversionUtils::convert_value_to_config(fallback)?);
-                        self.bump_generation();
                         info!("Using fallback config due to initial fetch failure");
                     }
                 } else {
@@ -124,7 +110,6 @@ impl CacConfig {
         let superposition_options = self.superposition_options.clone();
         let cached_config = self.cached_config.clone();
         let last_updated = self.last_updated.clone();
-        let generation = self.generation.clone();
         let cancellation_token = CancellationToken::new();
         let cancellation_token_clone = cancellation_token.clone();
 
@@ -137,9 +122,10 @@ impl CacConfig {
                     loop {
                         match Self::get_config_static(&superposition_options).await {
                             Ok(config) => {
-                                let mut cached = cached_config.write().await;
-                                *cached = Some(config);
-                                generation.fetch_add(1, Ordering::Relaxed);
+                                {
+                                    let mut cached = cached_config.write().await;
+                                    *cached = Some(config);
+                                }
                                 let mut updated = last_updated.write().await;
                                 *updated = Some(chrono::Utc::now());
                                 debug!("CAC config updated via polling");
@@ -172,9 +158,10 @@ impl CacConfig {
             debug!("TTL expired. Fetching config on-demand");
             match self.get_config(&self.superposition_options).await {
                 Ok(config) => {
-                    let mut cached_config = self.cached_config.write().await;
-                    *cached_config = Some(config.clone());
-                    self.bump_generation();
+                    {
+                        let mut cached_config = self.cached_config.write().await;
+                        *cached_config = Some(config.clone());
+                    }
                     let mut last_updated_mut = self.last_updated.write().await;
                     *last_updated_mut = Some(chrono::Utc::now());
                     info!("Config fetched successfully on-demand");
@@ -291,7 +278,6 @@ impl CacConfig {
         // Clear caches
         let mut cached_config = self.cached_config.write().await;
         *cached_config = None;
-        self.bump_generation();
 
         Ok(())
     }
@@ -306,8 +292,6 @@ pub struct ExperimentationConfig {
     cached_experiment_groups: Arc<RwLock<Option<ExperimentGroups>>>,
     last_updated: Arc<RwLock<Option<chrono::DateTime<chrono::Utc>>>>,
     polling_task_cancellation_token: Arc<RwLock<Option<CancellationToken>>>,
-    /// Bumped on every write to the experiment caches; consumers key caches by it.
-    generation: Arc<AtomicU64>,
 }
 
 impl ExperimentationConfig {
@@ -322,16 +306,7 @@ impl ExperimentationConfig {
             cached_experiment_groups: Arc::new(RwLock::new(None)),
             last_updated: Arc::new(RwLock::new(None)),
             polling_task_cancellation_token: Arc::new(RwLock::new(None)),
-            generation: Arc::new(AtomicU64::new(0)),
         }
-    }
-
-    fn bump_generation(&self) {
-        self.generation.fetch_add(1, Ordering::Relaxed);
-    }
-
-    pub fn generation(&self) -> u64 {
-        self.generation.load(Ordering::Relaxed)
     }
 
     pub async fn create_config(&self) -> Result<()> {
@@ -349,7 +324,6 @@ impl ExperimentationConfig {
                 let mut cached_experiment_groups =
                     self.cached_experiment_groups.write().await;
                 *cached_experiment_groups = Some(experiment_groups);
-                self.bump_generation();
                 let mut last_updated = self.last_updated.write().await;
                 *last_updated = Some(chrono::Utc::now());
                 info!("Experiments fetched successfully");
@@ -406,7 +380,6 @@ impl ExperimentationConfig {
         let cached_experiments = self.cached_experiments.clone();
         let cached_experiment_groups = self.cached_experiment_groups.clone();
         let last_updated = self.last_updated.clone();
-        let generation = self.generation.clone();
         let cancellation_token = CancellationToken::new();
         let cancellation_token_clone = cancellation_token.clone();
 
@@ -423,11 +396,12 @@ impl ExperimentationConfig {
                         );
                         match (experiments_result, groups_result) {
                             (Ok(Some(experiments)), Ok(Some(experiment_groups))) => {
-                                let mut cached = cached_experiments.write().await;
-                                *cached = Some(experiments);
-                                let mut cached_groups = cached_experiment_groups.write().await;
-                                *cached_groups = Some(experiment_groups);
-                                generation.fetch_add(1, Ordering::Relaxed);
+                                {
+                                    let mut cached = cached_experiments.write().await;
+                                    *cached = Some(experiments);
+                                    let mut cached_groups = cached_experiment_groups.write().await;
+                                    *cached_groups = Some(experiment_groups);
+                                }
                                 let mut updated = last_updated.write().await;
                                 *updated = Some(chrono::Utc::now());
                                 debug!("Experiments and Experiment Groups updated via polling");
@@ -472,12 +446,14 @@ impl ExperimentationConfig {
             );
             match (experiments_result, groups_result) {
                 (Ok(Some(experiments)), Ok(Some(experiment_groups))) => {
-                    let mut cached_experiments = self.cached_experiments.write().await;
-                    *cached_experiments = Some(experiments.clone());
-                    let mut cached_experiment_groups =
-                        self.cached_experiment_groups.write().await;
-                    *cached_experiment_groups = Some(experiment_groups);
-                    self.bump_generation();
+                    {
+                        let mut cached_experiments =
+                            self.cached_experiments.write().await;
+                        *cached_experiments = Some(experiments.clone());
+                        let mut cached_experiment_groups =
+                            self.cached_experiment_groups.write().await;
+                        *cached_experiment_groups = Some(experiment_groups);
+                    }
                     let mut last_updated_mut = self.last_updated.write().await;
                     *last_updated_mut = Some(chrono::Utc::now());
                     info!("Experiments and Experiment Groups fetched successfully on-demand");
@@ -611,7 +587,6 @@ impl ExperimentationConfig {
         // Clear caches
         let mut cached_experiments = self.cached_experiments.write().await;
         *cached_experiments = None;
-        self.bump_generation();
 
         Ok(())
     }

@@ -43,7 +43,7 @@ export class ConfigurationClient {
         this.resolver = resolver;
         this.options = options;
         this.providerCache = resolver.createProviderCache(
-            options.evaluationCache?.size,
+            options.evaluationCache?.maxEntries,
         );
         const cache = this.providerCache;
         _cacheRegistry.register(

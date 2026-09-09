@@ -27,7 +27,6 @@ async fn main() {
         Box::new(http_source),
         Some(Box::new(file_source)),
         RefreshStrategy::Polling(PollingStrategy::new(10_000).with_timeout(10_000)),
-        None,
     );
 
     // Register with OpenFeature and create a client
