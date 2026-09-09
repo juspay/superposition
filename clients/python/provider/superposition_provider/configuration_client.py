@@ -26,9 +26,9 @@ class ConfigurationClient:
 
         try:
             eval_opts = cac_options.evaluation_cache_options
-            if eval_opts and eval_opts.size:
-                self.cache = ProviderCache.new_with_evaluation_cache(eval_opts.size)
-                logger.info(f"Created ProviderCache with evaluation cache ({eval_opts.size} MB)")
+            if eval_opts and eval_opts.max_entries:
+                self.cache = ProviderCache.new_with_evaluation_cache(eval_opts.max_entries)
+                logger.info(f"Created ProviderCache with evaluation cache ({eval_opts.max_entries} entries)")
             else:
                 self.cache = ProviderCache()
                 logger.info("Created ProviderCache instance")

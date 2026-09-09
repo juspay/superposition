@@ -524,7 +524,7 @@ def _uniffi_check_api_checksums(lib):
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_superposition_core_checksum_constructor_providercache_new() != 32331:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    if lib.uniffi_superposition_core_checksum_constructor_providercache_new_with_evaluation_cache() != 7868:
+    if lib.uniffi_superposition_core_checksum_constructor_providercache_new_with_evaluation_cache() != 19040:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
 
 # A ctypes library to expose the extern-C FFI definitions.
@@ -1796,6 +1796,12 @@ class _UniffiConverterMapStringTypeOverrides(_UniffiConverterRustBuffer):
 
 # objects.
 class ProviderCacheProtocol(typing.Protocol):
+    """
+    FFI-owned provider state: the config and experiment data loaded from
+    superposition that resolutions read from, plus a memoization cache for
+    repeated `eval_config` queries.
+    """
+
     def eval_config(self, query_data: "dict[str, str]",merge_strategy: "MergeStrategy",filter_prefixes: "typing.Optional[typing.List[str]]",filter_exclude_prefixes: "typing.Optional[typing.List[str]]",targeting_key: "typing.Optional[str]"):
         raise NotImplementedError
     def filter_config(self, dimension_data: "typing.Optional[dict[str, str]]",prefix: "typing.Optional[typing.List[str]]",exclude_prefix: "typing.Optional[typing.List[str]]"):
@@ -1810,6 +1816,12 @@ class ProviderCacheProtocol(typing.Protocol):
         raise NotImplementedError
 # ProviderCache is a Rust-only trait - it's a wrapper around a Rust implementation.
 class ProviderCache():
+    """
+    FFI-owned provider state: the config and experiment data loaded from
+    superposition that resolutions read from, plus a memoization cache for
+    repeated `eval_config` queries.
+    """
+
     _pointer: ctypes.c_void_p
     def __init__(self, ):
         self._pointer = _uniffi_rust_call(_UniffiLib.uniffi_superposition_core_fn_constructor_providercache_new,)
@@ -1832,26 +1844,25 @@ class ProviderCache():
         inst._pointer = pointer
         return inst
     @classmethod
-    def new_with_evaluation_cache(cls, max_size_mb: "int"):
+    def new_with_evaluation_cache(cls, max_entries: "int"):
         """
         Creates a provider cache that memoizes repeated `eval_config` queries in
         an in-process LRU cache.
 
-        * `max_size_mb` — approximate memory budget for cached evaluations, in
-        megabytes. Non-positive values disable caching. The cache is emptied
-        whenever new config or experiment data is loaded via `init_config` /
-        `init_experiments`.
+        * `max_entries` — maximum number of cached resolutions. Non-positive
+        values disable caching. The cache is emptied whenever new config or
+        experiment data is loaded via `init_config` / `init_experiments`.
 
         Signed `i64` rather than `u64` so the generated Kotlin binding stays
         callable from Java (unsigned types are mangled inline classes on the
         JVM).
         """
 
-        _UniffiConverterInt64.check_lower(max_size_mb)
+        _UniffiConverterInt64.check_lower(max_entries)
         
         # Call the (fallible) function before creating any half-baked object instances.
         pointer = _uniffi_rust_call(_UniffiLib.uniffi_superposition_core_fn_constructor_providercache_new_with_evaluation_cache,
-        _UniffiConverterInt64.lower(max_size_mb))
+        _UniffiConverterInt64.lower(max_entries))
         return cls._make_instance_(pointer)
 
 

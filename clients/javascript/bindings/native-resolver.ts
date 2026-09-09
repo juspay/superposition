@@ -544,14 +544,14 @@ export class NativeResolver {
         }
     }
 
-    createProviderCache(evaluationCacheSizeMb?: number) {
+    createProviderCache(maxEntries?: number) {
         if (!this.isAvailable) {
             throw new Error("Native resolver is not available.");
         }
         const handle =
-            evaluationCacheSizeMb && evaluationCacheSizeMb > 0
+            maxEntries && maxEntries > 0
                 ? this.lib.core_provider_cache_new_with_eval_cache(
-                      evaluationCacheSizeMb,
+                      maxEntries,
                   )
                 : this.lib.core_provider_cache_new();
         if (!handle) {

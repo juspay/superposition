@@ -56,7 +56,6 @@ async fn main() {
         org_id: "your_org_id".to_string(),
         workspace_id: "your_workspace_id".to_string(),
         fallback_config: None,
-        evaluation_cache_options: None,
         refresh_strategy: RefreshStrategy::Polling(PollingStrategy {
             interval: 60, // Poll every 60 seconds
             timeout: Some(30)
@@ -124,22 +123,36 @@ let on_demand_strategy = RefreshStrategy::OnDemand(OnDemandStrategy {
 ```rust
 let cac_options = ConfigurationOptions {
     fallback_config: Some(fallback_map), // Optional fallback configuration
-    evaluation_cache_options: Some(EvaluationCacheOptions {
-        max_size_mb: 64, // LRU memoizes repeated resolutions, ~64MB budget; 0 disables
-    }),
     refresh_strategy: RefreshStrategy::Polling(PollingStrategy::default()),
 };
 ```
 
-### Evaluation Cache
+### Evaluation Result Cache
 
-Both `SuperpositionProvider` and `LocalResolutionProvider` can memoize
-repeated resolution queries in an in-process LRU cache. Pass
-`EvaluationCacheOptions` when constructing the provider (or use
-`SuperpositionProviderOptions::with_evaluation_cache(...)`) — the size is an
-approximate memory budget in **megabytes**. Entries are evicted
-least-recently-used when the budget is reached, and any config or experiment
-refresh invalidates previously cached resolutions.
+The local provider can memoize repeated resolutions in an in-process LRU cache,
+keyed by every input that discriminates a resolution (query data, merge strategy,
+prefix filters, targeting key). The cache is emptied whenever a refresh reloads
+config or experiment data, so entries never go stale. A single option controls it:
+
+```rust
+use superposition_provider::EvaluationCacheOptions;
+
+// Keep up to 5_000 memoized resolutions; `None` or `0` disables caching.
+let evaluation_cache_options = Some(EvaluationCacheOptions::new(5_000));
+
+let local_provider = LocalResolutionProvider::with_evaluation_cache(
+    Box::new(http_source),
+    None,
+    RefreshStrategy::Polling(PollingStrategy::new(30_000)),
+    evaluation_cache_options,
+);
+```
+
+The remote `SuperpositionAPIProvider` has no evaluation cache: it receives no
+invalidation signal from the server, so caching there would serve stale entries
+until arbitrary eviction.
+
+See `examples/evaluation_cache_example.rs` for a runnable example.
 
 ## Advanced Usage
 
@@ -157,11 +170,9 @@ let options = SuperpositionProviderOptions {
     org_id: "your_org_id".to_string(),
     workspace_id: "your_workspace_id".to_string(),
     refresh_strategy: RefreshStrategy::OnDemand(OnDemandStrategy::default()),
-    evaluation_cache: None,
     fallback_config: None,
     experimentation_options: Some(ExperimentationOptions {
         refresh_strategy: RefreshStrategy::OnDemand(OnDemandStrategy::default()),
-        evaluation_cache: Some(EvaluationCacheOptions::default()),
         default_toss: Some(50)
     })
 };
@@ -209,7 +220,6 @@ fallback_config.insert("feature_enabled".to_string(), json!(false));
 
 let cac_options = ConfigurationOptions {
     fallback_config: Some(fallback_config),
-    evaluation_cache: Some(EvaluationCacheOptions::default()),
     refresh_strategy: RefreshStrategy::OnDemand(OnDemandStrategy::default()),
 };
 ```
@@ -279,4 +289,6 @@ RUST_LOG=debug cargo run
 
 ## Examples
 
-See the `example.rs` file for a complete working example demonstrating basic usage with OpenFeature integration.
+See `example.rs` for basic OpenFeature integration and the `examples/` directory for standalone
+runners: local providers over HTTP and files, file watching, polling with fallback, and
+`evaluation_cache_example.rs` for the evaluation result cache on both providers.

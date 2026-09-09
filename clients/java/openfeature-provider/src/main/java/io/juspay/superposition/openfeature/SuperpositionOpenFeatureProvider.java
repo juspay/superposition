@@ -94,9 +94,9 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
             builder.transport(options.transport);
         }
         this.sdk = builder.build();
-        if (options.evaluationCacheOptions != null && options.evaluationCacheOptions.size > 0) {
+        if (options.evaluationCacheOptions != null && options.evaluationCacheOptions.maxEntries > 0) {
             this.cache = ProviderCache.Companion
-                .newWithEvaluationCache((long) options.evaluationCacheOptions.size);
+                .newWithEvaluationCache((long) options.evaluationCacheOptions.maxEntries);
         } else {
             this.cache = new ProviderCache();
         }
