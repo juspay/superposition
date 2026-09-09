@@ -537,16 +537,22 @@ impl LocalResolutionProvider {
         let (mut query_data, targeting_key) = self.get_merged_context(context).await;
         let dimensions_info = self.get_dimensions_info().await;
 
-        // If experiments are cached, get applicable variants and inject variantIds
+        // Variants are only computed when there is an identifier to evaluate them
+        // against and experiments are cached. Otherwise a `variantIds` already on the
+        // context is the caller's own assignment and is left untouched — injecting here
+        // would overwrite it with an empty list.
         {
             let cached_exp = self.cached_experiments.read().await;
-            if let Some(exp_data) = cached_exp.as_ref() {
+            if let (Some(key), Some(exp_data)) = (
+                targeting_key.filter(|key| !key.is_empty()),
+                cached_exp.as_ref(),
+            ) {
                 let variant_ids = get_applicable_variants(
                     &dimensions_info,
                     exp_data.data.experiments.clone(),
                     &exp_data.data.experiment_groups,
                     query_data.clone(),
-                    &targeting_key.unwrap_or_default(),
+                    &key,
                     prefix_filter.clone(),
                     exclude_prefix_filter.clone(),
                 );
