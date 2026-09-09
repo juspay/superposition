@@ -37,6 +37,9 @@ export class NativeResolver {
             this.lib.core_provider_cache_new = this.lib.func(
                 "void* core_provider_cache_new()",
             );
+            this.lib.core_provider_cache_new_with_eval_cache = this.lib.func(
+                "void* core_provider_cache_new_with_eval_cache(uint64)",
+            );
             this.lib.core_provider_cache_free = this.lib.func(
                 "void core_provider_cache_free(void*)",
             );
@@ -541,11 +544,16 @@ export class NativeResolver {
         }
     }
 
-    createProviderCache() {
+    createProviderCache(evaluationCacheSizeMb?: number) {
         if (!this.isAvailable) {
             throw new Error("Native resolver is not available.");
         }
-        const handle = this.lib.core_provider_cache_new();
+        const handle =
+            evaluationCacheSizeMb && evaluationCacheSizeMb > 0
+                ? this.lib.core_provider_cache_new_with_eval_cache(
+                      evaluationCacheSizeMb,
+                  )
+                : this.lib.core_provider_cache_new();
         if (!handle) {
             throw new Error("core_provider_cache_new returned null");
         }

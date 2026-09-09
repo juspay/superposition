@@ -253,10 +253,31 @@ impl Default for RefreshStrategy {
     }
 }
 
+/// Options for the in-process LRU cache of repeated resolution queries.
+///
+/// When enabled, evaluating a flag/context combination that was resolved
+/// before is served from memory without re-running context matching or
+/// variant bucketing. Entries are evicted least-recently-used once the memory
+/// budget is reached, and refreshed config or experiment data invalidates
+/// previously cached resolutions.
+#[derive(Debug, Clone, Copy, Default)]
+pub struct EvaluationCacheOptions {
+    /// Approximate memory budget for cached resolutions, in megabytes.
+    /// `0` disables caching.
+    pub max_size_mb: u64,
+}
+
+impl EvaluationCacheOptions {
+    pub fn new(max_size_mb: u64) -> Self {
+        Self { max_size_mb }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct ConfigurationOptions {
     pub fallback_config: Option<serde_json::Map<String, Value>>,
     pub refresh_strategy: RefreshStrategy,
+    pub evaluation_cache_options: Option<EvaluationCacheOptions>,
 }
 
 impl ConfigurationOptions {
@@ -267,7 +288,16 @@ impl ConfigurationOptions {
         Self {
             fallback_config,
             refresh_strategy,
+            evaluation_cache_options: None,
         }
+    }
+
+    pub fn with_evaluation_cache(
+        mut self,
+        evaluation_cache_options: EvaluationCacheOptions,
+    ) -> Self {
+        self.evaluation_cache_options = Some(evaluation_cache_options);
+        self
     }
 }
 
@@ -292,6 +322,7 @@ pub struct SuperpositionProviderOptions {
     pub fallback_config: Option<serde_json::Map<String, Value>>,
     pub refresh_strategy: RefreshStrategy,
     pub experimentation_options: Option<ExperimentationOptions>,
+    pub evaluation_cache_options: Option<EvaluationCacheOptions>,
 }
 
 impl SuperpositionProviderOptions {
@@ -313,7 +344,16 @@ impl SuperpositionProviderOptions {
             fallback_config,
             refresh_strategy,
             experimentation_options,
+            evaluation_cache_options: None,
         }
+    }
+
+    pub fn with_evaluation_cache(
+        mut self,
+        evaluation_cache_options: EvaluationCacheOptions,
+    ) -> Self {
+        self.evaluation_cache_options = Some(evaluation_cache_options);
+        self
     }
 }
 

@@ -13,7 +13,12 @@ export interface CacheOptions {
 }
 
 export interface EvaluationCacheOptions {
+    /** Unused: freshness is governed by the refresh strategy. */
     ttl?: number;
+    /**
+     * Memory budget (in megabytes) for memoized resolutions in the native
+     * library. Unset or non-positive disables caching.
+     */
     size?: number;
 }
 

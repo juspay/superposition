@@ -25,8 +25,13 @@ class ConfigurationClient:
         self.exp_options = exp_options
 
         try:
-            self.cache = ProviderCache()
-            logger.info("Created ProviderCache instance")
+            eval_opts = cac_options.evaluation_cache_options
+            if eval_opts and eval_opts.size:
+                self.cache = ProviderCache.new_with_evaluation_cache(eval_opts.size)
+                logger.info(f"Created ProviderCache with evaluation cache ({eval_opts.size} MB)")
+            else:
+                self.cache = ProviderCache()
+                logger.info("Created ProviderCache instance")
         except Exception as e:
             logger.error(f"Failed to create cache: {e}")
             self.cache = None
@@ -137,13 +142,8 @@ class ConfigurationClient:
             return {}
         
         try:
-            cache_key = self.cac_config._generate_cache_key(query_data)
-            cached = self.cac_config._get_from_eval_cache(cache_key)
-            if cached:
-                logger.debug(f"Using cached evaluation result")
-                return cached
-
-            # Use instance method
+            # Repeated queries are memoized inside the FFI layer (when an
+            # evaluation cache budget is configured) — no client-side lookup here.
             result = self.cache.eval_config(
                 query_data,
                 MergeStrategy.MERGE,
@@ -241,13 +241,6 @@ class ConfigurationClient:
             return ffi_get_applicable_variants(experimentdata, self.cac_config.cached_config.get('dimensions', {}), context, prefix=None)
         return []
 
-    def _clear_eval_cache(self):
-        """Clear evaluation cache"""
-        if hasattr(self.cac_config, '_clear_eval_cache'):
-            self.cac_config._clear_eval_cache()
-        self.cached_config = None
-        self.last_updated = None
-
      # Internal helpers
 
     def _get_nested(self, obj: Any, key: str) -> Any:
@@ -297,7 +290,6 @@ class ConfigurationClient:
             if self.exp_config:
                 await self.exp_config.close()
 
-            self._clear_eval_cache()
             self.cache = None
 
             logger.info("SuperpositionClient closed")

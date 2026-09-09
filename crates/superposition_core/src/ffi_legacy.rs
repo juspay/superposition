@@ -8,6 +8,7 @@ use serde_json::{Map, Value};
 use superposition_types::{Context, DimensionInfo, ExtendedMap, Overrides};
 
 use crate::config::{self, MergeStrategy};
+use crate::eval_cache::{pairs_from_json_map, EvaluationCache};
 use crate::experiment::{ExperimentConfig, ExperimentGroups, ExperimentationArgs};
 use crate::ffi::ProviderCache;
 use crate::{
@@ -18,6 +19,20 @@ use crate::{
 #[no_mangle]
 pub extern "C" fn core_provider_cache_new() -> *mut ProviderCache {
     Box::into_raw(Box::new(ProviderCache::default()))
+}
+
+/// Creates a provider cache that memoizes repeated `eval_config` queries in an
+/// in-process LRU cache.
+///
+/// * `max_size_mb` — approximate memory budget for cached evaluations, in
+///   megabytes. `0` disables caching. The cache is emptied whenever new config
+///   or experiment data is loaded via `core_provider_cache_init_config` /
+///   `core_provider_cache_init_experiments`.
+#[no_mangle]
+pub extern "C" fn core_provider_cache_new_with_eval_cache(
+    max_size_mb: u64,
+) -> *mut ProviderCache {
+    Box::into_raw(Box::new(ProviderCache::with_evaluation_cache(max_size_mb)))
 }
 
 /// # Safety
@@ -82,6 +97,7 @@ pub unsafe extern "C" fn core_provider_cache_init_config(
     let cache = &*handle;
     match cache.data.lock() {
         Ok(mut d) => {
+            d.evaluation_cache.clear();
             d.config.default_configs = default_config.into();
             d.config.contexts = contexts;
             d.config.overrides = overrides;
@@ -126,6 +142,7 @@ pub unsafe extern "C" fn core_provider_cache_init_experiments(
     let cache = &*handle;
     match cache.data.lock() {
         Ok(mut d) => {
+            d.evaluation_cache.clear();
             d.experiment = Some(ExperimentConfig {
                 experiments,
                 experiment_groups,
@@ -210,13 +227,38 @@ pub unsafe extern "C" fn core_provider_cache_eval_config(
     };
 
     let cache = &*handle;
-    let data = match cache.data.lock() {
+    let mut data = match cache.data.lock() {
         Ok(d) => d,
         Err(e) => {
             copy_string(ebuf, format!("Failed to acquire cache lock: {}", e));
             return ptr::null_mut();
         }
     };
+
+    // Version (0, 0): this cache is explicitly cleared by the init functions
+    // instead of being keyed by data generations.
+    let cache_key = data.evaluation_cache.is_enabled().then(|| {
+        EvaluationCache::key(
+            (0, 0),
+            &pairs_from_json_map(&query_data),
+            merge_strategy,
+            filter_prefixes.as_deref(),
+            filter_exclude_prefixes.as_deref(),
+            tkey.as_deref(),
+        )
+    });
+
+    if let Some(key) = cache_key {
+        if let Some(cached) = data.evaluation_cache.get(&key) {
+            return match serde_json::to_string(&cached) {
+                Ok(json_str) => string_to_c_str(json_str),
+                Err(e) => {
+                    copy_string(ebuf, format!("Failed to serialize result: {}", e));
+                    ptr::null_mut()
+                }
+            };
+        }
+    }
 
     if let Some(ref experiment_config) = data.experiment {
         if (!experiment_config.experiments.is_empty()
@@ -247,6 +289,9 @@ pub unsafe extern "C" fn core_provider_cache_eval_config(
         filter_prefixes,
         filter_exclude_prefixes,
     );
+    if let Some(key) = cache_key {
+        data.evaluation_cache.insert(key, result.clone());
+    }
     match serde_json::to_string(&result) {
         Ok(json_str) => string_to_c_str(json_str),
         Err(e) => {

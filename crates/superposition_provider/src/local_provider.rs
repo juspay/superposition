@@ -1,5 +1,6 @@
 use std::collections::HashMap;
-use std::sync::Arc;
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
@@ -9,6 +10,7 @@ use open_feature::provider::{
 };
 use open_feature::{EvaluationContext, EvaluationResult, StructValue};
 use serde_json::{Map, Value};
+use superposition_core::eval_cache::{pairs_from_json_map, EvaluationCache};
 use superposition_core::experiment::{filter_experiments_by_context, FfiExperimentGroup};
 use superposition_core::{
     eval, get_applicable_variants, get_satisfied_experiments, MergeStrategy,
@@ -31,6 +33,11 @@ pub struct LocalResolutionProviderInner {
     refresh_strategy: RefreshStrategy,
     cached_config: RwLock<Option<ConfigData>>,
     cached_experiments: RwLock<Option<ExperimentData>>,
+    /// Bumped on every write to `cached_config` / `cached_experiments`; the
+    /// evaluation cache keys entries by these versions.
+    config_version: AtomicU64,
+    experiments_version: AtomicU64,
+    evaluation_cache: Mutex<EvaluationCache>,
     config_checked_at: RwLock<Option<DateTime<Utc>>>,
     experiments_checked_at: RwLock<Option<DateTime<Utc>>>,
     background_task: RwLock<Option<JoinHandle<()>>>,
@@ -47,6 +54,7 @@ impl LocalResolutionProvider {
         primary: Box<dyn SuperpositionDataSource>,
         fallback: Option<Box<dyn SuperpositionDataSource>>,
         refresh_strategy: RefreshStrategy,
+        evaluation_cache_options: Option<EvaluationCacheOptions>,
     ) -> Self {
         Self(Arc::new(LocalResolutionProviderInner {
             primary: Arc::from(primary),
@@ -54,6 +62,11 @@ impl LocalResolutionProvider {
             refresh_strategy,
             cached_config: RwLock::new(None),
             cached_experiments: RwLock::new(None),
+            config_version: AtomicU64::new(0),
+            experiments_version: AtomicU64::new(0),
+            evaluation_cache: Mutex::new(EvaluationCache::new(
+                evaluation_cache_options.map(|o| o.max_size_mb).unwrap_or(0),
+            )),
             config_checked_at: RwLock::new(None),
             experiments_checked_at: RwLock::new(None),
             background_task: RwLock::new(None),
@@ -63,6 +76,22 @@ impl LocalResolutionProvider {
             status: RwLock::new(ProviderStatus::NotReady),
             global_context: RwLock::new(EvaluationContext::default()),
         }))
+    }
+
+    fn data_version(&self) -> (u64, u64) {
+        (
+            self.config_version.load(Ordering::Relaxed),
+            self.experiments_version.load(Ordering::Relaxed),
+        )
+    }
+
+    /// Runs `f` with the evaluation cache locked; a poisoned lock disables
+    /// caching for the call rather than failing the resolution.
+    fn with_eval_cache<T>(&self, f: impl FnOnce(&mut EvaluationCache) -> T) -> Option<T> {
+        self.evaluation_cache
+            .lock()
+            .ok()
+            .map(|mut cache| f(&mut cache))
     }
 
     pub async fn init(&self, context: EvaluationContext) -> Result<()> {
@@ -116,6 +145,7 @@ impl LocalResolutionProvider {
         {
             let mut cached = self.cached_config.write().await;
             *cached = config_data.into_data();
+            self.config_version.fetch_add(1, Ordering::Relaxed);
         }
         *self.config_checked_at.write().await = Some(Utc::now());
 
@@ -159,6 +189,7 @@ impl LocalResolutionProvider {
         if let Some(data) = exp_data {
             let mut cached = self.cached_experiments.write().await;
             *cached = Some(data);
+            self.experiments_version.fetch_add(1, Ordering::Relaxed);
         }
         if self.primary.supports_experiments() {
             *self.experiments_checked_at.write().await = Some(Utc::now());
@@ -257,10 +288,12 @@ impl LocalResolutionProvider {
         {
             let mut cached = self.cached_config.write().await;
             *cached = None;
+            self.config_version.fetch_add(1, Ordering::Relaxed);
         }
         {
             let mut cached = self.cached_experiments.write().await;
             *cached = None;
+            self.experiments_version.fetch_add(1, Ordering::Relaxed);
         }
         *self.config_checked_at.write().await = None;
         *self.experiments_checked_at.write().await = None;
@@ -361,6 +394,7 @@ impl LocalResolutionProvider {
                 Ok(FetchResponse::Data(data)) => {
                     let mut cached = self.cached_config.write().await;
                     *cached = Some(data);
+                    self.config_version.fetch_add(1, Ordering::Relaxed);
                     *self.config_checked_at.write().await = Some(Utc::now());
                     log::debug!("LocalResolutionProvider: config refreshed from primary");
                     Ok(())
@@ -400,6 +434,7 @@ impl LocalResolutionProvider {
                         let mut cached = self.cached_experiments.write().await;
                         if let Some(data) = exp_resp.into_data() {
                             *cached = Some(data);
+                            self.experiments_version.fetch_add(1, Ordering::Relaxed);
                         }
                         // Data or NotModified — both are a successful check, so the TTL restarts.
                         *self.experiments_checked_at.write().await = Some(Utc::now());
@@ -535,6 +570,31 @@ impl LocalResolutionProvider {
         self.ensure_fresh_data().await?;
 
         let (mut query_data, targeting_key) = self.get_merged_context(context).await;
+
+        // Key the evaluation by the current data versions: any refresh bumps
+        // them, so results resolved from older data become unreachable.
+        let data_version = self.data_version();
+        let cache_key = self
+            .with_eval_cache(|cache| {
+                cache.is_enabled().then(|| {
+                    EvaluationCache::key(
+                        data_version,
+                        &pairs_from_json_map(&query_data),
+                        MergeStrategy::MERGE,
+                        prefix_filter.as_deref(),
+                        exclude_prefix_filter.as_deref(),
+                        targeting_key.as_deref(),
+                    )
+                })
+            })
+            .flatten();
+
+        if let Some(hit) =
+            cache_key.and_then(|key| self.with_eval_cache(|c| c.get(&key)).flatten())
+        {
+            return Ok(hit);
+        }
+
         let dimensions_info = self.get_dimensions_info().await;
 
         // If experiments are cached, get applicable variants and inject variantIds
@@ -560,8 +620,8 @@ impl LocalResolutionProvider {
 
         // Evaluate config using cached data
         let cached = self.cached_config.read().await;
-        match cached.as_ref() {
-            Some(config_data) => Ok(eval(
+        let result = match cached.as_ref() {
+            Some(config_data) => eval(
                 config_data.data.default_configs.clone(),
                 &config_data.data.contexts,
                 &config_data.data.overrides,
@@ -570,11 +630,19 @@ impl LocalResolutionProvider {
                 MergeStrategy::MERGE,
                 prefix_filter,
                 exclude_prefix_filter,
-            )),
-            None => Err(SuperpositionError::ProviderError(
-                "Provider not initialized: no cached config available".into(),
-            )),
+            ),
+            None => {
+                return Err(SuperpositionError::ProviderError(
+                    "Provider not initialized: no cached config available".into(),
+                ))
+            }
+        };
+
+        if let Some(key) = cache_key {
+            self.with_eval_cache(|cache| cache.insert(key, result.clone()));
         }
+
+        Ok(result)
     }
 }
 
@@ -828,5 +896,116 @@ impl SuperpositionDataSource for LocalResolutionProvider {
 
     async fn close(&self) -> Result<()> {
         self.close_provider().await
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::data_source::file::FileDataSource;
+
+    const CONFIG_V1: &str = r#"
+[default-configs]
+timeout = { value = 30, schema = { type = "integer" } }
+
+[dimensions]
+variantIds = { position = 0, schema = { pattern = ".*", type = "string" }, type = "REGULAR" }
+"#;
+
+    const CONFIG_V2: &str = r#"
+[default-configs]
+timeout = { value = 60, schema = { type = "integer" } }
+
+[dimensions]
+variantIds = { position = 0, schema = { pattern = ".*", type = "string" }, type = "REGULAR" }
+"#;
+
+    fn temp_config_file(tag: &str, contents: &str) -> std::path::PathBuf {
+        let path = std::env::temp_dir().join(format!(
+            "superposition-eval-cache-{}-{}.toml",
+            std::process::id(),
+            tag
+        ));
+        std::fs::write(&path, contents).unwrap();
+        path
+    }
+
+    fn provider_for(
+        path: std::path::PathBuf,
+        opts: Option<EvaluationCacheOptions>,
+    ) -> LocalResolutionProvider {
+        LocalResolutionProvider::new(
+            Box::new(FileDataSource::new(path).unwrap()),
+            None,
+            RefreshStrategy::Manual,
+            opts,
+        )
+    }
+
+    fn entry_count(provider: &LocalResolutionProvider) -> usize {
+        provider
+            .with_eval_cache(|cache| cache.cached_entry_count())
+            .unwrap_or(0)
+    }
+
+    async fn resolve(provider: &LocalResolutionProvider) -> Map<String, Value> {
+        provider
+            .eval_with_context(EvaluationContext::default(), None, None)
+            .await
+            .unwrap()
+    }
+
+    #[tokio::test]
+    async fn repeated_evaluations_are_cached() {
+        let path = temp_config_file("hit", CONFIG_V1);
+        let provider = provider_for(path.clone(), Some(EvaluationCacheOptions::new(4)));
+        provider.init(EvaluationContext::default()).await.unwrap();
+
+        let first = resolve(&provider).await;
+        assert_eq!(entry_count(&provider), 1);
+
+        let second = resolve(&provider).await;
+        assert_eq!(first, second);
+        // Served from the cache: still a single entry, no re-evaluation.
+        assert_eq!(entry_count(&provider), 1);
+
+        std::fs::remove_file(path).ok();
+    }
+
+    #[tokio::test]
+    async fn refresh_makes_stale_resolutions_unreachable() {
+        let path = temp_config_file("stale", CONFIG_V1);
+        let provider = provider_for(path.clone(), Some(EvaluationCacheOptions::new(4)));
+        provider.init(EvaluationContext::default()).await.unwrap();
+
+        let first = resolve(&provider).await;
+        assert_eq!(first.get("timeout"), Some(&Value::from(30)));
+
+        // The source changes and the provider reloads it.
+        std::fs::write(&path, CONFIG_V2).unwrap();
+        provider.refresh().await.unwrap();
+
+        let second = resolve(&provider).await;
+        assert_eq!(second.get("timeout"), Some(&Value::from(60)));
+
+        // New version -> new entry; further identical queries hit it again.
+        let third = resolve(&provider).await;
+        assert_eq!(second, third);
+        assert_eq!(entry_count(&provider), 2);
+
+        std::fs::remove_file(path).ok();
+    }
+
+    #[tokio::test]
+    async fn caching_is_off_without_options() {
+        let path = temp_config_file("off", CONFIG_V1);
+        let provider = provider_for(path.clone(), None);
+        provider.init(EvaluationContext::default()).await.unwrap();
+
+        resolve(&provider).await;
+        resolve(&provider).await;
+        assert_eq!(entry_count(&provider), 0);
+
+        std::fs::remove_file(path).ok();
     }
 }

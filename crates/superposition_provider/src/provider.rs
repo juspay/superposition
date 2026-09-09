@@ -1,4 +1,7 @@
-use std::{collections::HashMap, sync::Arc};
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex},
+};
 
 use async_trait::async_trait;
 use log::{error, info};
@@ -9,6 +12,8 @@ use open_feature::{
     StructValue,
 };
 use serde_json::{Map, Value};
+use superposition_core::eval_cache::{pairs_from_json_map, EvaluationCache};
+use superposition_core::MergeStrategy;
 use superposition_types::{Config, ConfigFilter, DimensionInfo, PrefixList};
 use tokio::sync::RwLock;
 
@@ -24,6 +29,7 @@ pub struct SuperpositionProvider {
     status: Arc<RwLock<ProviderStatus>>,
     cac_config: Option<CacConfig>,
     exp_config: Option<ExperimentationConfig>,
+    evaluation_cache: Arc<Mutex<EvaluationCache>>,
 }
 impl SuperpositionProvider {
     pub fn new(provider_options: SuperpositionProviderOptions) -> Self {
@@ -53,6 +59,13 @@ impl SuperpositionProvider {
                     )
                 });
 
+        let evaluation_cache = EvaluationCache::new(
+            provider_options
+                .evaluation_cache_options
+                .map(|o| o.max_size_mb)
+                .unwrap_or(0),
+        );
+
         Self {
             metadata: ProviderMetadata {
                 name: "SuperpositionProvider".to_string(),
@@ -60,7 +73,17 @@ impl SuperpositionProvider {
             status: Arc::new(RwLock::new(ProviderStatus::NotReady)),
             cac_config: Some(cac_config),
             exp_config,
+            evaluation_cache: Arc::new(Mutex::new(evaluation_cache)),
         }
+    }
+
+    /// Runs `f` with the evaluation cache locked; a poisoned lock disables
+    /// caching for the call rather than failing the resolution.
+    fn with_eval_cache<T>(&self, f: impl FnOnce(&mut EvaluationCache) -> T) -> Option<T> {
+        self.evaluation_cache
+            .lock()
+            .ok()
+            .map(|mut cache| f(&mut cache))
     }
 
     async fn get_dimensions_info(&self) -> HashMap<String, DimensionInfo> {
@@ -116,6 +139,33 @@ impl SuperpositionProvider {
         let (mut context, targeting_key) =
             conversions::evaluation_context_to_query(evaluation_context.clone());
 
+        // Key the evaluation by the current data generations: any config or
+        // experiment refresh changes them, so stale entries become unreachable.
+        let data_version = (
+            self.cac_config.as_ref().map_or(0, |c| c.generation()),
+            self.exp_config.as_ref().map_or(0, |c| c.generation()),
+        );
+        let cache_key = self
+            .with_eval_cache(|cache| {
+                cache.is_enabled().then(|| {
+                    EvaluationCache::key(
+                        data_version,
+                        &pairs_from_json_map(&context),
+                        MergeStrategy::MERGE,
+                        None,
+                        None,
+                        targeting_key.as_deref(),
+                    )
+                })
+            })
+            .flatten();
+
+        if let Some(hit) =
+            cache_key.and_then(|key| self.with_eval_cache(|c| c.get(&key)).flatten())
+        {
+            return Ok(hit);
+        }
+
         // Dimensions are only needed to resolve experiment variants, so avoid
         // fetching (and cloning) them entirely when experimentation is off.
         let variant_ids = if let Some(exp_config) = &self.exp_config {
@@ -132,12 +182,20 @@ impl SuperpositionProvider {
             Value::Array(variant_ids.into_iter().map(Value::String).collect()),
         );
 
-        match &self.cac_config {
-            Some(cac_config) => cac_config.evaluate_config(context, None, None).await,
-            None => Err(SuperpositionError::ConfigError(
-                "CAC config not initialized".into(),
-            )),
+        let result = match &self.cac_config {
+            Some(cac_config) => cac_config.evaluate_config(context, None, None).await?,
+            None => {
+                return Err(SuperpositionError::ConfigError(
+                    "CAC config not initialized".into(),
+                ))
+            }
+        };
+
+        if let Some(key) = cache_key {
+            self.with_eval_cache(|cache| cache.insert(key, result.clone()));
         }
+
+        Ok(result)
     }
 
     pub async fn get_cached_config(

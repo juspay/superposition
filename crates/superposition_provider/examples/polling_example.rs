@@ -65,6 +65,7 @@ async fn main() {
         RefreshStrategy::Polling(
             PollingStrategy::new(poll_interval_ms).with_timeout(10_000),
         ),
+        None,
     );
 
     // Register with OpenFeature and create a client

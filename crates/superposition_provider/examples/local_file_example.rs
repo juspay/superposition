@@ -3,7 +3,8 @@ use std::path::PathBuf;
 use open_feature::EvaluationContext;
 use superposition_provider::{
     data_source::file::FileDataSource, local_provider::LocalResolutionProvider,
-    traits::AllFeatureProvider, OnDemandStrategy, RefreshStrategy,
+    traits::AllFeatureProvider, EvaluationCacheOptions, OnDemandStrategy,
+    RefreshStrategy,
 };
 
 #[tokio::main]
@@ -18,6 +19,7 @@ async fn main() {
         Box::new(file_source),
         None,
         RefreshStrategy::OnDemand(OnDemandStrategy::new(60_000)),
+        Some(EvaluationCacheOptions::new(16)),
     );
     provider.init(EvaluationContext::default()).await.unwrap();
 

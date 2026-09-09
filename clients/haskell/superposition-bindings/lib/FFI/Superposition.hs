@@ -11,6 +11,7 @@ module FFI.Superposition
     -- ProviderCache API
     ProviderCacheHandle,
     newProviderCache,
+    newProviderCacheWithEvalCache,
     freeProviderCache,
     initConfig,
     initExperiments,
@@ -26,6 +27,7 @@ import           Data.Maybe         (fromMaybe)
 import           Data.Text          (unpack)
 import qualified Data.Text          as T
 import           Data.Text.Encoding (decodeUtf8')
+import           Data.Word          (Word64)
 import           Foreign            (callocBytes, nullPtr)
 import           Foreign.C.String   (CString, newCString, peekCAString)
 import           Foreign.ForeignPtr (newForeignPtr, withForeignPtr)
@@ -41,6 +43,9 @@ type ProviderCacheHandle = Ptr ProviderCacheOpaque
 
 foreign import capi "superposition_core.h core_provider_cache_new"
   provider_cache_new :: IO ProviderCacheHandle
+
+foreign import capi "superposition_core.h core_provider_cache_new_with_eval_cache"
+  provider_cache_new_with_eval_cache :: Word64 -> IO ProviderCacheHandle
 
 foreign import capi "superposition_core.h core_provider_cache_free"
   provider_cache_free :: ProviderCacheHandle -> IO ()
@@ -129,6 +134,13 @@ instance Show MergeStrategy where
 -- | Create a new ProviderCache handle.
 newProviderCache :: IO ProviderCacheHandle
 newProviderCache = provider_cache_new
+
+-- | Create a new ProviderCache handle that memoizes repeated eval_config
+-- queries in an in-process LRU cache. The argument is the approximate memory
+-- budget for cached evaluations, in megabytes; 0 disables caching. The cache
+-- is emptied whenever config or experiment data is (re)initialised.
+newProviderCacheWithEvalCache :: Word64 -> IO ProviderCacheHandle
+newProviderCacheWithEvalCache = provider_cache_new_with_eval_cache
 
 -- | Free a ProviderCache handle.
 freeProviderCache :: ProviderCacheHandle -> IO ()

@@ -524,6 +524,8 @@ def _uniffi_check_api_checksums(lib):
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_superposition_core_checksum_constructor_providercache_new() != 32331:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    if lib.uniffi_superposition_core_checksum_constructor_providercache_new_with_evaluation_cache() != 7868:
+        raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
 
 # A ctypes library to expose the extern-C FFI definitions.
 # This is an implementation detail which will be called internally by the public API.
@@ -644,6 +646,11 @@ _UniffiLib.uniffi_superposition_core_fn_constructor_providercache_new.argtypes =
     ctypes.POINTER(_UniffiRustCallStatus),
 )
 _UniffiLib.uniffi_superposition_core_fn_constructor_providercache_new.restype = ctypes.c_void_p
+_UniffiLib.uniffi_superposition_core_fn_constructor_providercache_new_with_evaluation_cache.argtypes = (
+    ctypes.c_int64,
+    ctypes.POINTER(_UniffiRustCallStatus),
+)
+_UniffiLib.uniffi_superposition_core_fn_constructor_providercache_new_with_evaluation_cache.restype = ctypes.c_void_p
 _UniffiLib.uniffi_superposition_core_fn_method_providercache_eval_config.argtypes = (
     ctypes.c_void_p,
     _UniffiRustBuffer,
@@ -1054,6 +1061,9 @@ _UniffiLib.uniffi_superposition_core_checksum_method_providercache_init_experime
 _UniffiLib.uniffi_superposition_core_checksum_constructor_providercache_new.argtypes = (
 )
 _UniffiLib.uniffi_superposition_core_checksum_constructor_providercache_new.restype = ctypes.c_uint16
+_UniffiLib.uniffi_superposition_core_checksum_constructor_providercache_new_with_evaluation_cache.argtypes = (
+)
+_UniffiLib.uniffi_superposition_core_checksum_constructor_providercache_new_with_evaluation_cache.restype = ctypes.c_uint16
 _UniffiLib.ffi_superposition_core_uniffi_contract_version.argtypes = (
 )
 _UniffiLib.ffi_superposition_core_uniffi_contract_version.restype = ctypes.c_uint32
@@ -1076,6 +1086,19 @@ class _UniffiConverterUInt8(_UniffiConverterPrimitiveInt):
     @staticmethod
     def write(value, buf):
         buf.write_u8(value)
+
+class _UniffiConverterInt64(_UniffiConverterPrimitiveInt):
+    CLASS_NAME = "i64"
+    VALUE_MIN = -2**63
+    VALUE_MAX = 2**63
+
+    @staticmethod
+    def read(buf):
+        return buf.read_i64()
+
+    @staticmethod
+    def write(value, buf):
+        buf.write_i64(value)
 
 class _UniffiConverterBool:
     @classmethod
@@ -1808,6 +1831,29 @@ class ProviderCache():
         inst = cls.__new__(cls)
         inst._pointer = pointer
         return inst
+    @classmethod
+    def new_with_evaluation_cache(cls, max_size_mb: "int"):
+        """
+        Creates a provider cache that memoizes repeated `eval_config` queries in
+        an in-process LRU cache.
+
+        * `max_size_mb` — approximate memory budget for cached evaluations, in
+        megabytes. Non-positive values disable caching. The cache is emptied
+        whenever new config or experiment data is loaded via `init_config` /
+        `init_experiments`.
+
+        Signed `i64` rather than `u64` so the generated Kotlin binding stays
+        callable from Java (unsigned types are mangled inline classes on the
+        JVM).
+        """
+
+        _UniffiConverterInt64.check_lower(max_size_mb)
+        
+        # Call the (fallible) function before creating any half-baked object instances.
+        pointer = _uniffi_rust_call(_UniffiLib.uniffi_superposition_core_fn_constructor_providercache_new_with_evaluation_cache,
+        _UniffiConverterInt64.lower(max_size_mb))
+        return cls._make_instance_(pointer)
+
 
 
     def eval_config(self, query_data: "dict[str, str]",merge_strategy: "MergeStrategy",filter_prefixes: "typing.Optional[typing.List[str]]",filter_exclude_prefixes: "typing.Optional[typing.List[str]]",targeting_key: "typing.Optional[str]") -> "dict[str, str]":

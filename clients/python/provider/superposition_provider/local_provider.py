@@ -26,7 +26,7 @@ from superposition_bindings.superposition_types import MergeStrategy
 from . import FetchResponse
 from .data_source import SuperpositionDataSource, ConfigData, ExperimentData
 from .interfaces import AllFeatureProvider, FeatureExperimentMeta
-from .types import RefreshStrategy, OnDemandStrategy, WatchStrategy, PollingStrategy, ManualStrategy, default_on_demand_strategy
+from .types import RefreshStrategy, OnDemandStrategy, WatchStrategy, PollingStrategy, ManualStrategy, default_on_demand_strategy, EvaluationCacheOptions
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +45,7 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
         primary_source: SuperpositionDataSource,
         fallback_source: Optional[SuperpositionDataSource] = None,
         refresh_strategy: RefreshStrategy = default_on_demand_strategy(),
+        evaluation_cache_options: Optional[EvaluationCacheOptions] = None,
     ):
         """Initialize local resolution provider.
 
@@ -52,10 +53,13 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
             primary_source: Primary data source for config/experiments.
             fallback_source: Optional fallback data source.
             refresh_strategy: How often to refresh data.
+            evaluation_cache_options: Optional FFI evaluation cache settings.
+                `size` is the memory budget in MB; unset/None disables caching.
         """
         self.primary_source = primary_source
         self.fallback_source = fallback_source
         self.refresh_strategy = refresh_strategy
+        self.evaluation_cache_options = evaluation_cache_options
 
         self.metadata = Metadata(name="LocalResolutionProvider")
         self.status = ProviderStatus.NOT_READY
@@ -82,8 +86,13 @@ class LocalResolutionProvider(AbstractProvider, AllFeatureProvider, FeatureExper
             self.status = ProviderStatus.NOT_READY
             self.global_context = context
 
-            # Create FFI cache
-            self.ffi_cache = ProviderCache()
+            # Create FFI cache (with evaluation cache if a budget is configured)
+            eval_opts = self.evaluation_cache_options
+            if eval_opts and eval_opts.size:
+                self.ffi_cache = ProviderCache.new_with_evaluation_cache(eval_opts.size)
+                logger.info(f"Created ProviderCache with evaluation cache ({eval_opts.size} MB)")
+            else:
+                self.ffi_cache = ProviderCache()
 
             # Fetch initial config (required)
             await self._fetch_and_cache_config(init=True)

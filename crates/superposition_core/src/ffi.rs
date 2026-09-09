@@ -8,6 +8,7 @@ use superposition_types::{
 };
 use thiserror::Error;
 
+use crate::eval_cache::{pairs_from_string_map, EvaluationCache};
 use crate::experiment::{
     filter_experiments_by_context, get_satisfied_experiments, ExperimentConfig,
 };
@@ -250,11 +251,24 @@ fn ffi_parse_config_file_with_filters(
 pub struct CacheData {
     pub config: Config,
     pub experiment: Option<ExperimentConfig>,
+    /// LRU cache of `eval_config` results; disabled by default (`0` MB budget).
+    pub(crate) evaluation_cache: EvaluationCache,
 }
 
 #[derive(uniffi::Object, Default)]
 pub struct ProviderCache {
     pub(crate) data: Mutex<CacheData>,
+}
+
+impl ProviderCache {
+    pub(crate) fn with_evaluation_cache(max_size_mb: u64) -> Self {
+        ProviderCache {
+            data: Mutex::new(CacheData {
+                evaluation_cache: EvaluationCache::new(max_size_mb),
+                ..CacheData::default()
+            }),
+        }
+    }
 }
 
 impl Drop for ProviderCache {
@@ -271,8 +285,26 @@ impl ProviderCache {
             data: Mutex::new(CacheData {
                 config: Config::default(),
                 experiment: None,
+                evaluation_cache: EvaluationCache::default(),
             }),
         })
+    }
+
+    /// Creates a provider cache that memoizes repeated `eval_config` queries in
+    /// an in-process LRU cache.
+    ///
+    /// * `max_size_mb` — approximate memory budget for cached evaluations, in
+    ///   megabytes. Non-positive values disable caching. The cache is emptied
+    ///   whenever new config or experiment data is loaded via `init_config` /
+    ///   `init_experiments`.
+    ///
+    /// Signed `i64` rather than `u64` so the generated Kotlin binding stays
+    /// callable from Java (unsigned types are mangled inline classes on the
+    /// JVM).
+    #[uniffi::constructor]
+    pub fn new_with_evaluation_cache(max_size_mb: i64) -> Arc<Self> {
+        let max_size_mb = u64::try_from(max_size_mb).unwrap_or(0);
+        Arc::new(Self::with_evaluation_cache(max_size_mb))
     }
 
     pub fn init_config(
@@ -288,6 +320,7 @@ impl ProviderCache {
             OperationError::Unexpected(format!("Failed to acquire cache lock: {}", err))
         })?;
 
+        cache_data.evaluation_cache.clear();
         cache_data.config.default_configs = default_config_map.into();
         cache_data.config.contexts = contexts;
         cache_data.config.overrides = overrides;
@@ -305,6 +338,7 @@ impl ProviderCache {
             OperationError::Unexpected(format!("Failed to acquire cache lock: {}", err))
         })?;
 
+        cache_data.evaluation_cache.clear();
         cache_data.experiment = Some(ExperimentConfig {
             experiments,
             experiment_groups,
@@ -321,9 +355,28 @@ impl ProviderCache {
         filter_exclude_prefixes: Option<Vec<String>>,
         targeting_key: Option<String>,
     ) -> Result<HashMap<String, String>, OperationError> {
-        let cache_data = self.data.lock().map_err(|err| {
+        let mut cache_data = self.data.lock().map_err(|err| {
             OperationError::Unexpected(format!("Failed to acquire cache lock: {}", err))
         })?;
+
+        // Version (0, 0): this cache is explicitly cleared by init_config /
+        // init_experiments instead of being keyed by data generations.
+        let cache_key = cache_data.evaluation_cache.is_enabled().then(|| {
+            EvaluationCache::key(
+                (0, 0),
+                &pairs_from_string_map(&query_data),
+                merge_strategy,
+                filter_prefixes.as_deref(),
+                filter_exclude_prefixes.as_deref(),
+                targeting_key.as_deref(),
+            )
+        });
+
+        if let Some(key) = &cache_key {
+            if let Some(cached) = cache_data.evaluation_cache.get(key) {
+                return json_to_map(cached);
+            }
+        }
 
         let mut _q: Map<String, Value> = json_from_map(query_data)?;
 
@@ -355,6 +408,10 @@ impl ProviderCache {
             filter_prefixes,
             filter_exclude_prefixes,
         );
+
+        if let Some(key) = cache_key {
+            cache_data.evaluation_cache.insert(key, r.clone());
+        }
 
         json_to_map(r)
     }
@@ -480,5 +537,94 @@ impl ProviderCache {
         );
 
         Ok(variants)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn cache_with_default(cache: &ProviderCache, timeout: &str) {
+        cache
+            .init_config(
+                HashMap::from([("timeout".to_string(), timeout.to_string())]),
+                vec![],
+                HashMap::new(),
+                HashMap::new(),
+            )
+            .expect("init_config");
+    }
+
+    fn eval_once(cache: &ProviderCache) -> HashMap<String, String> {
+        cache
+            .eval_config(HashMap::new(), MergeStrategy::MERGE, None, None, None)
+            .expect("eval_config")
+    }
+
+    #[test]
+    fn repeated_queries_hit_the_evaluation_cache() {
+        let cache = ProviderCache::new_with_evaluation_cache(1);
+        cache_with_default(&cache, "30");
+
+        let first = eval_once(&cache);
+        assert_eq!(
+            cache
+                .data
+                .lock()
+                .unwrap()
+                .evaluation_cache
+                .cached_entry_count(),
+            1
+        );
+
+        let second = eval_once(&cache);
+        assert_eq!(first, second);
+        assert_eq!(
+            cache
+                .data
+                .lock()
+                .unwrap()
+                .evaluation_cache
+                .cached_entry_count(),
+            1
+        );
+    }
+
+    #[test]
+    fn reinitializing_config_clears_stale_results() {
+        let cache = ProviderCache::new_with_evaluation_cache(1);
+        cache_with_default(&cache, "30");
+        let stale = eval_once(&cache);
+
+        cache_with_default(&cache, "60");
+        assert_eq!(
+            cache
+                .data
+                .lock()
+                .unwrap()
+                .evaluation_cache
+                .cached_entry_count(),
+            0
+        );
+
+        let fresh = eval_once(&cache);
+        assert_ne!(stale, fresh);
+        assert_eq!(fresh.get("timeout").map(String::as_str), Some("60"));
+    }
+
+    #[test]
+    fn default_constructor_keeps_caching_disabled() {
+        let cache = ProviderCache::new();
+        cache_with_default(&cache, "30");
+        eval_once(&cache);
+        assert_eq!(
+            cache
+                .data
+                .lock()
+                .unwrap()
+                .evaluation_cache
+                .cached_entry_count(),
+            0
+        );
     }
 }

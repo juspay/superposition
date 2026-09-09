@@ -56,7 +56,7 @@ async fn main() {
         org_id: "your_org_id".to_string(),
         workspace_id: "your_workspace_id".to_string(),
         fallback_config: None,
-        evaluation_cache: None,
+        evaluation_cache_options: None,
         refresh_strategy: RefreshStrategy::Polling(PollingStrategy {
             interval: 60, // Poll every 60 seconds
             timeout: Some(30)
@@ -124,13 +124,22 @@ let on_demand_strategy = RefreshStrategy::OnDemand(OnDemandStrategy {
 ```rust
 let cac_options = ConfigurationOptions {
     fallback_config: Some(fallback_map), // Optional fallback configuration
-    evaluation_cache: Some(EvaluationCacheOptions {
-        ttl: Some(60), // Cache evaluations for 1 minute
-        size: Some(500), // Maximum 500 cached evaluations
+    evaluation_cache_options: Some(EvaluationCacheOptions {
+        max_size_mb: 64, // LRU memoizes repeated resolutions, ~64MB budget; 0 disables
     }),
     refresh_strategy: RefreshStrategy::Polling(PollingStrategy::default()),
 };
 ```
+
+### Evaluation Cache
+
+Both `SuperpositionProvider` and `LocalResolutionProvider` can memoize
+repeated resolution queries in an in-process LRU cache. Pass
+`EvaluationCacheOptions` when constructing the provider (or use
+`SuperpositionProviderOptions::with_evaluation_cache(...)`) — the size is an
+approximate memory budget in **megabytes**. Entries are evicted
+least-recently-used when the budget is reached, and any config or experiment
+refresh invalidates previously cached resolutions.
 
 ## Advanced Usage
 

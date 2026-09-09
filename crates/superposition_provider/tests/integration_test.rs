@@ -2,8 +2,8 @@ use open_feature::{provider::FeatureProvider, EvaluationContext, OpenFeature};
 use serde_json::Value;
 use superposition_provider::{
     data_source::{file::FileDataSource, http::HttpDataSource},
-    AllFeatureProvider, AuthMethod, LocalResolutionProvider, PollingStrategy,
-    RefreshStrategy, SuperpositionAPIProvider, SuperpositionOptions,
+    AllFeatureProvider, AuthMethod, EvaluationCacheOptions, LocalResolutionProvider,
+    PollingStrategy, RefreshStrategy, SuperpositionAPIProvider, SuperpositionOptions,
 };
 use superposition_sdk::{
     types::{ContextPut, DimensionType, Variant, WorkspaceStatus},
@@ -401,6 +401,7 @@ async fn run_provider_tests(org_id: &str, workspace_id: &str) {
             Box::new(primary_source),
             None,
             refresh_strategy.clone(),
+            Some(EvaluationCacheOptions::new(4)),
         );
 
         // Test 0: Verify provider clone works (sanity check)
@@ -807,6 +808,7 @@ async fn run_provider_tests(org_id: &str, workspace_id: &str) {
             Box::new(HttpDataSource::new(wrong_http_options)),
             Some(Box::new(fallback_source)),
             refresh_strategy,
+            None,
         );
 
         // Set provider as the global provider
