@@ -7,7 +7,7 @@ use superposition_types::database::superposition_schema::superposition::organisa
 
 use crate::service::types::AppState;
 
-pub(super) fn fetch_org_ids_from_db(
+pub(crate) fn fetch_org_ids_from_db(
     req: &HttpRequest,
 ) -> Result<Vec<String>, &'static str> {
     let app_state = match req.app_data::<Data<AppState>>() {

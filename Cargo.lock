@@ -629,6 +629,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "authn_kit"
+version = "0.0.1"
+source = "git+ssh://git@github.com/ayushjain17/authn_kit.git?branch=main#671f4fca751e44cd0fdb9fdf5d4bcc53802c449b"
+dependencies = [
+ "actix-web",
+ "async-trait",
+ "base64 0.21.2",
+ "blake3",
+ "futures-util",
+ "log",
+ "openidconnect 4.0.1",
+ "reqwest 0.12.8",
+ "secrecy",
+ "serde",
+ "serde_json",
+ "strum_macros 0.25.3",
+ "subtle",
+ "thiserror 1.0.58",
+ "tokio",
+ "url",
+]
+
+[[package]]
 name = "auto_impl"
 version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6251,6 +6274,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "oauth2"
+version = "5.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "51e219e79014df21a225b1860a479e2dcd7cbd9130f4defd4bd0e191ea31d67d"
+dependencies = [
+ "base64 0.22.1",
+ "chrono",
+ "getrandom 0.2.15",
+ "http 1.1.0",
+ "rand 0.8.5",
+ "reqwest 0.12.8",
+ "serde",
+ "serde_json",
+ "serde_path_to_error",
+ "sha2",
+ "thiserror 1.0.58",
+ "url",
+]
+
+[[package]]
 name = "object"
 version = "0.37.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6312,7 +6355,7 @@ dependencies = [
  "http 0.2.9",
  "itertools 0.10.5",
  "log",
- "oauth2",
+ "oauth2 4.4.2",
  "p256",
  "p384",
  "rand 0.8.5",
@@ -6320,6 +6363,37 @@ dependencies = [
  "serde",
  "serde-value",
  "serde_derive",
+ "serde_json",
+ "serde_path_to_error",
+ "serde_plain",
+ "serde_with",
+ "sha2",
+ "subtle",
+ "thiserror 1.0.58",
+ "url",
+]
+
+[[package]]
+name = "openidconnect"
+version = "4.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0d8c6709ba2ea764bbed26bce1adf3c10517113ddea6f2d4196e4851757ef2b2"
+dependencies = [
+ "base64 0.21.2",
+ "chrono",
+ "dyn-clone",
+ "ed25519-dalek",
+ "hmac",
+ "http 1.1.0",
+ "itertools 0.10.5",
+ "log",
+ "oauth2 5.0.0",
+ "p256",
+ "p384",
+ "rand 0.8.5",
+ "rsa",
+ "serde",
+ "serde-value",
  "serde_json",
  "serde_path_to_error",
  "serde_plain",
@@ -8548,6 +8622,7 @@ dependencies = [
  "aes-gcm",
  "anyhow",
  "async-trait",
+ "authn_kit",
  "aws-config",
  "aws-sdk-kms",
  "base64 0.21.2",
@@ -8565,7 +8640,7 @@ dependencies = [
  "kronos-worker",
  "log",
  "once_cell",
- "openidconnect",
+ "openidconnect 3.5.0",
  "opentelemetry 0.32.0",
  "opentelemetry-instrumentation-actix-web",
  "opentelemetry-otlp 0.32.0",

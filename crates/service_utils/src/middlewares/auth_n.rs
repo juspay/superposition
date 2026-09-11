@@ -1,5 +1,5 @@
 mod authentication;
-mod helpers;
+pub(crate) mod helpers;
 mod no_auth;
 mod oidc;
 
@@ -252,12 +252,18 @@ impl AuthNHandler {
         routes(self.clone())
     }
 
+    /// Builds the legacy authenticator for `auth_provider`.
+    ///
+    /// The provider is now a parameter rather than read from the environment
+    /// here, so the caller can construct an inert `DISABLED` handler when this
+    /// stack is not the active one — otherwise merely constructing it would run
+    /// OIDC discovery for a middleware that is never invoked.
     pub async fn init(
         kms_client: &Option<SecretProviderClient>,
         app_env: &AppEnv,
         path_prefix: String,
+        auth_provider: &str,
     ) -> Self {
-        let auth_provider: String = get_from_env_unsafe("AUTH_PROVIDER").unwrap();
         let mut auth = auth_provider.split('+');
 
         let ap: Arc<dyn Authenticator> = match auth.next() {

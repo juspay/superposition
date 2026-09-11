@@ -3,6 +3,7 @@
 // when compiling tests.
 #[cfg(test)]
 use opentelemetry_otlp as _;
+pub mod auth;
 pub mod db;
 pub mod encryption;
 pub mod extensions;

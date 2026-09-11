@@ -24,6 +24,7 @@ use json_subscriber::fmt;
 use leptos::*;
 use leptos_actix::{LeptosRoutes, generate_route_list};
 use service_utils::{
+    auth::{self, AuthProvider, AuthnSettings},
     helpers::{get_from_env_or_default, get_from_env_unsafe},
     kms,
     middlewares::{
@@ -232,7 +233,53 @@ async fn main() -> Result<()> {
         .unwrap_or_else(|| SdkMeterProvider::builder().build());
     let metrics_middleware = build_request_metrics_middleware(&metrics_provider);
 
-    let auth_n = AuthNHandler::init(&kms_client, &app_env, base.clone()).await;
+    // Authentication runs on `authn_kit` for DISABLED and OIDC. `OIDC_SAAS` has
+    // no equivalent there (per-organisation issuers), so it is still served by
+    // the legacy middleware. Exactly one of the two is active, selected by
+    // `Condition`; the inactive one is constructed but never invoked.
+    let raw_auth_provider: String = get_from_env_unsafe("AUTH_PROVIDER")
+        .unwrap_or_else(|e| panic!("AUTH_PROVIDER is not set: {e}"));
+    let auth_provider =
+        AuthProvider::parse(&raw_auth_provider).unwrap_or_else(|e| panic!("{e}"));
+    let legacy_saas = auth_provider.is_legacy_saas();
+    log::info!("authentication provider: {auth_provider:?}");
+
+    // Constructed either way so `Condition` has something to wrap, but given an
+    // inert `DISABLED` configuration when it is not the active stack, so it
+    // performs no discovery.
+    let legacy_auth_n = AuthNHandler::init(
+        &kms_client,
+        &app_env,
+        base.clone(),
+        if legacy_saas {
+            raw_auth_provider.as_str()
+        } else {
+            "DISABLED"
+        },
+    )
+    .await;
+
+    let authn = auth::setup::build(
+        if legacy_saas {
+            &AuthProvider::Disabled
+        } else {
+            &auth_provider
+        },
+        AuthnSettings {
+            path_prefix: base.clone(),
+            exclusions: app_state.tenant_middleware_exclusion_list.clone(),
+            superposition_token: app_state.superposition_token.clone(),
+            dispatch_token: app_state.kronos_dispatch_token.clone(),
+            secure_cookies: get_from_env_or_default("AUTH_SECURE_COOKIES", true),
+        },
+        &kms_client,
+        &app_env,
+    )
+    .await
+    .unwrap_or_else(|e| panic!("failed to build authentication: {e}"));
+    let authn_middleware = authn.middleware;
+    let authn_routes = authn.routes;
+
     let auth_z = AuthZHandler::init(&kms_client, &app_env).await;
     let auth_z_manager = AuthZManager::init(&kms_client, &app_env).await;
 
@@ -241,6 +288,16 @@ async fn main() -> Result<()> {
         let leptos_options = &conf.leptos_options;
         let site_root = &leptos_options.site_root;
         let leptos_envs = ui_envs.clone();
+        // The login callback and organisation routes come from whichever stack
+        // is active. Registering both would give two handlers for the same path.
+        let (auth_login_routes, auth_org_routes) = if legacy_saas {
+            (legacy_auth_n.routes(), legacy_auth_n.org_routes())
+        } else {
+            (
+                auth::oidc_routes(authn_routes.clone()),
+                auth::org_routes(authn_routes.clone()),
+            )
+        };
         App::new()
             .app_data(app_state.clone())
             .app_data(Data::new(reload_handle.clone()))
@@ -295,8 +352,8 @@ async fn main() -> Result<()> {
                             }
                         }),
                     )
-                    .service(auth_n.routes())
-                    .service(auth_n.org_routes())
+                    .service(auth_login_routes)
+                    .service(auth_org_routes)
                     .service(web::redirect("", ui_redirect_path.to_string()))
                     .service(web::redirect("/", ui_redirect_path.to_string()))
                     .service(web::redirect("/admin", ui_redirect_path.to_string()))
@@ -333,7 +390,10 @@ async fn main() -> Result<()> {
             // Auth middlewares are innermost so outer middlewares still run on auth failures.
             // Note: in actix-web, the last `.wrap()` runs first on requests.
             .wrap(auth_z.clone())
-            .wrap(auth_n.clone())
+            // Exactly one of these is active. `Condition::new(false, ..)` passes
+            // the request straight through, so the inactive stack costs nothing.
+            .wrap(Condition::new(legacy_saas, legacy_auth_n.clone()))
+            .wrap(Condition::new(!legacy_saas, authn_middleware.clone()))
             .wrap(
                 actix_web::middleware::DefaultHeaders::new()
                     .add(("X-SERVER-VERSION", app_state.cac_version.to_string()))

@@ -9,6 +9,7 @@ rust-version.workspace = true
 
 [dependencies]
 actix-web = { workspace = true }
+authn_kit = { workspace = true, features = ["actix", "full"] }
 aes-gcm = "0.10.3"
 anyhow = { workspace = true }
 async-trait = { workspace = true }
@@ -56,7 +57,7 @@ superposition_types = { workspace = true, features = [
 thiserror = { workspace = true }
 url = { workspace = true }
 urlencoding = "~2.1.2"
-uuid = {workspace = true}
+uuid = { workspace = true }
 vaultrs = { workspace = true }
 tracing-actix-web = { workspace = true }
 

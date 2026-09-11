@@ -43,6 +43,15 @@ assets-dir = "crates/frontend/assets"
 
 [workspace.dependencies]
 actix-http = "3.3.1"
+# authn_kit lives in a sibling repository: git@github.com:ayushjain17/authn_kit.git
+#
+# TEMPORARY: a path dependency, because the git dependency below cannot resolve
+# until the repository is pushed — cargo fetches the git source even when a
+# `[patch]` would override it. Once `authn_kit` is on GitHub, swap the two lines
+# and uncomment the `[patch]` block at the end of this file, which keeps local
+# edits in ../authn_kit applying without a push.
+# authn_kit = { path = "../authn_kit" }
+authn_kit = { git = "ssh://git@github.com/ayushjain17/authn_kit.git", branch = "main" }
 actix-web = "4.5.0"
 anyhow = "1.0.75"
 async-trait = "0.1.89"
@@ -74,17 +83,32 @@ jsonschema = "~0.17"
 leptos = { version = "0.6.11" }
 log = { version = "0.4.20", features = ["kv_unstable_serde"] }
 once_cell = { version = "1.18.0" }
-opentelemetry = { version = "0.32", default-features = false, features = ["metrics"] }
-opentelemetry_sdk = { version = "0.32", default-features = false, features = ["metrics", "rt-tokio"] }
+opentelemetry = { version = "0.32", default-features = false, features = [
+    "metrics",
+] }
+opentelemetry_sdk = { version = "0.32", default-features = false, features = [
+    "metrics",
+    "rt-tokio",
+] }
 opentelemetry-prometheus = { version = "0.32", default-features = false }
-opentelemetry-otlp = { version = "0.32", default-features = false, features = ["metrics", "http-proto", "reqwest-client"] }
-opentelemetry-instrumentation-actix-web = { version = "0.24", default-features = false, features = ["metrics"] }
+opentelemetry-otlp = { version = "0.32", default-features = false, features = [
+    "metrics",
+    "http-proto",
+    "reqwest-client",
+] }
+opentelemetry-instrumentation-actix-web = { version = "0.24", default-features = false, features = [
+    "metrics",
+] }
 prometheus = { version = "0.14", default-features = false }
 regex = "1.9.1"
 reqwest = { version = "0.11.18", features = ["json"] }
 rs-snowflake = "0.6.0"
 rustls = "0.23"
-rustyscript = { version = "0.12.3", default-features = false, features = ["safe_extensions", "web", "worker"] }
+rustyscript = { version = "0.12.3", default-features = false, features = [
+    "safe_extensions",
+    "web",
+    "worker",
+] }
 serde = { version = "=1.0.221", features = ["derive"] }
 serde_json = { version = "1.0.140" }
 secrecy = "0.10"
@@ -103,7 +127,9 @@ tracing-actix-web = "0.7.21"
 url = "2.5.0"
 uuid = { version = "1.20.0", features = ["v4", "serde", "js"] }
 uniffi = { version = "0.29.3", features = ["cli"] }
-vaultrs = { version = "0.8.0", default-features = false, features = ["native-tls"] }
+vaultrs = { version = "0.8.0", default-features = false, features = [
+    "native-tls",
+] }
 kronos-worker = { git = "https://github.com/juspay/kronos.git", tag = "v0.1.0" }
 kronos-common = { git = "https://github.com/juspay/kronos.git", tag = "v0.1.0" }
 superposition = { path = "crates/superposition", version = "0.118.0" }
@@ -118,3 +144,10 @@ service_utils = { path = "crates/service_utils", version = "0.118.0" }
 [workspace.lints.clippy]
 mod_module_files = "warn"
 manual_range_contains = "allow"
+
+# Enable together with the git dependency above, once the repository is pushed.
+# Keeps edits in the sibling checkout applying immediately, without a
+# commit-and-push cycle. Remove it to build strictly against the pinned revision.
+#
+# [patch."ssh://git@github.com/ayushjain17/authn_kit.git"]
+# authn_kit = { path = "../authn_kit" }
