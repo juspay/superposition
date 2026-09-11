@@ -779,6 +779,8 @@ internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
 
 
 
+
+
 // For large crates we prevent `MethodTooLargeException` (see #2340)
 // N.B. the name of the extension is very misleading, since it is 
 // rather `InterfaceTooLargeException`, caused by too many methods 
@@ -819,6 +821,8 @@ fun uniffi_superposition_core_checksum_method_providercache_init_config(
 fun uniffi_superposition_core_checksum_method_providercache_init_experiments(
 ): Short
 fun uniffi_superposition_core_checksum_constructor_providercache_new(
+): Short
+fun uniffi_superposition_core_checksum_constructor_providercache_new_with_evaluation_cache(
 ): Short
 fun ffi_superposition_core_uniffi_contract_version(
 ): Int
@@ -875,6 +879,8 @@ internal interface UniffiLib : Library {
 fun uniffi_superposition_core_fn_free_providercache(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
 ): Unit
 fun uniffi_superposition_core_fn_constructor_providercache_new(uniffi_out_err: UniffiRustCallStatus, 
+): Pointer
+fun uniffi_superposition_core_fn_constructor_providercache_new_with_evaluation_cache(`maxEntries`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Pointer
 fun uniffi_superposition_core_fn_method_providercache_eval_config(`ptr`: Pointer,`queryData`: RustBuffer.ByValue,`mergeStrategy`: RustBufferMergeStrategy.ByValue,`filterPrefixes`: RustBuffer.ByValue,`filterExcludePrefixes`: RustBuffer.ByValue,`targetingKey`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
@@ -1065,6 +1071,9 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if (lib.uniffi_superposition_core_checksum_constructor_providercache_new() != 32331.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_superposition_core_checksum_constructor_providercache_new_with_evaluation_cache() != 19040.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
 }
 
 /**
@@ -1228,6 +1237,29 @@ public object FfiConverterUByte: FfiConverter<UByte, Byte> {
 
     override fun write(value: UByte, buf: ByteBuffer) {
         buf.put(value.toByte())
+    }
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterLong: FfiConverter<Long, Long> {
+    override fun lift(value: Long): Long {
+        return value
+    }
+
+    override fun read(buf: ByteBuffer): Long {
+        return buf.getLong()
+    }
+
+    override fun lower(value: Long): Long {
+        return value
+    }
+
+    override fun allocationSize(value: Long) = 8UL
+
+    override fun write(value: Long, buf: ByteBuffer) {
+        buf.putLong(value)
     }
 }
 
@@ -1410,6 +1442,11 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
 //
 
 
+/**
+ * FFI-owned provider state: the config and experiment data loaded from
+ * superposition that resolutions read from, plus a memoization cache for
+ * repeated `eval_config` queries.
+ */
 public interface ProviderCacheInterface {
     
     fun `evalConfig`(`queryData`: Map<kotlin.String, kotlin.String>, `mergeStrategy`: MergeStrategy, `filterPrefixes`: List<kotlin.String>?, `filterExcludePrefixes`: List<kotlin.String>?, `targetingKey`: kotlin.String?): Map<kotlin.String, kotlin.String>
@@ -1427,6 +1464,11 @@ public interface ProviderCacheInterface {
     companion object
 }
 
+/**
+ * FFI-owned provider state: the config and experiment data loaded from
+ * superposition that resolutions read from, plus a memoization cache for
+ * repeated `eval_config` queries.
+ */
 open class ProviderCache: Disposable, AutoCloseable, ProviderCacheInterface
 {
 
@@ -1595,8 +1637,31 @@ open class ProviderCache: Disposable, AutoCloseable, ProviderCacheInterface
     
 
     
+    companion object {
+        
+    /**
+     * Creates a provider cache that memoizes repeated `eval_config` queries in
+     * an in-process LRU cache.
+     *
+     * * `max_entries` — maximum number of cached resolutions. Non-positive
+     * values disable caching. The cache is emptied whenever new config or
+     * experiment data is loaded via `init_config` / `init_experiments`.
+     *
+     * Signed `i64` rather than `u64` so the generated Kotlin binding stays
+     * callable from Java (unsigned types are mangled inline classes on the
+     * JVM).
+     */ fun `newWithEvaluationCache`(`maxEntries`: kotlin.Long): ProviderCache {
+            return FfiConverterTypeProviderCache.lift(
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_superposition_core_fn_constructor_providercache_new_with_evaluation_cache(
+        FfiConverterLong.lower(`maxEntries`),_status)
+}
+    )
+    }
     
-    companion object
+
+        
+    }
     
 }
 

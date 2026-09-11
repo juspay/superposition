@@ -42,7 +42,6 @@ class ExperimentationConfig():
         self.cached_experiments = None
         self.cached_experiment_groups = None
         self.last_updated = None
-        self.evaluation_cache: Dict[str, Dict[str, Any]] = {}
         self._polling_task = None
 
     async def create_config(self) -> None:
@@ -221,18 +220,6 @@ class ExperimentationConfig():
 
         return self.cached_experiments
 
-    def _generate_cache_key(self, query_data: dict) -> str:
-        return json.dumps(query_data, sort_keys=True)
-
-    def _get_from_eval_cache(self, key: str) -> Optional[Any]:
-        self.evaluation_cache.get(key)
-
-    def _set_eval_cache(self, key: str, value: Any) -> None:
-        self.evaluation_cache[key] = value
-
-    def _clear_eval_cache(self) -> None:
-        self.evaluation_cache.clear()
-
     async def close(self):
         """
         Close the configuration client and clean up resources.
@@ -249,7 +236,6 @@ class ExperimentationConfig():
                     logger.debug("Polling task cancelled successfully")
 
             # Clear caches
-            self._clear_eval_cache()
             self.cached_experiments = None
             self.last_updated = None
 

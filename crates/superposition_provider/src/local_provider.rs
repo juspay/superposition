@@ -9,6 +9,7 @@ use open_feature::provider::{
 };
 use open_feature::{EvaluationContext, EvaluationResult, StructValue};
 use serde_json::{Map, Value};
+use superposition_core::eval_cache::{self, EvalCache};
 use superposition_core::experiment::{filter_experiments_by_context, FfiExperimentGroup};
 use superposition_core::{
     eval, get_applicable_variants, get_satisfied_experiments, MergeStrategy,
@@ -37,6 +38,8 @@ pub struct LocalResolutionProviderInner {
     metadata: ProviderMetadata,
     status: RwLock<ProviderStatus>,
     global_context: RwLock<EvaluationContext>,
+    /// LRU memoization of repeated resolutions; `None` disables caching.
+    evaluation_cache: RwLock<Option<EvalCache>>,
 }
 
 #[derive(Deref, DerefMut, Clone)]
@@ -48,6 +51,16 @@ impl LocalResolutionProvider {
         fallback: Option<Box<dyn SuperpositionDataSource>>,
         refresh_strategy: RefreshStrategy,
     ) -> Self {
+        Self::with_evaluation_cache(primary, fallback, refresh_strategy, None)
+    }
+
+    pub fn with_evaluation_cache(
+        primary: Box<dyn SuperpositionDataSource>,
+        fallback: Option<Box<dyn SuperpositionDataSource>>,
+        refresh_strategy: RefreshStrategy,
+        evaluation_cache_options: Option<EvaluationCacheOptions>,
+    ) -> Self {
+        let evaluation_cache = evaluation_cache_options.and_then(|o| o.build_cache());
         Self(Arc::new(LocalResolutionProviderInner {
             primary: Arc::from(primary),
             fallback: fallback.map(Arc::from),
@@ -62,7 +75,15 @@ impl LocalResolutionProvider {
             },
             status: RwLock::new(ProviderStatus::NotReady),
             global_context: RwLock::new(EvaluationContext::default()),
+            evaluation_cache: RwLock::new(evaluation_cache),
         }))
+    }
+
+    /// New config or experiment data invalidates every memoized resolution.
+    async fn clear_evaluation_cache(&self) {
+        if let Some(cache) = self.evaluation_cache.write().await.as_mut() {
+            cache.clear();
+        }
     }
 
     pub async fn init(&self, context: EvaluationContext) -> Result<()> {
@@ -164,6 +185,8 @@ impl LocalResolutionProvider {
             *self.experiments_checked_at.write().await = Some(Utc::now());
         }
 
+        self.clear_evaluation_cache().await;
+
         // Start refresh strategy
         match &self.refresh_strategy {
             RefreshStrategy::Polling(polling_strategy) => {
@@ -254,16 +277,11 @@ impl LocalResolutionProvider {
         }
 
         // Clear caches
-        {
-            let mut cached = self.cached_config.write().await;
-            *cached = None;
-        }
-        {
-            let mut cached = self.cached_experiments.write().await;
-            *cached = None;
-        }
+        *self.cached_config.write().await = None;
+        *self.cached_experiments.write().await = None;
         *self.config_checked_at.write().await = None;
         *self.experiments_checked_at.write().await = None;
+        self.clear_evaluation_cache().await;
 
         {
             let mut global_context = self.global_context.write().await;
@@ -361,6 +379,8 @@ impl LocalResolutionProvider {
                 Ok(FetchResponse::Data(data)) => {
                     let mut cached = self.cached_config.write().await;
                     *cached = Some(data);
+                    drop(cached);
+                    self.clear_evaluation_cache().await;
                     *self.config_checked_at.write().await = Some(Utc::now());
                     log::debug!("LocalResolutionProvider: config refreshed from primary");
                     Ok(())
@@ -400,6 +420,8 @@ impl LocalResolutionProvider {
                         let mut cached = self.cached_experiments.write().await;
                         if let Some(data) = exp_resp.into_data() {
                             *cached = Some(data);
+                            drop(cached);
+                            self.clear_evaluation_cache().await;
                         }
                         // Data or NotModified — both are a successful check, so the TTL restarts.
                         *self.experiments_checked_at.write().await = Some(Utc::now());
@@ -535,6 +557,29 @@ impl LocalResolutionProvider {
         self.ensure_fresh_data().await?;
 
         let (mut query_data, targeting_key) = self.get_merged_context(context).await;
+
+        // The cache key covers the pre-variant query, matching the FFI layer:
+        // variantIds derive deterministically from the same inputs.
+        let cache_key = {
+            let cache = self.evaluation_cache.read().await;
+            cache.as_ref().map(|_| {
+                eval_cache::key(
+                    &query_data,
+                    MergeStrategy::MERGE,
+                    prefix_filter.as_deref(),
+                    exclude_prefix_filter.as_deref(),
+                    targeting_key.as_deref(),
+                )
+            })
+        };
+
+        if let Some(key) = &cache_key {
+            let mut cache = self.evaluation_cache.write().await;
+            if let Some(cached) = cache.as_mut().and_then(|c| c.get(key)) {
+                return Ok(cached.clone());
+            }
+        }
+
         let dimensions_info = self.get_dimensions_info().await;
 
         // If experiments are cached, get applicable variants and inject variantIds
@@ -560,21 +605,29 @@ impl LocalResolutionProvider {
 
         // Evaluate config using cached data
         let cached = self.cached_config.read().await;
-        match cached.as_ref() {
-            Some(config_data) => Ok(eval(
-                config_data.data.default_configs.clone(),
-                &config_data.data.contexts,
-                &config_data.data.overrides,
-                &config_data.data.dimensions,
-                query_data,
-                MergeStrategy::MERGE,
-                prefix_filter,
-                exclude_prefix_filter,
-            )),
-            None => Err(SuperpositionError::ProviderError(
+        let result = cached
+            .as_ref()
+            .ok_or(SuperpositionError::ProviderError(
                 "Provider not initialized: no cached config available".into(),
-            )),
-        }
+            ))
+            .map(|config_data| {
+                eval(
+                    config_data.data.default_configs.clone(),
+                    &config_data.data.contexts,
+                    &config_data.data.overrides,
+                    &config_data.data.dimensions,
+                    query_data,
+                    MergeStrategy::MERGE,
+                    prefix_filter,
+                    exclude_prefix_filter,
+                )
+            })?;
+        if let Some(key) = cache_key {
+            if let Some(cache) = self.evaluation_cache.write().await.as_mut() {
+                cache.put(key, result.clone());
+            }
+        };
+        Ok(result)
     }
 }
 
