@@ -12,6 +12,7 @@ use crate::{
         form::label::Label,
         input::{Input, InputType, StringArrayInput, Toggle},
     },
+    providers::csr_provider::use_client_side_ready,
     schema::{JsonSchemaType, SchemaType},
 };
 
@@ -190,103 +191,121 @@ fn SourceForm(
 }
 
 #[component]
+fn MetricDefinitions(metrics_rws: RwSignal<Metrics>) -> impl IntoView {
+    view! {
+        <div class="form-control gap-2">
+            <div class="form-control">
+                <Label title="Metric Definitions" info="Press enter to add a metric name" />
+                <StringArrayInput
+                    options=metrics_rws
+                        .with(|metrics| {
+                            metrics
+                                .definitions
+                                .as_deref()
+                                .unwrap_or_default()
+                                .iter()
+                                .map(|metric| metric.name.to_string())
+                                .collect()
+                        })
+                    unique=true
+                    show_label=false
+                    on_change=Callback::new(move |list: Vec<String>| {
+                        metrics_rws
+                            .update(|metrics| {
+                                let existing = metrics.definitions.take().unwrap_or_default();
+                                let new_list = list
+                                    .into_iter()
+                                    .map(|name| {
+                                        let direction = existing
+                                            .iter()
+                                            .find(|metric| *metric.name == name)
+                                            .map(|metric| metric.direction)
+                                            .unwrap_or_default();
+                                        MetricDefinition {
+                                            name: name.try_into().unwrap_or_default(),
+                                            direction,
+                                        }
+                                    })
+                                    .collect::<Vec<_>>();
+                                metrics.definitions = (!new_list.is_empty()).then_some(new_list);
+                            });
+                    })
+                />
+            </div>
+            <div class="pl-2.5 flex flex-col">
+                <For
+                    each=move || {
+                        metrics_rws.with(|metrics| metrics.definitions.clone().unwrap_or_default())
+                    }
+                    key=|metric| metric.name.clone()
+                    children=move |metric| {
+                        let metric_name = StoredValue::new(metric.name);
+                        view! {
+                            <div class="flex flex-col first:border-t border-dashed">
+                                <label class="label">
+                                    <span class="label-text-alt">
+                                        {metric_name.get_value().to_string()}
+                                    </span>
+                                </label>
+                                <Dropdown
+                                    dropdown_width="w-44"
+                                    dropdown_direction=DropdownDirection::Down
+                                    dropdown_btn_type=DropdownBtnType::Select
+                                    searchable=false
+                                    dropdown_text=metric.direction.label()
+                                    dropdown_options=MetricDirection::iter().collect()
+                                    on_select=move |direction: MetricDirection| {
+                                        metrics_rws
+                                            .update(|metrics| {
+                                                if let Some(metric) = metrics
+                                                    .definitions
+                                                    .as_mut()
+                                                    .and_then(|list| {
+                                                        list.iter_mut()
+                                                            .find(|metric| { metric.name == metric_name.get_value() })
+                                                    })
+                                                {
+                                                    metric.direction = direction;
+                                                }
+                                            });
+                                    }
+                                />
+                            </div>
+                        }
+                    }
+                />
+            </div>
+        </div>
+    }
+}
+
+#[component]
+fn MetricsBody(metrics_rws: RwSignal<Metrics>, on_change: Callback<Metrics>) -> impl IntoView {
+    view! {
+        <div class="max-w-md w-full pl-2.5 flex flex-col gap-2">
+            <Show when=move || metrics_rws.with(|m| m.enabled)>
+                <SourceForm
+                    source=metrics_rws.with_untracked(|m| m.source.clone())
+                    on_change=move |source| {
+                        metrics_rws.update_untracked(|m| m.source = source);
+                        on_change.call(metrics_rws.get_untracked());
+                    }
+                />
+            </Show>
+            <MetricDefinitions metrics_rws />
+        </div>
+    }
+}
+
+#[component]
 pub fn MetricsForm(
     #[prop(default = Metrics::default())] metrics: Metrics,
     on_change: Callback<Metrics>,
 ) -> impl IntoView {
     let metrics_rws = RwSignal::new(metrics);
+    let client_side_ready = use_client_side_ready();
 
     Effect::new(move |_| on_change.call(metrics_rws.get()));
-
-    let metrics_definition = move || {
-        view! {
-            <div class="form-control gap-2">
-                <div class="form-control">
-                    <Label title="Metric Definitions" info="Press enter to add a metric name" />
-                    <StringArrayInput
-                        options=metrics_rws
-                            .with(|metrics| {
-                                metrics
-                                    .definitions
-                                    .as_deref()
-                                    .unwrap_or_default()
-                                    .iter()
-                                    .map(|metric| metric.name.to_string())
-                                    .collect()
-                            })
-                        unique=true
-                        show_label=false
-                        on_change=Callback::new(move |list: Vec<String>| {
-                            metrics_rws
-                                .update(|metrics| {
-                                    let existing = metrics.definitions.take().unwrap_or_default();
-                                    let new_list = list
-                                        .into_iter()
-                                        .map(|name| {
-                                            let direction = existing
-                                                .iter()
-                                                .find(|metric| *metric.name == name)
-                                                .map(|metric| metric.direction)
-                                                .unwrap_or_default();
-                                            MetricDefinition {
-                                                name: name.try_into().unwrap_or_default(),
-                                                direction,
-                                            }
-                                        })
-                                        .collect::<Vec<_>>();
-                                    metrics.definitions = (!new_list.is_empty())
-                                        .then_some(new_list);
-                                });
-                        })
-                    />
-                </div>
-                <div class="pl-2.5 flex flex-col">
-                    <For
-                        each=move || {
-                            metrics_rws
-                                .with(|metrics| metrics.definitions.clone().unwrap_or_default())
-                        }
-                        key=|metric| metric.name.clone()
-                        children=move |metric| {
-                            let metric_name = StoredValue::new(metric.name);
-                            view! {
-                                <div class="flex flex-col first:border-t border-dashed">
-                                    <label class="label">
-                                        <span class="label-text-alt">
-                                            {metric_name.get_value().to_string()}
-                                        </span>
-                                    </label>
-                                    <Dropdown
-                                        dropdown_width="w-44"
-                                        dropdown_direction=DropdownDirection::Down
-                                        dropdown_btn_type=DropdownBtnType::Select
-                                        searchable=false
-                                        dropdown_text=metric.direction.label()
-                                        dropdown_options=MetricDirection::iter().collect()
-                                        on_select=move |direction: MetricDirection| {
-                                            metrics_rws
-                                                .update(|metrics| {
-                                                    if let Some(metric) = metrics
-                                                        .definitions
-                                                        .as_mut()
-                                                        .and_then(|list| {
-                                                            list.iter_mut()
-                                                                .find(|metric| { metric.name == metric_name.get_value() })
-                                                        })
-                                                    {
-                                                        metric.direction = direction;
-                                                    }
-                                                });
-                                        }
-                                    />
-                                </div>
-                            }
-                        }
-                    />
-                </div>
-            </div>
-        }
-    };
 
     view! {
         <div class="flex flex-col">
@@ -300,18 +319,9 @@ pub fn MetricsForm(
                     extra_info="To view metrics from Grafana, make sure that your setup allows iframe embedding. Also, experiment viewers must have access to the Grafana instance, to view the metrics."
                 />
             </div>
-            <div class="max-w-md w-full pl-2.5 flex flex-col gap-2">
-                <Show when=move || metrics_rws.with(|m| m.enabled)>
-                    <SourceForm
-                        source=metrics_rws.with_untracked(|m| m.source.clone())
-                        on_change=move |source| {
-                            metrics_rws.update_untracked(|m| m.source = source);
-                            on_change.call(metrics_rws.get_untracked());
-                        }
-                    />
-                </Show>
-                {metrics_definition}
-            </div>
+            <Show when=move || *client_side_ready.get()>
+                <MetricsBody metrics_rws on_change />
+            </Show>
         </div>
     }
 }
