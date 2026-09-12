@@ -336,6 +336,7 @@ pub fn ExperimentMetricsForm(
 
     let definitions_st = StoredValue::new(definitions);
     let experiment_metrics_rws = RwSignal::new(experiment_metrics);
+    let client_side_ready = use_client_side_ready();
 
     Effect::new(move |_| on_change.call(experiment_metrics_rws.get()));
 
@@ -351,7 +352,7 @@ pub fn ExperimentMetricsForm(
                     extra_info="To view metrics from Grafana, make sure that your setup allows iframe embedding. Also, experiment viewers must have access to the Grafana instance, to view the metrics."
                 />
             </div>
-            <div>
+            <Show when=move || *client_side_ready.get()>
                 <Show when=move || experiment_metrics_rws.with(|m| m.enabled)>
                     <div class="max-w-md w-full pl-2.5 flex flex-col gap-2">
                         <SourceForm
@@ -499,7 +500,7 @@ pub fn ExperimentMetricsForm(
                         </Show>
                     </div>
                 </Show>
-            </div>
+            </Show>
         </div>
     }
 }
