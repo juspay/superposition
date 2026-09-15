@@ -10,7 +10,7 @@ use superposition_derives::{IsEmpty, QueryParam};
 
 use crate::{
     custom_query::{CommaSeparatedStringQParams, QueryParam},
-    IsEmpty,
+    Condition, IsEmpty,
 };
 
 #[derive(Deserialize)]
@@ -62,6 +62,12 @@ pub struct DetailedResolvedConfigValue {
     pub description: String,
     pub schema: Option<Value>,
     pub value: Value,
+    /// Condition of the last matching context that set this key. `None` means the value
+    /// came from the default config.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub context: Option<Condition>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub context_id: Option<String>,
 }
 
 pub type DetailedResolvedConfiguration = BTreeMap<String, DetailedResolvedConfigValue>;

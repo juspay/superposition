@@ -18,7 +18,7 @@ use service_utils::{
 };
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
-    Config, ConfigFilter, DBConnection, PrefixList,
+    Condition, Config, ConfigFilter, DBConnection, PrefixList,
     api::config::{
         ContextPayload, DetailedResolvedConfigValue, DetailedResolvedConfiguration,
         ExplainKeyQuery, ExplainResolveQuery, Explanation, ExplanationTimelineItem,
@@ -338,9 +338,33 @@ fn fetch_default_config_metadata(
         .collect())
 }
 
+/// Condition and id of the last matching context that set each key. A key absent from the
+/// map was never overridden, so its value came from the default config.
+fn resolve_key_sources(
+    config: &Config,
+    context_data: &Map<String, Value>,
+) -> HashMap<String, (Condition, String)> {
+    let mut sources = HashMap::new();
+    for context in config.contexts.iter() {
+        if !superposition_types::apply(&context.condition, context_data) {
+            continue;
+        }
+        let override_id = context.override_with_keys.get_key();
+        let Some(overrides) = config.overrides.get(override_id) else {
+            continue;
+        };
+        let condition = context.condition.clone();
+        for key in overrides.keys() {
+            sources.insert(key.clone(), (condition.clone(), context.id.clone()));
+        }
+    }
+    sources
+}
+
 fn build_resolved_config(
     resolved_config: Map<String, Value>,
     metadata: &HashMap<String, DefaultConfigMetadata>,
+    sources: &HashMap<String, (Condition, String)>,
 ) -> DetailedResolvedConfiguration {
     resolved_config
         .into_iter()
@@ -349,6 +373,7 @@ fn build_resolved_config(
                 .get(&key)
                 .map(|metadata| (metadata.description.clone(), Some(&metadata.schema)))
                 .unwrap_or_else(|| (String::new(), None));
+            let source = sources.get(&key);
 
             (
                 key,
@@ -356,6 +381,8 @@ fn build_resolved_config(
                     description,
                     schema: schema.cloned(),
                     value,
+                    context: source.map(|(condition, _)| condition.clone()),
+                    context_id: source.map(|(_, id)| id.clone()),
                 },
             )
         })
@@ -415,6 +442,12 @@ pub fn resolve_detailed(
     )?;
     let merge_strategy = merge_strategy.into_inner();
 
+    let evaluated_context = evaluate_local_cohorts(
+        &resolution_config.dimensions,
+        context_data.clone().into_inner(),
+    );
+    let sources = resolve_key_sources(&resolution_config, &evaluated_context);
+
     let resolved_config = evaluate_resolved_config(
         resolution_config,
         context_data,
@@ -424,7 +457,7 @@ pub fn resolve_detailed(
     let keys = resolved_config.keys().cloned().collect::<Vec<_>>();
     let metadata =
         fetch_default_config_metadata(conn, &workspace_context.schema_name, &keys)?;
-    let detailed_config = build_resolved_config(resolved_config, &metadata);
+    let detailed_config = build_resolved_config(resolved_config, &metadata, &sources);
     Ok(detailed_config)
 }
 
