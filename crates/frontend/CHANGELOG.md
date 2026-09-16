@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.58.1 - 2026-09-16
+#### Bug Fixes
+- workspaces page hydration panic (MetricsForm SSR/CSR id drift) (#1148) - (a79d326) - Natarajan Kannan
+#### Miscellaneous Chores
+- **(version)** v0.118.0 [skip ci] - (9f8783d) - Superposition Bot
+
+- - -
+
 ## frontend-v0.58.0 - 2026-09-05
 #### Features
 - add workspace-defined metric selections with cleanups (#1145) - (948faaa) - Ayush Jain
