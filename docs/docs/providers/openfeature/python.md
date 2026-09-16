@@ -50,12 +50,12 @@ async def main():
 
     # 2. Create the provider with a polling refresh strategy
     provider = LocalResolutionProvider(
-        data_source=http_source,
+        primary_source=http_source,
         fallback_source=None,  # no fallback data source
-        refresh_strategy=RefreshStrategy.Polling(PollingStrategy(
+        refresh_strategy=PollingStrategy(
             interval=60,   # seconds between polls
             timeout=30,    # HTTP request timeout in seconds
-        )),
+        ),
     )
 
     # 3. Set up evaluation context (dimensions + targeting key)
@@ -118,44 +118,60 @@ options = SuperpositionOptions(
 
 ```python
 # Polling — periodically fetches updates from the server
-RefreshStrategy.Polling(PollingStrategy(
+PollingStrategy(
     interval=60,   # seconds between polls (default: 60)
     timeout=30,    # HTTP request timeout in seconds (default: 30)
-))
+)
 
 # On-Demand — fetches on first access, then caches with a TTL
-RefreshStrategy.OnDemand(OnDemandStrategy(
+OnDemandStrategy(
     ttl=300,                 # cache TTL in seconds (default: 300)
     use_stale_on_error=True, # serve stale data on fetch error (default: True)
     timeout=30,              # HTTP timeout in seconds (default: 30)
-))
+)
 ```
 
 ### `ExperimentationOptions`
 
-| Field              | Type                               | Required | Description                        |
-| ------------------ | ---------------------------------- | -------- | ---------------------------------- |
-| `refresh_strategy` | `RefreshStrategy`                  | Yes      | How experiment data is refreshed   |
-| `evaluation_cache` | `Optional[EvaluationCacheOptions]` | No       | Cache for experiment evaluations   |
-| `default_toss`     | `Optional[int]`                    | No       | Default toss value for experiments |
+| Field                     | Type                               | Required | Description                        |
+| ------------------------- | ---------------------------------- | -------- | ---------------------------------- |
+| `refresh_strategy`        | `RefreshStrategy`                  | Yes      | How experiment data is refreshed   |
+| `evaluation_cache_options` | `Optional[EvaluationCacheOptions]` | No      | Cache for experiment evaluations   |
+| `default_toss`            | `Optional[int]`                    | No       | Default toss value for experiments |
 
 ```python
 exp_options = ExperimentationOptions(
-    refresh_strategy=RefreshStrategy.Polling(PollingStrategy(
+    refresh_strategy=PollingStrategy(
         interval=5,
         timeout=3,
-    )),
-    evaluation_cache=EvaluationCacheOptions(ttl=300, size=1000),
+    ),
+    evaluation_cache_options=EvaluationCacheOptions(max_entries=1000),
     default_toss=50,
 )
 ```
 
 ### `EvaluationCacheOptions`
 
-| Field  | Type            | Default | Description                     |
-| ------ | --------------- | ------- | ------------------------------- |
-| `ttl`  | `Optional[int]` | `60`    | Cache time-to-live in seconds   |
-| `size` | `Optional[int]` | `500`   | Maximum number of cache entries |
+| Field         | Type            | Default | Description                                                   |
+| ------------- | --------------- | ------- | ------------------------------------------------------------- |
+| `max_entries` | `Optional[int]` | `None`  | Maximum number of cached resolutions; `None`/`0` disables caching |
+
+The evaluation cache lives in the native FFI library. Repeated resolutions with
+identical inputs (context query, merge strategy, prefix filters, targeting key)
+are served without re-evaluating. Staleness is governed by the refresh strategy:
+the cache is emptied whenever the provider reloads config or experiment data.
+
+Enable it on the local provider directly, or through `ConfigurationOptions`:
+
+```python
+from superposition_provider import LocalResolutionProvider, EvaluationCacheOptions
+
+provider = LocalResolutionProvider(
+    primary_source=http_source,
+    refresh_strategy=...,
+    evaluation_cache_options=EvaluationCacheOptions(max_entries=1000),
+)
+```
 
 ## Provider Variants
 
@@ -170,7 +186,6 @@ from superposition_provider import (
     SuperpositionOptions,
     PollingStrategy,
     RefreshStrategy,
-    ExperimentationOptions,
     EvaluationCacheOptions,
 )
 from openfeature.evaluation_context import EvaluationContext
@@ -183,14 +198,10 @@ http_source = HttpDataSource(SuperpositionOptions(
 ))
 
 provider = LocalResolutionProvider(
-    data_source=http_source,
+    primary_source=http_source,
     fallback_source=None,
-    refresh_strategy=RefreshStrategy.Polling(PollingStrategy(interval=30, timeout=10)),
-    experimentation_options=ExperimentationOptions(
-        refresh_strategy=RefreshStrategy.Polling(PollingStrategy(interval=5, timeout=3)),
-        evaluation_cache=EvaluationCacheOptions(ttl=300, size=1000),
-        default_toss=50,
-    ),
+    refresh_strategy=PollingStrategy(interval=30, timeout=10),
+    evaluation_cache_options=EvaluationCacheOptions(max_entries=1000),
 )
 
 # Initialize the provider (fetches initial config)
@@ -249,9 +260,9 @@ print(f"currency = {currency.value}")
 ```python
 # Create
 provider = LocalResolutionProvider(
-    data_source=http_source,
+    primary_source=http_source,
     fallback_source=None,
-    refresh_strategy=RefreshStrategy.Polling(PollingStrategy(interval=60, timeout=30)),
+    refresh_strategy=PollingStrategy(interval=60, timeout=30),
 )
 
 # Initialize (async — starts polling, fetches initial config)

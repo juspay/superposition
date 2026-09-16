@@ -26,9 +26,13 @@ class SuperpositionOptions:
 
 @dataclass
 class EvaluationCacheOptions:
-    """Options for evaluation result caching."""
-    ttl: Optional[int] = None
-    size: Optional[int] = None
+    """Options for evaluation result caching.
+
+    The cache lives inside the native FFI library; repeated resolutions with
+    identical inputs are served from Rust without re-evaluating. It is emptied
+    whenever the provider reloads config or experiment data.
+    """
+    max_entries: Optional[int] = None  # maximum number of cached resolutions; None/0 disables caching
 
 
 # ============================================================================
