@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.118.1 - 2026-09-16
+### Package updates
+- frontend bumped to frontend-v0.58.1
+- context_aware_config bumped to context_aware_config-v0.79.1
+- superposition_types bumped to superposition_types-v0.51.1
+### Global changes
+#### Miscellaneous Chores
+- **(version)** v0.118.0 [skip ci] - (9f8783d) - Superposition Bot
+
+- - -
+
 ## v0.118.0 - 2026-09-05
 ### Package updates
 - frontend bumped to frontend-v0.58.0

@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.51.1 - 2026-09-16
+#### Bug Fixes
+- resolve-detailed (#1150) - (770603a) - Ankit Kumar Mahato
+#### Miscellaneous Chores
+- **(version)** v0.118.0 [skip ci] - (9f8783d) - Superposition Bot
+
+- - -
+
 ## superposition_types-v0.51.0 - 2026-09-05
 #### Features
 - add workspace-defined metric selections with cleanups (#1145) - (948faaa) - Ayush Jain
