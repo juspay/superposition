@@ -6791,9 +6791,9 @@ class CreateOrganisationInput:
         return kwargs
 
 class OrgStatus(StrEnum):
-    ACTIVE = "Active"
-    INACTIVE = "Inactive"
-    PENDING_KYB = "PendingKyb"
+    ACTIVE = "ACTIVE"
+    INACTIVE = "INACTIVE"
+    PENDING_KYB = "PENDING_KYB"
 
 @dataclass(kw_only=True)
 class CreateOrganisationOutput:

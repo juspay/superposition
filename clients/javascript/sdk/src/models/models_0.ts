@@ -1638,9 +1638,9 @@ export interface CreateOrganisationRequest {
  * @enum
  */
 export const OrgStatus = {
-  ACTIVE: "Active",
-  INACTIVE: "Inactive",
-  PENDING_KYB: "PendingKyb",
+  ACTIVE: "ACTIVE",
+  INACTIVE: "INACTIVE",
+  PENDING_KYB: "PENDING_KYB",
 } as const
 /**
  * @public

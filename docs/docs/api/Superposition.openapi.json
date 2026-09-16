@@ -10975,9 +10975,9 @@
             "OrgStatus": {
                 "type": "string",
                 "enum": [
-                    "Active",
-                    "Inactive",
-                    "PendingKyb"
+                    "ACTIVE",
+                    "INACTIVE",
+                    "PENDING_KYB"
                 ]
             },
             "OrganisationResponse": {
