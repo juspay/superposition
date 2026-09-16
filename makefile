@@ -97,6 +97,7 @@ export SMITHY_MAVEN_REPOS = https://repo1.maven.org/maven2|https://sandbox.asset
 	symlink-target \
 	tailwind \
 	test \
+	test-hs-provider \
 	test-js-provider \
 	test-kotlin-provider \
 	test-py-provider \
@@ -416,6 +417,14 @@ test-rust-provider: provider-template
 	cargo test --package superposition_provider --test integration_test -- --nocapture --ignored
 	$(MAKE) kill
 	-@pkill -f $(CARGO_TARGET_DIR)/debug/superposition
+
+test-hs-provider: provider-template
+	cd clients/haskell && \
+		export LIBRARY_PATH=$(CARGO_TARGET_DIR)/debug:$$LIBRARY_PATH && \
+		export LD_LIBRARY_PATH=$(CARGO_TARGET_DIR)/debug:$$LD_LIBRARY_PATH && \
+		export DYLD_LIBRARY_PATH=$(CARGO_TARGET_DIR)/debug:$$DYLD_LIBRARY_PATH && \
+		cabal run --project-file=cabal.project.ci provider-sdk-tests
+	$(MAKE) kill
 
 # Target to run all TOML bindings tests
 bindings-test: uniffi-bindings

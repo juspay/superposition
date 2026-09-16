@@ -1,0 +1,29 @@
+cabal-version:   3.4
+name:            provider-sdk-tests
+version:         0.1.0.0
+synopsis:        Integration tests for the Superposition Haskell OpenFeature provider and SDK
+license:         BSD-3-Clause
+author:          Superposition
+maintainer:      superposition@juspay.in
+category:        Testing
+build-type:      Simple
+extra-doc-files: CHANGELOG.md
+
+common warnings
+    ghc-options: -Wall
+
+executable provider-sdk-tests
+    import:             warnings
+    default-language:   GHC2021
+    default-extensions: OverloadedStrings
+    hs-source-dirs:     app
+    main-is:            Main.hs
+    build-depends:      base ^>=4.18.2.0,
+                        aeson,
+                        containers,
+                        text,
+                        network-uri,
+                        http-client,
+                        open-feature,
+                        SuperpositionSDK,
+                        superposition-open-feature-provider

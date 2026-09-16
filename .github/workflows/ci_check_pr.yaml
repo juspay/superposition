@@ -263,6 +263,7 @@ jobs:
                     - js
                     - py
                     - rust
+                    - hs
         services:
             postgres:
                 image: public.ecr.aws/docker/library/postgres:15-alpine3.21
@@ -344,6 +345,17 @@ jobs:
               uses: astral-sh/setup-uv@v3
               with:
                   version: "latest"
+
+            - name: Setup Haskell environment (GHC and Cabal)
+              if: matrix.provider == 'hs'
+              uses: haskell-actions/setup@v2
+              with:
+                  ghc-version: "9.6.7" # Specify the GHC version (e.g., '9.2' or 'latest')
+                  cabal-version: "3.16" # Specify the Cabal version (e.g., '3.8' or 'latest')
+
+            - name: Update Cabal package database
+              if: matrix.provider == 'hs'
+              run: cabal update
 
             - name: Run provider tests
               shell: bash
