@@ -353,10 +353,6 @@ jobs:
                   ghc-version: "9.6.7" # Specify the GHC version (e.g., '9.2' or 'latest')
                   cabal-version: "3.16" # Specify the Cabal version (e.g., '3.8' or 'latest')
 
-            - name: Update Cabal package database
-              if: matrix.provider == 'hs'
-              run: cabal update
-
             - name: Run provider tests
               shell: bash
               run: |

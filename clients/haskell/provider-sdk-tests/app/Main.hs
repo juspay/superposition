@@ -12,6 +12,7 @@ import Data.OpenFeature.EvaluationDetails qualified as ED
 import Data.OpenFeature.FeatureProvider qualified as OF
 import Data.OpenFeature.SuperpositionProvider qualified as P
 import Data.Text qualified as T
+import GHC.IO.Encoding (setLocaleEncoding, utf8)
 import Io.Superposition.Command.CreateContext qualified as CC
 import Io.Superposition.Command.CreateDefaultConfig qualified as CDC
 import Io.Superposition.Command.CreateDimension qualified as CD
@@ -362,6 +363,8 @@ runDemo orgId = do
 
 main :: IO ()
 main = do
+  -- The runner locale may be plain C; never let unicode output crash the tests.
+  setLocaleEncoding utf8
   putStrLn "Starting Superposition OpenFeature demo and tests (Haskell)..."
   manager <- HTTP.newManager HTTP.defaultManagerSettings
   let client = mkClient manager
