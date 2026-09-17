@@ -28,15 +28,16 @@ module Io.Superposition.Utility (
 import           Control.Monad              ((>=>))
 import qualified Control.Monad.State.Strict as MTL
 import           Data.Aeson
-import qualified Data.Aeson.KeyMap          as Aeson
+import qualified Io.Superposition.AesonCompat as Aeson
+import           Io.Superposition.AesonCompat (Key, LazyByteString,
+                                             StrictByteString)
 import qualified Data.Aeson.Types           as Aeson
 import qualified Data.Bifunctor
 import qualified Data.Bifunctor             as Bifunctor
-import           Data.ByteString            (ByteString, StrictByteString,
-                                             toStrict)
+import           Data.ByteString            (ByteString)
 import qualified Data.ByteString            as BS
 import           Data.ByteString.Char8      as Char8 (unpack)
-import           Data.ByteString.Lazy       (LazyByteString)
+import           Data.ByteString.Lazy       (toStrict)
 import qualified Data.ByteString.Lazy       as LBS
 import qualified Data.CaseInsensitive       as CI
 import           Data.Foldable              (traverse_)
@@ -200,7 +201,7 @@ mergeWithHTTPRequest st req =
       HTTP.path = trimByte 47 (HTTP.path req) <> "/" <> BS.intercalate "/" (map (HTTP.urlEncode False) (_path st)),
       HTTP.requestBody = case _body st of
         NoBody       -> HTTP.requestBody req
-        Opaque ct bs -> HTTP.RequestBodyLBS (BS.fromStrict bs)
+        Opaque ct bs -> HTTP.RequestBodyLBS (LBS.fromStrict bs)
         Json obj     -> HTTP.RequestBodyLBS (encode obj)
     }
 
@@ -576,23 +577,24 @@ runOperation endpoint manager dauth (Right i) = do
       initReq = mergeWithHTTPRequest reqSt <$> HTTP.requestFromURI endpoint
       rawBody = getBodyContent (_body reqSt)
   case initReq of
-    Just req -> HTTP.withResponse req manager (parseOutput rawBody)
+    Just req -> HTTP.withResponse req manager (parseOutput req rawBody)
     -- NOTE Should we create this in the client it-self? Would make things alot simpler IMO.
     _        -> pure (Left $ mkUnexpectedError Nothing badHttpUrl)
 
 parseOutput ::
   forall t e.
   (FromResponseParser t, OperationError e) =>
+  HTTP.Request ->
   LazyByteString ->
   HttpResponse ->
   IO (Either e t)
-parseOutput rawBody response = do
+parseOutput request rawBody response = do
   body <- mconcat <$> HTTP.brConsume (HTTP.responseBody response)
   let status = HTTP.responseStatus response
       code = HTTP.statusCode status
       parseInput = (response, Raw body)
       rawResp = fromResponse response body
-      rawReq = fromRequest (HTTP.getOriginalRequest response) rawBody
+      rawReq = fromRequest request rawBody
       metadata = HttpMetadata rawReq rawResp
   if 299 >= code && code >= 200
     then case runParser responseParser parseInput of

@@ -26,7 +26,7 @@ import           Data.Aeson                                             (FromJSO
                                                                          encode,
                                                                          withObject,
                                                                          (.:?))
-import           Data.Aeson.Decoding                                    (eitherDecode)
+import           Data.Aeson                                             (eitherDecode)
 import           Data.Aeson.Types                                       (Object,
                                                                          parseEither)
 import           Data.Functor
