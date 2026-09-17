@@ -36,9 +36,7 @@ fn TypeBadge(r#type: Option<SchemaType>) -> impl IntoView {
                 }
             })
             .collect_view(),
-        SchemaType::Any => view! {
-            <div class="badge badge-outline text-gray-400 font-medium text-xs">"any"</div>
-        }
+        SchemaType::Any => view! { <div class="badge badge-outline text-gray-400 font-medium text-xs">"any"</div> }
         .into_view(),
     })
 }
