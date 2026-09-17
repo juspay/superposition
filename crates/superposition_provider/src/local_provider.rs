@@ -531,7 +531,7 @@ impl LocalResolutionProvider {
         context: EvaluationContext,
         prefix_filter: Option<Vec<String>>,
         exclude_prefix_filter: Option<Vec<String>>,
-    ) -> Result<Map<String, Value>> {
+    ) -> Result<AllFeaturesResolutionDetails> {
         self.ensure_fresh_data().await?;
 
         let (mut query_data, targeting_key) = self.get_merged_context(context).await;
@@ -564,19 +564,32 @@ impl LocalResolutionProvider {
             }
         }
 
+        let variant_ids = query_data
+            .get("variantIds")
+            .and_then(Value::as_array)
+            .map(|ids| {
+                ids.iter()
+                    .filter_map(|id| id.as_str().map(String::from))
+                    .collect()
+            })
+            .unwrap_or_default();
+
         // Evaluate config using cached data
         let cached = self.cached_config.read().await;
         match cached.as_ref() {
-            Some(config_data) => Ok(eval(
-                config_data.data.default_configs.clone(),
-                &config_data.data.contexts,
-                &config_data.data.overrides,
-                &config_data.data.dimensions,
-                query_data,
-                MergeStrategy::REPLACE,
-                prefix_filter,
-                exclude_prefix_filter,
-            )),
+            Some(config_data) => Ok(AllFeaturesResolutionDetails {
+                value: eval(
+                    config_data.data.default_configs.clone(),
+                    &config_data.data.contexts,
+                    &config_data.data.overrides,
+                    &config_data.data.dimensions,
+                    query_data,
+                    MergeStrategy::REPLACE,
+                    prefix_filter,
+                    exclude_prefix_filter,
+                ),
+                variant_ids,
+            }),
             None => Err(SuperpositionError::ProviderError(
                 "Provider not initialized: no cached config available".into(),
             )),
@@ -592,6 +605,17 @@ impl AllFeatureProvider for LocalResolutionProvider {
         prefix_filter: Option<Vec<String>>,
         exclude_prefix_filter: Option<Vec<String>>,
     ) -> Result<Map<String, Value>> {
+        self.eval_with_context(context, prefix_filter, exclude_prefix_filter)
+            .await
+            .map(|details| details.value)
+    }
+
+    async fn resolve_all_features_with_filter_details(
+        &self,
+        context: EvaluationContext,
+        prefix_filter: Option<Vec<String>>,
+        exclude_prefix_filter: Option<Vec<String>>,
+    ) -> Result<AllFeaturesResolutionDetails> {
         self.eval_with_context(context, prefix_filter, exclude_prefix_filter)
             .await
     }
