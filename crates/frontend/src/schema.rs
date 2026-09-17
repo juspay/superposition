@@ -83,6 +83,10 @@ impl JsonSchemaType {
 pub enum SchemaType {
     Multiple(Vec<JsonSchemaType>),
     Single(JsonSchemaType),
+    /// Schema has no resolvable top-level `type` (e.g. `anyOf`/`oneOf`/`allOf`/`$ref`).
+    /// The value is accepted as free-form JSON and validated against the full schema
+    /// on the backend.
+    Any,
 }
 
 impl Default for SchemaType {
@@ -106,6 +110,7 @@ impl SchemaType {
             SchemaType::Single(JsonSchemaType::Null) => {
                 Value::String(String::from("null"))
             }
+            SchemaType::Any => Value::Null,
         }
     }
     fn parse_from_array(arr: &[Value]) -> Result<Self, String> {
@@ -129,9 +134,12 @@ impl SchemaType {
 impl TryFrom<&Map<String, Value>> for SchemaType {
     type Error = String;
     fn try_from(schema: &Map<String, Value>) -> Result<Self, Self::Error> {
-        let type_ = schema
-            .get("type")
-            .ok_or("type not defined in schema".to_string())?;
+        // Schemas without a top-level `type` (e.g. `anyOf`/`oneOf`/`allOf`/`$ref`/bare
+        // `const`) can't be mapped to a single input widget, so treat them as free-form
+        // JSON. The value is still validated against the full schema on the backend.
+        let Some(type_) = schema.get("type") else {
+            return Ok(SchemaType::Any);
+        };
 
         match type_ {
             Value::Array(arr) => SchemaType::parse_from_array(arr),
@@ -173,5 +181,58 @@ impl TryFrom<Value> for EnumVariants {
             .as_object()
             .ok_or("schema is not an object".to_string())
             .and_then(EnumVariants::try_from)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn any_of_schema_without_type_resolves_to_any() {
+        let schema = json!({
+            "anyOf": [
+                { "type": "string" },
+                { "const": "default_str_ignore_this" }
+            ]
+        });
+        assert_eq!(SchemaType::try_from(schema), Ok(SchemaType::Any));
+    }
+
+    #[test]
+    fn other_type_less_schemas_resolve_to_any() {
+        for schema in [
+            json!({ "oneOf": [{ "type": "string" }] }),
+            json!({ "allOf": [{ "type": "string" }] }),
+            json!({ "$ref": "#/definitions/foo" }),
+            json!({ "const": "foo" }),
+        ] {
+            assert_eq!(
+                SchemaType::try_from(schema.clone()),
+                Ok(SchemaType::Any),
+                "schema {schema} should resolve to Any"
+            );
+        }
+    }
+
+    #[test]
+    fn typed_schemas_still_resolve_to_concrete_types() {
+        assert_eq!(
+            SchemaType::try_from(json!({ "type": "string" })),
+            Ok(SchemaType::Single(JsonSchemaType::String))
+        );
+        assert_eq!(
+            SchemaType::try_from(json!({ "type": ["string", "number"] })),
+            Ok(SchemaType::Multiple(vec![
+                JsonSchemaType::String,
+                JsonSchemaType::Number
+            ]))
+        );
+    }
+
+    #[test]
+    fn invalid_type_still_errors() {
+        assert!(SchemaType::try_from(json!({ "type": "foobar" })).is_err());
+        assert!(SchemaType::try_from(json!({ "type": 42 })).is_err());
     }
 }
