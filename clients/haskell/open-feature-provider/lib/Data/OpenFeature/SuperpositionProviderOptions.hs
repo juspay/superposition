@@ -16,6 +16,8 @@ data SuperpositionProviderOptions = SuperpositionProviderOptions
     fallbackConfig :: (),
     refreshOptions :: RefreshOptions,
     experimentationRefreshOptions :: Maybe RefreshOptions,
+    -- | Only fetch config keys under these prefixes. Nothing fetches the whole workspace config.
+    configPrefixes :: Maybe [Text],
     logLevel :: LogLevel
   }
 
@@ -29,5 +31,6 @@ defaultProviderOptions =
       fallbackConfig = (),
       refreshOptions = OnDemand 0,
       experimentationRefreshOptions = Nothing,
+      configPrefixes = Nothing,
       logLevel = LevelError
     }

@@ -9,6 +9,7 @@ module Data.OpenFeature.SuperpositionProvider
     newSuperpositionProvider,
     SuperpositionProvider,
     resolveAllConfig,
+    resolveAllConfigWithPrefixes,
     closeSuperpositionProvider,
   )
 where
@@ -170,12 +171,22 @@ resolveAllConfig ::
   SuperpositionProvider ->
   EvaluationContext ->
   IO (Either String String)
-resolveAllConfig (SuperpositionProvider {..}) ec = do
+resolveAllConfig provider ec = resolveAllConfigWithPrefixes provider ec Nothing
+
+{- | Resolve the configuration for a given evaluation context, keeping only the keys under the given
+   prefixes. Nothing resolves every key, so this is 'resolveAllConfig'.
+-}
+resolveAllConfigWithPrefixes ::
+  SuperpositionProvider ->
+  EvaluationContext ->
+  Maybe [Text] ->
+  IO (Either String String)
+resolveAllConfigWithPrefixes (SuperpositionProvider {..}) ec prefixes = do
   defEc <- readTVarIO _initContext
   let ec' = fromMaybe ec $ mergeEvaluationContext <$> defEc <*> Just ec
       queryJson = toStr $ customFields ec'
       tkey = T.unpack <$> targetingKey ec'
-  FFI.evalConfig providerCache queryJson FFI.Merge Nothing Nothing tkey
+  FFI.evalConfig providerCache queryJson FFI.Merge (toStr <$> prefixes) Nothing tkey
 
 resolveValue ::
   (FromJSON a) =>
@@ -259,7 +270,13 @@ refreshConfig ::
   Client.SuperpositionClient ->
   RefreshFn SDK.GetConfigOutput
 refreshConfig SuperpositionProviderOptions {..} logger client =
-  let builder = SDK.setOrgId orgId >> SDK.setWorkspaceId workspaceId
+  let -- Only send `prefix` when there is one to send: the server treats a literal `prefix=null`
+      -- as "no key matches" and answers with an empty config.
+      withPrefix = maybe (pure ()) (SDK.setPrefix . Just) configPrefixes
+      builder =
+        SDK.setOrgId orgId
+          >> SDK.setWorkspaceId workspaceId
+          >> withPrefix
       call = SDK.getConfig client builder
       fnName = "ConfigRefresh"
    in mkRefreshFn logger fnName call
