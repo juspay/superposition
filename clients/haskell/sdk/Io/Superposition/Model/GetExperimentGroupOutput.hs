@@ -62,7 +62,7 @@ data GetExperimentGroupOutput = GetExperimentGroupOutput {
     created_by :: Data.Text.Text,
     last_modified_at :: Data.Time.UTCTime,
     last_modified_by :: Data.Text.Text,
-    buckets :: [] Io.Superposition.Model.Bucket.Bucket,
+    buckets :: [] (Data.Maybe.Maybe Io.Superposition.Model.Bucket.Bucket),
     group_type :: Io.Superposition.Model.GroupType.GroupType
 } deriving (
   GHC.Show.Show,
@@ -124,7 +124,7 @@ data GetExperimentGroupOutputBuilderState = GetExperimentGroupOutputBuilderState
     created_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     last_modified_atBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     last_modified_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    bucketsBuilderState :: Data.Maybe.Maybe ([] Io.Superposition.Model.Bucket.Bucket),
+    bucketsBuilderState :: Data.Maybe.Maybe ([] (Data.Maybe.Maybe Io.Superposition.Model.Bucket.Bucket)),
     group_typeBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.GroupType.GroupType
 } deriving (
   GHC.Generics.Generic
@@ -198,7 +198,7 @@ setLastModifiedBy :: Data.Text.Text -> GetExperimentGroupOutputBuilder ()
 setLastModifiedBy value =
    Control.Monad.State.Strict.modify (\s -> (s { last_modified_byBuilderState = Data.Maybe.Just value }))
 
-setBuckets :: [] Io.Superposition.Model.Bucket.Bucket -> GetExperimentGroupOutputBuilder ()
+setBuckets :: [] (Data.Maybe.Maybe Io.Superposition.Model.Bucket.Bucket) -> GetExperimentGroupOutputBuilder ()
 setBuckets value =
    Control.Monad.State.Strict.modify (\s -> (s { bucketsBuilderState = Data.Maybe.Just value }))
 
