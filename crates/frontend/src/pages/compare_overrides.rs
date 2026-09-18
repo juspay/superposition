@@ -322,7 +322,7 @@ pub fn CompareOverrides() -> impl IntoView {
                                         on_context_change=move |new_context| {
                                             context_ws.set(new_context)
                                         }
-                                        heading_sub_text="Query your configs"
+                                        heading_sub_text="Resolve your configs"
                                         resolve_mode=true
                                         compact=true
                                         fn_environment
