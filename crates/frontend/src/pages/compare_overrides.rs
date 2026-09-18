@@ -295,13 +295,19 @@ pub fn CompareOverrides() -> impl IntoView {
     });
 
     view! {
-        <div class="h-full flex flex-col gap-8">
+        <div class="h-full flex flex-col gap-4 min-h-0">
             <Suspense fallback=move || {
                 view! { <Skeleton variant=SkeletonVariant::Block /> }
             }>
                 <div class="card bg-base-100 shadow">
                     <div class="card-body collapse collapse-arrow" style="overflow: unset">
-                        <input type="checkbox" checked=true />
+                        // Start collapsed when a comparison already exists (e.g. a shared/saved
+                        // link) so the table gets the screen; stay open when there's nothing to
+                        // compare yet, to guide adding the first context. Still click-to-toggle.
+                        <input
+                            type="checkbox"
+                            checked=context_vec_rws.with_untracked(|c| c.keys().next().is_none())
+                        />
                         <h2 class="card-title collapse-title h-fit !p-0">"Add Contexts"</h2>
                         <div class="collapse-content !p-0 flex flex-col gap-8">
                             {move || {
@@ -387,7 +393,7 @@ pub fn CompareOverrides() -> impl IntoView {
                     }
 
                     view! {
-                        <div class="card min-h-[200px] w-full overflow-hidden bg-base-100 rounded-xl shadow">
+                        <div class="card flex-1 min-h-[200px] w-full overflow-hidden bg-base-100 rounded-xl shadow">
                             <div class="card-body overflow-y-auto overflow-x-visible">
                                 <div class="flex justify-between">
                                     <BreadCrums redirect_url bread_crums=bread_crums.get() />
