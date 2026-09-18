@@ -83,9 +83,6 @@ impl JsonSchemaType {
 pub enum SchemaType {
     Multiple(Vec<JsonSchemaType>),
     Single(JsonSchemaType),
-    /// Schema has no resolvable top-level `type` (e.g. `anyOf`/`oneOf`/`allOf`/`$ref`).
-    /// The value is accepted as free-form JSON and validated against the full schema
-    /// on the backend.
     Any,
 }
 
@@ -110,7 +107,7 @@ impl SchemaType {
             SchemaType::Single(JsonSchemaType::Null) => {
                 Value::String(String::from("null"))
             }
-            SchemaType::Any => Value::Null,
+            SchemaType::Any => Value::String(String::default()),
         }
     }
     fn parse_from_array(arr: &[Value]) -> Result<Self, String> {
@@ -134,9 +131,6 @@ impl SchemaType {
 impl TryFrom<&Map<String, Value>> for SchemaType {
     type Error = String;
     fn try_from(schema: &Map<String, Value>) -> Result<Self, Self::Error> {
-        // Schemas without a top-level `type` (e.g. `anyOf`/`oneOf`/`allOf`/`$ref`/bare
-        // `const`) can't be mapped to a single input widget, so treat them as free-form
-        // JSON. The value is still validated against the full schema on the backend.
         let Some(type_) = schema.get("type") else {
             return Ok(SchemaType::Any);
         };
