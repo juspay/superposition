@@ -67,6 +67,7 @@ impl From<(SchemaType, EnumVariants)> for InputType {
                 InputType::Monaco(vec![])
             }
             SchemaType::Multiple(_) => InputType::Text,
+            SchemaType::Any => InputType::Monaco(vec![]),
         }
     }
 }
@@ -112,6 +113,8 @@ fn parse_input(value: String, schema_type: SchemaType) -> Result<Value, String> 
             }
             Err("not of valid type".to_string())
         }
+        SchemaType::Any => serde_json::from_str::<Value>(&value)
+            .map_err(|_| "not a valid JSON value".to_string()),
     }
 }
 
@@ -681,4 +684,33 @@ pub fn StringArrayInput(
     #[prop(default = true)] show_label: bool,
 ) -> impl IntoView {
     view! { <ArrayInput options on_change unique show_label /> }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::schema::EnumVariants;
+
+    #[test]
+    fn any_schema_maps_to_monaco_input() {
+        let input_type = InputType::from((SchemaType::Any, EnumVariants(vec![])));
+        assert!(matches!(input_type, InputType::Monaco(_)));
+    }
+
+    #[test]
+    fn any_schema_parses_arbitrary_json() {
+        assert_eq!(
+            parse_input("\"hello\"".to_string(), SchemaType::Any),
+            Ok(Value::String("hello".to_string()))
+        );
+        assert_eq!(
+            parse_input("42".to_string(), SchemaType::Any),
+            Ok(json!(42))
+        );
+        assert_eq!(
+            parse_input("{\"a\":1}".to_string(), SchemaType::Any),
+            Ok(json!({ "a": 1 }))
+        );
+        assert!(parse_input("not json".to_string(), SchemaType::Any).is_err());
+    }
 }
