@@ -324,6 +324,7 @@ pub fn CompareOverrides() -> impl IntoView {
                                         }
                                         heading_sub_text="Query your configs"
                                         resolve_mode=true
+                                        compact=true
                                         fn_environment
                                     />
                                 }
