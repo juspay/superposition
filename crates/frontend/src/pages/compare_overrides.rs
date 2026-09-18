@@ -308,7 +308,9 @@ pub fn CompareOverrides() -> impl IntoView {
                             type="checkbox"
                             checked=context_vec_rws.with_untracked(|c| c.keys().next().is_none())
                         />
-                        <h2 class="card-title collapse-title h-fit !p-0">"Add Contexts"</h2>
+                        <h2 class="card-title collapse-title h-fit !p-0">
+                            "Add contexts for comparison"
+                        </h2>
                         <div class="collapse-content !p-0 flex flex-col gap-8">
                             {move || {
                                 let dimensions = dimension_resource
