@@ -33,7 +33,8 @@ impl SuperpositionProvider {
             AuthMethod::Token(provider_options.token),
             provider_options.org_id,
             provider_options.workspace_id,
-        );
+        )
+        .expect("valid Superposition options");
         let cac_options = ConfigurationOptions::new(
             provider_options.refresh_strategy,
             provider_options.fallback_config.clone(),
