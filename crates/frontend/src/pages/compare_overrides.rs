@@ -95,6 +95,7 @@ fn table_columns(
     };
     for context in contexts.into_iter().rev() {
         let source_col = source_key(&context);
+        let col_key = context.clone();
         let cell_formatter = move |value: &str, row: &Map<String, Value>| {
             let value_view = view! { <span>{url_or_string(value)}</span> };
             let source = row.get(&source_col).and_then(Value::as_object);
@@ -125,8 +126,17 @@ fn table_columns(
                 context_id,
             );
             let pill_id = format!("compare-src-{context_id}");
+            // Highlight when this resolved value actually differs from the default config
+            // value for the key. An override that matches the default keeps the icon (it was
+            // still set by an override) but is not highlighted.
+            let differs = row.get(&col_key) != row.get(DEFAULT_CONFIG_COLUMN);
+            let content_class = if differs {
+                "flex flex-row items-center gap-1 bg-amber-100 rounded px-1 w-fit"
+            } else {
+                "flex flex-row items-center gap-1"
+            };
             view! {
-                <div class="flex flex-row items-center gap-1">
+                <div class=content_class>
                     <div class="dropdown dropdown-hover dropdown-right w-4 shrink-0 flex justify-center">
                         <i
                             tabindex="0"
@@ -302,7 +312,23 @@ pub fn CompareOverrides() -> impl IntoView {
             }
             .into_view()
         } else {
-            view! { <span>{label}</span> }.into_view()
+            // Leaf config key: link to its config-key (default config) page. In grouped mode
+            // the label is the segment under the current prefix, so prepend the prefix to
+            // reconstruct the full key.
+            let prefix = page_params_rws
+                .with(|p| p.prefix.clone())
+                .unwrap_or_default();
+            let href = format!(
+                "/admin/{}/{}/default-config/{prefix}{label}",
+                org.get().0,
+                workspace.get().0,
+            );
+            view! {
+                <A class="text-blue-500 underline underline-offset-2" href=href>
+                    {label}
+                </A>
+            }
+            .into_view()
         }
     });
 
