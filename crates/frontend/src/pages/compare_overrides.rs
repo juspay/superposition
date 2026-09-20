@@ -103,8 +103,15 @@ fn table_columns(
                 .and_then(Value::as_str)
                 .map(String::from)
             else {
-                // Value came from the default config (no matching override); render as-is.
-                return value_view.into_view();
+                // Value came from the default config (no matching override). Reserve the same
+                // left slot as overridden cells so every value stays left-aligned.
+                return view! {
+                    <div class="flex flex-row items-center gap-1">
+                        <span class="w-4 shrink-0" />
+                        {value_view}
+                    </div>
+                }
+                .into_view();
             };
             let conditions = source
                 .and_then(|s| s.get("context"))
@@ -119,33 +126,38 @@ fn table_columns(
             );
             let pill_id = format!("compare-src-{context_id}");
             view! {
-                <div class="dropdown dropdown-hover dropdown-right">
-                    <div tabindex="0" class="flex flex-row items-center gap-1 cursor-help w-fit">
-                        {value_view}
-                        <i class="ri-links-line text-sm text-gray-400" />
-                    </div>
-                    <div
-                        tabindex="0"
-                        class="dropdown-content z-[50] card card-compact bg-base-100 shadow-lg border border-gray-200 p-3 w-max max-w-md flex flex-col gap-2"
-                    >
-                        <span class="text-xs font-semibold text-gray-500">"Set by override"</span>
-                        <ConditionCollapseProvider>
-                            <Condition
-                                conditions
-                                id=pill_id
-                                grouped_view=false
-                                resolve_summary=true
-                                class="h-fit"
-                            />
-                        </ConditionCollapseProvider>
-                        <A
-                            href=href
-                            class="link link-primary text-sm inline-flex items-center gap-1"
+                <div class="flex flex-row items-center gap-1">
+                    <div class="dropdown dropdown-hover dropdown-right w-4 shrink-0 flex justify-center">
+                        <i
+                            tabindex="0"
+                            class="ri-information-line text-sm text-gray-400 cursor-help"
+                        />
+                        <div
+                            tabindex="0"
+                            class="dropdown-content z-[50] card card-compact bg-base-100 shadow-lg border border-gray-200 p-3 w-max max-w-md flex flex-col gap-2"
                         >
-                            "View override"
-                            <i class="ri-arrow-right-line" />
-                        </A>
+                            <span class="text-xs font-semibold text-gray-500">
+                                "Set by override"
+                            </span>
+                            <ConditionCollapseProvider>
+                                <Condition
+                                    conditions
+                                    id=pill_id
+                                    grouped_view=false
+                                    resolve_summary=true
+                                    class="h-fit"
+                                />
+                            </ConditionCollapseProvider>
+                            <A
+                                href=href
+                                class="link link-primary text-sm inline-flex items-center gap-1"
+                            >
+                                "View override"
+                                <i class="ri-arrow-right-line" />
+                            </A>
+                        </div>
                     </div>
+                    {value_view}
                 </div>
             }
             .into_view()
