@@ -24,12 +24,32 @@ fn sorted(list: Option<&[String]>) -> Option<Vec<&String>> {
     })
 }
 
+/// Recursively canonicalize a value for hashing: object keys are sorted at
+/// every depth, array element order is preserved.
+fn canonicalize(value: &Value) -> Value {
+    match value {
+        Value::Object(map) => {
+            let mut pairs: Vec<(&String, &Value)> = map.iter().collect();
+            pairs.sort_by(|a, b| a.0.cmp(b.0));
+            Value::Object(
+                pairs
+                    .into_iter()
+                    .map(|(k, v)| (k.clone(), canonicalize(v)))
+                    .collect(),
+            )
+        }
+        Value::Array(items) => Value::Array(items.iter().map(canonicalize).collect()),
+        other => other.clone(),
+    }
+}
+
 /// Blake3 digest of the context query plus the inputs that discriminate
-/// resolution (merge strategy, prefix filters, targeting key). Query pairs and
-/// prefix lists are sorted before serialization, so semantically identical
-/// requests presented in different orders map to the same digest — regardless
-/// of whether `serde_json` preserves insertion order (`preserve_order`
-/// feature can flip under feature unification).
+/// resolution (merge strategy, prefix filters, targeting key). Query pairs,
+/// prefix lists, and nested object keys are sorted before serialization, so
+/// semantically identical requests presented in different orders map to the
+/// same digest — regardless of whether `serde_json` preserves insertion order
+/// (`preserve_order` feature can flip under feature unification). Array
+/// element order stays significant.
 pub fn key(
     query_data: &Map<String, Value>,
     merge_strategy: MergeStrategy,
@@ -37,7 +57,10 @@ pub fn key(
     filter_exclude_prefixes: Option<&[String]>,
     targeting_key: Option<&str>,
 ) -> blake3::Hash {
-    let mut pairs: Vec<(&String, &Value)> = query_data.iter().collect();
+    let mut pairs: Vec<(&String, Value)> = query_data
+        .iter()
+        .map(|(k, v)| (k, canonicalize(v)))
+        .collect();
     pairs.sort_by(|a, b| a.0.cmp(b.0));
 
     let canonical = serde_json::to_string(&(
@@ -88,6 +111,30 @@ mod tests {
             Some("user-1"),
         );
         assert_eq!(ka, kb);
+    }
+
+    #[test]
+    fn key_canonicalizes_nested_objects() {
+        let parse = |s: &str| serde_json::from_str::<Value>(s).unwrap();
+        let mut a = Map::new();
+        a.insert(
+            "ctx".to_string(),
+            parse(r#"{"a":1,"b":{"x":1,"y":[{"p":1,"q":2},3]}}"#),
+        );
+        let mut b = Map::new();
+        b.insert(
+            "ctx".to_string(),
+            parse(r#"{"b":{"y":[{"q":2,"p":1},3],"x":1},"a":1}"#),
+        );
+        assert_eq!(key_of(&a), key_of(&b));
+
+        // Array element order stays significant.
+        let mut c = Map::new();
+        c.insert(
+            "ctx".to_string(),
+            parse(r#"{"a":1,"b":{"x":1,"y":[3,{"p":1,"q":2}]}}"#),
+        );
+        assert_ne!(key_of(&a), key_of(&c));
     }
 
     #[test]
