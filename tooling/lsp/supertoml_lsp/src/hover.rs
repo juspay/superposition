@@ -15,7 +15,7 @@ pub fn compute(text: &str, pos: Position) -> Option<Hover> {
 
     let lines: Vec<&str> = text.lines().collect();
     let line = lines.get(pos.line as usize)?;
-    let word = extract_word(line, pos.character as usize)?;
+    let word = utils::extract_word(line, pos.character as usize)?;
 
     // A best-effort parse; we still try to provide hover even when the file
     // has minor errors by working with the raw table.
@@ -66,28 +66,5 @@ fn markdown_hover(value: String) -> Hover {
             value,
         }),
         range: None,
-    }
-}
-
-/// Extract the word (identifier characters: alphanumeric, `_`, `-`) under `col`.
-fn extract_word(line: &str, col: usize) -> Option<&str> {
-    let col = col.min(line.len());
-    let bytes = line.as_bytes();
-    let is_ident = |b: u8| b.is_ascii_alphanumeric() || b == b'_' || b == b'-';
-
-    let start = (0..col)
-        .rev()
-        .find(|&i| !is_ident(bytes[i]))
-        .map(|i| i + 1)
-        .unwrap_or(0);
-
-    let end = (col..bytes.len())
-        .find(|&i| !is_ident(bytes[i]))
-        .unwrap_or(bytes.len());
-
-    if start < end {
-        Some(&line[start..end])
-    } else {
-        None
     }
 }

@@ -3,6 +3,20 @@ use tower_lsp::lsp_types::*;
 
 use crate::utils;
 
+/// Diagnostic codes emitted by this server.
+///
+/// Code actions match on these rather than on message text, so the wording of
+/// a message can change without silently breaking the corresponding quick fix.
+pub(crate) const CODE_SYNTAX: &str = "syntax-error";
+pub(crate) const CODE_INVALID_DIMENSION: &str = "invalid-dimension";
+pub(crate) const CODE_COHORT_POSITION: &str = "invalid-cohort-position";
+pub(crate) const CODE_UNDECLARED_DIMENSION: &str = "undeclared-dimension";
+pub(crate) const CODE_INVALID_OVERRIDE_KEY: &str = "invalid-override-key";
+pub(crate) const CODE_DUPLICATE_POSITION: &str = "duplicate-position";
+pub(crate) const CODE_CONVERSION: &str = "conversion-error";
+pub(crate) const CODE_SERIALIZATION: &str = "serialization-error";
+pub(crate) const CODE_VALIDATION: &str = "validation-error";
+
 /// Validate a SuperTOML document and return LSP diagnostics.
 ///
 /// Two passes are performed:
@@ -17,7 +31,7 @@ pub fn compute(text: &str) -> Vec<Diagnostic> {
         return vec![];
     };
     let range = find_error_range(text, &parse_err);
-    let (range, diagnostic) = match parse_err {
+    let (range, diagnostic, code, data) = match parse_err {
         FormatError::SyntaxError {
             format: _,
             message,
@@ -26,10 +40,15 @@ pub fn compute(text: &str) -> Vec<Diagnostic> {
             span.map(|s| byte_span_to_range(text, s))
                 .unwrap_or_default(),
             message,
+            CODE_SYNTAX,
+            None,
         ),
-        FormatError::InvalidDimension(dim_err) => {
-            (range, format!("Invalid dimension: {}", dim_err))
-        }
+        FormatError::InvalidDimension(dim_err) => (
+            range,
+            format!("Invalid dimension: {}", dim_err),
+            CODE_INVALID_DIMENSION,
+            None,
+        ),
         FormatError::InvalidCohortDimensionPosition {
             dimension,
             dimension_position,
@@ -44,27 +63,30 @@ pub fn compute(text: &str) -> Vec<Diagnostic> {
                 dimension_position,
                 dimension
             ),
+            CODE_COHORT_POSITION,
+            None,
         ),
-        FormatError::UndeclaredDimension { dimension, context } => (
-            range,
-            format!(
+        FormatError::UndeclaredDimension { dimension, context } => {
+            let message = format!(
                 "Undeclared dimension '{}': used in context '{}' but not declared in [dimensions]",
                 dimension, context
-            ),
-        ),
-        FormatError::InvalidOverrideKey { key, context } => (
-            range,
-            format!(
+            );
+            let data = serde_json::json!({ "dimension": dimension });
+            (range, message, CODE_UNDECLARED_DIMENSION, Some(data))
+        }
+        FormatError::InvalidOverrideKey { key, context } => {
+            let message = format!(
                 "Invalid override key '{}': used in context '{}' but not declared in [default-configs]",
                 key, context
-            ),
-        ),
+            );
+            let data = serde_json::json!({ "key": key, "context": context });
+            (range, message, CODE_INVALID_OVERRIDE_KEY, Some(data))
+        }
         FormatError::DuplicatePosition {
             position,
             dimensions,
-        } => (
-            range,
-            format!(
+        } => {
+            let message = format!(
                 "Duplicate dimension position {}: dimensions {} all share this position",
                 position,
                 dimensions
@@ -72,17 +94,28 @@ pub fn compute(text: &str) -> Vec<Diagnostic> {
                     .map(|d| format!("'{}'", d))
                     .collect::<Vec<String>>()
                     .join(", ")
-            ),
+            );
+            let data =
+                serde_json::json!({ "position": position, "dimensions": dimensions });
+            (range, message, CODE_DUPLICATE_POSITION, Some(data))
+        }
+        FormatError::ConversionError { format: _, message } => (
+            range,
+            format!("Conversion error: {}", message),
+            CODE_CONVERSION,
+            None,
         ),
-        FormatError::ConversionError { format: _, message } => {
-            (range, format!("Conversion error: {}", message))
-        }
-        FormatError::SerializationError { format: _, message } => {
-            (range, format!("Serialization error: {}", message))
-        }
+        FormatError::SerializationError { format: _, message } => (
+            range,
+            format!("Serialization error: {}", message),
+            CODE_SERIALIZATION,
+            None,
+        ),
         FormatError::ValidationError { key, errors } => {
             let range = find_key_range_in_toml(text, &key);
-            (range, format!("Validation error for '{}': {}", key, errors))
+            let message = format!("Validation error for '{}': {}", key, errors);
+            let data = serde_json::json!({ "key": key });
+            (range, message, CODE_VALIDATION, Some(data))
         }
     };
     Vec::from([Diagnostic {
@@ -90,6 +123,8 @@ pub fn compute(text: &str) -> Vec<Diagnostic> {
         severity: Some(DiagnosticSeverity::ERROR),
         source: Some("supertoml-analyzer".to_string()),
         message: diagnostic,
+        code: Some(NumberOrString::String(code.to_string())),
+        data,
         ..Default::default()
     }])
 }
@@ -132,7 +167,7 @@ fn find_error_range(text: &str, err: &FormatError) -> Range {
 /// - `dimensions.os.schema` → table=`[dimensions]`, find `os` key, then `schema` in its inline table
 /// - `context\[0\].timeout` → first `[[overrides]]`, actual_key=`timeout`
 /// - `context\[0\]._context_.timeout` → first `[[overrides]]`, `_context_` key, then `timeout` in its inline table
-fn find_key_range_in_toml(text: &str, key: &str) -> Range {
+pub(crate) fn find_key_range_in_toml(text: &str, key: &str) -> Range {
     let segments: Vec<&str> = key.split('.').collect();
 
     if segments.is_empty() {
@@ -187,7 +222,7 @@ fn parse_context_index(segment: &str) -> Option<usize> {
 /// Find the byte offset where content starts after a table header.
 /// Looks for both `[table_name]` and `[[table_name]]` patterns.
 /// Returns the byte offset after the header line's newline.
-fn find_table_section_start(text: &str, table_name: &str) -> Option<usize> {
+pub(crate) fn find_table_section_start(text: &str, table_name: &str) -> Option<usize> {
     let regular_header = format!("[{}]", table_name);
     let array_header = format!("[[{}]]", table_name);
 
@@ -216,7 +251,7 @@ fn find_table_section_start(text: &str, table_name: &str) -> Option<usize> {
 }
 
 /// Find a key within a table section, handling sub-nesting for inline tables.
-fn find_key_in_section(
+pub(crate) fn find_key_in_section(
     text: &str,
     section_start: usize,
     sub_nesting: &[&str],
@@ -356,7 +391,7 @@ fn find_key_assignment(text: &str, start: usize, end: usize, key: &str) -> Optio
 }
 
 /// Find a key assignment and return its Range.
-fn find_key_assignment_range(
+pub(crate) fn find_key_assignment_range(
     text: &str,
     start: usize,
     end: usize,
@@ -371,7 +406,7 @@ fn find_key_assignment_range(
 }
 
 /// Find the byte offset of the next section header after a given position.
-fn find_next_section_start(text: &str, after: usize) -> Option<usize> {
+pub(crate) fn find_next_section_start(text: &str, after: usize) -> Option<usize> {
     let search_start = after.min(text.len());
     let search_text = &text[search_start..];
     let mut byte_offset = search_start;
@@ -449,7 +484,7 @@ fn find_key_in_overrides(
 
 /// Find all `[[overrides]]` section start positions.
 /// Returns a vector of byte offsets where each override section starts (after the header).
-fn find_all_override_sections(text: &str) -> Vec<usize> {
+pub(crate) fn find_all_override_sections(text: &str) -> Vec<usize> {
     let mut sections = Vec::new();
     let mut byte_offset = 0usize;
 
@@ -468,7 +503,7 @@ fn find_all_override_sections(text: &str) -> Vec<usize> {
     sections
 }
 
-fn find_text_range(text: &str, search: &str) -> Range {
+pub(crate) fn find_text_range(text: &str, search: &str) -> Range {
     let mut search_start = 0;
     while let Some(pos) = text[search_start..].find(search) {
         let abs_pos = search_start + pos;
@@ -492,7 +527,7 @@ fn byte_span_to_range(text: &str, span: std::ops::Range<usize>) -> Range {
     )
 }
 
-fn byte_offset_to_position(text: &str, offset: usize) -> Position {
+pub(crate) fn byte_offset_to_position(text: &str, offset: usize) -> Position {
     let offset = offset.min(text.len());
     let prefix = &text[..offset];
     let line = prefix.chars().filter(|&c| c == '\n').count() as u32;

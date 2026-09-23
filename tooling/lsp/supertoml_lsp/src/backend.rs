@@ -3,7 +3,7 @@ use tower_lsp::jsonrpc::Result;
 use tower_lsp::lsp_types::*;
 use tower_lsp::{Client, LanguageServer};
 
-use crate::{completions, diagnostics, hover};
+use crate::{code_actions, completions, definition, diagnostics, hover};
 
 pub struct Backend {
     client: Client,
@@ -47,6 +47,13 @@ impl LanguageServer for Backend {
                     ..Default::default()
                 }),
                 hover_provider: Some(HoverProviderCapability::Simple(true)),
+                definition_provider: Some(OneOf::Left(true)),
+                code_action_provider: Some(CodeActionProviderCapability::Options(
+                    CodeActionOptions {
+                        code_action_kinds: Some(vec![CodeActionKind::QUICKFIX]),
+                        ..Default::default()
+                    },
+                )),
                 document_formatting_provider: Some(OneOf::Left(true)),
                 ..Default::default()
             },
@@ -110,6 +117,30 @@ impl LanguageServer for Backend {
             None => return Ok(None),
         };
         Ok(hover::compute(&text, pos))
+    }
+
+    async fn goto_definition(
+        &self,
+        params: GotoDefinitionParams,
+    ) -> Result<Option<GotoDefinitionResponse>> {
+        let uri = &params.text_document_position_params.text_document.uri;
+        let pos = params.text_document_position_params.position;
+        let text = match self.documents.get(uri) {
+            Some(t) => t.clone(),
+            None => return Ok(None),
+        };
+        Ok(definition::compute(&text, pos, uri))
+    }
+
+    async fn code_action(
+        &self,
+        params: CodeActionParams,
+    ) -> Result<Option<CodeActionResponse>> {
+        let text = match self.documents.get(&params.text_document.uri) {
+            Some(t) => t.clone(),
+            None => return Ok(None),
+        };
+        Ok(code_actions::compute(&text, &params))
     }
 
     async fn formatting(
