@@ -375,6 +375,76 @@ async fn setup_with_sdk(org_id: &str, workspace_id: &str) {
     println!("\n=== Setup complete ===\n");
 }
 
+async fn check_resolution_details(provider: &impl AllFeatureProvider) {
+    println!("Test: resolve_all_features_details reports applied variants");
+
+    let ctx = EvaluationContext::default().with_custom_field("city", "Kolkata");
+    let details = provider
+        .resolve_all_features_details(ctx.clone())
+        .await
+        .unwrap();
+    assert!(
+        details.variant_ids.is_empty(),
+        "No variants should apply without a targeting key, got {:?}",
+        details.variant_ids
+    );
+    assert_eq!(
+        details.value,
+        provider.resolve_all_features(ctx).await.unwrap(),
+        "Details should carry the same config as resolve_all_features"
+    );
+
+    let ctx = EvaluationContext::default()
+        .with_custom_field("city", "Kolkata")
+        .with_targeting_key("test");
+    let details = provider
+        .resolve_all_features_details(ctx.clone())
+        .await
+        .unwrap();
+    println!("  Applied variants: {:?}", details.variant_ids);
+    let [variant_id] = details.variant_ids.as_slice() else {
+        panic!(
+            "Exactly one Kolkata experiment variant should apply, got {:?}",
+            details.variant_ids
+        );
+    };
+    let expected_price = if variant_id.ends_with("-control") {
+        8000.0
+    } else {
+        assert!(
+            variant_id.ends_with("-Experimental"),
+            "Unexpected variant id {variant_id}"
+        );
+        7000.0
+    };
+    assert_eq!(
+        details.value.get("price").and_then(Value::as_f64),
+        Some(expected_price),
+        "Price should come from the reported variant {variant_id}"
+    );
+    assert_eq!(
+        details.value,
+        provider.resolve_all_features(ctx.clone()).await.unwrap(),
+        "Details should carry the same config as resolve_all_features"
+    );
+
+    let filtered = provider
+        .resolve_all_features_with_filter_details(
+            ctx,
+            Some(vec!["price".to_string()]),
+            None,
+        )
+        .await
+        .unwrap();
+    assert_eq!(
+        filtered.value.keys().collect::<Vec<_>>(),
+        vec!["price"],
+        "Only price should survive the prefix filter"
+    );
+    assert_eq!(filtered.variant_ids, details.variant_ids);
+    println!("  ✓ Test passed\n");
+}
+
 async fn run_provider_tests(org_id: &str, workspace_id: &str) {
     println!("\n=== Starting OpenFeature provider tests ===\n");
 
@@ -424,6 +494,8 @@ async fn run_provider_tests(org_id: &str, workspace_id: &str) {
                 "Currency should be default Rupee"
             );
             println!("  ✓ Test passed\n");
+
+            check_resolution_details(&provider_clone).await;
         }
 
         // Set provider as the global provider
