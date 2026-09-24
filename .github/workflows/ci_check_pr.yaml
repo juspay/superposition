@@ -263,6 +263,7 @@ jobs:
                     - js
                     - py
                     - rust
+                    - hs
         services:
             postgres:
                 image: public.ecr.aws/docker/library/postgres:15-alpine3.21
@@ -285,7 +286,7 @@ jobs:
             - name: Install postgres libs
               run: |
                   sudo apt update
-                  sudo apt-get -y install postgresql libpq-dev
+                  sudo apt-get -y install postgresql libpq-dev libgmp-dev zlib1g-dev
 
             - name: Install Bun
               uses: oven-sh/setup-bun@v2
@@ -344,6 +345,13 @@ jobs:
               uses: astral-sh/setup-uv@v3
               with:
                   version: "latest"
+
+            - name: Setup Haskell environment (GHC and Cabal)
+              if: matrix.provider == 'hs'
+              uses: haskell-actions/setup@v2
+              with:
+                  ghc-version: "9.6.7" # Specify the GHC version (e.g., '9.2' or 'latest')
+                  cabal-version: "3.16" # Specify the Cabal version (e.g., '3.8' or 'latest')
 
             - name: Run provider tests
               shell: bash

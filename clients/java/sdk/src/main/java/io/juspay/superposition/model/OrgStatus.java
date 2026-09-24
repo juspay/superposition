@@ -16,9 +16,9 @@ import software.amazon.smithy.utils.SmithyGenerated;
 @SmithyGenerated
 public final class OrgStatus implements SerializableShape {
     public static final ShapeId $ID = ShapeId.from("io.superposition#OrgStatus");
-    public static final OrgStatus ACTIVE = new OrgStatus(Type.ACTIVE, "Active");
-    public static final OrgStatus INACTIVE = new OrgStatus(Type.INACTIVE, "Inactive");
-    public static final OrgStatus PENDING_KYB = new OrgStatus(Type.PENDING_KYB, "PendingKyb");
+    public static final OrgStatus ACTIVE = new OrgStatus(Type.ACTIVE, "ACTIVE");
+    public static final OrgStatus INACTIVE = new OrgStatus(Type.INACTIVE, "INACTIVE");
+    public static final OrgStatus PENDING_KYB = new OrgStatus(Type.PENDING_KYB, "PENDING_KYB");
     private static final List<OrgStatus> $TYPES = List.of(ACTIVE, INACTIVE, PENDING_KYB);
 
     public static final Schema $SCHEMA = Schema.createEnum($ID,
@@ -91,9 +91,9 @@ public final class OrgStatus implements SerializableShape {
      */
     public static OrgStatus from(String value) {
         return switch (value) {
-            case "Active" -> ACTIVE;
-            case "Inactive" -> INACTIVE;
-            case "PendingKyb" -> PENDING_KYB;
+            case "ACTIVE" -> ACTIVE;
+            case "INACTIVE" -> INACTIVE;
+            case "PENDING_KYB" -> PENDING_KYB;
             default -> throw new IllegalArgumentException("Unknown value: " + value);
         };
     }
@@ -143,9 +143,9 @@ public final class OrgStatus implements SerializableShape {
         @Override
         public OrgStatus build() {
             return switch (value) {
-                case "Active" -> ACTIVE;
-                case "Inactive" -> INACTIVE;
-                case "PendingKyb" -> PENDING_KYB;
+                case "ACTIVE" -> ACTIVE;
+                case "INACTIVE" -> INACTIVE;
+                case "PENDING_KYB" -> PENDING_KYB;
                 default -> new OrgStatus(Type.$UNKNOWN, value);
             };
         }

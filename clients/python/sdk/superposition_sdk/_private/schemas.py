@@ -6319,7 +6319,7 @@ ORG_STATUS = Schema.collection(
             "target": UNIT,
             "index": 0,
             "traits": [
-                Trait.new(id=ShapeID("smithy.api#enumValue"), value="Active"),
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="ACTIVE"),
 
             ],
         },
@@ -6328,7 +6328,7 @@ ORG_STATUS = Schema.collection(
             "target": UNIT,
             "index": 1,
             "traits": [
-                Trait.new(id=ShapeID("smithy.api#enumValue"), value="Inactive"),
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="INACTIVE"),
 
             ],
         },
@@ -6337,7 +6337,7 @@ ORG_STATUS = Schema.collection(
             "target": UNIT,
             "index": 2,
             "traits": [
-                Trait.new(id=ShapeID("smithy.api#enumValue"), value="PendingKyb"),
+                Trait.new(id=ShapeID("smithy.api#enumValue"), value="PENDING_KYB"),
 
             ],
         },
