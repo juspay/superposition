@@ -64,7 +64,12 @@ pub fn compute(text: &str) -> Vec<Diagnostic> {
                 dimension
             ),
             CODE_COHORT_POSITION,
-            None,
+            Some(serde_json::json!({
+                "dimension": dimension,
+                "dimension_position": dimension_position,
+                "cohort_dimension": cohort_dimension,
+                "cohort_dimension_position": cohort_dimension_position,
+            })),
         ),
         FormatError::UndeclaredDimension { dimension, context } => {
             let message = format!(

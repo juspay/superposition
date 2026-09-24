@@ -28,6 +28,12 @@ pub fn compute(text: &str, params: &CodeActionParams) -> Option<CodeActionRespon
             diagnostics::CODE_VALIDATION => {
                 actions.extend(fix_enum_value(text, raw.as_ref(), diag, uri));
             }
+            diagnostics::CODE_DUPLICATE_POSITION => {
+                actions.extend(fix_duplicate_position(text, raw.as_ref(), diag, uri));
+            }
+            diagnostics::CODE_COHORT_POSITION => {
+                actions.extend(fix_cohort_position(text, diag, uri));
+            }
             _ => {}
         }
     }
@@ -213,6 +219,102 @@ fn lookup_enum(raw: Option<&toml::Table>, key_path: &str) -> Option<Vec<toml::Va
         .as_array()?
         .clone();
     (!values.is_empty()).then_some(values)
+}
+
+// --- Quick fix: give a dimension a position of its own ---------------------
+
+/// Offer to move each dimension involved in a position clash onto the next
+/// free position.
+///
+/// One action is offered per dimension rather than picking a winner: the order
+/// of the names in the diagnostic does not reflect file order, so there is no
+/// principled "first" to keep. Applying one resolves a two-way clash; a wider
+/// clash simply offers again on the next pass.
+fn fix_duplicate_position(
+    text: &str,
+    raw: Option<&toml::Table>,
+    diag: &Diagnostic,
+    uri: &Url,
+) -> Vec<CodeActionOrCommand> {
+    let Some(names) = diag
+        .data
+        .as_ref()
+        .and_then(|d| d.get("dimensions"))
+        .and_then(|d| d.as_array())
+    else {
+        return vec![];
+    };
+    let free = next_free_position(raw);
+
+    names
+        .iter()
+        .filter_map(|n| n.as_str())
+        .filter_map(|name| {
+            let range = position_value_range(text, name)?;
+            Some(quick_fix(
+                format!("Move '{name}' to position {free}"),
+                diag,
+                uri,
+                vec![TextEdit {
+                    range,
+                    new_text: free.to_string(),
+                }],
+            ))
+        })
+        .collect()
+}
+
+/// Range of the integer assigned to `position` within a dimension's entry.
+fn position_value_range(text: &str, dimension: &str) -> Option<Range> {
+    let start = diagnostics::find_table_section_start(text, definition::DIMENSIONS)?;
+    let end = diagnostics::find_next_section_start(text, start).unwrap_or(text.len());
+    let key = diagnostics::find_key_assignment_range(text, start, end, dimension)?;
+
+    let lines: Vec<&str> = text.lines().collect();
+    let line = lines.get(key.start.line as usize)?;
+    // +1 lands the cursor inside the word so word_span() picks it up.
+    let at = line.find("position")? as u32 + 1;
+    value_after_key(&lines, Position::new(key.start.line, at)).map(|(range, _)| range)
+}
+
+// --- Quick fix: order a cohort dimension against its base ------------------
+
+/// Offer to swap the positions of a cohort dimension and the dimension it
+/// references.
+///
+/// The core requires the referenced base dimension to sit at a position at or
+/// above the dimension declaring the cohort. Swapping is the one repair that
+/// cannot introduce a fresh clash: both positions are already in use and
+/// unique, so exchanging them leaves the set of occupied positions unchanged.
+fn fix_cohort_position(
+    text: &str,
+    diag: &Diagnostic,
+    uri: &Url,
+) -> Option<CodeActionOrCommand> {
+    let data = diag.data.as_ref()?;
+    let dimension = data.get("dimension")?.as_str()?;
+    let cohort = data.get("cohort_dimension")?.as_str()?;
+    let dimension_position = data.get("dimension_position")?.as_i64()?;
+    let cohort_position = data.get("cohort_dimension_position")?.as_i64()?;
+
+    let dimension_range = position_value_range(text, dimension)?;
+    let cohort_range = position_value_range(text, cohort)?;
+
+    Some(quick_fix(
+        format!("Swap positions of '{cohort}' and '{dimension}'"),
+        diag,
+        uri,
+        vec![
+            TextEdit {
+                range: dimension_range,
+                new_text: cohort_position.to_string(),
+            },
+            TextEdit {
+                range: cohort_range,
+                new_text: dimension_position.to_string(),
+            },
+        ],
+    ))
 }
 
 // --- Quick fix: add a schema to an entry that has none ----------------------
@@ -630,6 +732,136 @@ per_km_rate = 25.0
         assert!(
             !offered.iter().any(|t| t.contains("Declare dimension")),
             "{offered:?}"
+        );
+    }
+
+    #[test]
+    fn offers_to_move_each_dimension_out_of_a_position_clash() {
+        // city and vehicle_type both sit at position 1.
+        let text = CLEAN.replace(
+            r#"vehicle_type = { position = 2, schema = { type = "string" } }"#,
+            r#"vehicle_type = { position = 1, schema = { type = "string" } }"#,
+        );
+        let diags = diagnostics::compute(&text);
+        assert_eq!(
+            diags[0].code,
+            Some(NumberOrString::String(
+                diagnostics::CODE_DUPLICATE_POSITION.to_string()
+            )),
+            "{}",
+            diags[0].message
+        );
+
+        let actions = compute(&text, &params(&text, Position::new(5, 2))).unwrap();
+        let offered = titles(&actions);
+        // One per clashing dimension, both targeting the next free position.
+        assert!(
+            offered.iter().any(|t| t == "Move 'city' to position 2"),
+            "{offered:?}"
+        );
+        assert!(
+            offered
+                .iter()
+                .any(|t| t == "Move 'vehicle_type' to position 2"),
+            "{offered:?}"
+        );
+    }
+
+    #[test]
+    fn moving_a_dimension_resolves_the_clash() {
+        let text = CLEAN.replace(
+            r#"vehicle_type = { position = 2, schema = { type = "string" } }"#,
+            r#"vehicle_type = { position = 1, schema = { type = "string" } }"#,
+        );
+        let actions = compute(&text, &params(&text, Position::new(5, 2))).unwrap();
+        let out = apply(&text, find(&actions, "Move 'vehicle_type' to position 2"));
+
+        assert!(
+            out.contains(
+                r#"vehicle_type = { position = 2, schema = { type = "string" } }"#
+            ),
+            "{out}"
+        );
+        // city keeps its own position, and the document now validates.
+        assert!(out.contains(r#"city = { position = 1,"#), "{out}");
+        assert!(diagnostics::compute(&out).is_empty());
+    }
+
+    #[test]
+    fn the_renumber_edit_targets_the_integer_not_the_key() {
+        let text = CLEAN.replace(
+            r#"vehicle_type = { position = 2, schema = { type = "string" } }"#,
+            r#"vehicle_type = { position = 1, schema = { type = "string" } }"#,
+        );
+        let actions = compute(&text, &params(&text, Position::new(5, 2))).unwrap();
+        let CodeActionOrCommand::CodeAction(action) =
+            find(&actions, "Move 'vehicle_type'")
+        else {
+            panic!("expected a code action");
+        };
+        let edits = action.edit.as_ref().unwrap().changes.as_ref().unwrap();
+        let edit = &edits.get(&uri()).unwrap()[0];
+
+        assert_eq!(edit.new_text, "2");
+        let line = text.lines().nth(edit.range.start.line as usize).unwrap();
+        let replaced =
+            &line[edit.range.start.character as usize..edit.range.end.character as usize];
+        assert_eq!(replaced, "1", "should replace the position value only");
+    }
+
+    /// A cohort whose base sits *below* it, which the core rejects.
+    ///
+    /// The cohort meta-schema requires `definitions` nested inside `schema`
+    /// and an `otherwise` member in the enum, so this fixture is shaped to be
+    /// valid in every respect except the position ordering under test.
+    const BAD_COHORT: &str = r#"[default-configs]
+rate = { value = 1, schema = { type = "integer" } }
+
+[dimensions]
+city = { position = 1, schema = { type = "string", enum = ["Delhi", "Pune"] } }
+city_tier = { position = 2, type = "LOCAL_COHORT:city", schema = { type = "string", enum = ["metro", "otherwise"], definitions = { metro = { in = [{ var = "city" }, ["Delhi"]] } } } }
+
+[[overrides]]
+_context_ = { city = "Delhi" }
+rate = 2
+"#;
+
+    #[test]
+    fn offers_to_swap_a_cohort_against_its_base() {
+        let diags = diagnostics::compute(BAD_COHORT);
+        assert_eq!(
+            diags[0].code,
+            Some(NumberOrString::String(
+                diagnostics::CODE_COHORT_POSITION.to_string()
+            )),
+            "{}",
+            diags[0].message
+        );
+
+        let actions =
+            compute(BAD_COHORT, &params(BAD_COHORT, Position::new(5, 2))).unwrap();
+        let offered = titles(&actions);
+        assert!(
+            offered
+                .iter()
+                .any(|t| t == "Swap positions of 'city' and 'city_tier'"),
+            "{offered:?}"
+        );
+    }
+
+    #[test]
+    fn swapping_exchanges_both_positions_and_clears_the_error() {
+        let actions =
+            compute(BAD_COHORT, &params(BAD_COHORT, Position::new(5, 2))).unwrap();
+        let out = apply(BAD_COHORT, find(&actions, "Swap positions"));
+
+        assert!(out.contains("city = { position = 2,"), "{out}");
+        assert!(out.contains("city_tier = { position = 1,"), "{out}");
+        // The swap must not have created a duplicate-position clash.
+        assert!(
+            diagnostics::compute(&out).is_empty(),
+            "{:?}",
+            diagnostics::compute(&out).first().map(|d| &d.message)
         );
     }
 
