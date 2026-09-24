@@ -33,6 +33,7 @@ pub fn WorkspaceForm(
     #[prop(default = true)] auto_populate_control: bool,
     #[prop(default = false)] enable_context_validation: bool,
     #[prop(default = false)] enable_change_reason_validation: bool,
+    #[prop(default = false)] enable_auto_reduce: bool,
     #[prop(into)] handle_submit: Callback<(), ()>,
 ) -> impl IntoView {
     let (workspace_name_rs, workspace_name_ws) = create_signal(workspace_name);
@@ -51,6 +52,8 @@ pub fn WorkspaceForm(
         create_signal(enable_context_validation);
     let (enable_change_reason_validation_rs, enable_change_reason_validation_ws) =
         create_signal(enable_change_reason_validation);
+    let (enable_auto_reduce_rs, enable_auto_reduce_ws) =
+        create_signal(enable_auto_reduce);
 
     let on_submit = move |ev: MouseEvent| {
         req_inprogress_ws.set(true);
@@ -70,6 +73,7 @@ pub fn WorkspaceForm(
                         auto_populate_control_rs.get_untracked(),
                         enable_context_validation_rs.get_untracked(),
                         enable_change_reason_validation_rs.get_untracked(),
+                        enable_auto_reduce_rs.get_untracked(),
                     );
                     match update_payload {
                         Ok(payload) => {
@@ -95,6 +99,7 @@ pub fn WorkspaceForm(
                             .get_untracked(),
                         enable_change_reason_validation:
                             enable_change_reason_validation_rs.get_untracked(),
+                        enable_auto_reduce: enable_auto_reduce_rs.get_untracked(),
                     };
                     workspaces::create(create_payload, &org_id.get_untracked().0).await
                 };
@@ -256,6 +261,18 @@ pub fn WorkspaceForm(
                     <Label
                         title="Enable Change Reason Validation"
                         extra_info="This will enable change reason validation for all changes in the workspace."
+                    />
+                </div>
+
+                <div class="w-fit flex items-center gap-2">
+                    <Toggle
+                        name="workspace-enable-auto-reduce"
+                        value=enable_auto_reduce_rs.get_untracked()
+                        on_change=move |v| enable_auto_reduce_ws.set(v)
+                    />
+                    <Label
+                        title="Enable Auto Reduce"
+                        extra_info="When creating a context, drop any override key that the config already resolves to the same value for that context's own condition. Redundant keys are logged and reported as dropped_keys in the response."
                     />
                 </div>
 
