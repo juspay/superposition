@@ -143,8 +143,7 @@ const experimentationOptions = {
         timeout: 2000,
     },
     evaluationCache: {
-        ttl: 300,
-        size: 1000,
+        maxEntries: 1000,
     },
     defaultToss: 50,
 };
@@ -152,10 +151,26 @@ const experimentationOptions = {
 
 ### `EvaluationCacheOptions`
 
-| Field  | Type     | Default | Description                     |
-| ------ | -------- | ------- | ------------------------------- |
-| `ttl`  | `number` | `60`    | Cache time-to-live in seconds   |
-| `size` | `number` | `500`   | Maximum number of cache entries |
+| Field        | Type     | Default | Description                                             |
+| ------------ | -------- | ------- | ------------------------------------------------------- |
+| `maxEntries` | `number` | unset   | Maximum number of cached resolutions; unset/`0` disables caching |
+
+The evaluation cache lives in the native library. Repeated resolutions with
+identical inputs (context query, merge strategy, prefix filters, targeting key)
+are served without re-evaluating. Staleness is governed by the refresh strategy:
+the cache is emptied whenever the provider reloads config or experiment data.
+
+Enable it on the provider through `SuperpositionProviderOptions`:
+
+```javascript
+const provider = new SuperpositionProvider({
+    endpoint: "http://localhost:8080",
+    token: "your-api-token",
+    org_id: "localorg",
+    workspace_id: "dev",
+    evaluationCache: { maxEntries: 1000 },
+});
+```
 
 ## Provider Variants
 
@@ -192,7 +207,7 @@ const provider = new LocalResolutionProvider({
             interval: 5000,
             timeout: 2000,
         },
-        evaluationCache: { ttl: 300, size: 1000 },
+        evaluationCache: { maxEntries: 1000 },
         defaultToss: 50,
     },
 });
