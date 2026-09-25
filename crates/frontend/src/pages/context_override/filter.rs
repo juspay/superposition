@@ -293,7 +293,7 @@ pub fn ContextFilterDrawer(
                     <Label
                         title="Free text search inside overrides"
                         info="(any of)"
-                        description="Searches both keys as well as the values"
+                        description="Searches both keys as well as the values. Only the matching keys are listed in the overrides of each context"
                     />
                     {move || {
                         view! {

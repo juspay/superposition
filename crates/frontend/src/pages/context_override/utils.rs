@@ -84,3 +84,37 @@ pub async fn update_context(
 
     parse_json_response(response).await
 }
+
+/// Trims a context's overrides down to the entries that actually matched the
+/// free-text filter, so a card lists only the searched key instead of every
+/// override sitting on that context. Matches against both the key and the
+/// value, mirroring the server-side `override::text ILIKE '%..%'` filter.
+///
+/// Falls back to the untrimmed map when nothing matches, so a context the API
+/// returned never renders with an empty override table.
+pub fn filter_overrides_by_plaintext(
+    overrides: Map<String, Value>,
+    plaintext: Option<&String>,
+) -> Map<String, Value> {
+    let Some(plaintext) = plaintext
+        .map(|p| p.trim().to_lowercase())
+        .filter(|p| !p.is_empty())
+    else {
+        return overrides;
+    };
+
+    let filtered = overrides
+        .iter()
+        .filter(|(key, value)| {
+            key.to_lowercase().contains(&plaintext)
+                || value.to_string().to_lowercase().contains(&plaintext)
+        })
+        .map(|(key, value)| (key.clone(), value.clone()))
+        .collect::<Map<String, Value>>();
+
+    if filtered.is_empty() {
+        overrides
+    } else {
+        filtered
+    }
+}
