@@ -5,6 +5,9 @@ module Io.Superposition.Model.ListDefaultConfigsInput (
     setPage,
     setAll',
     setName,
+    setSortBy,
+    setSortOn,
+    setSearch,
     build,
     ListDefaultConfigsInputBuilder,
     ListDefaultConfigsInput,
@@ -13,7 +16,10 @@ module Io.Superposition.Model.ListDefaultConfigsInput (
     count,
     page,
     all',
-    name
+    name,
+    sort_by,
+    sort_on,
+    search
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad.State.Strict
@@ -26,6 +32,8 @@ import qualified Data.Maybe
 import qualified Data.Text
 import qualified GHC.Generics
 import qualified GHC.Show
+import qualified Io.Superposition.Model.DefaultConfigSortOn
+import qualified Io.Superposition.Model.SortBy
 import qualified Io.Superposition.Utility
 import qualified Network.HTTP.Types.Method
 
@@ -35,7 +43,10 @@ data ListDefaultConfigsInput = ListDefaultConfigsInput {
     count :: Data.Maybe.Maybe Data.Int.Int32,
     page :: Data.Maybe.Maybe Data.Int.Int32,
     all' :: Data.Maybe.Maybe Bool,
-    name :: Data.Maybe.Maybe Data.Text.Text
+    name :: Data.Maybe.Maybe ([] Data.Text.Text),
+    sort_by :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy,
+    sort_on :: Data.Maybe.Maybe Io.Superposition.Model.DefaultConfigSortOn.DefaultConfigSortOn,
+    search :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -49,7 +60,10 @@ instance Data.Aeson.ToJSON ListDefaultConfigsInput where
         "count" Data.Aeson..= count a,
         "page" Data.Aeson..= page a,
         "all" Data.Aeson..= all' a,
-        "name" Data.Aeson..= name a
+        "name" Data.Aeson..= name a,
+        "sort_by" Data.Aeson..= sort_by a,
+        "sort_on" Data.Aeson..= sort_on a,
+        "search" Data.Aeson..= search a
         ]
     
 
@@ -63,6 +77,9 @@ instance Data.Aeson.FromJSON ListDefaultConfigsInput where
         Control.Applicative.<*> (v Data.Aeson..:? "page")
         Control.Applicative.<*> (v Data.Aeson..:? "all")
         Control.Applicative.<*> (v Data.Aeson..:? "name")
+        Control.Applicative.<*> (v Data.Aeson..:? "sort_by")
+        Control.Applicative.<*> (v Data.Aeson..:? "sort_on")
+        Control.Applicative.<*> (v Data.Aeson..:? "search")
     
 
 
@@ -73,7 +90,10 @@ data ListDefaultConfigsInputBuilderState = ListDefaultConfigsInputBuilderState {
     countBuilderState :: Data.Maybe.Maybe Data.Int.Int32,
     pageBuilderState :: Data.Maybe.Maybe Data.Int.Int32,
     all'BuilderState :: Data.Maybe.Maybe Bool,
-    nameBuilderState :: Data.Maybe.Maybe Data.Text.Text
+    nameBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
+    sort_byBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy,
+    sort_onBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.DefaultConfigSortOn.DefaultConfigSortOn,
+    searchBuilderState :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Generics.Generic
   )
@@ -85,7 +105,10 @@ defaultBuilderState = ListDefaultConfigsInputBuilderState {
     countBuilderState = Data.Maybe.Nothing,
     pageBuilderState = Data.Maybe.Nothing,
     all'BuilderState = Data.Maybe.Nothing,
-    nameBuilderState = Data.Maybe.Nothing
+    nameBuilderState = Data.Maybe.Nothing,
+    sort_byBuilderState = Data.Maybe.Nothing,
+    sort_onBuilderState = Data.Maybe.Nothing,
+    searchBuilderState = Data.Maybe.Nothing
 }
 
 type ListDefaultConfigsInputBuilder = Control.Monad.State.Strict.State ListDefaultConfigsInputBuilderState
@@ -110,9 +133,21 @@ setAll' :: Data.Maybe.Maybe Bool -> ListDefaultConfigsInputBuilder ()
 setAll' value =
    Control.Monad.State.Strict.modify (\s -> (s { all'BuilderState = value }))
 
-setName :: Data.Maybe.Maybe Data.Text.Text -> ListDefaultConfigsInputBuilder ()
+setName :: Data.Maybe.Maybe ([] Data.Text.Text) -> ListDefaultConfigsInputBuilder ()
 setName value =
    Control.Monad.State.Strict.modify (\s -> (s { nameBuilderState = value }))
+
+setSortBy :: Data.Maybe.Maybe Io.Superposition.Model.SortBy.SortBy -> ListDefaultConfigsInputBuilder ()
+setSortBy value =
+   Control.Monad.State.Strict.modify (\s -> (s { sort_byBuilderState = value }))
+
+setSortOn :: Data.Maybe.Maybe Io.Superposition.Model.DefaultConfigSortOn.DefaultConfigSortOn -> ListDefaultConfigsInputBuilder ()
+setSortOn value =
+   Control.Monad.State.Strict.modify (\s -> (s { sort_onBuilderState = value }))
+
+setSearch :: Data.Maybe.Maybe Data.Text.Text -> ListDefaultConfigsInputBuilder ()
+setSearch value =
+   Control.Monad.State.Strict.modify (\s -> (s { searchBuilderState = value }))
 
 build :: ListDefaultConfigsInputBuilder () -> Data.Either.Either Data.Text.Text ListDefaultConfigsInput
 build builder = do
@@ -123,13 +158,19 @@ build builder = do
     page' <- Data.Either.Right (pageBuilderState st)
     all'' <- Data.Either.Right (all'BuilderState st)
     name' <- Data.Either.Right (nameBuilderState st)
+    sort_by' <- Data.Either.Right (sort_byBuilderState st)
+    sort_on' <- Data.Either.Right (sort_onBuilderState st)
+    search' <- Data.Either.Right (searchBuilderState st)
     Data.Either.Right (ListDefaultConfigsInput { 
         workspace_id = workspace_id',
         org_id = org_id',
         count = count',
         page = page',
         all' = all'',
-        name = name'
+        name = name',
+        sort_by = sort_by',
+        sort_on = sort_on',
+        search = search'
     })
 
 
@@ -140,9 +181,12 @@ instance Io.Superposition.Utility.IntoRequestBuilder ListDefaultConfigsInput whe
             "default-config"
             ]
         Io.Superposition.Utility.serQuery "all" (all' self)
+        Io.Superposition.Utility.serQuery "search" (search self)
+        Io.Superposition.Utility.serQuery "sort_on" (sort_on self)
         Io.Superposition.Utility.serQuery "count" (count self)
         Io.Superposition.Utility.serQuery "name" (name self)
         Io.Superposition.Utility.serQuery "page" (page self)
+        Io.Superposition.Utility.serQuery "sort_by" (sort_by self)
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
         
