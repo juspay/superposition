@@ -429,6 +429,7 @@ fn CohortForm(
                 SchemaType::Single(JsonSchemaType::String) => true,
                 SchemaType::Single(_) => false,
                 SchemaType::Multiple(types) => types.contains(&JsonSchemaType::String),
+                SchemaType::Any => false,
             },
             CohortInputType::NumberArray => match schema_type {
                 SchemaType::Single(JsonSchemaType::Number)
@@ -438,6 +439,7 @@ fn CohortForm(
                     types.contains(&JsonSchemaType::Number)
                         || types.contains(&JsonSchemaType::Integer)
                 }
+                SchemaType::Any => false,
             },
             _ => true,
         }
