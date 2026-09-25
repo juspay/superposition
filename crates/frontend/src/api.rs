@@ -3,7 +3,7 @@ use serde_json::{Map, Value};
 use superposition_types::{
     Config, PaginatedResponse,
     api::{
-        config::{ConfigQuery, ResolveConfigQuery},
+        config::{ConfigQuery, DetailedResolvedConfiguration, ResolveConfigQuery},
         context::ContextListFilters,
         experiments::{
             ExperimentListFilters, ExperimentResponse, ExperimentStateChangeRequest,
@@ -938,6 +938,30 @@ pub async fn resolve_config(
     let host = use_host_server();
     let url = format!(
         "{host}/config/resolve?{}&{}",
+        context.to_query_param(),
+        resolve_params.to_query_param()
+    );
+
+    let response = request(
+        url,
+        reqwest::Method::GET,
+        None::<()>,
+        construct_request_headers(&[("x-workspace", workspace), ("x-org-id", org_id)])?,
+    )
+    .await?;
+
+    parse_json_response(response).await
+}
+
+pub async fn resolve_config_detailed(
+    context: &DimensionQuery<QueryMap>,
+    resolve_params: &ResolveConfigQuery,
+    workspace: &str,
+    org_id: &str,
+) -> Result<DetailedResolvedConfiguration, String> {
+    let host = use_host_server();
+    let url = format!(
+        "{host}/config/resolve/detailed?{}&{}",
         context.to_query_param(),
         resolve_params.to_query_param()
     );

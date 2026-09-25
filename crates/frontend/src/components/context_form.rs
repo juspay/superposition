@@ -182,6 +182,11 @@ pub fn ContextForm(
     fn_environment: Memo<FunctionEnvironment>,
     #[prop(default = false)] disabled: bool,
     #[prop(default = false)] resolve_mode: bool,
+    /// Render the form subtly: drop the full-width slate panel and left-align the
+    /// "Add Context" affordance. Used where the form is a secondary control (e.g. the
+    /// compare page) rather than the primary card on the page.
+    #[prop(default = false)]
+    compact: bool,
     #[prop(into, default = String::new())] heading_sub_text: String,
     #[prop(default = DropdownDirection::Down)] dropdown_direction: DropdownDirection,
     #[prop(into)] on_context_change: Callback<Conditions, ()>,
@@ -356,13 +361,25 @@ pub fn ContextForm(
         TooltipType::None
     };
 
+    let card_class = if compact {
+        "w-full"
+    } else {
+        "card w-full bg-slate-50"
+    };
+    let body_class = if compact { "py-2" } else { "card-body" };
+    let empty_state_class = if compact {
+        "flex justify-start"
+    } else {
+        "flex justify-center"
+    };
+
     view! {
         <div class="form-control w-full">
             <Label title="Context" description=heading_sub_text />
-            <div class="card w-full bg-slate-50">
-                <div class="card-body">
+            <div class=card_class>
+                <div class=body_class>
                     <Show when=move || context_rs.get().is_empty()>
-                        <div class="flex justify-center">
+                        <div class=empty_state_class>
                             <Dropdown
                                 dropdown_width="w-80"
                                 dropdown_icon="ri-add-line".to_string()
