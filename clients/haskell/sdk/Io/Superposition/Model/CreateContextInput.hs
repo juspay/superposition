@@ -1,6 +1,7 @@
 module Io.Superposition.Model.CreateContextInput (
     setWorkspaceId,
     setOrgId,
+    setUserAgent,
     setConfigTags,
     setRequest,
     build,
@@ -8,6 +9,7 @@ module Io.Superposition.Model.CreateContextInput (
     CreateContextInput,
     workspace_id,
     org_id,
+    user_agent,
     config_tags,
     request
 ) where
@@ -28,6 +30,7 @@ import qualified Network.HTTP.Types.Method
 data CreateContextInput = CreateContextInput {
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text,
+    user_agent :: Data.Maybe.Maybe Data.Text.Text,
     config_tags :: Data.Maybe.Maybe Data.Text.Text,
     request :: Io.Superposition.Model.ContextPut.ContextPut
 } deriving (
@@ -40,6 +43,7 @@ instance Data.Aeson.ToJSON CreateContextInput where
     toJSON a = Data.Aeson.object [
         "workspace_id" Data.Aeson..= workspace_id a,
         "org_id" Data.Aeson..= org_id a,
+        "user_agent" Data.Aeson..= user_agent a,
         "config_tags" Data.Aeson..= config_tags a,
         "request" Data.Aeson..= request a
         ]
@@ -51,6 +55,7 @@ instance Data.Aeson.FromJSON CreateContextInput where
     parseJSON = Data.Aeson.withObject "CreateContextInput" $ \v -> CreateContextInput
         Data.Functor.<$> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
+        Control.Applicative.<*> (v Data.Aeson..:? "user_agent")
         Control.Applicative.<*> (v Data.Aeson..:? "config_tags")
         Control.Applicative.<*> (v Data.Aeson..: "request")
     
@@ -60,6 +65,7 @@ instance Data.Aeson.FromJSON CreateContextInput where
 data CreateContextInputBuilderState = CreateContextInputBuilderState {
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    user_agentBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     config_tagsBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     requestBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.ContextPut.ContextPut
 } deriving (
@@ -70,6 +76,7 @@ defaultBuilderState :: CreateContextInputBuilderState
 defaultBuilderState = CreateContextInputBuilderState {
     workspace_idBuilderState = Data.Maybe.Nothing,
     org_idBuilderState = Data.Maybe.Nothing,
+    user_agentBuilderState = Data.Maybe.Nothing,
     config_tagsBuilderState = Data.Maybe.Nothing,
     requestBuilderState = Data.Maybe.Nothing
 }
@@ -84,6 +91,10 @@ setOrgId :: Data.Text.Text -> CreateContextInputBuilder ()
 setOrgId value =
    Control.Monad.State.Strict.modify (\s -> (s { org_idBuilderState = Data.Maybe.Just value }))
 
+setUserAgent :: Data.Maybe.Maybe Data.Text.Text -> CreateContextInputBuilder ()
+setUserAgent value =
+   Control.Monad.State.Strict.modify (\s -> (s { user_agentBuilderState = value }))
+
 setConfigTags :: Data.Maybe.Maybe Data.Text.Text -> CreateContextInputBuilder ()
 setConfigTags value =
    Control.Monad.State.Strict.modify (\s -> (s { config_tagsBuilderState = value }))
@@ -97,11 +108,13 @@ build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
     workspace_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateContextInput.CreateContextInput.workspace_id is a required property.") Data.Either.Right (workspace_idBuilderState st)
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateContextInput.CreateContextInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
+    user_agent' <- Data.Either.Right (user_agentBuilderState st)
     config_tags' <- Data.Either.Right (config_tagsBuilderState st)
     request' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateContextInput.CreateContextInput.request is a required property.") Data.Either.Right (requestBuilderState st)
     Data.Either.Right (CreateContextInput { 
         workspace_id = workspace_id',
         org_id = org_id',
+        user_agent = user_agent',
         config_tags = config_tags',
         request = request'
     })
@@ -117,5 +130,6 @@ instance Io.Superposition.Utility.IntoRequestBuilder CreateContextInput where
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
         Io.Superposition.Utility.serHeader "x-config-tags" (config_tags self)
+        Io.Superposition.Utility.serHeader "user-agent" (user_agent self)
         Io.Superposition.Utility.serBody "application/json" (request self)
 

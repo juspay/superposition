@@ -34,6 +34,10 @@ impl SuperpositionProvider {
             provider_options.org_id,
             provider_options.workspace_id,
         );
+        let superposition_options = match provider_options.user_agent {
+            Some(user_agent) => superposition_options.with_user_agent(user_agent),
+            None => superposition_options,
+        };
         let cac_options = ConfigurationOptions::new(
             provider_options.refresh_strategy,
             provider_options.fallback_config.clone(),

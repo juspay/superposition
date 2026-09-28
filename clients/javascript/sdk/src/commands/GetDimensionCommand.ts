@@ -45,6 +45,7 @@ export interface GetDimensionCommandOutput extends DimensionResponse, __Metadata
  * const input = { // GetDimensionInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   dimension: "STRING_VALUE", // required
  * };
  * const command = new GetDimensionCommand(input);

@@ -1,6 +1,7 @@
 module Io.Superposition.Model.ApplicableVariantsInput (
     setWorkspaceId,
     setOrgId,
+    setUserAgent,
     setContext,
     setIdentifier,
     setPrefix,
@@ -10,6 +11,7 @@ module Io.Superposition.Model.ApplicableVariantsInput (
     ApplicableVariantsInput,
     workspace_id,
     org_id,
+    user_agent,
     context,
     identifier,
     prefix,
@@ -32,6 +34,7 @@ import qualified Network.HTTP.Types.Method
 data ApplicableVariantsInput = ApplicableVariantsInput {
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text,
+    user_agent :: Data.Maybe.Maybe Data.Text.Text,
     context :: Data.Map.Map Data.Text.Text Data.Aeson.Value,
     identifier :: Data.Text.Text,
     prefix :: Data.Maybe.Maybe ([] Data.Text.Text),
@@ -46,6 +49,7 @@ instance Data.Aeson.ToJSON ApplicableVariantsInput where
     toJSON a = Data.Aeson.object [
         "workspace_id" Data.Aeson..= workspace_id a,
         "org_id" Data.Aeson..= org_id a,
+        "user_agent" Data.Aeson..= user_agent a,
         "context" Data.Aeson..= context a,
         "identifier" Data.Aeson..= identifier a,
         "prefix" Data.Aeson..= prefix a,
@@ -59,6 +63,7 @@ instance Data.Aeson.FromJSON ApplicableVariantsInput where
     parseJSON = Data.Aeson.withObject "ApplicableVariantsInput" $ \v -> ApplicableVariantsInput
         Data.Functor.<$> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
+        Control.Applicative.<*> (v Data.Aeson..:? "user_agent")
         Control.Applicative.<*> (v Data.Aeson..: "context")
         Control.Applicative.<*> (v Data.Aeson..: "identifier")
         Control.Applicative.<*> (v Data.Aeson..:? "prefix")
@@ -70,6 +75,7 @@ instance Data.Aeson.FromJSON ApplicableVariantsInput where
 data ApplicableVariantsInputBuilderState = ApplicableVariantsInputBuilderState {
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    user_agentBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     contextBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
     identifierBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     prefixBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
@@ -82,6 +88,7 @@ defaultBuilderState :: ApplicableVariantsInputBuilderState
 defaultBuilderState = ApplicableVariantsInputBuilderState {
     workspace_idBuilderState = Data.Maybe.Nothing,
     org_idBuilderState = Data.Maybe.Nothing,
+    user_agentBuilderState = Data.Maybe.Nothing,
     contextBuilderState = Data.Maybe.Nothing,
     identifierBuilderState = Data.Maybe.Nothing,
     prefixBuilderState = Data.Maybe.Nothing,
@@ -97,6 +104,10 @@ setWorkspaceId value =
 setOrgId :: Data.Text.Text -> ApplicableVariantsInputBuilder ()
 setOrgId value =
    Control.Monad.State.Strict.modify (\s -> (s { org_idBuilderState = Data.Maybe.Just value }))
+
+setUserAgent :: Data.Maybe.Maybe Data.Text.Text -> ApplicableVariantsInputBuilder ()
+setUserAgent value =
+   Control.Monad.State.Strict.modify (\s -> (s { user_agentBuilderState = value }))
 
 setContext :: Data.Map.Map Data.Text.Text Data.Aeson.Value -> ApplicableVariantsInputBuilder ()
 setContext value =
@@ -119,6 +130,7 @@ build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
     workspace_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ApplicableVariantsInput.ApplicableVariantsInput.workspace_id is a required property.") Data.Either.Right (workspace_idBuilderState st)
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ApplicableVariantsInput.ApplicableVariantsInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
+    user_agent' <- Data.Either.Right (user_agentBuilderState st)
     context' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ApplicableVariantsInput.ApplicableVariantsInput.context is a required property.") Data.Either.Right (contextBuilderState st)
     identifier' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ApplicableVariantsInput.ApplicableVariantsInput.identifier is a required property.") Data.Either.Right (identifierBuilderState st)
     prefix' <- Data.Either.Right (prefixBuilderState st)
@@ -126,6 +138,7 @@ build builder = do
     Data.Either.Right (ApplicableVariantsInput { 
         workspace_id = workspace_id',
         org_id = org_id',
+        user_agent = user_agent',
         context = context',
         identifier = identifier',
         prefix = prefix',
@@ -145,5 +158,6 @@ instance Io.Superposition.Utility.IntoRequestBuilder ApplicableVariantsInput whe
         Io.Superposition.Utility.serQuery "exclude_prefix" (exclude_prefix self)
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
+        Io.Superposition.Utility.serHeader "user-agent" (user_agent self)
         Io.Superposition.Utility.serField "context" (context self)
 

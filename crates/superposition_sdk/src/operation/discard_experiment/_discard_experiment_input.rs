@@ -8,6 +8,8 @@ pub struct DiscardExperimentInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub org_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
+    pub user_agent: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
     pub id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub change_reason: ::std::option::Option<::std::string::String>,
@@ -22,6 +24,10 @@ impl  DiscardExperimentInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub fn org_id(&self) -> ::std::option::Option<&str> {
         self.org_id.as_deref()
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn user_agent(&self) -> ::std::option::Option<&str> {
+        self.user_agent.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn id(&self) -> ::std::option::Option<&str> {
@@ -49,6 +55,7 @@ impl DiscardExperimentInput {
 pub struct DiscardExperimentInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
+    pub(crate) user_agent: ::std::option::Option<::std::string::String>,
     pub(crate) id: ::std::option::Option<::std::string::String>,
     pub(crate) change_reason: ::std::option::Option<::std::string::String>,
     pub(crate) config_tags: ::std::option::Option<::std::string::String>,
@@ -81,6 +88,19 @@ impl DiscardExperimentInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
         &self.org_id
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn user_agent(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.user_agent = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_user_agent(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.user_agent = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_user_agent(&self) -> &::std::option::Option<::std::string::String> {
+        &self.user_agent
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
@@ -130,6 +150,8 @@ impl DiscardExperimentInputBuilder {
                 workspace_id: self.workspace_id
                 ,
                 org_id: self.org_id
+                ,
+                user_agent: self.user_agent
                 ,
                 id: self.id
                 ,

@@ -45,6 +45,7 @@ export interface GetTypeTemplateCommandOutput extends TypeTemplatesResponse, __M
  * const input = { // GetTypeTemplateInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   type_name: "STRING_VALUE", // required
  * };
  * const command = new GetTypeTemplateCommand(input);

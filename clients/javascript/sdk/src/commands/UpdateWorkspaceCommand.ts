@@ -44,6 +44,7 @@ export interface UpdateWorkspaceCommandOutput extends WorkspaceResponse, __Metad
  * const client = new SuperpositionClient(config);
  * const input = { // UpdateWorkspaceRequest
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   workspace_name: "STRING_VALUE", // required
  *   workspace_admin_email: "STRING_VALUE",
  *   config_version: "STRING_VALUE",

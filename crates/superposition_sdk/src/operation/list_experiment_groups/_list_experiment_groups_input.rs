@@ -13,6 +13,8 @@ pub struct ListExperimentGroupsInput  {
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub org_id: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub user_agent: ::std::option::Option<::std::string::String>,
     /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
     pub if_modified_since: ::std::option::Option<::aws_smithy_types::DateTime>,
     /// Filter by experiment group name (exact match or substring, depending on backend implementation).
@@ -54,6 +56,10 @@ impl  ListExperimentGroupsInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub fn org_id(&self) -> ::std::option::Option<&str> {
         self.org_id.as_deref()
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn user_agent(&self) -> ::std::option::Option<&str> {
+        self.user_agent.as_deref()
     }
     /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
     pub fn if_modified_since(&self) -> ::std::option::Option<&::aws_smithy_types::DateTime> {
@@ -115,6 +121,7 @@ pub struct ListExperimentGroupsInputBuilder {
     pub(crate) all: ::std::option::Option<bool>,
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
+    pub(crate) user_agent: ::std::option::Option<::std::string::String>,
     pub(crate) if_modified_since: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) name: ::std::option::Option<::std::string::String>,
     pub(crate) created_by: ::std::option::Option<::std::string::String>,
@@ -193,6 +200,19 @@ impl ListExperimentGroupsInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
         &self.org_id
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn user_agent(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.user_agent = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_user_agent(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.user_agent = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_user_agent(&self) -> &::std::option::Option<::std::string::String> {
+        &self.user_agent
     }
     /// While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
     pub fn if_modified_since(mut self, input: ::aws_smithy_types::DateTime) -> Self {
@@ -355,6 +375,8 @@ impl ListExperimentGroupsInputBuilder {
                 workspace_id: self.workspace_id
                 ,
                 org_id: self.org_id
+                ,
+                user_agent: self.user_agent
                 ,
                 if_modified_since: self.if_modified_since
                 ,

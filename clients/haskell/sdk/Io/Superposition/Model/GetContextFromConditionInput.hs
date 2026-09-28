@@ -1,12 +1,14 @@
 module Io.Superposition.Model.GetContextFromConditionInput (
     setWorkspaceId,
     setOrgId,
+    setUserAgent,
     setContext,
     build,
     GetContextFromConditionInputBuilder,
     GetContextFromConditionInput,
     workspace_id,
     org_id,
+    user_agent,
     context
 ) where
 import qualified Control.Applicative
@@ -25,6 +27,7 @@ import qualified Network.HTTP.Types.Method
 data GetContextFromConditionInput = GetContextFromConditionInput {
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text,
+    user_agent :: Data.Maybe.Maybe Data.Text.Text,
     context :: Data.Maybe.Maybe Data.Aeson.Value
 } deriving (
   GHC.Show.Show,
@@ -36,6 +39,7 @@ instance Data.Aeson.ToJSON GetContextFromConditionInput where
     toJSON a = Data.Aeson.object [
         "workspace_id" Data.Aeson..= workspace_id a,
         "org_id" Data.Aeson..= org_id a,
+        "user_agent" Data.Aeson..= user_agent a,
         "context" Data.Aeson..= context a
         ]
     
@@ -46,6 +50,7 @@ instance Data.Aeson.FromJSON GetContextFromConditionInput where
     parseJSON = Data.Aeson.withObject "GetContextFromConditionInput" $ \v -> GetContextFromConditionInput
         Data.Functor.<$> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
+        Control.Applicative.<*> (v Data.Aeson..:? "user_agent")
         Control.Applicative.<*> (v Data.Aeson..:? "context")
     
 
@@ -54,6 +59,7 @@ instance Data.Aeson.FromJSON GetContextFromConditionInput where
 data GetContextFromConditionInputBuilderState = GetContextFromConditionInputBuilderState {
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    user_agentBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     contextBuilderState :: Data.Maybe.Maybe Data.Aeson.Value
 } deriving (
   GHC.Generics.Generic
@@ -63,6 +69,7 @@ defaultBuilderState :: GetContextFromConditionInputBuilderState
 defaultBuilderState = GetContextFromConditionInputBuilderState {
     workspace_idBuilderState = Data.Maybe.Nothing,
     org_idBuilderState = Data.Maybe.Nothing,
+    user_agentBuilderState = Data.Maybe.Nothing,
     contextBuilderState = Data.Maybe.Nothing
 }
 
@@ -76,6 +83,10 @@ setOrgId :: Data.Text.Text -> GetContextFromConditionInputBuilder ()
 setOrgId value =
    Control.Monad.State.Strict.modify (\s -> (s { org_idBuilderState = Data.Maybe.Just value }))
 
+setUserAgent :: Data.Maybe.Maybe Data.Text.Text -> GetContextFromConditionInputBuilder ()
+setUserAgent value =
+   Control.Monad.State.Strict.modify (\s -> (s { user_agentBuilderState = value }))
+
 setContext :: Data.Maybe.Maybe Data.Aeson.Value -> GetContextFromConditionInputBuilder ()
 setContext value =
    Control.Monad.State.Strict.modify (\s -> (s { contextBuilderState = value }))
@@ -85,10 +96,12 @@ build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
     workspace_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetContextFromConditionInput.GetContextFromConditionInput.workspace_id is a required property.") Data.Either.Right (workspace_idBuilderState st)
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetContextFromConditionInput.GetContextFromConditionInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
+    user_agent' <- Data.Either.Right (user_agentBuilderState st)
     context' <- Data.Either.Right (contextBuilderState st)
     Data.Either.Right (GetContextFromConditionInput { 
         workspace_id = workspace_id',
         org_id = org_id',
+        user_agent = user_agent',
         context = context'
     })
 
@@ -103,5 +116,6 @@ instance Io.Superposition.Utility.IntoRequestBuilder GetContextFromConditionInpu
         
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
+        Io.Superposition.Utility.serHeader "user-agent" (user_agent self)
         Io.Superposition.Utility.serBody "application/json" (context self)
 

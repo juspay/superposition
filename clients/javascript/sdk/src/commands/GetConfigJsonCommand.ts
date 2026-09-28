@@ -45,6 +45,7 @@ export interface GetConfigJsonCommandOutput extends GetConfigJsonOutput, __Metad
  * const input = { // GetConfigJsonInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   if_modified_since: new Date("TIMESTAMP"),
  * };
  * const command = new GetConfigJsonCommand(input);

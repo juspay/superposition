@@ -45,6 +45,7 @@ export interface GetVariableCommandOutput extends VariableResponse, __MetadataBe
  * const input = { // GetVariableInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   name: "STRING_VALUE", // required
  * };
  * const command = new GetVariableCommand(input);

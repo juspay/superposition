@@ -29,6 +29,8 @@ public final class BulkOperationInput implements SerializableStruct {
         .putMember("org_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-org-id"),
                 new RequiredTrait())
+        .putMember("user_agent", PreludeSchemas.STRING,
+                new HttpHeaderTrait("user-agent"))
         .putMember("config_tags", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-config-tags"))
         .putMember("operations", SharedSchemas.BULK_OPERATION_LIST,
@@ -37,17 +39,20 @@ public final class BulkOperationInput implements SerializableStruct {
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
+    private static final Schema $SCHEMA_USER_AGENT = $SCHEMA.member("user_agent");
     private static final Schema $SCHEMA_CONFIG_TAGS = $SCHEMA.member("config_tags");
     private static final Schema $SCHEMA_OPERATIONS = $SCHEMA.member("operations");
 
     private final transient String workspaceId;
     private final transient String orgId;
+    private final transient String userAgent;
     private final transient String configTags;
     private final transient List<ContextAction> operations;
 
     private BulkOperationInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
+        this.userAgent = builder.userAgent;
         this.configTags = builder.configTags;
         this.operations = Collections.unmodifiableList(builder.operations);
     }
@@ -58,6 +63,10 @@ public final class BulkOperationInput implements SerializableStruct {
 
     public String orgId() {
         return orgId;
+    }
+
+    public String userAgent() {
+        return userAgent;
     }
 
     public String configTags() {
@@ -88,13 +97,14 @@ public final class BulkOperationInput implements SerializableStruct {
         BulkOperationInput that = (BulkOperationInput) other;
         return Objects.equals(this.workspaceId, that.workspaceId)
                && Objects.equals(this.orgId, that.orgId)
+               && Objects.equals(this.userAgent, that.userAgent)
                && Objects.equals(this.configTags, that.configTags)
                && Objects.equals(this.operations, that.operations);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, configTags, operations);
+        return Objects.hash(workspaceId, orgId, userAgent, configTags, operations);
     }
 
     @Override
@@ -106,6 +116,9 @@ public final class BulkOperationInput implements SerializableStruct {
     public void serializeMembers(ShapeSerializer serializer) {
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
+        if (userAgent != null) {
+            serializer.writeString($SCHEMA_USER_AGENT, userAgent);
+        }
         if (configTags != null) {
             serializer.writeString($SCHEMA_CONFIG_TAGS, configTags);
         }
@@ -119,7 +132,8 @@ public final class BulkOperationInput implements SerializableStruct {
             case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, workspaceId);
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
             case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_OPERATIONS, member, operations);
-            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONFIG_TAGS, member, configTags);
+            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, userAgent);
+            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONFIG_TAGS, member, configTags);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -135,6 +149,7 @@ public final class BulkOperationInput implements SerializableStruct {
         var builder = new Builder();
         builder.workspaceId(this.workspaceId);
         builder.orgId(this.orgId);
+        builder.userAgent(this.userAgent);
         builder.configTags(this.configTags);
         builder.operations(this.operations);
         return builder;
@@ -154,6 +169,7 @@ public final class BulkOperationInput implements SerializableStruct {
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private String workspaceId;
         private String orgId;
+        private String userAgent;
         private String configTags;
         private List<ContextAction> operations;
 
@@ -181,6 +197,14 @@ public final class BulkOperationInput implements SerializableStruct {
         public Builder orgId(String orgId) {
             this.orgId = Objects.requireNonNull(orgId, "orgId cannot be null");
             tracker.setMember($SCHEMA_ORG_ID);
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
+        public Builder userAgent(String userAgent) {
+            this.userAgent = userAgent;
             return this;
         }
 
@@ -215,7 +239,8 @@ public final class BulkOperationInput implements SerializableStruct {
                 case 0 -> workspaceId((String) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, value));
                 case 1 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
                 case 2 -> operations((List<ContextAction>) SchemaUtils.validateSameMember($SCHEMA_OPERATIONS, member, value));
-                case 3 -> configTags((String) SchemaUtils.validateSameMember($SCHEMA_CONFIG_TAGS, member, value));
+                case 3 -> userAgent((String) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, value));
+                case 4 -> configTags((String) SchemaUtils.validateSameMember($SCHEMA_CONFIG_TAGS, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -258,7 +283,8 @@ public final class BulkOperationInput implements SerializableStruct {
                     case 0 -> builder.workspaceId(de.readString(member));
                     case 1 -> builder.orgId(de.readString(member));
                     case 2 -> builder.operations(SharedSerde.deserializeBulkOperationList(member, de));
-                    case 3 -> builder.configTags(de.readString(member));
+                    case 3 -> builder.userAgent(de.readString(member));
+                    case 4 -> builder.configTags(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

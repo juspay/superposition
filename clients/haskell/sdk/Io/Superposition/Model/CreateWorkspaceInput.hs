@@ -1,5 +1,6 @@
 module Io.Superposition.Model.CreateWorkspaceInput (
     setOrgId,
+    setUserAgent,
     setWorkspaceAdminEmail,
     setWorkspaceName,
     setWorkspaceStatus,
@@ -12,6 +13,7 @@ module Io.Superposition.Model.CreateWorkspaceInput (
     CreateWorkspaceInputBuilder,
     CreateWorkspaceInput,
     org_id,
+    user_agent,
     workspace_admin_email,
     workspace_name,
     workspace_status,
@@ -37,6 +39,7 @@ import qualified Network.HTTP.Types.Method
 
 data CreateWorkspaceInput = CreateWorkspaceInput {
     org_id :: Data.Text.Text,
+    user_agent :: Data.Maybe.Maybe Data.Text.Text,
     workspace_admin_email :: Data.Text.Text,
     workspace_name :: Data.Text.Text,
     workspace_status :: Data.Maybe.Maybe Io.Superposition.Model.WorkspaceStatus.WorkspaceStatus,
@@ -54,6 +57,7 @@ data CreateWorkspaceInput = CreateWorkspaceInput {
 instance Data.Aeson.ToJSON CreateWorkspaceInput where
     toJSON a = Data.Aeson.object [
         "org_id" Data.Aeson..= org_id a,
+        "user_agent" Data.Aeson..= user_agent a,
         "workspace_admin_email" Data.Aeson..= workspace_admin_email a,
         "workspace_name" Data.Aeson..= workspace_name a,
         "workspace_status" Data.Aeson..= workspace_status a,
@@ -70,6 +74,7 @@ instance Io.Superposition.Utility.SerializeBody CreateWorkspaceInput
 instance Data.Aeson.FromJSON CreateWorkspaceInput where
     parseJSON = Data.Aeson.withObject "CreateWorkspaceInput" $ \v -> CreateWorkspaceInput
         Data.Functor.<$> (v Data.Aeson..: "org_id")
+        Control.Applicative.<*> (v Data.Aeson..:? "user_agent")
         Control.Applicative.<*> (v Data.Aeson..: "workspace_admin_email")
         Control.Applicative.<*> (v Data.Aeson..: "workspace_name")
         Control.Applicative.<*> (v Data.Aeson..:? "workspace_status")
@@ -84,6 +89,7 @@ instance Data.Aeson.FromJSON CreateWorkspaceInput where
 
 data CreateWorkspaceInputBuilderState = CreateWorkspaceInputBuilderState {
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    user_agentBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     workspace_admin_emailBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     workspace_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     workspace_statusBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.WorkspaceStatus.WorkspaceStatus,
@@ -99,6 +105,7 @@ data CreateWorkspaceInputBuilderState = CreateWorkspaceInputBuilderState {
 defaultBuilderState :: CreateWorkspaceInputBuilderState
 defaultBuilderState = CreateWorkspaceInputBuilderState {
     org_idBuilderState = Data.Maybe.Nothing,
+    user_agentBuilderState = Data.Maybe.Nothing,
     workspace_admin_emailBuilderState = Data.Maybe.Nothing,
     workspace_nameBuilderState = Data.Maybe.Nothing,
     workspace_statusBuilderState = Data.Maybe.Nothing,
@@ -114,6 +121,10 @@ type CreateWorkspaceInputBuilder = Control.Monad.State.Strict.State CreateWorksp
 setOrgId :: Data.Text.Text -> CreateWorkspaceInputBuilder ()
 setOrgId value =
    Control.Monad.State.Strict.modify (\s -> (s { org_idBuilderState = Data.Maybe.Just value }))
+
+setUserAgent :: Data.Maybe.Maybe Data.Text.Text -> CreateWorkspaceInputBuilder ()
+setUserAgent value =
+   Control.Monad.State.Strict.modify (\s -> (s { user_agentBuilderState = value }))
 
 setWorkspaceAdminEmail :: Data.Text.Text -> CreateWorkspaceInputBuilder ()
 setWorkspaceAdminEmail value =
@@ -151,6 +162,7 @@ build :: CreateWorkspaceInputBuilder () -> Data.Either.Either Data.Text.Text Cre
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateWorkspaceInput.CreateWorkspaceInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
+    user_agent' <- Data.Either.Right (user_agentBuilderState st)
     workspace_admin_email' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateWorkspaceInput.CreateWorkspaceInput.workspace_admin_email is a required property.") Data.Either.Right (workspace_admin_emailBuilderState st)
     workspace_name' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateWorkspaceInput.CreateWorkspaceInput.workspace_name is a required property.") Data.Either.Right (workspace_nameBuilderState st)
     workspace_status' <- Data.Either.Right (workspace_statusBuilderState st)
@@ -161,6 +173,7 @@ build builder = do
     enable_change_reason_validation' <- Data.Either.Right (enable_change_reason_validationBuilderState st)
     Data.Either.Right (CreateWorkspaceInput { 
         org_id = org_id',
+        user_agent = user_agent',
         workspace_admin_email = workspace_admin_email',
         workspace_name = workspace_name',
         workspace_status = workspace_status',
@@ -180,6 +193,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder CreateWorkspaceInput where
             ]
         
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
+        Io.Superposition.Utility.serHeader "user-agent" (user_agent self)
         Io.Superposition.Utility.serField "allow_experiment_self_approval" (allow_experiment_self_approval self)
         Io.Superposition.Utility.serField "workspace_admin_email" (workspace_admin_email self)
         Io.Superposition.Utility.serField "auto_populate_control" (auto_populate_control self)

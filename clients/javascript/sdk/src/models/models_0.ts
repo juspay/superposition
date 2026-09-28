@@ -76,6 +76,7 @@ export class InternalServerError extends __BaseException {
 export interface ModifyMembersToGroupRequest {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   id: string | undefined;
   /**
    * Reason for adding these members.
@@ -115,6 +116,7 @@ export class ResourceNotFound extends __BaseException {
 export interface ApplicableVariantsInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   /**
    * Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
    * @public
@@ -200,6 +202,7 @@ export type SortBy = typeof SortBy[keyof typeof SortBy]
 export interface ListAuditLogsInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   /**
    * Number of items to be returned in each page.
    * @public
@@ -456,6 +459,7 @@ export namespace ContextAction {
 export interface BulkOperationInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   config_tags?: string | undefined;
   operations: (ContextAction)[] | undefined;
 }
@@ -680,6 +684,7 @@ export interface ChangeReasonValidationFunctionRequest {
 export interface ConcludeExperimentInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   id: string | undefined;
   chosen_variant: string | undefined;
   description?: string | undefined;
@@ -860,6 +865,7 @@ export interface DimensionInfo {
 export interface GetConfigInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   prefix?: (string)[] | undefined;
   exclude_prefix?: (string)[] | undefined;
   version?: string | undefined;
@@ -900,6 +906,7 @@ export interface GetConfigOutput {
 export interface GetConfigJsonInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   /**
    * While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
    * @public
@@ -921,6 +928,7 @@ export interface GetConfigJsonOutput {
 export interface GetConfigTomlInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   /**
    * While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
    * @public
@@ -955,6 +963,7 @@ export type MergeStrategy = typeof MergeStrategy[keyof typeof MergeStrategy]
 export interface GetDetailedResolvedConfigInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   prefix?: (string)[] | undefined;
   /**
    * Excludes configuration keys that start with any of the supplied prefixes. When combined with prefix, exclusion is applied to the allow-listed keys.
@@ -996,6 +1005,7 @@ export interface GetDetailedResolvedConfigOutput {
 export interface GetResolvedConfigInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   prefix?: (string)[] | undefined;
   /**
    * Excludes configuration keys that start with any of the supplied prefixes. When combined with prefix, exclusion is applied to the allow-listed keys.
@@ -1037,6 +1047,7 @@ export interface GetResolvedConfigOutput {
 export interface GetResolvedConfigExplanationInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   key: string | undefined;
   version?: string | undefined;
   merge_strategy?: MergeStrategy | undefined;
@@ -1095,6 +1106,7 @@ export interface GetResolvedConfigExplanationOutput {
 export interface GetResolvedConfigWithIdentifierInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   prefix?: (string)[] | undefined;
   exclude_prefix?: (string)[] | undefined;
   version?: string | undefined;
@@ -1148,6 +1160,7 @@ export interface ConfigData {
 export interface GetVersionInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   id: string | undefined;
 }
 
@@ -1169,6 +1182,7 @@ export interface GetVersionResponse {
 export interface ListVersionsInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   /**
    * Number of items to be returned in each page.
    * @public
@@ -1208,6 +1222,7 @@ export interface ListVersionsOutput {
 export interface CreateContextInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   config_tags?: string | undefined;
   request: ContextPut | undefined;
 }
@@ -1218,6 +1233,7 @@ export interface CreateContextInput {
 export interface DeleteContextInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   id: string | undefined;
   config_tags?: string | undefined;
 }
@@ -1228,6 +1244,7 @@ export interface DeleteContextInput {
 export interface GetContextInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   id: string | undefined;
 }
 
@@ -1237,6 +1254,7 @@ export interface GetContextInput {
 export interface GetContextFromConditionInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   context?: __DocumentType | undefined;
 }
 
@@ -1301,6 +1319,7 @@ export interface ListContextsInput {
 
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   prefix?: (string)[] | undefined;
   exclude_prefix?: (string)[] | undefined;
   sort_on?: ContextFilterSortOn | undefined;
@@ -1341,6 +1360,7 @@ export interface ListContextsOutput {
 export interface MoveContextInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   id: string | undefined;
   request: ContextMove | undefined;
 }
@@ -1351,6 +1371,7 @@ export interface MoveContextInput {
 export interface UpdateOverrideInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   config_tags?: string | undefined;
   request: UpdateContextOverrideRequest | undefined;
 }
@@ -1361,6 +1382,7 @@ export interface UpdateOverrideInput {
 export interface ValidateContextInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   /**
    * Represents conditional criteria used for context matching. Keys define dimension names and values specify the criteria that must be met.
    * @public
@@ -1374,6 +1396,7 @@ export interface ValidateContextInput {
 export interface WeightRecomputeInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   config_tags?: string | undefined;
 }
 
@@ -1433,6 +1456,7 @@ export interface CreateDefaultConfigInput {
   value_compute_function_name?: string | undefined;
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
 }
 
 /**
@@ -1463,6 +1487,7 @@ export interface DefaultConfigResponse {
 export interface CreateDimensionInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   dimension: string | undefined;
   position: number | undefined;
   /**
@@ -1509,6 +1534,7 @@ export interface DimensionResponse {
 export interface CreateExperimentRequest {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   name: string | undefined;
   experiment_type?: ExperimentType | undefined;
   /**
@@ -1538,6 +1564,7 @@ export interface CreateExperimentRequest {
 export interface CreateExperimentGroupRequest {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   name: string | undefined;
   description: string | undefined;
   /**
@@ -1593,6 +1620,7 @@ export type FunctionRuntimeVersion = typeof FunctionRuntimeVersion[keyof typeof 
 export interface CreateFunctionRequest {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   function_name: string | undefined;
   description: string | undefined;
   change_reason: string | undefined;
@@ -1671,6 +1699,7 @@ export interface OrganisationResponse {
 export interface CreateSecretInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   name: string | undefined;
   /**
    * Plaintext value to be encrypted and stored.
@@ -1702,6 +1731,7 @@ export interface SecretResponse {
 export interface CreateTypeTemplatesRequest {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   type_name: string | undefined;
   /**
    * Generic key-value object structure used for flexible data representation throughout the API.
@@ -1738,6 +1768,7 @@ export interface TypeTemplatesResponse {
 export interface CreateVariableInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   name: string | undefined;
   value: string | undefined;
   description: string | undefined;
@@ -1793,6 +1824,7 @@ export type Version = typeof Version[keyof typeof Version]
 export interface CreateWebhookInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   name: string | undefined;
   description: string | undefined;
   enabled: boolean | undefined;
@@ -1853,6 +1885,7 @@ export type WorkspaceStatus = typeof WorkspaceStatus[keyof typeof WorkspaceStatu
  */
 export interface CreateWorkspaceRequest {
   org_id: string | undefined;
+  user_agent?: string | undefined;
   workspace_admin_email: string | undefined;
   workspace_name: string | undefined;
   workspace_status?: WorkspaceStatus | undefined;
@@ -1907,6 +1940,7 @@ export interface WorkspaceResponse {
 export interface DeleteDefaultConfigInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   key: string | undefined;
 }
 
@@ -1916,6 +1950,7 @@ export interface DeleteDefaultConfigInput {
 export interface GetDefaultConfigInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   key: string | undefined;
 }
 
@@ -1925,6 +1960,7 @@ export interface GetDefaultConfigInput {
 export interface ListDefaultConfigsInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   /**
    * Number of items to be returned in each page.
    * @public
@@ -1961,6 +1997,7 @@ export interface ListDefaultConfigsOutput {
 export interface UpdateDefaultConfigInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   key: string | undefined;
   change_reason: string | undefined;
   value?: __DocumentType | undefined;
@@ -1990,6 +2027,7 @@ export interface UpdateDefaultConfigInput {
 export interface DeleteDimensionInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   dimension: string | undefined;
 }
 
@@ -1999,6 +2037,7 @@ export interface DeleteDimensionInput {
 export interface DeleteExperimentGroupInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   id: string | undefined;
 }
 
@@ -2008,6 +2047,7 @@ export interface DeleteExperimentGroupInput {
 export interface DeleteFunctionInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   function_name: string | undefined;
 }
 
@@ -2017,6 +2057,7 @@ export interface DeleteFunctionInput {
 export interface DeleteSecretInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   name: string | undefined;
 }
 
@@ -2026,6 +2067,7 @@ export interface DeleteSecretInput {
 export interface DeleteTypeTemplatesInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   type_name: string | undefined;
 }
 
@@ -2035,6 +2077,7 @@ export interface DeleteTypeTemplatesInput {
 export interface DeleteVariableInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   name: string | undefined;
 }
 
@@ -2044,6 +2087,7 @@ export interface DeleteVariableInput {
 export interface DeleteWebhookInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   name: string | undefined;
 }
 
@@ -2053,6 +2097,7 @@ export interface DeleteWebhookInput {
 export interface GetDimensionInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   dimension: string | undefined;
 }
 
@@ -2080,6 +2125,7 @@ export interface ListDimensionsInput {
 
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
 }
 
 /**
@@ -2097,6 +2143,7 @@ export interface ListDimensionsOutput {
 export interface UpdateDimensionInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   dimension: string | undefined;
   /**
    * Generic key-value object structure used for flexible data representation throughout the API.
@@ -2126,6 +2173,7 @@ export interface UpdateDimensionInput {
 export interface DiscardExperimentInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   id: string | undefined;
   change_reason: string | undefined;
   config_tags?: string | undefined;
@@ -2137,6 +2185,7 @@ export interface DiscardExperimentInput {
 export interface GetExperimentConfigInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   /**
    * While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
    * @public
@@ -2178,6 +2227,7 @@ export interface GetExperimentConfigOutput {
 export interface GetExperimentGroupInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   id: string | undefined;
 }
 
@@ -2228,6 +2278,7 @@ export interface ListExperimentGroupsInput {
 
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   /**
    * While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
    * @public
@@ -2312,6 +2363,7 @@ export interface ListExperimentGroupsOutput {
 export interface UpdateExperimentGroupRequest {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   id: string | undefined;
   /**
    * Reason for this update.
@@ -2338,6 +2390,7 @@ export interface UpdateExperimentGroupRequest {
 export interface GetExperimentInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   id: string | undefined;
 }
 
@@ -2378,6 +2431,7 @@ export interface ListExperimentInput {
 
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   /**
    * While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
    * @public
@@ -2437,6 +2491,7 @@ export interface ListExperimentOutput {
 export interface PauseExperimentInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   id: string | undefined;
   change_reason: string | undefined;
 }
@@ -2447,6 +2502,7 @@ export interface PauseExperimentInput {
 export interface RampExperimentInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   id: string | undefined;
   change_reason: string | undefined;
   traffic_percentage: number | undefined;
@@ -2458,6 +2514,7 @@ export interface RampExperimentInput {
 export interface ResumeExperimentInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   id: string | undefined;
   change_reason: string | undefined;
 }
@@ -2480,6 +2537,7 @@ export interface VariantUpdateRequest {
 export interface UpdateOverrideRequest {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   id: string | undefined;
   variant_list: (VariantUpdateRequest)[] | undefined;
   description?: string | undefined;
@@ -2505,6 +2563,7 @@ export interface UpdateOverrideRequest {
 export interface GetFunctionInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   function_name: string | undefined;
 }
 
@@ -2532,6 +2591,7 @@ export interface ListFunctionInput {
 
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   function_type?: (FunctionTypes)[] | undefined;
 }
 
@@ -2550,6 +2610,7 @@ export interface ListFunctionOutput {
 export interface PublishInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   function_name: string | undefined;
   change_reason: string | undefined;
 }
@@ -2681,6 +2742,7 @@ export type Stage = typeof Stage[keyof typeof Stage]
 export interface TestInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   function_name: string | undefined;
   stage: Stage | undefined;
   request: FunctionExecutionRequest | undefined;
@@ -2692,6 +2754,7 @@ export interface TestInput {
 export interface UpdateFunctionRequest {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   function_name: string | undefined;
   description?: string | undefined;
   change_reason: string | undefined;
@@ -2712,6 +2775,7 @@ export interface GetOrganisationInput {
 export interface GetSecretInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   name: string | undefined;
 }
 
@@ -2721,6 +2785,7 @@ export interface GetSecretInput {
 export interface GetTypeTemplateInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   type_name: string | undefined;
 }
 
@@ -2748,6 +2813,7 @@ export interface GetTypeTemplatesListInput {
 
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
 }
 
 /**
@@ -2765,6 +2831,7 @@ export interface GetTypeTemplatesListOutput {
 export interface GetVariableInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   name: string | undefined;
 }
 
@@ -2774,6 +2841,7 @@ export interface GetVariableInput {
 export interface GetWebhookInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   name: string | undefined;
 }
 
@@ -2783,6 +2851,7 @@ export interface GetWebhookInput {
 export interface GetWebhookByEventInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   event: string | undefined;
 }
 
@@ -2791,6 +2860,7 @@ export interface GetWebhookByEventInput {
  */
 export interface GetWorkspaceInput {
   org_id: string | undefined;
+  user_agent?: string | undefined;
   workspace_name: string | undefined;
 }
 
@@ -2864,6 +2934,7 @@ export interface ListSecretsInput {
 
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   /**
    * Filter by secret name.
    * @public
@@ -2942,6 +3013,7 @@ export interface ListVariablesInput {
 
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   /**
    * Filter by variable name (exact match or substring, depending on backend implementation).
    * @public
@@ -3006,6 +3078,7 @@ export interface ListWebhookInput {
 
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
 }
 
 /**
@@ -3040,6 +3113,7 @@ export interface ListWorkspaceInput {
   all?: boolean | undefined;
 
   org_id: string | undefined;
+  user_agent?: string | undefined;
 }
 
 /**
@@ -3064,6 +3138,7 @@ export interface RotateMasterEncryptionKeyOutput {
  */
 export interface WorkspaceSelectorRequest {
   org_id: string | undefined;
+  user_agent?: string | undefined;
   workspace_name: string | undefined;
 }
 
@@ -3097,6 +3172,7 @@ export interface RotateWorkspaceEncryptionKeyOutput {
 export interface UpdateSecretInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   name: string | undefined;
   /**
    * New plaintext value to encrypt and store. If provided, will be encrypted with current key.
@@ -3114,6 +3190,7 @@ export interface UpdateSecretInput {
 export interface UpdateTypeTemplatesRequest {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   type_name: string | undefined;
   /**
    * Generic key-value object structure used for flexible data representation throughout the API.
@@ -3131,6 +3208,7 @@ export interface UpdateTypeTemplatesRequest {
 export interface UpdateVariableInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   name: string | undefined;
   value?: string | undefined;
   description?: string | undefined;
@@ -3143,6 +3221,7 @@ export interface UpdateVariableInput {
 export interface UpdateWebhookInput {
   workspace_id: string | undefined;
   org_id: string | undefined;
+  user_agent?: string | undefined;
   name: string | undefined;
   description?: string | undefined;
   enabled?: boolean | undefined;
@@ -3164,6 +3243,7 @@ export interface UpdateWebhookInput {
  */
 export interface UpdateWorkspaceRequest {
   org_id: string | undefined;
+  user_agent?: string | undefined;
   workspace_name: string | undefined;
   workspace_admin_email?: string | undefined;
   /**

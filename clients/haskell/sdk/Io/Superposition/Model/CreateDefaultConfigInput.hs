@@ -8,6 +8,7 @@ module Io.Superposition.Model.CreateDefaultConfigInput (
     setValueComputeFunctionName,
     setWorkspaceId,
     setOrgId,
+    setUserAgent,
     build,
     CreateDefaultConfigInputBuilder,
     CreateDefaultConfigInput,
@@ -19,7 +20,8 @@ module Io.Superposition.Model.CreateDefaultConfigInput (
     value_validation_function_name,
     value_compute_function_name,
     workspace_id,
-    org_id
+    org_id,
+    user_agent
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad.State.Strict
@@ -44,7 +46,8 @@ data CreateDefaultConfigInput = CreateDefaultConfigInput {
     value_validation_function_name :: Data.Maybe.Maybe Data.Text.Text,
     value_compute_function_name :: Data.Maybe.Maybe Data.Text.Text,
     workspace_id :: Data.Text.Text,
-    org_id :: Data.Text.Text
+    org_id :: Data.Text.Text,
+    user_agent :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -61,7 +64,8 @@ instance Data.Aeson.ToJSON CreateDefaultConfigInput where
         "value_validation_function_name" Data.Aeson..= value_validation_function_name a,
         "value_compute_function_name" Data.Aeson..= value_compute_function_name a,
         "workspace_id" Data.Aeson..= workspace_id a,
-        "org_id" Data.Aeson..= org_id a
+        "org_id" Data.Aeson..= org_id a,
+        "user_agent" Data.Aeson..= user_agent a
         ]
     
 
@@ -78,6 +82,7 @@ instance Data.Aeson.FromJSON CreateDefaultConfigInput where
         Control.Applicative.<*> (v Data.Aeson..:? "value_compute_function_name")
         Control.Applicative.<*> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
+        Control.Applicative.<*> (v Data.Aeson..:? "user_agent")
     
 
 
@@ -91,7 +96,8 @@ data CreateDefaultConfigInputBuilderState = CreateDefaultConfigInputBuilderState
     value_validation_function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     value_compute_function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text
+    org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    user_agentBuilderState :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Generics.Generic
   )
@@ -106,7 +112,8 @@ defaultBuilderState = CreateDefaultConfigInputBuilderState {
     value_validation_function_nameBuilderState = Data.Maybe.Nothing,
     value_compute_function_nameBuilderState = Data.Maybe.Nothing,
     workspace_idBuilderState = Data.Maybe.Nothing,
-    org_idBuilderState = Data.Maybe.Nothing
+    org_idBuilderState = Data.Maybe.Nothing,
+    user_agentBuilderState = Data.Maybe.Nothing
 }
 
 type CreateDefaultConfigInputBuilder = Control.Monad.State.Strict.State CreateDefaultConfigInputBuilderState
@@ -147,6 +154,10 @@ setOrgId :: Data.Text.Text -> CreateDefaultConfigInputBuilder ()
 setOrgId value =
    Control.Monad.State.Strict.modify (\s -> (s { org_idBuilderState = Data.Maybe.Just value }))
 
+setUserAgent :: Data.Maybe.Maybe Data.Text.Text -> CreateDefaultConfigInputBuilder ()
+setUserAgent value =
+   Control.Monad.State.Strict.modify (\s -> (s { user_agentBuilderState = value }))
+
 build :: CreateDefaultConfigInputBuilder () -> Data.Either.Either Data.Text.Text CreateDefaultConfigInput
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
@@ -159,6 +170,7 @@ build builder = do
     value_compute_function_name' <- Data.Either.Right (value_compute_function_nameBuilderState st)
     workspace_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateDefaultConfigInput.CreateDefaultConfigInput.workspace_id is a required property.") Data.Either.Right (workspace_idBuilderState st)
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateDefaultConfigInput.CreateDefaultConfigInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
+    user_agent' <- Data.Either.Right (user_agentBuilderState st)
     Data.Either.Right (CreateDefaultConfigInput { 
         key = key',
         value = value',
@@ -168,7 +180,8 @@ build builder = do
         value_validation_function_name = value_validation_function_name',
         value_compute_function_name = value_compute_function_name',
         workspace_id = workspace_id',
-        org_id = org_id'
+        org_id = org_id',
+        user_agent = user_agent'
     })
 
 
@@ -181,6 +194,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder CreateDefaultConfigInput wh
         
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
+        Io.Superposition.Utility.serHeader "user-agent" (user_agent self)
         Io.Superposition.Utility.serField "schema" (schema self)
         Io.Superposition.Utility.serField "change_reason" (change_reason self)
         Io.Superposition.Utility.serField "value_compute_function_name" (value_compute_function_name self)

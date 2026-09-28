@@ -1,12 +1,14 @@
 module Io.Superposition.Model.GetDefaultConfigInput (
     setWorkspaceId,
     setOrgId,
+    setUserAgent,
     setKey,
     build,
     GetDefaultConfigInputBuilder,
     GetDefaultConfigInput,
     workspace_id,
     org_id,
+    user_agent,
     key
 ) where
 import qualified Control.Applicative
@@ -25,6 +27,7 @@ import qualified Network.HTTP.Types.Method
 data GetDefaultConfigInput = GetDefaultConfigInput {
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text,
+    user_agent :: Data.Maybe.Maybe Data.Text.Text,
     key :: Data.Text.Text
 } deriving (
   GHC.Show.Show,
@@ -36,6 +39,7 @@ instance Data.Aeson.ToJSON GetDefaultConfigInput where
     toJSON a = Data.Aeson.object [
         "workspace_id" Data.Aeson..= workspace_id a,
         "org_id" Data.Aeson..= org_id a,
+        "user_agent" Data.Aeson..= user_agent a,
         "key" Data.Aeson..= key a
         ]
     
@@ -46,6 +50,7 @@ instance Data.Aeson.FromJSON GetDefaultConfigInput where
     parseJSON = Data.Aeson.withObject "GetDefaultConfigInput" $ \v -> GetDefaultConfigInput
         Data.Functor.<$> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
+        Control.Applicative.<*> (v Data.Aeson..:? "user_agent")
         Control.Applicative.<*> (v Data.Aeson..: "key")
     
 
@@ -54,6 +59,7 @@ instance Data.Aeson.FromJSON GetDefaultConfigInput where
 data GetDefaultConfigInputBuilderState = GetDefaultConfigInputBuilderState {
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    user_agentBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     keyBuilderState :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Generics.Generic
@@ -63,6 +69,7 @@ defaultBuilderState :: GetDefaultConfigInputBuilderState
 defaultBuilderState = GetDefaultConfigInputBuilderState {
     workspace_idBuilderState = Data.Maybe.Nothing,
     org_idBuilderState = Data.Maybe.Nothing,
+    user_agentBuilderState = Data.Maybe.Nothing,
     keyBuilderState = Data.Maybe.Nothing
 }
 
@@ -76,6 +83,10 @@ setOrgId :: Data.Text.Text -> GetDefaultConfigInputBuilder ()
 setOrgId value =
    Control.Monad.State.Strict.modify (\s -> (s { org_idBuilderState = Data.Maybe.Just value }))
 
+setUserAgent :: Data.Maybe.Maybe Data.Text.Text -> GetDefaultConfigInputBuilder ()
+setUserAgent value =
+   Control.Monad.State.Strict.modify (\s -> (s { user_agentBuilderState = value }))
+
 setKey :: Data.Text.Text -> GetDefaultConfigInputBuilder ()
 setKey value =
    Control.Monad.State.Strict.modify (\s -> (s { keyBuilderState = Data.Maybe.Just value }))
@@ -85,10 +96,12 @@ build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
     workspace_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetDefaultConfigInput.GetDefaultConfigInput.workspace_id is a required property.") Data.Either.Right (workspace_idBuilderState st)
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetDefaultConfigInput.GetDefaultConfigInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
+    user_agent' <- Data.Either.Right (user_agentBuilderState st)
     key' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetDefaultConfigInput.GetDefaultConfigInput.key is a required property.") Data.Either.Right (keyBuilderState st)
     Data.Either.Right (GetDefaultConfigInput { 
         workspace_id = workspace_id',
         org_id = org_id',
+        user_agent = user_agent',
         key = key'
     })
 
@@ -103,5 +116,6 @@ instance Io.Superposition.Utility.IntoRequestBuilder GetDefaultConfigInput where
         
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
+        Io.Superposition.Utility.serHeader "user-agent" (user_agent self)
         
 

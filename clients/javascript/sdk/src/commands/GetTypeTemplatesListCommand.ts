@@ -48,6 +48,7 @@ export interface GetTypeTemplatesListCommandOutput extends GetTypeTemplatesListO
  *   all: true || false,
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  * };
  * const command = new GetTypeTemplatesListCommand(input);
  * const response = await client.send(command);

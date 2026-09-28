@@ -34,6 +34,8 @@ public final class GetTypeTemplatesListInput implements SerializableStruct {
         .putMember("org_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-org-id"),
                 new RequiredTrait())
+        .putMember("user_agent", PreludeSchemas.STRING,
+                new HttpHeaderTrait("user-agent"))
         .build();
 
     private static final Schema $SCHEMA_COUNT = $SCHEMA.member("count");
@@ -41,12 +43,14 @@ public final class GetTypeTemplatesListInput implements SerializableStruct {
     private static final Schema $SCHEMA_ALL = $SCHEMA.member("all");
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
+    private static final Schema $SCHEMA_USER_AGENT = $SCHEMA.member("user_agent");
 
     private final transient Integer count;
     private final transient Integer page;
     private final transient Boolean all;
     private final transient String workspaceId;
     private final transient String orgId;
+    private final transient String userAgent;
 
     private GetTypeTemplatesListInput(Builder builder) {
         this.count = builder.count;
@@ -54,6 +58,7 @@ public final class GetTypeTemplatesListInput implements SerializableStruct {
         this.all = builder.all;
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
+        this.userAgent = builder.userAgent;
     }
 
     /**
@@ -85,6 +90,10 @@ public final class GetTypeTemplatesListInput implements SerializableStruct {
         return orgId;
     }
 
+    public String userAgent() {
+        return userAgent;
+    }
+
     @Override
     public String toString() {
         return ToStringSerializer.serialize(this);
@@ -103,12 +112,13 @@ public final class GetTypeTemplatesListInput implements SerializableStruct {
                && Objects.equals(this.page, that.page)
                && Objects.equals(this.all, that.all)
                && Objects.equals(this.workspaceId, that.workspaceId)
-               && Objects.equals(this.orgId, that.orgId);
+               && Objects.equals(this.orgId, that.orgId)
+               && Objects.equals(this.userAgent, that.userAgent);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(count, page, all, workspaceId, orgId);
+        return Objects.hash(count, page, all, workspaceId, orgId, userAgent);
     }
 
     @Override
@@ -129,6 +139,9 @@ public final class GetTypeTemplatesListInput implements SerializableStruct {
         }
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
+        if (userAgent != null) {
+            serializer.writeString($SCHEMA_USER_AGENT, userAgent);
+        }
     }
 
     @Override
@@ -140,6 +153,7 @@ public final class GetTypeTemplatesListInput implements SerializableStruct {
             case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, count);
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, page);
             case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_ALL, member, all);
+            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, userAgent);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -158,6 +172,7 @@ public final class GetTypeTemplatesListInput implements SerializableStruct {
         builder.all(this.all);
         builder.workspaceId(this.workspaceId);
         builder.orgId(this.orgId);
+        builder.userAgent(this.userAgent);
         return builder;
     }
 
@@ -178,6 +193,7 @@ public final class GetTypeTemplatesListInput implements SerializableStruct {
         private Boolean all;
         private String workspaceId;
         private String orgId;
+        private String userAgent;
 
         private Builder() {}
 
@@ -236,6 +252,14 @@ public final class GetTypeTemplatesListInput implements SerializableStruct {
             return this;
         }
 
+        /**
+         * @return this builder.
+         */
+        public Builder userAgent(String userAgent) {
+            this.userAgent = userAgent;
+            return this;
+        }
+
         @Override
         public GetTypeTemplatesListInput build() {
             tracker.validate();
@@ -251,6 +275,7 @@ public final class GetTypeTemplatesListInput implements SerializableStruct {
                 case 2 -> count((int) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, value));
                 case 3 -> page((int) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, value));
                 case 4 -> all((boolean) SchemaUtils.validateSameMember($SCHEMA_ALL, member, value));
+                case 5 -> userAgent((String) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -292,6 +317,7 @@ public final class GetTypeTemplatesListInput implements SerializableStruct {
                     case 2 -> builder.count(de.readInteger(member));
                     case 3 -> builder.page(de.readInteger(member));
                     case 4 -> builder.all(de.readBoolean(member));
+                    case 5 -> builder.userAgent(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

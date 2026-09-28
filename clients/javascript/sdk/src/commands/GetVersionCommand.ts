@@ -45,6 +45,7 @@ export interface GetVersionCommandOutput extends GetVersionResponse, __MetadataB
  * const input = { // GetVersionInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   id: "STRING_VALUE", // required
  * };
  * const command = new GetVersionCommand(input);

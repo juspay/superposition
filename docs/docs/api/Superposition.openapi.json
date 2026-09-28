@@ -102,6 +102,13 @@
                         }
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -200,6 +207,13 @@
                         }
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -269,6 +283,13 @@
                         "schema": {
                             "type": "string",
                             "description": "While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates."
+                        }
+                    },
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     {
@@ -390,6 +411,13 @@
                         "schema": {
                             "type": "boolean",
                             "description": "Intended for control resolution. If true, evaluates and includes remote cohort-based contexts during config resolution."
+                        }
+                    },
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     {
@@ -533,6 +561,13 @@
                         }
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-merge-strategy",
                         "in": "header",
                         "schema": {
@@ -648,6 +683,13 @@
                         }
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-merge-strategy",
                         "in": "header",
                         "schema": {
@@ -732,6 +774,13 @@
                         }
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -803,6 +852,13 @@
                         "schema": {
                             "type": "number",
                             "description": "Page number to retrieve, starting from 1."
+                        }
+                    },
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     {
@@ -969,6 +1025,13 @@
                         }
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -1025,6 +1088,13 @@
                     "required": true
                 },
                 "parameters": [
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
                     {
                         "name": "x-config-tags",
                         "in": "header",
@@ -1115,6 +1185,13 @@
                 },
                 "parameters": [
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-config-tags",
                         "in": "header",
                         "schema": {
@@ -1203,6 +1280,13 @@
                 },
                 "parameters": [
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -1271,6 +1355,13 @@
                             "type": "string"
                         },
                         "required": true
+                    },
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     {
                         "name": "x-org-id",
@@ -1354,6 +1445,13 @@
                     "required": true
                 },
                 "parameters": [
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
                     {
                         "name": "x-config-tags",
                         "in": "header",
@@ -1444,6 +1542,13 @@
                 },
                 "parameters": [
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -1485,6 +1590,13 @@
                 "description": "Recalculates and updates the priority weights for all contexts in the workspace based on their dimensions.",
                 "operationId": "WeightRecompute",
                 "parameters": [
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
                     {
                         "name": "x-config-tags",
                         "in": "header",
@@ -1570,6 +1682,13 @@
                         "required": true
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-config-tags",
                         "in": "header",
                         "schema": {
@@ -1646,6 +1765,13 @@
                             "type": "string"
                         },
                         "required": true
+                    },
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     {
                         "name": "x-org-id",
@@ -1734,6 +1860,13 @@
                         }
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -1790,6 +1923,13 @@
                     "required": true
                 },
                 "parameters": [
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
                     {
                         "name": "x-org-id",
                         "in": "header",
@@ -1868,6 +2008,13 @@
                         "required": true
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -1939,6 +2086,13 @@
                         "required": true
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -2005,6 +2159,13 @@
                             "type": "string"
                         },
                         "required": true
+                    },
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     {
                         "name": "x-org-id",
@@ -2106,6 +2267,13 @@
                         }
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -2162,6 +2330,13 @@
                     "required": true
                 },
                 "parameters": [
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
                     {
                         "name": "x-org-id",
                         "in": "header",
@@ -2240,6 +2415,13 @@
                         "required": true
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -2311,6 +2493,13 @@
                         "required": true
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -2377,6 +2566,13 @@
                             "type": "string"
                         },
                         "required": true
+                    },
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     {
                         "name": "x-org-id",
@@ -2501,6 +2697,13 @@
                         }
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -2564,6 +2767,13 @@
                     "required": true
                 },
                 "parameters": [
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
                     {
                         "name": "x-org-id",
                         "in": "header",
@@ -2733,6 +2943,13 @@
                         }
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -2798,6 +3015,13 @@
                         "required": true
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -2854,6 +3078,13 @@
                             "type": "string"
                         },
                         "required": true
+                    },
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     {
                         "name": "x-org-id",
@@ -2922,6 +3153,13 @@
                             "type": "string"
                         },
                         "required": true
+                    },
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     {
                         "name": "x-org-id",
@@ -2994,6 +3232,13 @@
                         "required": true
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -3064,6 +3309,13 @@
                         "required": true
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -3127,6 +3379,13 @@
                 "parameters": [
                     {
                         "name": "idempotency-key",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "user-agent",
                         "in": "header",
                         "schema": {
                             "type": "string"
@@ -3239,6 +3498,13 @@
                             }
                         },
                         "explode": true
+                    },
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     {
                         "name": "x-org-id",
@@ -3469,6 +3735,13 @@
                         }
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -3532,6 +3805,13 @@
                             "type": "string"
                         },
                         "required": true
+                    },
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     {
                         "name": "x-org-id",
@@ -3602,6 +3882,13 @@
                             "type": "string"
                         },
                         "required": true
+                    },
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     {
                         "name": "x-config-tags",
@@ -3691,6 +3978,13 @@
                         "required": true
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-config-tags",
                         "in": "header",
                         "schema": {
@@ -3776,6 +4070,13 @@
                             "type": "string"
                         },
                         "required": true
+                    },
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     {
                         "name": "x-config-tags",
@@ -3865,6 +4166,13 @@
                         "required": true
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -3945,6 +4253,13 @@
                         "required": true
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -4023,6 +4338,13 @@
                             "type": "string"
                         },
                         "required": true
+                    },
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     {
                         "name": "x-org-id",
@@ -4126,6 +4448,13 @@
                         "explode": true
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -4182,6 +4511,13 @@
                     "required": true
                 },
                 "parameters": [
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
                     {
                         "name": "x-org-id",
                         "in": "header",
@@ -4250,6 +4586,13 @@
                         "required": true
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -4309,6 +4652,13 @@
                             "type": "string"
                         },
                         "required": true
+                    },
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     {
                         "name": "x-org-id",
@@ -4377,6 +4727,13 @@
                             "type": "string"
                         },
                         "required": true
+                    },
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     {
                         "name": "x-org-id",
@@ -4457,6 +4814,13 @@
                             "type": "string"
                         },
                         "required": true
+                    },
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     {
                         "name": "x-org-id",
@@ -4545,6 +4909,13 @@
                             "$ref": "#/components/schemas/Stage"
                         },
                         "required": true
+                    },
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     {
                         "name": "x-org-id",
@@ -4692,6 +5063,13 @@
                     {
                         "name": "identifier",
                         "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "user-agent",
+                        "in": "header",
                         "schema": {
                             "type": "string"
                         }
@@ -4857,6 +5235,13 @@
                         }
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -4913,6 +5298,13 @@
                     "required": true
                 },
                 "parameters": [
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
                     {
                         "name": "x-org-id",
                         "in": "header",
@@ -4979,6 +5371,13 @@
                             "type": "string"
                         },
                         "required": true
+                    },
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     {
                         "name": "x-org-id",
@@ -5049,6 +5448,13 @@
                         "required": true
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -5115,6 +5521,13 @@
                             "type": "string"
                         },
                         "required": true
+                    },
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     {
                         "name": "x-org-id",
@@ -5400,6 +5813,13 @@
                         }
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -5456,6 +5876,13 @@
                     "required": true
                 },
                 "parameters": [
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
                     {
                         "name": "x-org-id",
                         "in": "header",
@@ -5522,6 +5949,13 @@
                             "type": "string"
                         },
                         "required": true
+                    },
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     {
                         "name": "x-org-id",
@@ -5592,6 +6026,13 @@
                         "required": true
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -5658,6 +6099,13 @@
                             "type": "string"
                         },
                         "required": true
+                    },
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     {
                         "name": "x-org-id",
@@ -5807,6 +6255,13 @@
                         }
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -5863,6 +6318,13 @@
                     "required": true
                 },
                 "parameters": [
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
                     {
                         "name": "x-org-id",
                         "in": "header",
@@ -5929,6 +6391,13 @@
                             "type": "string"
                         },
                         "required": true
+                    },
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     {
                         "name": "x-org-id",
@@ -5999,6 +6468,13 @@
                         "required": true
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -6065,6 +6541,13 @@
                             "type": "string"
                         },
                         "required": true
+                    },
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     {
                         "name": "x-org-id",
@@ -6135,6 +6618,13 @@
                             "type": "string"
                         },
                         "required": true
+                    },
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     {
                         "name": "x-org-id",
@@ -6216,6 +6706,13 @@
                         }
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -6272,6 +6769,13 @@
                     "required": true
                 },
                 "parameters": [
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
                     {
                         "name": "x-org-id",
                         "in": "header",
@@ -6340,6 +6844,13 @@
                         "required": true
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -6398,6 +6909,13 @@
                             "type": "string"
                         },
                         "required": true
+                    },
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     {
                         "name": "x-org-id",
@@ -6459,6 +6977,13 @@
                             "type": "string"
                         },
                         "required": true
+                    },
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     {
                         "name": "x-org-id",
@@ -6527,6 +7052,13 @@
                             "type": "string"
                         },
                         "required": true
+                    },
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     {
                         "name": "x-org-id",
@@ -6618,6 +7150,13 @@
                         }
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -6667,6 +7206,13 @@
                 },
                 "parameters": [
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -6714,6 +7260,13 @@
                             "type": "string"
                         },
                         "required": true
+                    },
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     {
                         "name": "x-org-id",
@@ -6775,6 +7328,13 @@
                         "required": true
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -6827,6 +7387,13 @@
                         "required": true
                     },
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "x-org-id",
                         "in": "header",
                         "schema": {
@@ -6877,6 +7444,13 @@
                             "type": "string"
                         },
                         "required": true
+                    },
+                    {
+                        "name": "user-agent",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     {
                         "name": "x-org-id",

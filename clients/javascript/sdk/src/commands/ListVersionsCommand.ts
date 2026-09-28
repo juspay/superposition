@@ -45,6 +45,7 @@ export interface ListVersionsCommandOutput extends ListVersionsOutput, __Metadat
  * const input = { // ListVersionsInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   count: Number("int"),
  *   page: Number("int"),
  * };

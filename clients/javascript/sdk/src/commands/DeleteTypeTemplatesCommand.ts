@@ -45,6 +45,7 @@ export interface DeleteTypeTemplatesCommandOutput extends TypeTemplatesResponse,
  * const input = { // DeleteTypeTemplatesInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   type_name: "STRING_VALUE", // required
  * };
  * const command = new DeleteTypeTemplatesCommand(input);

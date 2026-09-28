@@ -45,6 +45,7 @@ export interface CreateContextCommandOutput extends ContextResponse, __MetadataB
  * const input = { // CreateContextInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   config_tags: "STRING_VALUE",
  *   request: { // ContextPut
  *     context: { // Condition // required

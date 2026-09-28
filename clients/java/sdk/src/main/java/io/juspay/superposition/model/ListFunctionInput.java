@@ -36,6 +36,8 @@ public final class ListFunctionInput implements SerializableStruct {
         .putMember("org_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-org-id"),
                 new RequiredTrait())
+        .putMember("user_agent", PreludeSchemas.STRING,
+                new HttpHeaderTrait("user-agent"))
         .putMember("function_type", SharedSchemas.FUNCTION_TYPES_LIST,
                 new HttpQueryTrait("function_type"))
         .build();
@@ -45,6 +47,7 @@ public final class ListFunctionInput implements SerializableStruct {
     private static final Schema $SCHEMA_ALL = $SCHEMA.member("all");
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
+    private static final Schema $SCHEMA_USER_AGENT = $SCHEMA.member("user_agent");
     private static final Schema $SCHEMA_FUNCTION_TYPE = $SCHEMA.member("function_type");
 
     private final transient Integer count;
@@ -52,6 +55,7 @@ public final class ListFunctionInput implements SerializableStruct {
     private final transient Boolean all;
     private final transient String workspaceId;
     private final transient String orgId;
+    private final transient String userAgent;
     private final transient List<FunctionTypes> functionType;
 
     private ListFunctionInput(Builder builder) {
@@ -60,6 +64,7 @@ public final class ListFunctionInput implements SerializableStruct {
         this.all = builder.all;
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
+        this.userAgent = builder.userAgent;
         this.functionType = builder.functionType == null ? null : Collections.unmodifiableList(builder.functionType);
     }
 
@@ -92,6 +97,10 @@ public final class ListFunctionInput implements SerializableStruct {
         return orgId;
     }
 
+    public String userAgent() {
+        return userAgent;
+    }
+
     public List<FunctionTypes> functionType() {
         if (functionType == null) {
             return Collections.emptyList();
@@ -122,12 +131,13 @@ public final class ListFunctionInput implements SerializableStruct {
                && Objects.equals(this.all, that.all)
                && Objects.equals(this.workspaceId, that.workspaceId)
                && Objects.equals(this.orgId, that.orgId)
+               && Objects.equals(this.userAgent, that.userAgent)
                && Objects.equals(this.functionType, that.functionType);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(count, page, all, workspaceId, orgId, functionType);
+        return Objects.hash(count, page, all, workspaceId, orgId, userAgent, functionType);
     }
 
     @Override
@@ -148,6 +158,9 @@ public final class ListFunctionInput implements SerializableStruct {
         }
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
+        if (userAgent != null) {
+            serializer.writeString($SCHEMA_USER_AGENT, userAgent);
+        }
         if (functionType != null) {
             serializer.writeList($SCHEMA_FUNCTION_TYPE, functionType, functionType.size(), SharedSerde.FunctionTypesListSerializer.INSTANCE);
         }
@@ -162,7 +175,8 @@ public final class ListFunctionInput implements SerializableStruct {
             case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, count);
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, page);
             case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_ALL, member, all);
-            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_TYPE, member, functionType);
+            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, userAgent);
+            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_TYPE, member, functionType);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -181,6 +195,7 @@ public final class ListFunctionInput implements SerializableStruct {
         builder.all(this.all);
         builder.workspaceId(this.workspaceId);
         builder.orgId(this.orgId);
+        builder.userAgent(this.userAgent);
         builder.functionType(this.functionType);
         return builder;
     }
@@ -202,6 +217,7 @@ public final class ListFunctionInput implements SerializableStruct {
         private Boolean all;
         private String workspaceId;
         private String orgId;
+        private String userAgent;
         private List<FunctionTypes> functionType;
 
         private Builder() {}
@@ -264,6 +280,14 @@ public final class ListFunctionInput implements SerializableStruct {
         /**
          * @return this builder.
          */
+        public Builder userAgent(String userAgent) {
+            this.userAgent = userAgent;
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
         public Builder functionType(List<FunctionTypes> functionType) {
             this.functionType = functionType;
             return this;
@@ -284,7 +308,8 @@ public final class ListFunctionInput implements SerializableStruct {
                 case 2 -> count((int) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, value));
                 case 3 -> page((int) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, value));
                 case 4 -> all((boolean) SchemaUtils.validateSameMember($SCHEMA_ALL, member, value));
-                case 5 -> functionType((List<FunctionTypes>) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_TYPE, member, value));
+                case 5 -> userAgent((String) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, value));
+                case 6 -> functionType((List<FunctionTypes>) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_TYPE, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -326,7 +351,8 @@ public final class ListFunctionInput implements SerializableStruct {
                     case 2 -> builder.count(de.readInteger(member));
                     case 3 -> builder.page(de.readInteger(member));
                     case 4 -> builder.all(de.readBoolean(member));
-                    case 5 -> builder.functionType(SharedSerde.deserializeFunctionTypesList(member, de));
+                    case 5 -> builder.userAgent(de.readString(member));
+                    case 6 -> builder.functionType(SharedSerde.deserializeFunctionTypesList(member, de));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

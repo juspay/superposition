@@ -4,6 +4,7 @@ module Io.Superposition.Model.ListExperimentInput (
     setAll',
     setWorkspaceId,
     setOrgId,
+    setUserAgent,
     setIfModifiedSince,
     setStatus,
     setFromDate,
@@ -28,6 +29,7 @@ module Io.Superposition.Model.ListExperimentInput (
     all',
     workspace_id,
     org_id,
+    user_agent,
     if_modified_since,
     status,
     from_date,
@@ -71,6 +73,7 @@ data ListExperimentInput = ListExperimentInput {
     all' :: Data.Maybe.Maybe Bool,
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text,
+    user_agent :: Data.Maybe.Maybe Data.Text.Text,
     if_modified_since :: Data.Maybe.Maybe Data.Time.UTCTime,
     status :: Data.Maybe.Maybe ([] Io.Superposition.Model.ExperimentStatusType.ExperimentStatusType),
     from_date :: Data.Maybe.Maybe Data.Time.UTCTime,
@@ -100,6 +103,7 @@ instance Data.Aeson.ToJSON ListExperimentInput where
         "all" Data.Aeson..= all' a,
         "workspace_id" Data.Aeson..= workspace_id a,
         "org_id" Data.Aeson..= org_id a,
+        "user_agent" Data.Aeson..= user_agent a,
         "if_modified_since" Data.Aeson..= if_modified_since a,
         "status" Data.Aeson..= status a,
         "from_date" Data.Aeson..= from_date a,
@@ -128,6 +132,7 @@ instance Data.Aeson.FromJSON ListExperimentInput where
         Control.Applicative.<*> (v Data.Aeson..:? "all")
         Control.Applicative.<*> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
+        Control.Applicative.<*> (v Data.Aeson..:? "user_agent")
         Control.Applicative.<*> (v Data.Aeson..:? "if_modified_since")
         Control.Applicative.<*> (v Data.Aeson..:? "status")
         Control.Applicative.<*> (v Data.Aeson..:? "from_date")
@@ -154,6 +159,7 @@ data ListExperimentInputBuilderState = ListExperimentInputBuilderState {
     all'BuilderState :: Data.Maybe.Maybe Bool,
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    user_agentBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     if_modified_sinceBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     statusBuilderState :: Data.Maybe.Maybe ([] Io.Superposition.Model.ExperimentStatusType.ExperimentStatusType),
     from_dateBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
@@ -181,6 +187,7 @@ defaultBuilderState = ListExperimentInputBuilderState {
     all'BuilderState = Data.Maybe.Nothing,
     workspace_idBuilderState = Data.Maybe.Nothing,
     org_idBuilderState = Data.Maybe.Nothing,
+    user_agentBuilderState = Data.Maybe.Nothing,
     if_modified_sinceBuilderState = Data.Maybe.Nothing,
     statusBuilderState = Data.Maybe.Nothing,
     from_dateBuilderState = Data.Maybe.Nothing,
@@ -220,6 +227,10 @@ setWorkspaceId value =
 setOrgId :: Data.Text.Text -> ListExperimentInputBuilder ()
 setOrgId value =
    Control.Monad.State.Strict.modify (\s -> (s { org_idBuilderState = Data.Maybe.Just value }))
+
+setUserAgent :: Data.Maybe.Maybe Data.Text.Text -> ListExperimentInputBuilder ()
+setUserAgent value =
+   Control.Monad.State.Strict.modify (\s -> (s { user_agentBuilderState = value }))
 
 setIfModifiedSince :: Data.Maybe.Maybe Data.Time.UTCTime -> ListExperimentInputBuilder ()
 setIfModifiedSince value =
@@ -293,6 +304,7 @@ build builder = do
     all'' <- Data.Either.Right (all'BuilderState st)
     workspace_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListExperimentInput.ListExperimentInput.workspace_id is a required property.") Data.Either.Right (workspace_idBuilderState st)
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListExperimentInput.ListExperimentInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
+    user_agent' <- Data.Either.Right (user_agentBuilderState st)
     if_modified_since' <- Data.Either.Right (if_modified_sinceBuilderState st)
     status' <- Data.Either.Right (statusBuilderState st)
     from_date' <- Data.Either.Right (from_dateBuilderState st)
@@ -315,6 +327,7 @@ build builder = do
         all' = all'',
         workspace_id = workspace_id',
         org_id = org_id',
+        user_agent = user_agent',
         if_modified_since = if_modified_since',
         status = status',
         from_date = from_date',
@@ -361,5 +374,6 @@ instance Io.Superposition.Utility.IntoRequestBuilder ListExperimentInput where
         Io.Superposition.Utility.serHeader "if-modified-since" (if_modified_since self)
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
+        Io.Superposition.Utility.serHeader "user-agent" (user_agent self)
         Io.Superposition.Utility.serField "context" (context self)
 

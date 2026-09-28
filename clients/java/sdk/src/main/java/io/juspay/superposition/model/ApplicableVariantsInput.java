@@ -32,6 +32,8 @@ public final class ApplicableVariantsInput implements SerializableStruct {
         .putMember("org_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-org-id"),
                 new RequiredTrait())
+        .putMember("user_agent", PreludeSchemas.STRING,
+                new HttpHeaderTrait("user-agent"))
         .putMember("context", SharedSchemas.CONDITION,
                 new RequiredTrait())
         .putMember("identifier", PreludeSchemas.STRING,
@@ -45,6 +47,7 @@ public final class ApplicableVariantsInput implements SerializableStruct {
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
+    private static final Schema $SCHEMA_USER_AGENT = $SCHEMA.member("user_agent");
     private static final Schema $SCHEMA_CONTEXT = $SCHEMA.member("context");
     private static final Schema $SCHEMA_IDENTIFIER = $SCHEMA.member("identifier");
     private static final Schema $SCHEMA_PREFIX = $SCHEMA.member("prefix");
@@ -52,6 +55,7 @@ public final class ApplicableVariantsInput implements SerializableStruct {
 
     private final transient String workspaceId;
     private final transient String orgId;
+    private final transient String userAgent;
     private final transient Map<String, Document> context;
     private final transient String identifier;
     private final transient List<String> prefix;
@@ -60,6 +64,7 @@ public final class ApplicableVariantsInput implements SerializableStruct {
     private ApplicableVariantsInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
+        this.userAgent = builder.userAgent;
         this.context = Collections.unmodifiableMap(builder.context);
         this.identifier = builder.identifier;
         this.prefix = builder.prefix == null ? null : Collections.unmodifiableList(builder.prefix);
@@ -72,6 +77,10 @@ public final class ApplicableVariantsInput implements SerializableStruct {
 
     public String orgId() {
         return orgId;
+    }
+
+    public String userAgent() {
+        return userAgent;
     }
 
     public Map<String, Document> context() {
@@ -124,6 +133,7 @@ public final class ApplicableVariantsInput implements SerializableStruct {
         ApplicableVariantsInput that = (ApplicableVariantsInput) other;
         return Objects.equals(this.workspaceId, that.workspaceId)
                && Objects.equals(this.orgId, that.orgId)
+               && Objects.equals(this.userAgent, that.userAgent)
                && Objects.equals(this.context, that.context)
                && Objects.equals(this.identifier, that.identifier)
                && Objects.equals(this.prefix, that.prefix)
@@ -132,7 +142,7 @@ public final class ApplicableVariantsInput implements SerializableStruct {
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, context, identifier, prefix, excludePrefix);
+        return Objects.hash(workspaceId, orgId, userAgent, context, identifier, prefix, excludePrefix);
     }
 
     @Override
@@ -144,6 +154,9 @@ public final class ApplicableVariantsInput implements SerializableStruct {
     public void serializeMembers(ShapeSerializer serializer) {
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
+        if (userAgent != null) {
+            serializer.writeString($SCHEMA_USER_AGENT, userAgent);
+        }
         serializer.writeMap($SCHEMA_CONTEXT, context, context.size(), SharedSerde.ConditionSerializer.INSTANCE);
         serializer.writeString($SCHEMA_IDENTIFIER, identifier);
         if (prefix != null) {
@@ -162,8 +175,9 @@ public final class ApplicableVariantsInput implements SerializableStruct {
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
             case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_IDENTIFIER, member, identifier);
-            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, prefix);
-            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_EXCLUDE_PREFIX, member, excludePrefix);
+            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, userAgent);
+            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, prefix);
+            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_EXCLUDE_PREFIX, member, excludePrefix);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -179,6 +193,7 @@ public final class ApplicableVariantsInput implements SerializableStruct {
         var builder = new Builder();
         builder.workspaceId(this.workspaceId);
         builder.orgId(this.orgId);
+        builder.userAgent(this.userAgent);
         builder.context(this.context);
         builder.identifier(this.identifier);
         builder.prefix(this.prefix);
@@ -200,6 +215,7 @@ public final class ApplicableVariantsInput implements SerializableStruct {
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private String workspaceId;
         private String orgId;
+        private String userAgent;
         private Map<String, Document> context;
         private String identifier;
         private List<String> prefix;
@@ -229,6 +245,14 @@ public final class ApplicableVariantsInput implements SerializableStruct {
         public Builder orgId(String orgId) {
             this.orgId = Objects.requireNonNull(orgId, "orgId cannot be null");
             tracker.setMember($SCHEMA_ORG_ID);
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
+        public Builder userAgent(String userAgent) {
+            this.userAgent = userAgent;
             return this;
         }
 
@@ -282,8 +306,9 @@ public final class ApplicableVariantsInput implements SerializableStruct {
                 case 1 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
                 case 2 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
                 case 3 -> identifier((String) SchemaUtils.validateSameMember($SCHEMA_IDENTIFIER, member, value));
-                case 4 -> prefix((List<String>) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, value));
-                case 5 -> excludePrefix((List<String>) SchemaUtils.validateSameMember($SCHEMA_EXCLUDE_PREFIX, member, value));
+                case 4 -> userAgent((String) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, value));
+                case 5 -> prefix((List<String>) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, value));
+                case 6 -> excludePrefix((List<String>) SchemaUtils.validateSameMember($SCHEMA_EXCLUDE_PREFIX, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -330,8 +355,9 @@ public final class ApplicableVariantsInput implements SerializableStruct {
                     case 1 -> builder.orgId(de.readString(member));
                     case 2 -> builder.context(SharedSerde.deserializeCondition(member, de));
                     case 3 -> builder.identifier(de.readString(member));
-                    case 4 -> builder.prefix(SharedSerde.deserializeStringList(member, de));
-                    case 5 -> builder.excludePrefix(SharedSerde.deserializeStringList(member, de));
+                    case 4 -> builder.userAgent(de.readString(member));
+                    case 5 -> builder.prefix(SharedSerde.deserializeStringList(member, de));
+                    case 6 -> builder.excludePrefix(SharedSerde.deserializeStringList(member, de));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

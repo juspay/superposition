@@ -45,6 +45,7 @@ export interface GetContextFromConditionCommandOutput extends ContextResponse, _
  * const input = { // GetContextFromConditionInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   context: "DOCUMENT_VALUE",
  * };
  * const command = new GetContextFromConditionCommand(input);

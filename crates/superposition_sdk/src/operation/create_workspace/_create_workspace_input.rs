@@ -6,6 +6,8 @@ pub struct CreateWorkspaceInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub org_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
+    pub user_agent: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
     pub workspace_admin_email: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub workspace_name: ::std::option::Option<::std::string::String>,
@@ -26,6 +28,10 @@ impl  CreateWorkspaceInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub fn org_id(&self) -> ::std::option::Option<&str> {
         self.org_id.as_deref()
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn user_agent(&self) -> ::std::option::Option<&str> {
+        self.user_agent.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn workspace_admin_email(&self) -> ::std::option::Option<&str> {
@@ -72,6 +78,7 @@ impl CreateWorkspaceInput {
 #[non_exhaustive]
 pub struct CreateWorkspaceInputBuilder {
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
+    pub(crate) user_agent: ::std::option::Option<::std::string::String>,
     pub(crate) workspace_admin_email: ::std::option::Option<::std::string::String>,
     pub(crate) workspace_name: ::std::option::Option<::std::string::String>,
     pub(crate) workspace_status: ::std::option::Option<crate::types::WorkspaceStatus>,
@@ -95,6 +102,19 @@ impl CreateWorkspaceInputBuilder {
     #[allow(missing_docs)] // documentation missing in model
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
         &self.org_id
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn user_agent(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.user_agent = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_user_agent(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.user_agent = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_user_agent(&self) -> &::std::option::Option<::std::string::String> {
+        &self.user_agent
     }
     #[allow(missing_docs)] // documentation missing in model
     /// This field is required.
@@ -207,6 +227,8 @@ impl CreateWorkspaceInputBuilder {
         ::std::result::Result::Ok(
             crate::operation::create_workspace::CreateWorkspaceInput {
                 org_id: self.org_id
+                ,
+                user_agent: self.user_agent
                 ,
                 workspace_admin_email: self.workspace_admin_email
                 ,

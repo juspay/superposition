@@ -101,6 +101,7 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
             .context(Map.of())
             .orgId(options.orgId)
             .workspaceId(options.workspaceId)
+            .userAgent(options.userAgent)
             .build();
         this.configRefresh = RefreshJob.create(
             options.refreshStrategy,
@@ -114,6 +115,7 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
             var listExpInput = ListExperimentInput.builder()
                 .orgId(options.orgId)
                 .workspaceId(options.workspaceId)
+                .userAgent(options.userAgent)
                 .status(List.of(ExperimentStatusType.CREATED, ExperimentStatusType.INPROGRESS))
                 .build();
             this.expRefresh = Optional.of(
@@ -133,6 +135,7 @@ public class SuperpositionOpenFeatureProvider implements FeatureProvider {
             var listExpGroupInput = ListExperimentGroupsInput.builder()
                 .orgId(options.orgId)
                 .workspaceId(options.workspaceId)
+                .userAgent(options.userAgent)
                 .build();
             this.expGroupRefresh = Optional.of(
                 RefreshJob.create(

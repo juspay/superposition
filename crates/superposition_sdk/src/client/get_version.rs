@@ -5,6 +5,7 @@ impl super::Client {
                             /// - The fluent builder is configurable:
     ///   - [`workspace_id(impl Into<String>)`](crate::operation::get_version::builders::GetVersionFluentBuilder::workspace_id) / [`set_workspace_id(Option<String>)`](crate::operation::get_version::builders::GetVersionFluentBuilder::set_workspace_id):<br>required: **true**<br>(undocumented)<br>
     ///   - [`org_id(impl Into<String>)`](crate::operation::get_version::builders::GetVersionFluentBuilder::org_id) / [`set_org_id(Option<String>)`](crate::operation::get_version::builders::GetVersionFluentBuilder::set_org_id):<br>required: **true**<br>(undocumented)<br>
+    ///   - [`user_agent(impl Into<String>)`](crate::operation::get_version::builders::GetVersionFluentBuilder::user_agent) / [`set_user_agent(Option<String>)`](crate::operation::get_version::builders::GetVersionFluentBuilder::set_user_agent):<br>required: **false**<br>(undocumented)<br>
     ///   - [`id(impl Into<String>)`](crate::operation::get_version::builders::GetVersionFluentBuilder::id) / [`set_id(Option<String>)`](crate::operation::get_version::builders::GetVersionFluentBuilder::set_id):<br>required: **true**<br>(undocumented)<br>
                             /// - On success, responds with [`GetVersionOutput`](crate::operation::get_version::GetVersionOutput) with field(s):
     ///   - [`id(String)`](crate::operation::get_version::GetVersionOutput::id): (undocumented)

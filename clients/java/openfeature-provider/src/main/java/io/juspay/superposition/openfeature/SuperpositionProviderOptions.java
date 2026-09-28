@@ -29,6 +29,11 @@ public class SuperpositionProviderOptions {
     /** The authentication token for accessing the Superposition API. */
     @NonNull
     String token;
+    /**
+     * Value sent as the {@code user-agent} header on every API call;
+     * identifies the caller (optional).
+     */
+    @Nullable String userAgent;
     /** Strategy for refreshing feature flag data from the backend. */
     @NonNull
     RefreshStrategy refreshStrategy;

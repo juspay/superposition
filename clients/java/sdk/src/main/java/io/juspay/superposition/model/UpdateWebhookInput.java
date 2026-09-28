@@ -32,6 +32,8 @@ public final class UpdateWebhookInput implements SerializableStruct {
         .putMember("org_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-org-id"),
                 new RequiredTrait())
+        .putMember("user_agent", PreludeSchemas.STRING,
+                new HttpHeaderTrait("user-agent"))
         .putMember("name", PreludeSchemas.STRING,
                 new HttpLabelTrait(),
                 new RequiredTrait())
@@ -48,6 +50,7 @@ public final class UpdateWebhookInput implements SerializableStruct {
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
+    private static final Schema $SCHEMA_USER_AGENT = $SCHEMA.member("user_agent");
     private static final Schema $SCHEMA_NAME = $SCHEMA.member("name");
     private static final Schema $SCHEMA_DESCRIPTION = $SCHEMA.member("description");
     private static final Schema $SCHEMA_ENABLED = $SCHEMA.member("enabled");
@@ -60,6 +63,7 @@ public final class UpdateWebhookInput implements SerializableStruct {
 
     private final transient String workspaceId;
     private final transient String orgId;
+    private final transient String userAgent;
     private final transient String name;
     private final transient String description;
     private final transient Boolean enabled;
@@ -73,6 +77,7 @@ public final class UpdateWebhookInput implements SerializableStruct {
     private UpdateWebhookInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
+        this.userAgent = builder.userAgent;
         this.name = builder.name;
         this.description = builder.description;
         this.enabled = builder.enabled;
@@ -90,6 +95,10 @@ public final class UpdateWebhookInput implements SerializableStruct {
 
     public String orgId() {
         return orgId;
+    }
+
+    public String userAgent() {
+        return userAgent;
     }
 
     public String name() {
@@ -158,6 +167,7 @@ public final class UpdateWebhookInput implements SerializableStruct {
         UpdateWebhookInput that = (UpdateWebhookInput) other;
         return Objects.equals(this.workspaceId, that.workspaceId)
                && Objects.equals(this.orgId, that.orgId)
+               && Objects.equals(this.userAgent, that.userAgent)
                && Objects.equals(this.name, that.name)
                && Objects.equals(this.description, that.description)
                && Objects.equals(this.enabled, that.enabled)
@@ -171,7 +181,7 @@ public final class UpdateWebhookInput implements SerializableStruct {
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, name, description, enabled, url, method, version, customHeaders, events, changeReason);
+        return Objects.hash(workspaceId, orgId, userAgent, name, description, enabled, url, method, version, customHeaders, events, changeReason);
     }
 
     @Override
@@ -183,6 +193,9 @@ public final class UpdateWebhookInput implements SerializableStruct {
     public void serializeMembers(ShapeSerializer serializer) {
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
+        if (userAgent != null) {
+            serializer.writeString($SCHEMA_USER_AGENT, userAgent);
+        }
         serializer.writeString($SCHEMA_NAME, name);
         if (description != null) {
             serializer.writeString($SCHEMA_DESCRIPTION, description);
@@ -216,13 +229,14 @@ public final class UpdateWebhookInput implements SerializableStruct {
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
             case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_NAME, member, name);
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, changeReason);
-            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, description);
-            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_ENABLED, member, enabled);
-            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_URL, member, url);
-            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_METHOD, member, method);
-            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, version);
-            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_CUSTOM_HEADERS, member, customHeaders);
-            case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_EVENTS, member, events);
+            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, userAgent);
+            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, description);
+            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_ENABLED, member, enabled);
+            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_URL, member, url);
+            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_METHOD, member, method);
+            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, version);
+            case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_CUSTOM_HEADERS, member, customHeaders);
+            case 11 -> (T) SchemaUtils.validateSameMember($SCHEMA_EVENTS, member, events);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -238,6 +252,7 @@ public final class UpdateWebhookInput implements SerializableStruct {
         var builder = new Builder();
         builder.workspaceId(this.workspaceId);
         builder.orgId(this.orgId);
+        builder.userAgent(this.userAgent);
         builder.name(this.name);
         builder.description(this.description);
         builder.enabled(this.enabled);
@@ -264,6 +279,7 @@ public final class UpdateWebhookInput implements SerializableStruct {
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private String workspaceId;
         private String orgId;
+        private String userAgent;
         private String name;
         private String description;
         private Boolean enabled;
@@ -298,6 +314,14 @@ public final class UpdateWebhookInput implements SerializableStruct {
         public Builder orgId(String orgId) {
             this.orgId = Objects.requireNonNull(orgId, "orgId cannot be null");
             tracker.setMember($SCHEMA_ORG_ID);
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
+        public Builder userAgent(String userAgent) {
+            this.userAgent = userAgent;
             return this;
         }
 
@@ -391,13 +415,14 @@ public final class UpdateWebhookInput implements SerializableStruct {
                 case 1 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
                 case 2 -> name((String) SchemaUtils.validateSameMember($SCHEMA_NAME, member, value));
                 case 3 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
-                case 4 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
-                case 5 -> enabled((boolean) SchemaUtils.validateSameMember($SCHEMA_ENABLED, member, value));
-                case 6 -> url((String) SchemaUtils.validateSameMember($SCHEMA_URL, member, value));
-                case 7 -> method((HttpMethod) SchemaUtils.validateSameMember($SCHEMA_METHOD, member, value));
-                case 8 -> version((Version) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, value));
-                case 9 -> customHeaders((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CUSTOM_HEADERS, member, value));
-                case 10 -> events((List<String>) SchemaUtils.validateSameMember($SCHEMA_EVENTS, member, value));
+                case 4 -> userAgent((String) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, value));
+                case 5 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
+                case 6 -> enabled((boolean) SchemaUtils.validateSameMember($SCHEMA_ENABLED, member, value));
+                case 7 -> url((String) SchemaUtils.validateSameMember($SCHEMA_URL, member, value));
+                case 8 -> method((HttpMethod) SchemaUtils.validateSameMember($SCHEMA_METHOD, member, value));
+                case 9 -> version((Version) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, value));
+                case 10 -> customHeaders((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CUSTOM_HEADERS, member, value));
+                case 11 -> events((List<String>) SchemaUtils.validateSameMember($SCHEMA_EVENTS, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -444,13 +469,14 @@ public final class UpdateWebhookInput implements SerializableStruct {
                     case 1 -> builder.orgId(de.readString(member));
                     case 2 -> builder.name(de.readString(member));
                     case 3 -> builder.changeReason(de.readString(member));
-                    case 4 -> builder.description(de.readString(member));
-                    case 5 -> builder.enabled(de.readBoolean(member));
-                    case 6 -> builder.url(de.readString(member));
-                    case 7 -> builder.method(HttpMethod.builder().deserializeMember(de, member).build());
-                    case 8 -> builder.version(Version.builder().deserializeMember(de, member).build());
-                    case 9 -> builder.customHeaders(SharedSerde.deserializeObjectShape(member, de));
-                    case 10 -> builder.events(SharedSerde.deserializeEvents(member, de));
+                    case 4 -> builder.userAgent(de.readString(member));
+                    case 5 -> builder.description(de.readString(member));
+                    case 6 -> builder.enabled(de.readBoolean(member));
+                    case 7 -> builder.url(de.readString(member));
+                    case 8 -> builder.method(HttpMethod.builder().deserializeMember(de, member).build());
+                    case 9 -> builder.version(Version.builder().deserializeMember(de, member).build());
+                    case 10 -> builder.customHeaders(SharedSerde.deserializeObjectShape(member, de));
+                    case 11 -> builder.events(SharedSerde.deserializeEvents(member, de));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

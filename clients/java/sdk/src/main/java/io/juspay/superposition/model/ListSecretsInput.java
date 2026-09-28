@@ -36,6 +36,8 @@ public final class ListSecretsInput implements SerializableStruct {
         .putMember("org_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-org-id"),
                 new RequiredTrait())
+        .putMember("user_agent", PreludeSchemas.STRING,
+                new HttpHeaderTrait("user-agent"))
         .putMember("name", SharedSchemas.STRING_LIST,
                 new HttpQueryTrait("name"))
         .putMember("created_by", SharedSchemas.STRING_LIST,
@@ -53,6 +55,7 @@ public final class ListSecretsInput implements SerializableStruct {
     private static final Schema $SCHEMA_ALL = $SCHEMA.member("all");
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
+    private static final Schema $SCHEMA_USER_AGENT = $SCHEMA.member("user_agent");
     private static final Schema $SCHEMA_NAME = $SCHEMA.member("name");
     private static final Schema $SCHEMA_CREATED_BY = $SCHEMA.member("created_by");
     private static final Schema $SCHEMA_LAST_MODIFIED_BY = $SCHEMA.member("last_modified_by");
@@ -64,6 +67,7 @@ public final class ListSecretsInput implements SerializableStruct {
     private final transient Boolean all;
     private final transient String workspaceId;
     private final transient String orgId;
+    private final transient String userAgent;
     private final transient List<String> name;
     private final transient List<String> createdBy;
     private final transient List<String> lastModifiedBy;
@@ -76,6 +80,7 @@ public final class ListSecretsInput implements SerializableStruct {
         this.all = builder.all;
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
+        this.userAgent = builder.userAgent;
         this.name = builder.name == null ? null : Collections.unmodifiableList(builder.name);
         this.createdBy = builder.createdBy == null ? null : Collections.unmodifiableList(builder.createdBy);
         this.lastModifiedBy = builder.lastModifiedBy == null ? null : Collections.unmodifiableList(builder.lastModifiedBy);
@@ -110,6 +115,10 @@ public final class ListSecretsInput implements SerializableStruct {
 
     public String orgId() {
         return orgId;
+    }
+
+    public String userAgent() {
+        return userAgent;
     }
 
     /**
@@ -187,6 +196,7 @@ public final class ListSecretsInput implements SerializableStruct {
                && Objects.equals(this.all, that.all)
                && Objects.equals(this.workspaceId, that.workspaceId)
                && Objects.equals(this.orgId, that.orgId)
+               && Objects.equals(this.userAgent, that.userAgent)
                && Objects.equals(this.name, that.name)
                && Objects.equals(this.createdBy, that.createdBy)
                && Objects.equals(this.lastModifiedBy, that.lastModifiedBy)
@@ -196,7 +206,7 @@ public final class ListSecretsInput implements SerializableStruct {
 
     @Override
     public int hashCode() {
-        return Objects.hash(count, page, all, workspaceId, orgId, name, createdBy, lastModifiedBy, sortOn, sortBy);
+        return Objects.hash(count, page, all, workspaceId, orgId, userAgent, name, createdBy, lastModifiedBy, sortOn, sortBy);
     }
 
     @Override
@@ -217,6 +227,9 @@ public final class ListSecretsInput implements SerializableStruct {
         }
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
+        if (userAgent != null) {
+            serializer.writeString($SCHEMA_USER_AGENT, userAgent);
+        }
         if (name != null) {
             serializer.writeList($SCHEMA_NAME, name, name.size(), SharedSerde.StringListSerializer.INSTANCE);
         }
@@ -243,11 +256,12 @@ public final class ListSecretsInput implements SerializableStruct {
             case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, count);
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, page);
             case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_ALL, member, all);
-            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_NAME, member, name);
-            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, createdBy);
-            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, lastModifiedBy);
-            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, sortOn);
-            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, sortBy);
+            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, userAgent);
+            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_NAME, member, name);
+            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, createdBy);
+            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, lastModifiedBy);
+            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, sortOn);
+            case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, sortBy);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -266,6 +280,7 @@ public final class ListSecretsInput implements SerializableStruct {
         builder.all(this.all);
         builder.workspaceId(this.workspaceId);
         builder.orgId(this.orgId);
+        builder.userAgent(this.userAgent);
         builder.name(this.name);
         builder.createdBy(this.createdBy);
         builder.lastModifiedBy(this.lastModifiedBy);
@@ -291,6 +306,7 @@ public final class ListSecretsInput implements SerializableStruct {
         private Boolean all;
         private String workspaceId;
         private String orgId;
+        private String userAgent;
         private List<String> name;
         private List<String> createdBy;
         private List<String> lastModifiedBy;
@@ -351,6 +367,14 @@ public final class ListSecretsInput implements SerializableStruct {
         public Builder orgId(String orgId) {
             this.orgId = Objects.requireNonNull(orgId, "orgId cannot be null");
             tracker.setMember($SCHEMA_ORG_ID);
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
+        public Builder userAgent(String userAgent) {
+            this.userAgent = userAgent;
             return this;
         }
 
@@ -419,11 +443,12 @@ public final class ListSecretsInput implements SerializableStruct {
                 case 2 -> count((int) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, value));
                 case 3 -> page((int) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, value));
                 case 4 -> all((boolean) SchemaUtils.validateSameMember($SCHEMA_ALL, member, value));
-                case 5 -> name((List<String>) SchemaUtils.validateSameMember($SCHEMA_NAME, member, value));
-                case 6 -> createdBy((List<String>) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, value));
-                case 7 -> lastModifiedBy((List<String>) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, value));
-                case 8 -> sortOn((SecretSortOn) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, value));
-                case 9 -> sortBy((SortBy) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, value));
+                case 5 -> userAgent((String) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, value));
+                case 6 -> name((List<String>) SchemaUtils.validateSameMember($SCHEMA_NAME, member, value));
+                case 7 -> createdBy((List<String>) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, value));
+                case 8 -> lastModifiedBy((List<String>) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, value));
+                case 9 -> sortOn((SecretSortOn) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, value));
+                case 10 -> sortBy((SortBy) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -465,11 +490,12 @@ public final class ListSecretsInput implements SerializableStruct {
                     case 2 -> builder.count(de.readInteger(member));
                     case 3 -> builder.page(de.readInteger(member));
                     case 4 -> builder.all(de.readBoolean(member));
-                    case 5 -> builder.name(SharedSerde.deserializeStringList(member, de));
-                    case 6 -> builder.createdBy(SharedSerde.deserializeStringList(member, de));
-                    case 7 -> builder.lastModifiedBy(SharedSerde.deserializeStringList(member, de));
-                    case 8 -> builder.sortOn(SecretSortOn.builder().deserializeMember(de, member).build());
-                    case 9 -> builder.sortBy(SortBy.builder().deserializeMember(de, member).build());
+                    case 5 -> builder.userAgent(de.readString(member));
+                    case 6 -> builder.name(SharedSerde.deserializeStringList(member, de));
+                    case 7 -> builder.createdBy(SharedSerde.deserializeStringList(member, de));
+                    case 8 -> builder.lastModifiedBy(SharedSerde.deserializeStringList(member, de));
+                    case 9 -> builder.sortOn(SecretSortOn.builder().deserializeMember(de, member).build());
+                    case 10 -> builder.sortBy(SortBy.builder().deserializeMember(de, member).build());
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

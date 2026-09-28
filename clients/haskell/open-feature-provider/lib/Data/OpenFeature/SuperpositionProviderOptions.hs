@@ -12,6 +12,8 @@ data SuperpositionProviderOptions = SuperpositionProviderOptions
     workspaceId :: Text,
     endpoint :: Net.URI,
     token :: Text,
+    -- | Sent as the @user-agent@ header on every API call; identifies the caller.
+    userAgent :: Maybe Text,
     -- TODO
     fallbackConfig :: (),
     refreshOptions :: RefreshOptions,
@@ -26,6 +28,7 @@ defaultProviderOptions =
       workspaceId = "",
       endpoint = Net.URI "" Nothing "" "" "",
       token = "",
+      userAgent = Nothing,
       fallbackConfig = (),
       refreshOptions = OnDemand 0,
       experimentationRefreshOptions = Nothing,

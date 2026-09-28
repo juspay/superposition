@@ -3,6 +3,8 @@ export interface SuperpositionOptions {
     token: string;
     org_id?: string;
     workspace_id?: string;
+    /** Sent as the `user-agent` header on every API call; identifies the caller. */
+    user_agent?: string;
     httpClient?: any;
 }
 

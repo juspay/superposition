@@ -45,6 +45,7 @@ export interface CreateTypeTemplatesCommandOutput extends TypeTemplatesResponse,
  * const input = { // CreateTypeTemplatesRequest
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   type_name: "STRING_VALUE", // required
  *   type_schema: { // Object // required
  *     "<keys>": "DOCUMENT_VALUE",

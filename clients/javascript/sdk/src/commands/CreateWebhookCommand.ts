@@ -45,6 +45,7 @@ export interface CreateWebhookCommandOutput extends WebhookResponse, __MetadataB
  * const input = { // CreateWebhookInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   name: "STRING_VALUE", // required
  *   description: "STRING_VALUE", // required
  *   enabled: true || false, // required

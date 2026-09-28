@@ -48,6 +48,7 @@ export interface ListDimensionsCommandOutput extends ListDimensionsOutput, __Met
  *   all: true || false,
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  * };
  * const command = new ListDimensionsCommand(input);
  * const response = await client.send(command);

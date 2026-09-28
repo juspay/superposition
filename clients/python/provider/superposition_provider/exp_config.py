@@ -128,6 +128,7 @@ class ExperimentationConfig():
             list_exp_input = ListExperimentInput(
                 workspace_id=superposition_options.workspace_id,
                 org_id=superposition_options.org_id,
+                user_agent=superposition_options.user_agent,
                 all=True,
                 status=[SDKExperimentStatusType.CREATED, SDKExperimentStatusType.INPROGRESS]
             )
@@ -171,6 +172,7 @@ class ExperimentationConfig():
             list_exp_grp_input = ListExperimentGroupsInput(
                 workspace_id=superposition_options.workspace_id,
                 org_id=superposition_options.org_id,
+                user_agent=superposition_options.user_agent,
                 all=True
             )
 

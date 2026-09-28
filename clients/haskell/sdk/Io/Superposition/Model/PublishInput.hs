@@ -1,6 +1,7 @@
 module Io.Superposition.Model.PublishInput (
     setWorkspaceId,
     setOrgId,
+    setUserAgent,
     setFunctionName,
     setChangeReason,
     build,
@@ -8,6 +9,7 @@ module Io.Superposition.Model.PublishInput (
     PublishInput,
     workspace_id,
     org_id,
+    user_agent,
     function_name,
     change_reason
 ) where
@@ -27,6 +29,7 @@ import qualified Network.HTTP.Types.Method
 data PublishInput = PublishInput {
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text,
+    user_agent :: Data.Maybe.Maybe Data.Text.Text,
     function_name :: Data.Text.Text,
     change_reason :: Data.Text.Text
 } deriving (
@@ -39,6 +42,7 @@ instance Data.Aeson.ToJSON PublishInput where
     toJSON a = Data.Aeson.object [
         "workspace_id" Data.Aeson..= workspace_id a,
         "org_id" Data.Aeson..= org_id a,
+        "user_agent" Data.Aeson..= user_agent a,
         "function_name" Data.Aeson..= function_name a,
         "change_reason" Data.Aeson..= change_reason a
         ]
@@ -50,6 +54,7 @@ instance Data.Aeson.FromJSON PublishInput where
     parseJSON = Data.Aeson.withObject "PublishInput" $ \v -> PublishInput
         Data.Functor.<$> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
+        Control.Applicative.<*> (v Data.Aeson..:? "user_agent")
         Control.Applicative.<*> (v Data.Aeson..: "function_name")
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
     
@@ -59,6 +64,7 @@ instance Data.Aeson.FromJSON PublishInput where
 data PublishInputBuilderState = PublishInputBuilderState {
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    user_agentBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     change_reasonBuilderState :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
@@ -69,6 +75,7 @@ defaultBuilderState :: PublishInputBuilderState
 defaultBuilderState = PublishInputBuilderState {
     workspace_idBuilderState = Data.Maybe.Nothing,
     org_idBuilderState = Data.Maybe.Nothing,
+    user_agentBuilderState = Data.Maybe.Nothing,
     function_nameBuilderState = Data.Maybe.Nothing,
     change_reasonBuilderState = Data.Maybe.Nothing
 }
@@ -83,6 +90,10 @@ setOrgId :: Data.Text.Text -> PublishInputBuilder ()
 setOrgId value =
    Control.Monad.State.Strict.modify (\s -> (s { org_idBuilderState = Data.Maybe.Just value }))
 
+setUserAgent :: Data.Maybe.Maybe Data.Text.Text -> PublishInputBuilder ()
+setUserAgent value =
+   Control.Monad.State.Strict.modify (\s -> (s { user_agentBuilderState = value }))
+
 setFunctionName :: Data.Text.Text -> PublishInputBuilder ()
 setFunctionName value =
    Control.Monad.State.Strict.modify (\s -> (s { function_nameBuilderState = Data.Maybe.Just value }))
@@ -96,11 +107,13 @@ build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
     workspace_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.PublishInput.PublishInput.workspace_id is a required property.") Data.Either.Right (workspace_idBuilderState st)
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.PublishInput.PublishInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
+    user_agent' <- Data.Either.Right (user_agentBuilderState st)
     function_name' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.PublishInput.PublishInput.function_name is a required property.") Data.Either.Right (function_nameBuilderState st)
     change_reason' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.PublishInput.PublishInput.change_reason is a required property.") Data.Either.Right (change_reasonBuilderState st)
     Data.Either.Right (PublishInput { 
         workspace_id = workspace_id',
         org_id = org_id',
+        user_agent = user_agent',
         function_name = function_name',
         change_reason = change_reason'
     })
@@ -117,5 +130,6 @@ instance Io.Superposition.Utility.IntoRequestBuilder PublishInput where
         
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
+        Io.Superposition.Utility.serHeader "user-agent" (user_agent self)
         Io.Superposition.Utility.serField "change_reason" (change_reason self)
 
