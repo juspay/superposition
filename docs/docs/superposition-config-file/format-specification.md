@@ -20,7 +20,8 @@ An optional **`[meta]`** table can precede them to mark the file as SuperTOML an
 
 ```toml
 [meta]
-# Optional: file type and format version
+type = "supertoml"
+version = 1
 
 [default-configs]
 # Configuration keys with default values and schemas
