@@ -1,0 +1,17 @@
+# GO TO DEFINITION — this file is valid, nothing to fix.
+#
+#   F12 (or Cmd+Click) on `city` inside _context_  -> jumps to [dimensions] city
+#   F12 on `per_km_rate` on the override line      -> jumps to [default-configs]
+#   F12 on the VALUE "Bangalore"                   -> nothing (values aren't declarations)
+
+[default-configs]
+per_km_rate = { value = 20.0, schema = { type = "number", minimum = 5.0 } }
+currency = { value = "INR", schema = { type = "string", enum = ["INR", "USD"] } }
+
+[dimensions]
+city = { position = 1, schema = { type = "string", enum = ["Bangalore", "Delhi"] } }
+vehicle_type = { position = 2, schema = { type = "string", enum = ["auto", "cab"] } }
+
+[[overrides]]
+_context_ = { city = "Bangalore" }
+per_km_rate = 25.0
