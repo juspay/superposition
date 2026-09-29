@@ -19,21 +19,52 @@ Add the following to your `Cargo.toml`:
 ```toml
 [dependencies]
 superposition_provider = "<version>"
-open-feature = "0.2.5"
 tokio = { version = "1", features = ["full"] }
 env_logger = "0.10"
 ```
 
 ## Quick Start
 
+### Local-first: no service required
+
+Place a `super.toml` file in your application's working directory and use the
+automatic constructor. The provider watches the file and resolves configuration
+in process; no Superposition server, database, token, organisation, or
+workspace is required.
+
+```rust
+use superposition_provider::{LocalResolutionProvider, OpenFeature};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let provider = LocalResolutionProvider::auto()?;
+    let mut api = OpenFeature::singleton_mut().await;
+    api.set_provider(provider).await;
+    Ok(())
+}
+```
+
+`SUPERPOSITION_CONFIG_FILE` selects a file with any other name or location,
+such as `config/checkout.super.toml`; `.toml` and `.json` files are supported.
+
+Set all of `SUPERPOSITION_ENDPOINT`, `SUPERPOSITION_TOKEN`,
+`SUPERPOSITION_ORG_ID`, and `SUPERPOSITION_WORKSPACE_ID` to make remote
+Superposition primary while retaining the local file as an offline fallback.
+
+The repository includes a runnable local demo:
+
+```bash
+SUPERPOSITION_CONFIG_FILE=crates/superposition_provider/examples/local_auto.super.toml \
+  cargo run -p superposition_provider --example local_auto
+```
+
 This is the most common usage — the provider connects to a Superposition server via HTTP, polls for config updates, and evaluates flags locally.
 
 ```rust
-use open_feature::{EvaluationContext, OpenFeature};
 use superposition_provider::{
     data_source::http::HttpDataSource,
     local_provider::LocalResolutionProvider,
-    PollingStrategy, RefreshStrategy, SuperpositionOptions,
+    EvaluationContext, OpenFeature, PollingStrategy, RefreshStrategy, SuperpositionOptions,
 };
 use tokio::time::{sleep, Duration};
 
@@ -173,12 +204,11 @@ let exp_options = ExperimentationOptions::new(
 Fetches config from a pluggable data source (HTTP or file), caches locally, and evaluates flags in-process. Supports all four refresh strategies. Accepts an optional fallback data source.
 
 ```rust
-use open_feature::EvaluationContext;
 use superposition_provider::{
     data_source::http::HttpDataSource,
     local_provider::LocalResolutionProvider,
     traits::{AllFeatureProvider, FeatureExperimentMeta},
-    PollingStrategy, RefreshStrategy, SuperpositionOptions,
+    EvaluationContext, PollingStrategy, RefreshStrategy, SuperpositionOptions,
 };
 
 let http_source = HttpDataSource::new(SuperpositionOptions::new(
@@ -225,10 +255,9 @@ provider.close_provider().await.unwrap();
 A stateless provider that calls the Superposition server on every evaluation. No local caching — each flag evaluation makes an HTTP request. Best for serverless, low-traffic, or scenarios where you always want the latest config.
 
 ```rust
-use open_feature::{EvaluationContext, OpenFeature};
 use superposition_provider::{
     remote_provider::SuperpositionAPIProvider,
-    SuperpositionOptions,
+    EvaluationContext, OpenFeature, SuperpositionOptions,
 };
 
 let provider = SuperpositionAPIProvider::new(SuperpositionOptions::new(
@@ -259,12 +288,11 @@ Resolve configs from a local `.toml` file without needing a server:
 
 ```rust
 use std::path::PathBuf;
-use open_feature::EvaluationContext;
 use superposition_provider::{
     data_source::file::FileDataSource,
     local_provider::LocalResolutionProvider,
     traits::AllFeatureProvider,
-    OnDemandStrategy, RefreshStrategy,
+    EvaluationContext, OnDemandStrategy, RefreshStrategy,
 };
 
 #[tokio::main]
@@ -304,12 +332,11 @@ Use the server as the primary data source with a local TOML file as fallback. If
 
 ```rust
 use std::path::PathBuf;
-use open_feature::{EvaluationContext, OpenFeature};
 use superposition_provider::{
     data_source::file::FileDataSource,
     data_source::http::HttpDataSource,
     local_provider::LocalResolutionProvider,
-    PollingStrategy, RefreshStrategy, SuperpositionOptions,
+    EvaluationContext, OpenFeature, PollingStrategy, RefreshStrategy, SuperpositionOptions,
 };
 use tokio::time::{sleep, Duration};
 
@@ -372,7 +399,7 @@ The fallback is only consulted during initialization or when the primary source 
 Pass dimensions and a targeting key for experiment bucketing:
 
 ```rust
-use open_feature::EvaluationContext;
+use superposition_provider::EvaluationContext;
 
 let context = EvaluationContext::default()
     .with_targeting_key("user-42")
