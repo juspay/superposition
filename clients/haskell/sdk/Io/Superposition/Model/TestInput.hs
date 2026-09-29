@@ -1,6 +1,7 @@
 module Io.Superposition.Model.TestInput (
     setWorkspaceId,
     setOrgId,
+    setUserAgent,
     setFunctionName,
     setStage,
     setRequest,
@@ -9,6 +10,7 @@ module Io.Superposition.Model.TestInput (
     TestInput,
     workspace_id,
     org_id,
+    user_agent,
     function_name,
     stage,
     request
@@ -31,6 +33,7 @@ import qualified Network.HTTP.Types.Method
 data TestInput = TestInput {
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text,
+    user_agent :: Data.Maybe.Maybe Data.Text.Text,
     function_name :: Data.Text.Text,
     stage :: Io.Superposition.Model.Stage.Stage,
     request :: Io.Superposition.Model.FunctionExecutionRequest.FunctionExecutionRequest
@@ -44,6 +47,7 @@ instance Data.Aeson.ToJSON TestInput where
     toJSON a = Data.Aeson.object [
         "workspace_id" Data.Aeson..= workspace_id a,
         "org_id" Data.Aeson..= org_id a,
+        "user_agent" Data.Aeson..= user_agent a,
         "function_name" Data.Aeson..= function_name a,
         "stage" Data.Aeson..= stage a,
         "request" Data.Aeson..= request a
@@ -56,6 +60,7 @@ instance Data.Aeson.FromJSON TestInput where
     parseJSON = Data.Aeson.withObject "TestInput" $ \v -> TestInput
         Data.Functor.<$> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
+        Control.Applicative.<*> (v Data.Aeson..:? "user_agent")
         Control.Applicative.<*> (v Data.Aeson..: "function_name")
         Control.Applicative.<*> (v Data.Aeson..: "stage")
         Control.Applicative.<*> (v Data.Aeson..: "request")
@@ -66,6 +71,7 @@ instance Data.Aeson.FromJSON TestInput where
 data TestInputBuilderState = TestInputBuilderState {
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    user_agentBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     function_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     stageBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.Stage.Stage,
     requestBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.FunctionExecutionRequest.FunctionExecutionRequest
@@ -77,6 +83,7 @@ defaultBuilderState :: TestInputBuilderState
 defaultBuilderState = TestInputBuilderState {
     workspace_idBuilderState = Data.Maybe.Nothing,
     org_idBuilderState = Data.Maybe.Nothing,
+    user_agentBuilderState = Data.Maybe.Nothing,
     function_nameBuilderState = Data.Maybe.Nothing,
     stageBuilderState = Data.Maybe.Nothing,
     requestBuilderState = Data.Maybe.Nothing
@@ -91,6 +98,10 @@ setWorkspaceId value =
 setOrgId :: Data.Text.Text -> TestInputBuilder ()
 setOrgId value =
    Control.Monad.State.Strict.modify (\s -> (s { org_idBuilderState = Data.Maybe.Just value }))
+
+setUserAgent :: Data.Maybe.Maybe Data.Text.Text -> TestInputBuilder ()
+setUserAgent value =
+   Control.Monad.State.Strict.modify (\s -> (s { user_agentBuilderState = value }))
 
 setFunctionName :: Data.Text.Text -> TestInputBuilder ()
 setFunctionName value =
@@ -109,12 +120,14 @@ build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
     workspace_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.TestInput.TestInput.workspace_id is a required property.") Data.Either.Right (workspace_idBuilderState st)
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.TestInput.TestInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
+    user_agent' <- Data.Either.Right (user_agentBuilderState st)
     function_name' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.TestInput.TestInput.function_name is a required property.") Data.Either.Right (function_nameBuilderState st)
     stage' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.TestInput.TestInput.stage is a required property.") Data.Either.Right (stageBuilderState st)
     request' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.TestInput.TestInput.request is a required property.") Data.Either.Right (requestBuilderState st)
     Data.Either.Right (TestInput { 
         workspace_id = workspace_id',
         org_id = org_id',
+        user_agent = user_agent',
         function_name = function_name',
         stage = stage',
         request = request'
@@ -133,5 +146,6 @@ instance Io.Superposition.Utility.IntoRequestBuilder TestInput where
         
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
+        Io.Superposition.Utility.serHeader "user-agent" (user_agent self)
         Io.Superposition.Utility.serBody "application/json" (request self)
 

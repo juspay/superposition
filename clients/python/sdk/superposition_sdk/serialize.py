@@ -135,6 +135,8 @@ async def _serialize_add_members_to_group(input: AddMembersToGroupInput, config:
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -181,6 +183,8 @@ async def _serialize_applicable_variants(input: ApplicableVariantsInput, config:
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -217,6 +221,8 @@ async def _serialize_bulk_operation(input: BulkOperationInput, config: Config) -
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     if input.config_tags:
         headers.extend(Fields([Field(name="x-config-tags", values=[input.config_tags])]))
     return _HTTPRequest(
@@ -260,6 +266,8 @@ async def _serialize_conclude_experiment(input: ConcludeExperimentInput, config:
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     if input.config_tags:
         headers.extend(Fields([Field(name="x-config-tags", values=[input.config_tags])]))
     return _HTTPRequest(
@@ -302,6 +310,8 @@ async def _serialize_create_context(input: CreateContextInput, config: Config) -
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     if input.config_tags:
         headers.extend(Fields([Field(name="x-config-tags", values=[input.config_tags])]))
     return _HTTPRequest(
@@ -340,6 +350,8 @@ async def _serialize_create_default_config(input: CreateDefaultConfigInput, conf
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -376,6 +388,8 @@ async def _serialize_create_dimension(input: CreateDimensionInput, config: Confi
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -412,6 +426,8 @@ async def _serialize_create_experiment(input: CreateExperimentInput, config: Con
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     if input.idempotency_key:
         headers.extend(Fields([Field(name="idempotency-key", values=[input.idempotency_key])]))
     if input.config_tags:
@@ -452,6 +468,8 @@ async def _serialize_create_experiment_group(input: CreateExperimentGroupInput, 
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -488,6 +506,8 @@ async def _serialize_create_function(input: CreateFunctionInput, config: Config)
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -556,6 +576,8 @@ async def _serialize_create_secret(input: CreateSecretInput, config: Config) -> 
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -592,6 +614,8 @@ async def _serialize_create_type_templates(input: CreateTypeTemplatesInput, conf
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -628,6 +652,8 @@ async def _serialize_create_variable(input: CreateVariableInput, config: Config)
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -664,6 +690,8 @@ async def _serialize_create_webhook(input: CreateWebhookInput, config: Config) -
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -698,6 +726,8 @@ async def _serialize_create_workspace(input: CreateWorkspaceInput, config: Confi
 
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -730,6 +760,8 @@ async def _serialize_delete_context(input: DeleteContextInput, config: Config) -
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     if input.config_tags:
         headers.extend(Fields([Field(name="x-config-tags", values=[input.config_tags])]))
     return _HTTPRequest(
@@ -764,6 +796,8 @@ async def _serialize_delete_default_config(input: DeleteDefaultConfigInput, conf
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -796,6 +830,8 @@ async def _serialize_delete_dimension(input: DeleteDimensionInput, config: Confi
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -828,6 +864,8 @@ async def _serialize_delete_experiment_group(input: DeleteExperimentGroupInput, 
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -860,6 +898,8 @@ async def _serialize_delete_function(input: DeleteFunctionInput, config: Config)
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -892,6 +932,8 @@ async def _serialize_delete_secret(input: DeleteSecretInput, config: Config) -> 
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -924,6 +966,8 @@ async def _serialize_delete_type_templates(input: DeleteTypeTemplatesInput, conf
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -956,6 +1000,8 @@ async def _serialize_delete_variable(input: DeleteVariableInput, config: Config)
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -988,6 +1034,8 @@ async def _serialize_delete_webhook(input: DeleteWebhookInput, config: Config) -
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -1029,6 +1077,8 @@ async def _serialize_discard_experiment(input: DiscardExperimentInput, config: C
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     if input.config_tags:
         headers.extend(Fields([Field(name="x-config-tags", values=[input.config_tags])]))
     return _HTTPRequest(
@@ -1077,6 +1127,8 @@ async def _serialize_get_config(input: GetConfigInput, config: Config) -> HTTPRe
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     if input.if_modified_since is not None:
         headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
     return _HTTPRequest(
@@ -1106,6 +1158,8 @@ async def _serialize_get_config_json(input: GetConfigJsonInput, config: Config) 
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     if input.if_modified_since is not None:
         headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
     return _HTTPRequest(
@@ -1135,6 +1189,8 @@ async def _serialize_get_config_toml(input: GetConfigTomlInput, config: Config) 
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     if input.if_modified_since is not None:
         headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
     return _HTTPRequest(
@@ -1169,6 +1225,8 @@ async def _serialize_get_context(input: GetContextInput, config: Config) -> HTTP
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -1205,6 +1263,8 @@ async def _serialize_get_context_from_condition(input: GetContextFromConditionIn
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -1237,6 +1297,8 @@ async def _serialize_get_default_config(input: GetDefaultConfigInput, config: Co
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -1289,6 +1351,8 @@ async def _serialize_get_detailed_resolved_config(input: GetDetailedResolvedConf
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     if input.merge_strategy:
         headers.extend(Fields([Field(name="x-merge-strategy", values=[input.merge_strategy])]))
     return _HTTPRequest(
@@ -1323,6 +1387,8 @@ async def _serialize_get_dimension(input: GetDimensionInput, config: Config) -> 
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -1355,6 +1421,8 @@ async def _serialize_get_experiment(input: GetExperimentInput, config: Config) -
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -1401,6 +1469,8 @@ async def _serialize_get_experiment_config(input: GetExperimentConfigInput, conf
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     if input.if_modified_since is not None:
         headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
     return _HTTPRequest(
@@ -1435,6 +1505,8 @@ async def _serialize_get_experiment_group(input: GetExperimentGroupInput, config
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -1467,6 +1539,8 @@ async def _serialize_get_function(input: GetFunctionInput, config: Config) -> HT
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -1547,6 +1621,8 @@ async def _serialize_get_resolved_config(input: GetResolvedConfigInput, config: 
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     if input.merge_strategy:
         headers.extend(Fields([Field(name="x-merge-strategy", values=[input.merge_strategy])]))
     return _HTTPRequest(
@@ -1600,6 +1676,8 @@ async def _serialize_get_resolved_config_explanation(input: GetResolvedConfigExp
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     if input.merge_strategy:
         headers.extend(Fields([Field(name="x-merge-strategy", values=[input.merge_strategy])]))
     return _HTTPRequest(
@@ -1656,6 +1734,8 @@ async def _serialize_get_resolved_config_with_identifier(input: GetResolvedConfi
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     if input.merge_strategy:
         headers.extend(Fields([Field(name="x-merge-strategy", values=[input.merge_strategy])]))
     return _HTTPRequest(
@@ -1690,6 +1770,8 @@ async def _serialize_get_secret(input: GetSecretInput, config: Config) -> HTTPRe
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -1722,6 +1804,8 @@ async def _serialize_get_type_template(input: GetTypeTemplateInput, config: Conf
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -1759,6 +1843,8 @@ async def _serialize_get_type_templates_list(input: GetTypeTemplatesListInput, c
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -1791,6 +1877,8 @@ async def _serialize_get_variable(input: GetVariableInput, config: Config) -> HT
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -1823,6 +1911,8 @@ async def _serialize_get_version(input: GetVersionInput, config: Config) -> HTTP
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -1855,6 +1945,8 @@ async def _serialize_get_webhook(input: GetWebhookInput, config: Config) -> HTTP
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -1887,6 +1979,8 @@ async def _serialize_get_webhook_by_event(input: GetWebhookByEventInput, config:
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -1917,6 +2011,8 @@ async def _serialize_get_workspace(input: GetWorkspaceInput, config: Config) -> 
 
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -1967,6 +2063,8 @@ async def _serialize_list_audit_logs(input: ListAuditLogsInput, config: Config) 
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -2021,6 +2119,8 @@ async def _serialize_list_contexts(input: ListContextsInput, config: Config) -> 
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -2060,6 +2160,8 @@ async def _serialize_list_default_configs(input: ListDefaultConfigsInput, config
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -2097,6 +2199,8 @@ async def _serialize_list_dimensions(input: ListDimensionsInput, config: Config)
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -2170,6 +2274,8 @@ async def _serialize_list_experiment(input: ListExperimentInput, config: Config)
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     if input.if_modified_since is not None:
         headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
     return _HTTPRequest(
@@ -2233,6 +2339,8 @@ async def _serialize_list_experiment_groups(input: ListExperimentGroupsInput, co
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     if input.if_modified_since is not None:
         headers.extend(Fields([Field(name="if-modified-since", values=[serialize_rfc3339(ensure_utc(input.if_modified_since))])]))
     return _HTTPRequest(
@@ -2274,6 +2382,8 @@ async def _serialize_list_function(input: ListFunctionInput, config: Config) -> 
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -2354,6 +2464,8 @@ async def _serialize_list_secrets(input: ListSecretsInput, config: Config) -> HT
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -2401,6 +2513,8 @@ async def _serialize_list_variables(input: ListVariablesInput, config: Config) -
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -2436,6 +2550,8 @@ async def _serialize_list_versions(input: ListVersionsInput, config: Config) -> 
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -2473,6 +2589,8 @@ async def _serialize_list_webhook(input: ListWebhookInput, config: Config) -> HT
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -2508,6 +2626,8 @@ async def _serialize_list_workspace(input: ListWorkspaceInput, config: Config) -
 
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -2538,6 +2658,8 @@ async def _serialize_migrate_workspace_schema(input: MigrateWorkspaceSchemaInput
 
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -2583,6 +2705,8 @@ async def _serialize_move_context(input: MoveContextInput, config: Config) -> HT
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -2624,6 +2748,8 @@ async def _serialize_pause_experiment(input: PauseExperimentInput, config: Confi
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -2665,6 +2791,8 @@ async def _serialize_publish(input: PublishInput, config: Config) -> HTTPRequest
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -2706,6 +2834,8 @@ async def _serialize_ramp_experiment(input: RampExperimentInput, config: Config)
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -2747,6 +2877,8 @@ async def _serialize_remove_members_from_group(input: RemoveMembersFromGroupInpu
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -2788,6 +2920,8 @@ async def _serialize_resume_experiment(input: ResumeExperimentInput, config: Con
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -2841,6 +2975,8 @@ async def _serialize_rotate_workspace_encryption_key(input: RotateWorkspaceEncry
 
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -2886,6 +3022,8 @@ async def _serialize_test(input: TestInput, config: Config) -> HTTPRequest:
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -2927,6 +3065,8 @@ async def _serialize_update_default_config(input: UpdateDefaultConfigInput, conf
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -2968,6 +3108,8 @@ async def _serialize_update_dimension(input: UpdateDimensionInput, config: Confi
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -3009,6 +3151,8 @@ async def _serialize_update_experiment_group(input: UpdateExperimentGroupInput, 
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -3050,6 +3194,8 @@ async def _serialize_update_function(input: UpdateFunctionInput, config: Config)
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -3127,6 +3273,8 @@ async def _serialize_update_override(input: UpdateOverrideInput, config: Config)
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     if input.config_tags:
         headers.extend(Fields([Field(name="x-config-tags", values=[input.config_tags])]))
     return _HTTPRequest(
@@ -3170,6 +3318,8 @@ async def _serialize_update_overrides_experiment(input: UpdateOverridesExperimen
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     if input.config_tags:
         headers.extend(Fields([Field(name="x-config-tags", values=[input.config_tags])]))
     return _HTTPRequest(
@@ -3213,6 +3363,8 @@ async def _serialize_update_secret(input: UpdateSecretInput, config: Config) -> 
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -3254,6 +3406,8 @@ async def _serialize_update_type_templates(input: UpdateTypeTemplatesInput, conf
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -3295,6 +3449,8 @@ async def _serialize_update_variable(input: UpdateVariableInput, config: Config)
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -3336,6 +3492,8 @@ async def _serialize_update_webhook(input: UpdateWebhookInput, config: Config) -
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -3375,6 +3533,8 @@ async def _serialize_update_workspace(input: UpdateWorkspaceInput, config: Confi
 
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -3411,6 +3571,8 @@ async def _serialize_validate_context(input: ValidateContextInput, config: Confi
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     return _HTTPRequest(
         destination=_URI(
             host="",
@@ -3438,6 +3600,8 @@ async def _serialize_weight_recompute(input: WeightRecomputeInput, config: Confi
         headers.extend(Fields([Field(name="x-workspace", values=[input.workspace_id])]))
     if input.org_id:
         headers.extend(Fields([Field(name="x-org-id", values=[input.org_id])]))
+    if input.user_agent:
+        headers.extend(Fields([Field(name="user-agent", values=[input.user_agent])]))
     if input.config_tags:
         headers.extend(Fields([Field(name="x-config-tags", values=[input.config_tags])]))
     return _HTTPRequest(

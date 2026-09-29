@@ -25,24 +25,33 @@ public final class RotateWorkspaceEncryptionKeyInput implements SerializableStru
         .putMember("org_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-org-id"),
                 new RequiredTrait())
+        .putMember("user_agent", PreludeSchemas.STRING,
+                new HttpHeaderTrait("user-agent"))
         .putMember("workspace_name", PreludeSchemas.STRING,
                 new HttpLabelTrait(),
                 new RequiredTrait())
         .build();
 
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
+    private static final Schema $SCHEMA_USER_AGENT = $SCHEMA.member("user_agent");
     private static final Schema $SCHEMA_WORKSPACE_NAME = $SCHEMA.member("workspace_name");
 
     private final transient String orgId;
+    private final transient String userAgent;
     private final transient String workspaceName;
 
     private RotateWorkspaceEncryptionKeyInput(Builder builder) {
         this.orgId = builder.orgId;
+        this.userAgent = builder.userAgent;
         this.workspaceName = builder.workspaceName;
     }
 
     public String orgId() {
         return orgId;
+    }
+
+    public String userAgent() {
+        return userAgent;
     }
 
     public String workspaceName() {
@@ -64,12 +73,13 @@ public final class RotateWorkspaceEncryptionKeyInput implements SerializableStru
         }
         RotateWorkspaceEncryptionKeyInput that = (RotateWorkspaceEncryptionKeyInput) other;
         return Objects.equals(this.orgId, that.orgId)
+               && Objects.equals(this.userAgent, that.userAgent)
                && Objects.equals(this.workspaceName, that.workspaceName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(orgId, workspaceName);
+        return Objects.hash(orgId, userAgent, workspaceName);
     }
 
     @Override
@@ -80,6 +90,9 @@ public final class RotateWorkspaceEncryptionKeyInput implements SerializableStru
     @Override
     public void serializeMembers(ShapeSerializer serializer) {
         serializer.writeString($SCHEMA_ORG_ID, orgId);
+        if (userAgent != null) {
+            serializer.writeString($SCHEMA_USER_AGENT, userAgent);
+        }
         serializer.writeString($SCHEMA_WORKSPACE_NAME, workspaceName);
     }
 
@@ -89,6 +102,7 @@ public final class RotateWorkspaceEncryptionKeyInput implements SerializableStru
         return switch (member.memberIndex()) {
             case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_NAME, member, workspaceName);
+            case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, userAgent);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -103,6 +117,7 @@ public final class RotateWorkspaceEncryptionKeyInput implements SerializableStru
     public Builder toBuilder() {
         var builder = new Builder();
         builder.orgId(this.orgId);
+        builder.userAgent(this.userAgent);
         builder.workspaceName(this.workspaceName);
         return builder;
     }
@@ -120,6 +135,7 @@ public final class RotateWorkspaceEncryptionKeyInput implements SerializableStru
     public static final class Builder implements ShapeBuilder<RotateWorkspaceEncryptionKeyInput> {
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private String orgId;
+        private String userAgent;
         private String workspaceName;
 
         private Builder() {}
@@ -136,6 +152,14 @@ public final class RotateWorkspaceEncryptionKeyInput implements SerializableStru
         public Builder orgId(String orgId) {
             this.orgId = Objects.requireNonNull(orgId, "orgId cannot be null");
             tracker.setMember($SCHEMA_ORG_ID);
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
+        public Builder userAgent(String userAgent) {
+            this.userAgent = userAgent;
             return this;
         }
 
@@ -161,6 +185,7 @@ public final class RotateWorkspaceEncryptionKeyInput implements SerializableStru
             switch (member.memberIndex()) {
                 case 0 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
                 case 1 -> workspaceName((String) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_NAME, member, value));
+                case 2 -> userAgent((String) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -199,6 +224,7 @@ public final class RotateWorkspaceEncryptionKeyInput implements SerializableStru
                 switch (member.memberIndex()) {
                     case 0 -> builder.orgId(de.readString(member));
                     case 1 -> builder.workspaceName(de.readString(member));
+                    case 2 -> builder.userAgent(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

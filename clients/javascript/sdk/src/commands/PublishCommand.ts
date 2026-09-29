@@ -45,6 +45,7 @@ export interface PublishCommandOutput extends FunctionResponse, __MetadataBearer
  * const input = { // PublishInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   function_name: "STRING_VALUE", // required
  *   change_reason: "STRING_VALUE", // required
  * };

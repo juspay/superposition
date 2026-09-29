@@ -4,6 +4,7 @@ module Io.Superposition.Model.ListExperimentGroupsInput (
     setAll',
     setWorkspaceId,
     setOrgId,
+    setUserAgent,
     setIfModifiedSince,
     setName,
     setCreatedBy,
@@ -22,6 +23,7 @@ module Io.Superposition.Model.ListExperimentGroupsInput (
     all',
     workspace_id,
     org_id,
+    user_agent,
     if_modified_since,
     name,
     created_by,
@@ -59,6 +61,7 @@ data ListExperimentGroupsInput = ListExperimentGroupsInput {
     all' :: Data.Maybe.Maybe Bool,
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text,
+    user_agent :: Data.Maybe.Maybe Data.Text.Text,
     if_modified_since :: Data.Maybe.Maybe Data.Time.UTCTime,
     name :: Data.Maybe.Maybe Data.Text.Text,
     created_by :: Data.Maybe.Maybe Data.Text.Text,
@@ -82,6 +85,7 @@ instance Data.Aeson.ToJSON ListExperimentGroupsInput where
         "all" Data.Aeson..= all' a,
         "workspace_id" Data.Aeson..= workspace_id a,
         "org_id" Data.Aeson..= org_id a,
+        "user_agent" Data.Aeson..= user_agent a,
         "if_modified_since" Data.Aeson..= if_modified_since a,
         "name" Data.Aeson..= name a,
         "created_by" Data.Aeson..= created_by a,
@@ -104,6 +108,7 @@ instance Data.Aeson.FromJSON ListExperimentGroupsInput where
         Control.Applicative.<*> (v Data.Aeson..:? "all")
         Control.Applicative.<*> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
+        Control.Applicative.<*> (v Data.Aeson..:? "user_agent")
         Control.Applicative.<*> (v Data.Aeson..:? "if_modified_since")
         Control.Applicative.<*> (v Data.Aeson..:? "name")
         Control.Applicative.<*> (v Data.Aeson..:? "created_by")
@@ -124,6 +129,7 @@ data ListExperimentGroupsInputBuilderState = ListExperimentGroupsInputBuilderSta
     all'BuilderState :: Data.Maybe.Maybe Bool,
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    user_agentBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     if_modified_sinceBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     created_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
@@ -145,6 +151,7 @@ defaultBuilderState = ListExperimentGroupsInputBuilderState {
     all'BuilderState = Data.Maybe.Nothing,
     workspace_idBuilderState = Data.Maybe.Nothing,
     org_idBuilderState = Data.Maybe.Nothing,
+    user_agentBuilderState = Data.Maybe.Nothing,
     if_modified_sinceBuilderState = Data.Maybe.Nothing,
     nameBuilderState = Data.Maybe.Nothing,
     created_byBuilderState = Data.Maybe.Nothing,
@@ -178,6 +185,10 @@ setWorkspaceId value =
 setOrgId :: Data.Text.Text -> ListExperimentGroupsInputBuilder ()
 setOrgId value =
    Control.Monad.State.Strict.modify (\s -> (s { org_idBuilderState = Data.Maybe.Just value }))
+
+setUserAgent :: Data.Maybe.Maybe Data.Text.Text -> ListExperimentGroupsInputBuilder ()
+setUserAgent value =
+   Control.Monad.State.Strict.modify (\s -> (s { user_agentBuilderState = value }))
 
 setIfModifiedSince :: Data.Maybe.Maybe Data.Time.UTCTime -> ListExperimentGroupsInputBuilder ()
 setIfModifiedSince value =
@@ -227,6 +238,7 @@ build builder = do
     all'' <- Data.Either.Right (all'BuilderState st)
     workspace_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListExperimentGroupsInput.ListExperimentGroupsInput.workspace_id is a required property.") Data.Either.Right (workspace_idBuilderState st)
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListExperimentGroupsInput.ListExperimentGroupsInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
+    user_agent' <- Data.Either.Right (user_agentBuilderState st)
     if_modified_since' <- Data.Either.Right (if_modified_sinceBuilderState st)
     name' <- Data.Either.Right (nameBuilderState st)
     created_by' <- Data.Either.Right (created_byBuilderState st)
@@ -243,6 +255,7 @@ build builder = do
         all' = all'',
         workspace_id = workspace_id',
         org_id = org_id',
+        user_agent = user_agent',
         if_modified_since = if_modified_since',
         name = name',
         created_by = created_by',
@@ -277,5 +290,6 @@ instance Io.Superposition.Utility.IntoRequestBuilder ListExperimentGroupsInput w
         Io.Superposition.Utility.serHeader "if-modified-since" (if_modified_since self)
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
+        Io.Superposition.Utility.serHeader "user-agent" (user_agent self)
         Io.Superposition.Utility.serField "context" (context self)
 

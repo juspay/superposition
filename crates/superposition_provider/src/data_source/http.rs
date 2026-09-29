@@ -35,7 +35,8 @@ impl HttpDataSource {
             .client
             .get_experiment_config()
             .workspace_id(&self.options.workspace_id)
-            .org_id(&self.options.org_id);
+            .org_id(&self.options.org_id)
+            .set_user_agent(self.options.user_agent.clone());
 
         if let Some(modified_since) = if_modified_since
             .and_then(|t| t.timestamp_nanos_opt())
@@ -111,7 +112,8 @@ impl SuperpositionDataSource for HttpDataSource {
             .client
             .get_config()
             .workspace_id(&self.options.workspace_id)
-            .org_id(&self.options.org_id);
+            .org_id(&self.options.org_id)
+            .set_user_agent(self.options.user_agent.clone());
 
         if let Some(modified_since) = if_modified_since
             .and_then(|t| t.timestamp_nanos_opt())

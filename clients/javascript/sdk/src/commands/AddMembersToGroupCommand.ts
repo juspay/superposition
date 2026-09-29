@@ -45,6 +45,7 @@ export interface AddMembersToGroupCommandOutput extends ExperimentGroupResponse,
  * const input = { // ModifyMembersToGroupRequest
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   id: "STRING_VALUE", // required
  *   change_reason: "STRING_VALUE", // required
  *   member_experiment_ids: [ // StringList // required

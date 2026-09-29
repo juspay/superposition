@@ -1,6 +1,7 @@
 module Io.Superposition.Model.CreateExperimentInput (
     setWorkspaceId,
     setOrgId,
+    setUserAgent,
     setName,
     setExperimentType,
     setContext,
@@ -16,6 +17,7 @@ module Io.Superposition.Model.CreateExperimentInput (
     CreateExperimentInput,
     workspace_id,
     org_id,
+    user_agent,
     name,
     experiment_type,
     context,
@@ -46,6 +48,7 @@ import qualified Network.HTTP.Types.Method
 data CreateExperimentInput = CreateExperimentInput {
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text,
+    user_agent :: Data.Maybe.Maybe Data.Text.Text,
     name :: Data.Text.Text,
     experiment_type :: Data.Maybe.Maybe Io.Superposition.Model.ExperimentType.ExperimentType,
     context :: Data.Map.Map Data.Text.Text Data.Aeson.Value,
@@ -66,6 +69,7 @@ instance Data.Aeson.ToJSON CreateExperimentInput where
     toJSON a = Data.Aeson.object [
         "workspace_id" Data.Aeson..= workspace_id a,
         "org_id" Data.Aeson..= org_id a,
+        "user_agent" Data.Aeson..= user_agent a,
         "name" Data.Aeson..= name a,
         "experiment_type" Data.Aeson..= experiment_type a,
         "context" Data.Aeson..= context a,
@@ -85,6 +89,7 @@ instance Data.Aeson.FromJSON CreateExperimentInput where
     parseJSON = Data.Aeson.withObject "CreateExperimentInput" $ \v -> CreateExperimentInput
         Data.Functor.<$> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
+        Control.Applicative.<*> (v Data.Aeson..:? "user_agent")
         Control.Applicative.<*> (v Data.Aeson..: "name")
         Control.Applicative.<*> (v Data.Aeson..:? "experiment_type")
         Control.Applicative.<*> (v Data.Aeson..: "context")
@@ -102,6 +107,7 @@ instance Data.Aeson.FromJSON CreateExperimentInput where
 data CreateExperimentInputBuilderState = CreateExperimentInputBuilderState {
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    user_agentBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     experiment_typeBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.ExperimentType.ExperimentType,
     contextBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
@@ -120,6 +126,7 @@ defaultBuilderState :: CreateExperimentInputBuilderState
 defaultBuilderState = CreateExperimentInputBuilderState {
     workspace_idBuilderState = Data.Maybe.Nothing,
     org_idBuilderState = Data.Maybe.Nothing,
+    user_agentBuilderState = Data.Maybe.Nothing,
     nameBuilderState = Data.Maybe.Nothing,
     experiment_typeBuilderState = Data.Maybe.Nothing,
     contextBuilderState = Data.Maybe.Nothing,
@@ -141,6 +148,10 @@ setWorkspaceId value =
 setOrgId :: Data.Text.Text -> CreateExperimentInputBuilder ()
 setOrgId value =
    Control.Monad.State.Strict.modify (\s -> (s { org_idBuilderState = Data.Maybe.Just value }))
+
+setUserAgent :: Data.Maybe.Maybe Data.Text.Text -> CreateExperimentInputBuilder ()
+setUserAgent value =
+   Control.Monad.State.Strict.modify (\s -> (s { user_agentBuilderState = value }))
 
 setName :: Data.Text.Text -> CreateExperimentInputBuilder ()
 setName value =
@@ -187,6 +198,7 @@ build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
     workspace_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateExperimentInput.CreateExperimentInput.workspace_id is a required property.") Data.Either.Right (workspace_idBuilderState st)
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateExperimentInput.CreateExperimentInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
+    user_agent' <- Data.Either.Right (user_agentBuilderState st)
     name' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateExperimentInput.CreateExperimentInput.name is a required property.") Data.Either.Right (nameBuilderState st)
     experiment_type' <- Data.Either.Right (experiment_typeBuilderState st)
     context' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateExperimentInput.CreateExperimentInput.context is a required property.") Data.Either.Right (contextBuilderState st)
@@ -200,6 +212,7 @@ build builder = do
     Data.Either.Right (CreateExperimentInput { 
         workspace_id = workspace_id',
         org_id = org_id',
+        user_agent = user_agent',
         name = name',
         experiment_type = experiment_type',
         context = context',
@@ -224,12 +237,13 @@ instance Io.Superposition.Utility.IntoRequestBuilder CreateExperimentInput where
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
         Io.Superposition.Utility.serHeader "idempotency-key" (idempotency_key self)
         Io.Superposition.Utility.serHeader "x-config-tags" (config_tags self)
+        Io.Superposition.Utility.serHeader "user-agent" (user_agent self)
+        Io.Superposition.Utility.serField "description" (description self)
+        Io.Superposition.Utility.serField "variants" (variants self)
+        Io.Superposition.Utility.serField "experiment_type" (experiment_type self)
         Io.Superposition.Utility.serField "change_reason" (change_reason self)
         Io.Superposition.Utility.serField "name" (name self)
         Io.Superposition.Utility.serField "context" (context self)
-        Io.Superposition.Utility.serField "description" (description self)
         Io.Superposition.Utility.serField "experiment_group_id" (experiment_group_id self)
-        Io.Superposition.Utility.serField "variants" (variants self)
         Io.Superposition.Utility.serField "metrics" (metrics self)
-        Io.Superposition.Utility.serField "experiment_type" (experiment_type self)
 

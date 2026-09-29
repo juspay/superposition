@@ -62,4 +62,26 @@ mod tests {
         // Test that we can get None for cached experiments initially
         assert!(exp_config.get_cached_experiments().await.is_none());
     }
+
+    #[test]
+    fn user_agent_is_optional() {
+        let options = SuperpositionOptions::new(
+            "http://localhost:8080".to_string(),
+            AuthMethod::Token("test-token".to_string()),
+            "test-org".to_string(),
+            "test-workspace".to_string(),
+        );
+        assert!(options.user_agent.is_none());
+
+        let options = options.with_user_agent("my-app/1.0".to_string());
+        assert_eq!(options.user_agent.as_deref(), Some("my-app/1.0"));
+
+        // The SDK input builder must not require user_agent either.
+        let input = superposition_sdk::operation::get_config::GetConfigInput::builder()
+            .workspace_id("test-workspace")
+            .org_id("test-org")
+            .build()
+            .expect("build must succeed without user_agent");
+        assert!(input.user_agent.is_none());
+    }
 }

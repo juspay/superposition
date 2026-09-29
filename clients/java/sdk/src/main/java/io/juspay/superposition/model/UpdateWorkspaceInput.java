@@ -28,6 +28,8 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
         .putMember("org_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-org-id"),
                 new RequiredTrait())
+        .putMember("user_agent", PreludeSchemas.STRING,
+                new HttpHeaderTrait("user-agent"))
         .putMember("workspace_name", PreludeSchemas.STRING,
                 new HttpLabelTrait(),
                 new RequiredTrait())
@@ -43,6 +45,7 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
         .build();
 
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
+    private static final Schema $SCHEMA_USER_AGENT = $SCHEMA.member("user_agent");
     private static final Schema $SCHEMA_WORKSPACE_NAME = $SCHEMA.member("workspace_name");
     private static final Schema $SCHEMA_WORKSPACE_ADMIN_EMAIL = $SCHEMA.member("workspace_admin_email");
     private static final Schema $SCHEMA_CONFIG_VERSION = $SCHEMA.member("config_version");
@@ -55,6 +58,7 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
     private static final Schema $SCHEMA_ENABLE_CHANGE_REASON_VALIDATION = $SCHEMA.member("enable_change_reason_validation");
 
     private final transient String orgId;
+    private final transient String userAgent;
     private final transient String workspaceName;
     private final transient String workspaceAdminEmail;
     private final transient String configVersion;
@@ -68,6 +72,7 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
 
     private UpdateWorkspaceInput(Builder builder) {
         this.orgId = builder.orgId;
+        this.userAgent = builder.userAgent;
         this.workspaceName = builder.workspaceName;
         this.workspaceAdminEmail = builder.workspaceAdminEmail;
         this.configVersion = builder.configVersion;
@@ -82,6 +87,10 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
 
     public String orgId() {
         return orgId;
+    }
+
+    public String userAgent() {
+        return userAgent;
     }
 
     public String workspaceName() {
@@ -153,6 +162,7 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
         }
         UpdateWorkspaceInput that = (UpdateWorkspaceInput) other;
         return Objects.equals(this.orgId, that.orgId)
+               && Objects.equals(this.userAgent, that.userAgent)
                && Objects.equals(this.workspaceName, that.workspaceName)
                && Objects.equals(this.workspaceAdminEmail, that.workspaceAdminEmail)
                && Objects.equals(this.configVersion, that.configVersion)
@@ -167,7 +177,7 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
 
     @Override
     public int hashCode() {
-        return Objects.hash(orgId, workspaceName, workspaceAdminEmail, configVersion, mandatoryDimensions, workspaceStatus, metrics, allowExperimentSelfApproval, autoPopulateControl, enableContextValidation, enableChangeReasonValidation);
+        return Objects.hash(orgId, userAgent, workspaceName, workspaceAdminEmail, configVersion, mandatoryDimensions, workspaceStatus, metrics, allowExperimentSelfApproval, autoPopulateControl, enableContextValidation, enableChangeReasonValidation);
     }
 
     @Override
@@ -178,6 +188,9 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
     @Override
     public void serializeMembers(ShapeSerializer serializer) {
         serializer.writeString($SCHEMA_ORG_ID, orgId);
+        if (userAgent != null) {
+            serializer.writeString($SCHEMA_USER_AGENT, userAgent);
+        }
         serializer.writeString($SCHEMA_WORKSPACE_NAME, workspaceName);
         if (workspaceAdminEmail != null) {
             serializer.writeString($SCHEMA_WORKSPACE_ADMIN_EMAIL, workspaceAdminEmail);
@@ -214,15 +227,16 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
         return switch (member.memberIndex()) {
             case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_NAME, member, workspaceName);
-            case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ADMIN_EMAIL, member, workspaceAdminEmail);
-            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONFIG_VERSION, member, configVersion);
-            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_MANDATORY_DIMENSIONS, member, mandatoryDimensions);
-            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_STATUS, member, workspaceStatus);
-            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, metrics);
-            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_ALLOW_EXPERIMENT_SELF_APPROVAL, member, allowExperimentSelfApproval);
-            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_AUTO_POPULATE_CONTROL, member, autoPopulateControl);
-            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_ENABLE_CONTEXT_VALIDATION, member, enableContextValidation);
-            case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_ENABLE_CHANGE_REASON_VALIDATION, member, enableChangeReasonValidation);
+            case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, userAgent);
+            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ADMIN_EMAIL, member, workspaceAdminEmail);
+            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONFIG_VERSION, member, configVersion);
+            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_MANDATORY_DIMENSIONS, member, mandatoryDimensions);
+            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_STATUS, member, workspaceStatus);
+            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, metrics);
+            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_ALLOW_EXPERIMENT_SELF_APPROVAL, member, allowExperimentSelfApproval);
+            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_AUTO_POPULATE_CONTROL, member, autoPopulateControl);
+            case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_ENABLE_CONTEXT_VALIDATION, member, enableContextValidation);
+            case 11 -> (T) SchemaUtils.validateSameMember($SCHEMA_ENABLE_CHANGE_REASON_VALIDATION, member, enableChangeReasonValidation);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -237,6 +251,7 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
     public Builder toBuilder() {
         var builder = new Builder();
         builder.orgId(this.orgId);
+        builder.userAgent(this.userAgent);
         builder.workspaceName(this.workspaceName);
         builder.workspaceAdminEmail(this.workspaceAdminEmail);
         builder.configVersion(this.configVersion);
@@ -263,6 +278,7 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
     public static final class Builder implements ShapeBuilder<UpdateWorkspaceInput> {
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private String orgId;
+        private String userAgent;
         private String workspaceName;
         private String workspaceAdminEmail;
         private String configVersion;
@@ -288,6 +304,14 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
         public Builder orgId(String orgId) {
             this.orgId = Objects.requireNonNull(orgId, "orgId cannot be null");
             tracker.setMember($SCHEMA_ORG_ID);
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
+        public Builder userAgent(String userAgent) {
+            this.userAgent = userAgent;
             return this;
         }
 
@@ -390,15 +414,16 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
             switch (member.memberIndex()) {
                 case 0 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
                 case 1 -> workspaceName((String) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_NAME, member, value));
-                case 2 -> workspaceAdminEmail((String) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ADMIN_EMAIL, member, value));
-                case 3 -> configVersion((String) SchemaUtils.validateSameMember($SCHEMA_CONFIG_VERSION, member, value));
-                case 4 -> mandatoryDimensions((List<String>) SchemaUtils.validateSameMember($SCHEMA_MANDATORY_DIMENSIONS, member, value));
-                case 5 -> workspaceStatus((WorkspaceStatus) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_STATUS, member, value));
-                case 6 -> metrics((Document) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, value));
-                case 7 -> allowExperimentSelfApproval((boolean) SchemaUtils.validateSameMember($SCHEMA_ALLOW_EXPERIMENT_SELF_APPROVAL, member, value));
-                case 8 -> autoPopulateControl((boolean) SchemaUtils.validateSameMember($SCHEMA_AUTO_POPULATE_CONTROL, member, value));
-                case 9 -> enableContextValidation((boolean) SchemaUtils.validateSameMember($SCHEMA_ENABLE_CONTEXT_VALIDATION, member, value));
-                case 10 -> enableChangeReasonValidation((boolean) SchemaUtils.validateSameMember($SCHEMA_ENABLE_CHANGE_REASON_VALIDATION, member, value));
+                case 2 -> userAgent((String) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, value));
+                case 3 -> workspaceAdminEmail((String) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ADMIN_EMAIL, member, value));
+                case 4 -> configVersion((String) SchemaUtils.validateSameMember($SCHEMA_CONFIG_VERSION, member, value));
+                case 5 -> mandatoryDimensions((List<String>) SchemaUtils.validateSameMember($SCHEMA_MANDATORY_DIMENSIONS, member, value));
+                case 6 -> workspaceStatus((WorkspaceStatus) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_STATUS, member, value));
+                case 7 -> metrics((Document) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, value));
+                case 8 -> allowExperimentSelfApproval((boolean) SchemaUtils.validateSameMember($SCHEMA_ALLOW_EXPERIMENT_SELF_APPROVAL, member, value));
+                case 9 -> autoPopulateControl((boolean) SchemaUtils.validateSameMember($SCHEMA_AUTO_POPULATE_CONTROL, member, value));
+                case 10 -> enableContextValidation((boolean) SchemaUtils.validateSameMember($SCHEMA_ENABLE_CONTEXT_VALIDATION, member, value));
+                case 11 -> enableChangeReasonValidation((boolean) SchemaUtils.validateSameMember($SCHEMA_ENABLE_CHANGE_REASON_VALIDATION, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -437,15 +462,16 @@ public final class UpdateWorkspaceInput implements SerializableStruct {
                 switch (member.memberIndex()) {
                     case 0 -> builder.orgId(de.readString(member));
                     case 1 -> builder.workspaceName(de.readString(member));
-                    case 2 -> builder.workspaceAdminEmail(de.readString(member));
-                    case 3 -> builder.configVersion(de.readString(member));
-                    case 4 -> builder.mandatoryDimensions(SharedSerde.deserializeListMandatoryDimensions(member, de));
-                    case 5 -> builder.workspaceStatus(WorkspaceStatus.builder().deserializeMember(de, member).build());
-                    case 6 -> builder.metrics(de.readDocument());
-                    case 7 -> builder.allowExperimentSelfApproval(de.readBoolean(member));
-                    case 8 -> builder.autoPopulateControl(de.readBoolean(member));
-                    case 9 -> builder.enableContextValidation(de.readBoolean(member));
-                    case 10 -> builder.enableChangeReasonValidation(de.readBoolean(member));
+                    case 2 -> builder.userAgent(de.readString(member));
+                    case 3 -> builder.workspaceAdminEmail(de.readString(member));
+                    case 4 -> builder.configVersion(de.readString(member));
+                    case 5 -> builder.mandatoryDimensions(SharedSerde.deserializeListMandatoryDimensions(member, de));
+                    case 6 -> builder.workspaceStatus(WorkspaceStatus.builder().deserializeMember(de, member).build());
+                    case 7 -> builder.metrics(de.readDocument());
+                    case 8 -> builder.allowExperimentSelfApproval(de.readBoolean(member));
+                    case 9 -> builder.autoPopulateControl(de.readBoolean(member));
+                    case 10 -> builder.enableContextValidation(de.readBoolean(member));
+                    case 11 -> builder.enableChangeReasonValidation(de.readBoolean(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

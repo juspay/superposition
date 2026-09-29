@@ -30,6 +30,8 @@ public final class CreateTypeTemplatesInput implements SerializableStruct {
         .putMember("org_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-org-id"),
                 new RequiredTrait())
+        .putMember("user_agent", PreludeSchemas.STRING,
+                new HttpHeaderTrait("user-agent"))
         .putMember("type_name", PreludeSchemas.STRING,
                 new RequiredTrait())
         .putMember("type_schema", SharedSchemas.OBJECT,
@@ -42,6 +44,7 @@ public final class CreateTypeTemplatesInput implements SerializableStruct {
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
+    private static final Schema $SCHEMA_USER_AGENT = $SCHEMA.member("user_agent");
     private static final Schema $SCHEMA_TYPE_NAME = $SCHEMA.member("type_name");
     private static final Schema $SCHEMA_TYPE_SCHEMA = $SCHEMA.member("type_schema");
     private static final Schema $SCHEMA_DESCRIPTION = $SCHEMA.member("description");
@@ -49,6 +52,7 @@ public final class CreateTypeTemplatesInput implements SerializableStruct {
 
     private final transient String workspaceId;
     private final transient String orgId;
+    private final transient String userAgent;
     private final transient String typeName;
     private final transient Map<String, Document> typeSchema;
     private final transient String description;
@@ -57,6 +61,7 @@ public final class CreateTypeTemplatesInput implements SerializableStruct {
     private CreateTypeTemplatesInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
+        this.userAgent = builder.userAgent;
         this.typeName = builder.typeName;
         this.typeSchema = Collections.unmodifiableMap(builder.typeSchema);
         this.description = builder.description;
@@ -69,6 +74,10 @@ public final class CreateTypeTemplatesInput implements SerializableStruct {
 
     public String orgId() {
         return orgId;
+    }
+
+    public String userAgent() {
+        return userAgent;
     }
 
     public String typeName() {
@@ -107,6 +116,7 @@ public final class CreateTypeTemplatesInput implements SerializableStruct {
         CreateTypeTemplatesInput that = (CreateTypeTemplatesInput) other;
         return Objects.equals(this.workspaceId, that.workspaceId)
                && Objects.equals(this.orgId, that.orgId)
+               && Objects.equals(this.userAgent, that.userAgent)
                && Objects.equals(this.typeName, that.typeName)
                && Objects.equals(this.typeSchema, that.typeSchema)
                && Objects.equals(this.description, that.description)
@@ -115,7 +125,7 @@ public final class CreateTypeTemplatesInput implements SerializableStruct {
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, typeName, typeSchema, description, changeReason);
+        return Objects.hash(workspaceId, orgId, userAgent, typeName, typeSchema, description, changeReason);
     }
 
     @Override
@@ -127,6 +137,9 @@ public final class CreateTypeTemplatesInput implements SerializableStruct {
     public void serializeMembers(ShapeSerializer serializer) {
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
+        if (userAgent != null) {
+            serializer.writeString($SCHEMA_USER_AGENT, userAgent);
+        }
         serializer.writeString($SCHEMA_TYPE_NAME, typeName);
         serializer.writeMap($SCHEMA_TYPE_SCHEMA, typeSchema, typeSchema.size(), SharedSerde.ObjectShapeSerializer.INSTANCE);
         serializer.writeString($SCHEMA_DESCRIPTION, description);
@@ -143,6 +156,7 @@ public final class CreateTypeTemplatesInput implements SerializableStruct {
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_TYPE_SCHEMA, member, typeSchema);
             case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, description);
             case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, changeReason);
+            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, userAgent);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -158,6 +172,7 @@ public final class CreateTypeTemplatesInput implements SerializableStruct {
         var builder = new Builder();
         builder.workspaceId(this.workspaceId);
         builder.orgId(this.orgId);
+        builder.userAgent(this.userAgent);
         builder.typeName(this.typeName);
         builder.typeSchema(this.typeSchema);
         builder.description(this.description);
@@ -179,6 +194,7 @@ public final class CreateTypeTemplatesInput implements SerializableStruct {
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private String workspaceId;
         private String orgId;
+        private String userAgent;
         private String typeName;
         private Map<String, Document> typeSchema;
         private String description;
@@ -208,6 +224,14 @@ public final class CreateTypeTemplatesInput implements SerializableStruct {
         public Builder orgId(String orgId) {
             this.orgId = Objects.requireNonNull(orgId, "orgId cannot be null");
             tracker.setMember($SCHEMA_ORG_ID);
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
+        public Builder userAgent(String userAgent) {
+            this.userAgent = userAgent;
             return this;
         }
 
@@ -267,6 +291,7 @@ public final class CreateTypeTemplatesInput implements SerializableStruct {
                 case 3 -> typeSchema((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_TYPE_SCHEMA, member, value));
                 case 4 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
                 case 5 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
+                case 6 -> userAgent((String) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -321,6 +346,7 @@ public final class CreateTypeTemplatesInput implements SerializableStruct {
                     case 3 -> builder.typeSchema(SharedSerde.deserializeObjectShape(member, de));
                     case 4 -> builder.description(de.readString(member));
                     case 5 -> builder.changeReason(de.readString(member));
+                    case 6 -> builder.userAgent(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

@@ -42,6 +42,7 @@ export interface DeleteDefaultConfigCommandOutput extends __MetadataBearer {}
  * const input = { // DeleteDefaultConfigInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   key: "STRING_VALUE", // required
  * };
  * const command = new DeleteDefaultConfigCommand(input);

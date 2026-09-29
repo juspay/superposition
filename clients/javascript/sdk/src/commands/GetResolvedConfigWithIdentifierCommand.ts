@@ -45,6 +45,7 @@ export interface GetResolvedConfigWithIdentifierCommandOutput extends GetResolve
  * const input = { // GetResolvedConfigWithIdentifierInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   prefix: [ // StringList
  *     "STRING_VALUE",
  *   ],

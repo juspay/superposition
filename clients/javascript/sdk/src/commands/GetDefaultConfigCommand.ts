@@ -45,6 +45,7 @@ export interface GetDefaultConfigCommandOutput extends DefaultConfigResponse, __
  * const input = { // GetDefaultConfigInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   key: "STRING_VALUE", // required
  * };
  * const command = new GetDefaultConfigCommand(input);

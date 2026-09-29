@@ -40,6 +40,8 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
         .putMember("org_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-org-id"),
                 new RequiredTrait())
+        .putMember("user_agent", PreludeSchemas.STRING,
+                new HttpHeaderTrait("user-agent"))
         .putMember("if_modified_since", SharedSchemas.DATE_TIME,
                 new HttpHeaderTrait("if-modified-since"))
         .putMember("name", PreludeSchemas.STRING,
@@ -66,6 +68,7 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
     private static final Schema $SCHEMA_ALL = $SCHEMA.member("all");
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
+    private static final Schema $SCHEMA_USER_AGENT = $SCHEMA.member("user_agent");
     private static final Schema $SCHEMA_IF_MODIFIED_SINCE = $SCHEMA.member("if_modified_since");
     private static final Schema $SCHEMA_NAME = $SCHEMA.member("name");
     private static final Schema $SCHEMA_CREATED_BY = $SCHEMA.member("created_by");
@@ -82,6 +85,7 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
     private final transient Boolean all;
     private final transient String workspaceId;
     private final transient String orgId;
+    private final transient String userAgent;
     private final transient Instant ifModifiedSince;
     private final transient String name;
     private final transient String createdBy;
@@ -99,6 +103,7 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
         this.all = builder.all;
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
+        this.userAgent = builder.userAgent;
         this.ifModifiedSince = builder.ifModifiedSince;
         this.name = builder.name;
         this.createdBy = builder.createdBy;
@@ -138,6 +143,10 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
 
     public String orgId() {
         return orgId;
+    }
+
+    public String userAgent() {
+        return userAgent;
     }
 
     /**
@@ -243,6 +252,7 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
                && Objects.equals(this.all, that.all)
                && Objects.equals(this.workspaceId, that.workspaceId)
                && Objects.equals(this.orgId, that.orgId)
+               && Objects.equals(this.userAgent, that.userAgent)
                && Objects.equals(this.ifModifiedSince, that.ifModifiedSince)
                && Objects.equals(this.name, that.name)
                && Objects.equals(this.createdBy, that.createdBy)
@@ -257,7 +267,7 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
 
     @Override
     public int hashCode() {
-        return Objects.hash(count, page, all, workspaceId, orgId, ifModifiedSince, name, createdBy, lastModifiedBy, sortOn, sortBy, groupType, dimensionMatchStrategy, dimensionParams, context);
+        return Objects.hash(count, page, all, workspaceId, orgId, userAgent, ifModifiedSince, name, createdBy, lastModifiedBy, sortOn, sortBy, groupType, dimensionMatchStrategy, dimensionParams, context);
     }
 
     @Override
@@ -278,6 +288,9 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
         }
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
+        if (userAgent != null) {
+            serializer.writeString($SCHEMA_USER_AGENT, userAgent);
+        }
         if (ifModifiedSince != null) {
             serializer.writeTimestamp($SCHEMA_IF_MODIFIED_SINCE, ifModifiedSince);
         }
@@ -319,16 +332,17 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
             case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, count);
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, page);
             case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_ALL, member, all);
-            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_IF_MODIFIED_SINCE, member, ifModifiedSince);
-            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_NAME, member, name);
-            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, createdBy);
-            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, lastModifiedBy);
-            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, sortOn);
-            case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, sortBy);
-            case 11 -> (T) SchemaUtils.validateSameMember($SCHEMA_GROUP_TYPE, member, groupType);
-            case 12 -> (T) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, dimensionMatchStrategy);
-            case 13 -> (T) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_PARAMS, member, dimensionParams);
-            case 14 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
+            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, userAgent);
+            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_IF_MODIFIED_SINCE, member, ifModifiedSince);
+            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_NAME, member, name);
+            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, createdBy);
+            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, lastModifiedBy);
+            case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, sortOn);
+            case 11 -> (T) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, sortBy);
+            case 12 -> (T) SchemaUtils.validateSameMember($SCHEMA_GROUP_TYPE, member, groupType);
+            case 13 -> (T) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, dimensionMatchStrategy);
+            case 14 -> (T) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_PARAMS, member, dimensionParams);
+            case 15 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -347,6 +361,7 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
         builder.all(this.all);
         builder.workspaceId(this.workspaceId);
         builder.orgId(this.orgId);
+        builder.userAgent(this.userAgent);
         builder.ifModifiedSince(this.ifModifiedSince);
         builder.name(this.name);
         builder.createdBy(this.createdBy);
@@ -377,6 +392,7 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
         private Boolean all;
         private String workspaceId;
         private String orgId;
+        private String userAgent;
         private Instant ifModifiedSince;
         private String name;
         private String createdBy;
@@ -442,6 +458,14 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
         public Builder orgId(String orgId) {
             this.orgId = Objects.requireNonNull(orgId, "orgId cannot be null");
             tracker.setMember($SCHEMA_ORG_ID);
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
+        public Builder userAgent(String userAgent) {
+            this.userAgent = userAgent;
             return this;
         }
 
@@ -556,16 +580,17 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
                 case 2 -> count((int) SchemaUtils.validateSameMember($SCHEMA_COUNT, member, value));
                 case 3 -> page((int) SchemaUtils.validateSameMember($SCHEMA_PAGE, member, value));
                 case 4 -> all((boolean) SchemaUtils.validateSameMember($SCHEMA_ALL, member, value));
-                case 5 -> ifModifiedSince((Instant) SchemaUtils.validateSameMember($SCHEMA_IF_MODIFIED_SINCE, member, value));
-                case 6 -> name((String) SchemaUtils.validateSameMember($SCHEMA_NAME, member, value));
-                case 7 -> createdBy((String) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, value));
-                case 8 -> lastModifiedBy((String) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, value));
-                case 9 -> sortOn((ExperimentGroupSortOn) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, value));
-                case 10 -> sortBy((SortBy) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, value));
-                case 11 -> groupType((List<GroupType>) SchemaUtils.validateSameMember($SCHEMA_GROUP_TYPE, member, value));
-                case 12 -> dimensionMatchStrategy((DimensionMatchStrategy) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, value));
-                case 13 -> dimensionParams((Map<String, String>) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_PARAMS, member, value));
-                case 14 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
+                case 5 -> userAgent((String) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, value));
+                case 6 -> ifModifiedSince((Instant) SchemaUtils.validateSameMember($SCHEMA_IF_MODIFIED_SINCE, member, value));
+                case 7 -> name((String) SchemaUtils.validateSameMember($SCHEMA_NAME, member, value));
+                case 8 -> createdBy((String) SchemaUtils.validateSameMember($SCHEMA_CREATED_BY, member, value));
+                case 9 -> lastModifiedBy((String) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, value));
+                case 10 -> sortOn((ExperimentGroupSortOn) SchemaUtils.validateSameMember($SCHEMA_SORT_ON, member, value));
+                case 11 -> sortBy((SortBy) SchemaUtils.validateSameMember($SCHEMA_SORT_BY, member, value));
+                case 12 -> groupType((List<GroupType>) SchemaUtils.validateSameMember($SCHEMA_GROUP_TYPE, member, value));
+                case 13 -> dimensionMatchStrategy((DimensionMatchStrategy) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, value));
+                case 14 -> dimensionParams((Map<String, String>) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_PARAMS, member, value));
+                case 15 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -607,16 +632,17 @@ public final class ListExperimentGroupsInput implements SerializableStruct {
                     case 2 -> builder.count(de.readInteger(member));
                     case 3 -> builder.page(de.readInteger(member));
                     case 4 -> builder.all(de.readBoolean(member));
-                    case 5 -> builder.ifModifiedSince(de.readTimestamp(member));
-                    case 6 -> builder.name(de.readString(member));
-                    case 7 -> builder.createdBy(de.readString(member));
-                    case 8 -> builder.lastModifiedBy(de.readString(member));
-                    case 9 -> builder.sortOn(ExperimentGroupSortOn.builder().deserializeMember(de, member).build());
-                    case 10 -> builder.sortBy(SortBy.builder().deserializeMember(de, member).build());
-                    case 11 -> builder.groupType(SharedSerde.deserializeGroupTypeList(member, de));
-                    case 12 -> builder.dimensionMatchStrategy(DimensionMatchStrategy.builder().deserializeMember(de, member).build());
-                    case 13 -> builder.dimensionParams(SharedSerde.deserializeDimensionQueryParams(member, de));
-                    case 14 -> builder.context(SharedSerde.deserializeContextMap(member, de));
+                    case 5 -> builder.userAgent(de.readString(member));
+                    case 6 -> builder.ifModifiedSince(de.readTimestamp(member));
+                    case 7 -> builder.name(de.readString(member));
+                    case 8 -> builder.createdBy(de.readString(member));
+                    case 9 -> builder.lastModifiedBy(de.readString(member));
+                    case 10 -> builder.sortOn(ExperimentGroupSortOn.builder().deserializeMember(de, member).build());
+                    case 11 -> builder.sortBy(SortBy.builder().deserializeMember(de, member).build());
+                    case 12 -> builder.groupType(SharedSerde.deserializeGroupTypeList(member, de));
+                    case 13 -> builder.dimensionMatchStrategy(DimensionMatchStrategy.builder().deserializeMember(de, member).build());
+                    case 14 -> builder.dimensionParams(SharedSerde.deserializeDimensionQueryParams(member, de));
+                    case 15 -> builder.context(SharedSerde.deserializeContextMap(member, de));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

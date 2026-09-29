@@ -45,6 +45,7 @@ export interface DiscardExperimentCommandOutput extends ExperimentResponse, __Me
  * const input = { // DiscardExperimentInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   id: "STRING_VALUE", // required
  *   change_reason: "STRING_VALUE", // required
  *   config_tags: "STRING_VALUE",

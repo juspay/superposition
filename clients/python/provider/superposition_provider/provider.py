@@ -36,7 +36,8 @@ class SuperpositionProvider(AbstractProvider):
                         endpoint=self.options.endpoint,
                         token=self.options.token,
                         org_id=self.options.org_id,
-                        workspace_id=self.options.workspace_id
+                        workspace_id=self.options.workspace_id,
+                        user_agent=self.options.user_agent
                     ),
                     cac_options=ConfigurationOptions(
                         refresh_strategy=self.options.refresh_strategy,

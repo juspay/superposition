@@ -45,6 +45,7 @@ export interface WeightRecomputeCommandOutput extends WeightRecomputeOutput, __M
  * const input = { // WeightRecomputeInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   config_tags: "STRING_VALUE",
  * };
  * const command = new WeightRecomputeCommand(input);

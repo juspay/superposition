@@ -120,6 +120,7 @@ export class ExperimentationClient {
             const commandInput: ListExperimentCommandInput = {
                 workspace_id: this.superpositionOptions.workspace_id,
                 org_id: this.superpositionOptions.org_id,
+                user_agent: this.superpositionOptions.user_agent,
                 all: true,
                 status: [
                     ExperimentStatusType.CREATED,
@@ -203,6 +204,7 @@ export class ExperimentationClient {
             const commandInput: ListExperimentGroupsCommandInput = {
                 workspace_id: this.superpositionOptions.workspace_id,
                 org_id: this.superpositionOptions.org_id,
+                user_agent: this.superpositionOptions.user_agent,
                 all: true,
             };
 

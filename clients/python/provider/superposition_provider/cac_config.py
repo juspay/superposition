@@ -179,6 +179,7 @@ class CacConfig:
             get_config_input = GetConfigInput(
                 workspace_id=superposition_options.workspace_id,
                 org_id=superposition_options.org_id,
+                user_agent=superposition_options.user_agent,
                 context={},  # No specific context filtering for now
                 prefix=None,   # No prefix filtering for now
                 version=None   # Get latest version

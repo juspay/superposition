@@ -44,6 +44,7 @@ export interface MigrateWorkspaceSchemaCommandOutput extends WorkspaceResponse, 
  * const client = new SuperpositionClient(config);
  * const input = { // WorkspaceSelectorRequest
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   workspace_name: "STRING_VALUE", // required
  * };
  * const command = new MigrateWorkspaceSchemaCommand(input);

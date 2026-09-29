@@ -5,6 +5,7 @@ impl super::Client {
                             /// - The fluent builder is configurable:
     ///   - [`workspace_id(impl Into<String>)`](crate::operation::get_function::builders::GetFunctionFluentBuilder::workspace_id) / [`set_workspace_id(Option<String>)`](crate::operation::get_function::builders::GetFunctionFluentBuilder::set_workspace_id):<br>required: **true**<br>(undocumented)<br>
     ///   - [`org_id(impl Into<String>)`](crate::operation::get_function::builders::GetFunctionFluentBuilder::org_id) / [`set_org_id(Option<String>)`](crate::operation::get_function::builders::GetFunctionFluentBuilder::set_org_id):<br>required: **true**<br>(undocumented)<br>
+    ///   - [`user_agent(impl Into<String>)`](crate::operation::get_function::builders::GetFunctionFluentBuilder::user_agent) / [`set_user_agent(Option<String>)`](crate::operation::get_function::builders::GetFunctionFluentBuilder::set_user_agent):<br>required: **false**<br>(undocumented)<br>
     ///   - [`function_name(impl Into<String>)`](crate::operation::get_function::builders::GetFunctionFluentBuilder::function_name) / [`set_function_name(Option<String>)`](crate::operation::get_function::builders::GetFunctionFluentBuilder::set_function_name):<br>required: **true**<br>(undocumented)<br>
                             /// - On success, responds with [`GetFunctionOutput`](crate::operation::get_function::GetFunctionOutput) with field(s):
     ///   - [`function_name(String)`](crate::operation::get_function::GetFunctionOutput::function_name): (undocumented)

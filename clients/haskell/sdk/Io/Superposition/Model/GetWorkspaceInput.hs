@@ -1,10 +1,12 @@
 module Io.Superposition.Model.GetWorkspaceInput (
     setOrgId,
+    setUserAgent,
     setWorkspaceName,
     build,
     GetWorkspaceInputBuilder,
     GetWorkspaceInput,
     org_id,
+    user_agent,
     workspace_name
 ) where
 import qualified Control.Applicative
@@ -22,6 +24,7 @@ import qualified Network.HTTP.Types.Method
 
 data GetWorkspaceInput = GetWorkspaceInput {
     org_id :: Data.Text.Text,
+    user_agent :: Data.Maybe.Maybe Data.Text.Text,
     workspace_name :: Data.Text.Text
 } deriving (
   GHC.Show.Show,
@@ -32,6 +35,7 @@ data GetWorkspaceInput = GetWorkspaceInput {
 instance Data.Aeson.ToJSON GetWorkspaceInput where
     toJSON a = Data.Aeson.object [
         "org_id" Data.Aeson..= org_id a,
+        "user_agent" Data.Aeson..= user_agent a,
         "workspace_name" Data.Aeson..= workspace_name a
         ]
     
@@ -41,6 +45,7 @@ instance Io.Superposition.Utility.SerializeBody GetWorkspaceInput
 instance Data.Aeson.FromJSON GetWorkspaceInput where
     parseJSON = Data.Aeson.withObject "GetWorkspaceInput" $ \v -> GetWorkspaceInput
         Data.Functor.<$> (v Data.Aeson..: "org_id")
+        Control.Applicative.<*> (v Data.Aeson..:? "user_agent")
         Control.Applicative.<*> (v Data.Aeson..: "workspace_name")
     
 
@@ -48,6 +53,7 @@ instance Data.Aeson.FromJSON GetWorkspaceInput where
 
 data GetWorkspaceInputBuilderState = GetWorkspaceInputBuilderState {
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    user_agentBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     workspace_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Generics.Generic
@@ -56,6 +62,7 @@ data GetWorkspaceInputBuilderState = GetWorkspaceInputBuilderState {
 defaultBuilderState :: GetWorkspaceInputBuilderState
 defaultBuilderState = GetWorkspaceInputBuilderState {
     org_idBuilderState = Data.Maybe.Nothing,
+    user_agentBuilderState = Data.Maybe.Nothing,
     workspace_nameBuilderState = Data.Maybe.Nothing
 }
 
@@ -65,6 +72,10 @@ setOrgId :: Data.Text.Text -> GetWorkspaceInputBuilder ()
 setOrgId value =
    Control.Monad.State.Strict.modify (\s -> (s { org_idBuilderState = Data.Maybe.Just value }))
 
+setUserAgent :: Data.Maybe.Maybe Data.Text.Text -> GetWorkspaceInputBuilder ()
+setUserAgent value =
+   Control.Monad.State.Strict.modify (\s -> (s { user_agentBuilderState = value }))
+
 setWorkspaceName :: Data.Text.Text -> GetWorkspaceInputBuilder ()
 setWorkspaceName value =
    Control.Monad.State.Strict.modify (\s -> (s { workspace_nameBuilderState = Data.Maybe.Just value }))
@@ -73,9 +84,11 @@ build :: GetWorkspaceInputBuilder () -> Data.Either.Either Data.Text.Text GetWor
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetWorkspaceInput.GetWorkspaceInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
+    user_agent' <- Data.Either.Right (user_agentBuilderState st)
     workspace_name' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetWorkspaceInput.GetWorkspaceInput.workspace_name is a required property.") Data.Either.Right (workspace_nameBuilderState st)
     Data.Either.Right (GetWorkspaceInput { 
         org_id = org_id',
+        user_agent = user_agent',
         workspace_name = workspace_name'
     })
 
@@ -89,5 +102,6 @@ instance Io.Superposition.Utility.IntoRequestBuilder GetWorkspaceInput where
             ]
         
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
+        Io.Superposition.Utility.serHeader "user-agent" (user_agent self)
         
 

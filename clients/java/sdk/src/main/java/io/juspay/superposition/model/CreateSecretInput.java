@@ -27,6 +27,8 @@ public final class CreateSecretInput implements SerializableStruct {
         .putMember("org_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-org-id"),
                 new RequiredTrait())
+        .putMember("user_agent", PreludeSchemas.STRING,
+                new HttpHeaderTrait("user-agent"))
         .putMember("name", PreludeSchemas.STRING,
                 new RequiredTrait())
         .putMember("value", PreludeSchemas.STRING,
@@ -39,6 +41,7 @@ public final class CreateSecretInput implements SerializableStruct {
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
+    private static final Schema $SCHEMA_USER_AGENT = $SCHEMA.member("user_agent");
     private static final Schema $SCHEMA_NAME = $SCHEMA.member("name");
     private static final Schema $SCHEMA_VALUE = $SCHEMA.member("value");
     private static final Schema $SCHEMA_DESCRIPTION = $SCHEMA.member("description");
@@ -46,6 +49,7 @@ public final class CreateSecretInput implements SerializableStruct {
 
     private final transient String workspaceId;
     private final transient String orgId;
+    private final transient String userAgent;
     private final transient String name;
     private final transient String value;
     private final transient String description;
@@ -54,6 +58,7 @@ public final class CreateSecretInput implements SerializableStruct {
     private CreateSecretInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
+        this.userAgent = builder.userAgent;
         this.name = builder.name;
         this.value = builder.value;
         this.description = builder.description;
@@ -66,6 +71,10 @@ public final class CreateSecretInput implements SerializableStruct {
 
     public String orgId() {
         return orgId;
+    }
+
+    public String userAgent() {
+        return userAgent;
     }
 
     public String name() {
@@ -103,6 +112,7 @@ public final class CreateSecretInput implements SerializableStruct {
         CreateSecretInput that = (CreateSecretInput) other;
         return Objects.equals(this.workspaceId, that.workspaceId)
                && Objects.equals(this.orgId, that.orgId)
+               && Objects.equals(this.userAgent, that.userAgent)
                && Objects.equals(this.name, that.name)
                && Objects.equals(this.value, that.value)
                && Objects.equals(this.description, that.description)
@@ -111,7 +121,7 @@ public final class CreateSecretInput implements SerializableStruct {
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, name, value, description, changeReason);
+        return Objects.hash(workspaceId, orgId, userAgent, name, value, description, changeReason);
     }
 
     @Override
@@ -123,6 +133,9 @@ public final class CreateSecretInput implements SerializableStruct {
     public void serializeMembers(ShapeSerializer serializer) {
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
+        if (userAgent != null) {
+            serializer.writeString($SCHEMA_USER_AGENT, userAgent);
+        }
         serializer.writeString($SCHEMA_NAME, name);
         serializer.writeString($SCHEMA_VALUE, value);
         serializer.writeString($SCHEMA_DESCRIPTION, description);
@@ -139,6 +152,7 @@ public final class CreateSecretInput implements SerializableStruct {
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_VALUE, member, value);
             case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, description);
             case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, changeReason);
+            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, userAgent);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -154,6 +168,7 @@ public final class CreateSecretInput implements SerializableStruct {
         var builder = new Builder();
         builder.workspaceId(this.workspaceId);
         builder.orgId(this.orgId);
+        builder.userAgent(this.userAgent);
         builder.name(this.name);
         builder.value(this.value);
         builder.description(this.description);
@@ -175,6 +190,7 @@ public final class CreateSecretInput implements SerializableStruct {
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private String workspaceId;
         private String orgId;
+        private String userAgent;
         private String name;
         private String value;
         private String description;
@@ -204,6 +220,14 @@ public final class CreateSecretInput implements SerializableStruct {
         public Builder orgId(String orgId) {
             this.orgId = Objects.requireNonNull(orgId, "orgId cannot be null");
             tracker.setMember($SCHEMA_ORG_ID);
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
+        public Builder userAgent(String userAgent) {
+            this.userAgent = userAgent;
             return this;
         }
 
@@ -265,6 +289,7 @@ public final class CreateSecretInput implements SerializableStruct {
                 case 3 -> value((String) SchemaUtils.validateSameMember($SCHEMA_VALUE, member, value));
                 case 4 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
                 case 5 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
+                case 6 -> userAgent((String) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -319,6 +344,7 @@ public final class CreateSecretInput implements SerializableStruct {
                     case 3 -> builder.value(de.readString(member));
                     case 4 -> builder.description(de.readString(member));
                     case 5 -> builder.changeReason(de.readString(member));
+                    case 6 -> builder.userAgent(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

@@ -45,6 +45,7 @@ export interface DeleteVariableCommandOutput extends VariableResponse, __Metadat
  * const input = { // DeleteVariableInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   name: "STRING_VALUE", // required
  * };
  * const command = new DeleteVariableCommand(input);

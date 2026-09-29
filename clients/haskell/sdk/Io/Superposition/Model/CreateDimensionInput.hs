@@ -1,6 +1,7 @@
 module Io.Superposition.Model.CreateDimensionInput (
     setWorkspaceId,
     setOrgId,
+    setUserAgent,
     setDimension,
     setPosition,
     setSchema,
@@ -14,6 +15,7 @@ module Io.Superposition.Model.CreateDimensionInput (
     CreateDimensionInput,
     workspace_id,
     org_id,
+    user_agent,
     dimension,
     position,
     schema,
@@ -42,6 +44,7 @@ import qualified Network.HTTP.Types.Method
 data CreateDimensionInput = CreateDimensionInput {
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text,
+    user_agent :: Data.Maybe.Maybe Data.Text.Text,
     dimension :: Data.Text.Text,
     position :: Data.Int.Int32,
     schema :: Data.Map.Map Data.Text.Text Data.Aeson.Value,
@@ -60,6 +63,7 @@ instance Data.Aeson.ToJSON CreateDimensionInput where
     toJSON a = Data.Aeson.object [
         "workspace_id" Data.Aeson..= workspace_id a,
         "org_id" Data.Aeson..= org_id a,
+        "user_agent" Data.Aeson..= user_agent a,
         "dimension" Data.Aeson..= dimension a,
         "position" Data.Aeson..= position a,
         "schema" Data.Aeson..= schema a,
@@ -77,6 +81,7 @@ instance Data.Aeson.FromJSON CreateDimensionInput where
     parseJSON = Data.Aeson.withObject "CreateDimensionInput" $ \v -> CreateDimensionInput
         Data.Functor.<$> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
+        Control.Applicative.<*> (v Data.Aeson..:? "user_agent")
         Control.Applicative.<*> (v Data.Aeson..: "dimension")
         Control.Applicative.<*> (v Data.Aeson..: "position")
         Control.Applicative.<*> (v Data.Aeson..: "schema")
@@ -92,6 +97,7 @@ instance Data.Aeson.FromJSON CreateDimensionInput where
 data CreateDimensionInputBuilderState = CreateDimensionInputBuilderState {
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    user_agentBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     dimensionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     positionBuilderState :: Data.Maybe.Maybe Data.Int.Int32,
     schemaBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
@@ -108,6 +114,7 @@ defaultBuilderState :: CreateDimensionInputBuilderState
 defaultBuilderState = CreateDimensionInputBuilderState {
     workspace_idBuilderState = Data.Maybe.Nothing,
     org_idBuilderState = Data.Maybe.Nothing,
+    user_agentBuilderState = Data.Maybe.Nothing,
     dimensionBuilderState = Data.Maybe.Nothing,
     positionBuilderState = Data.Maybe.Nothing,
     schemaBuilderState = Data.Maybe.Nothing,
@@ -127,6 +134,10 @@ setWorkspaceId value =
 setOrgId :: Data.Text.Text -> CreateDimensionInputBuilder ()
 setOrgId value =
    Control.Monad.State.Strict.modify (\s -> (s { org_idBuilderState = Data.Maybe.Just value }))
+
+setUserAgent :: Data.Maybe.Maybe Data.Text.Text -> CreateDimensionInputBuilder ()
+setUserAgent value =
+   Control.Monad.State.Strict.modify (\s -> (s { user_agentBuilderState = value }))
 
 setDimension :: Data.Text.Text -> CreateDimensionInputBuilder ()
 setDimension value =
@@ -165,6 +176,7 @@ build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
     workspace_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateDimensionInput.CreateDimensionInput.workspace_id is a required property.") Data.Either.Right (workspace_idBuilderState st)
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateDimensionInput.CreateDimensionInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
+    user_agent' <- Data.Either.Right (user_agentBuilderState st)
     dimension' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateDimensionInput.CreateDimensionInput.dimension is a required property.") Data.Either.Right (dimensionBuilderState st)
     position' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateDimensionInput.CreateDimensionInput.position is a required property.") Data.Either.Right (positionBuilderState st)
     schema' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.CreateDimensionInput.CreateDimensionInput.schema is a required property.") Data.Either.Right (schemaBuilderState st)
@@ -176,6 +188,7 @@ build builder = do
     Data.Either.Right (CreateDimensionInput { 
         workspace_id = workspace_id',
         org_id = org_id',
+        user_agent = user_agent',
         dimension = dimension',
         position = position',
         schema = schema',
@@ -196,6 +209,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder CreateDimensionInput where
         
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
+        Io.Superposition.Utility.serHeader "user-agent" (user_agent self)
         Io.Superposition.Utility.serField "schema" (schema self)
         Io.Superposition.Utility.serField "change_reason" (change_reason self)
         Io.Superposition.Utility.serField "dimension_type" (dimension_type self)

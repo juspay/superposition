@@ -31,6 +31,8 @@ pub struct SuperpositionOptions {
     pub auth: AuthMethod,
     pub org_id: String,
     pub workspace_id: String,
+    /// Sent as the `user-agent` header on every API call; identifies the caller.
+    pub user_agent: Option<String>,
 }
 
 impl SuperpositionOptions {
@@ -45,7 +47,13 @@ impl SuperpositionOptions {
             auth,
             org_id,
             workspace_id,
+            user_agent: None,
         }
+    }
+
+    pub fn with_user_agent(mut self, user_agent: String) -> Self {
+        self.user_agent = Some(user_agent);
+        self
     }
 }
 
@@ -289,6 +297,8 @@ pub struct SuperpositionProviderOptions {
     pub token: String,
     pub org_id: String,
     pub workspace_id: String,
+    /// Sent as the `user-agent` header on every API call; identifies the caller.
+    pub user_agent: Option<String>,
     pub fallback_config: Option<serde_json::Map<String, Value>>,
     pub refresh_strategy: RefreshStrategy,
     pub experimentation_options: Option<ExperimentationOptions>,
@@ -310,10 +320,16 @@ impl SuperpositionProviderOptions {
             token,
             org_id,
             workspace_id,
+            user_agent: None,
             fallback_config,
             refresh_strategy,
             experimentation_options,
         }
+    }
+
+    pub fn with_user_agent(mut self, user_agent: String) -> Self {
+        self.user_agent = Some(user_agent);
+        self
     }
 }
 

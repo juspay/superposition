@@ -45,6 +45,7 @@ export interface UpdateTypeTemplatesCommandOutput extends TypeTemplatesResponse,
  * const input = { // UpdateTypeTemplatesRequest
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   type_name: "STRING_VALUE", // required
  *   type_schema: { // Object // required
  *     "<keys>": "DOCUMENT_VALUE",

@@ -86,6 +86,7 @@ class HttpDataSource(SuperpositionDataSource):
                 input=GetConfigInput(
                     workspace_id=self.options.workspace_id,
                     org_id=self.options.org_id,
+                    user_agent=self.options.user_agent,
                     context=context,
                     prefix=prefix_filter,
                     exclude_prefix=exclude_prefix_filter,
@@ -117,6 +118,7 @@ class HttpDataSource(SuperpositionDataSource):
                 input=GetExperimentConfigInput(
                     workspace_id=self.options.workspace_id,
                     org_id=self.options.org_id,
+                    user_agent=self.options.user_agent,
                     context=context,
                     prefix=prefix_filter,
                     exclude_prefix=exclude_prefix_filter,

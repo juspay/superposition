@@ -259,7 +259,10 @@ refreshConfig ::
   Client.SuperpositionClient ->
   RefreshFn SDK.GetConfigOutput
 refreshConfig SuperpositionProviderOptions {..} logger client =
-  let builder = SDK.setOrgId orgId >> SDK.setWorkspaceId workspaceId
+  let builder =
+        SDK.setOrgId orgId
+          >> SDK.setWorkspaceId workspaceId
+          >> SDK.setUserAgent userAgent
       call = SDK.getConfig client builder
       fnName = "ConfigRefresh"
    in mkRefreshFn logger fnName call
@@ -273,6 +276,7 @@ refreshExperiments SuperpositionProviderOptions {..} logger client =
   let builder =
         Exp.setOrgId orgId
           >> Exp.setWorkspaceId workspaceId
+          >> Exp.setUserAgent userAgent
           >> Exp.setStatus (Just [INPROGRESS, CREATED])
       call = Exp.listExperiment client builder
       fnName = "ExperimentsRefresh"
@@ -287,6 +291,7 @@ refreshExperimentGroups SuperpositionProviderOptions {..} logger client =
   let builder =
         ExpGrp.setOrgId orgId
           >> ExpGrp.setWorkspaceId workspaceId
+          >> ExpGrp.setUserAgent userAgent
           >> ExpGrp.setAll' (Just True)
       call = ExpGrp.listExperimentGroups client builder
       fnName = "ExperimentGroupsRefresh"

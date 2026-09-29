@@ -4,6 +4,7 @@ module Io.Superposition.Model.ListWebhookInput (
     setAll',
     setWorkspaceId,
     setOrgId,
+    setUserAgent,
     build,
     ListWebhookInputBuilder,
     ListWebhookInput,
@@ -11,7 +12,8 @@ module Io.Superposition.Model.ListWebhookInput (
     page,
     all',
     workspace_id,
-    org_id
+    org_id,
+    user_agent
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad.State.Strict
@@ -32,7 +34,8 @@ data ListWebhookInput = ListWebhookInput {
     page :: Data.Maybe.Maybe Data.Int.Int32,
     all' :: Data.Maybe.Maybe Bool,
     workspace_id :: Data.Text.Text,
-    org_id :: Data.Text.Text
+    org_id :: Data.Text.Text,
+    user_agent :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -45,7 +48,8 @@ instance Data.Aeson.ToJSON ListWebhookInput where
         "page" Data.Aeson..= page a,
         "all" Data.Aeson..= all' a,
         "workspace_id" Data.Aeson..= workspace_id a,
-        "org_id" Data.Aeson..= org_id a
+        "org_id" Data.Aeson..= org_id a,
+        "user_agent" Data.Aeson..= user_agent a
         ]
     
 
@@ -58,6 +62,7 @@ instance Data.Aeson.FromJSON ListWebhookInput where
         Control.Applicative.<*> (v Data.Aeson..:? "all")
         Control.Applicative.<*> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
+        Control.Applicative.<*> (v Data.Aeson..:? "user_agent")
     
 
 
@@ -67,7 +72,8 @@ data ListWebhookInputBuilderState = ListWebhookInputBuilderState {
     pageBuilderState :: Data.Maybe.Maybe Data.Int.Int32,
     all'BuilderState :: Data.Maybe.Maybe Bool,
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
-    org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text
+    org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    user_agentBuilderState :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Generics.Generic
   )
@@ -78,7 +84,8 @@ defaultBuilderState = ListWebhookInputBuilderState {
     pageBuilderState = Data.Maybe.Nothing,
     all'BuilderState = Data.Maybe.Nothing,
     workspace_idBuilderState = Data.Maybe.Nothing,
-    org_idBuilderState = Data.Maybe.Nothing
+    org_idBuilderState = Data.Maybe.Nothing,
+    user_agentBuilderState = Data.Maybe.Nothing
 }
 
 type ListWebhookInputBuilder = Control.Monad.State.Strict.State ListWebhookInputBuilderState
@@ -103,6 +110,10 @@ setOrgId :: Data.Text.Text -> ListWebhookInputBuilder ()
 setOrgId value =
    Control.Monad.State.Strict.modify (\s -> (s { org_idBuilderState = Data.Maybe.Just value }))
 
+setUserAgent :: Data.Maybe.Maybe Data.Text.Text -> ListWebhookInputBuilder ()
+setUserAgent value =
+   Control.Monad.State.Strict.modify (\s -> (s { user_agentBuilderState = value }))
+
 build :: ListWebhookInputBuilder () -> Data.Either.Either Data.Text.Text ListWebhookInput
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
@@ -111,12 +122,14 @@ build builder = do
     all'' <- Data.Either.Right (all'BuilderState st)
     workspace_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListWebhookInput.ListWebhookInput.workspace_id is a required property.") Data.Either.Right (workspace_idBuilderState st)
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListWebhookInput.ListWebhookInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
+    user_agent' <- Data.Either.Right (user_agentBuilderState st)
     Data.Either.Right (ListWebhookInput { 
         count = count',
         page = page',
         all' = all'',
         workspace_id = workspace_id',
-        org_id = org_id'
+        org_id = org_id',
+        user_agent = user_agent'
     })
 
 
@@ -131,5 +144,6 @@ instance Io.Superposition.Utility.IntoRequestBuilder ListWebhookInput where
         Io.Superposition.Utility.serQuery "page" (page self)
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
+        Io.Superposition.Utility.serHeader "user-agent" (user_agent self)
         
 

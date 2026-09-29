@@ -45,6 +45,7 @@ export interface GetExperimentConfigCommandOutput extends GetExperimentConfigOut
  * const input = { // GetExperimentConfigInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   if_modified_since: new Date("TIMESTAMP"),
  *   prefix: [ // StringList
  *     "STRING_VALUE",

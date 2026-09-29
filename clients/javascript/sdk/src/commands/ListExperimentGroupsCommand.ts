@@ -48,6 +48,7 @@ export interface ListExperimentGroupsCommandOutput extends ListExperimentGroupsO
  *   all: true || false,
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   if_modified_since: new Date("TIMESTAMP"),
  *   name: "STRING_VALUE",
  *   created_by: "STRING_VALUE",

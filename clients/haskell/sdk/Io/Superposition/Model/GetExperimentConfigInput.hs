@@ -1,6 +1,7 @@
 module Io.Superposition.Model.GetExperimentConfigInput (
     setWorkspaceId,
     setOrgId,
+    setUserAgent,
     setIfModifiedSince,
     setPrefix,
     setExcludePrefix,
@@ -11,6 +12,7 @@ module Io.Superposition.Model.GetExperimentConfigInput (
     GetExperimentConfigInput,
     workspace_id,
     org_id,
+    user_agent,
     if_modified_since,
     prefix,
     exclude_prefix,
@@ -36,6 +38,7 @@ import qualified Network.HTTP.Types.Method
 data GetExperimentConfigInput = GetExperimentConfigInput {
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text,
+    user_agent :: Data.Maybe.Maybe Data.Text.Text,
     if_modified_since :: Data.Maybe.Maybe Data.Time.UTCTime,
     prefix :: Data.Maybe.Maybe ([] Data.Text.Text),
     exclude_prefix :: Data.Maybe.Maybe ([] Data.Text.Text),
@@ -51,6 +54,7 @@ instance Data.Aeson.ToJSON GetExperimentConfigInput where
     toJSON a = Data.Aeson.object [
         "workspace_id" Data.Aeson..= workspace_id a,
         "org_id" Data.Aeson..= org_id a,
+        "user_agent" Data.Aeson..= user_agent a,
         "if_modified_since" Data.Aeson..= if_modified_since a,
         "prefix" Data.Aeson..= prefix a,
         "exclude_prefix" Data.Aeson..= exclude_prefix a,
@@ -65,6 +69,7 @@ instance Data.Aeson.FromJSON GetExperimentConfigInput where
     parseJSON = Data.Aeson.withObject "GetExperimentConfigInput" $ \v -> GetExperimentConfigInput
         Data.Functor.<$> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
+        Control.Applicative.<*> (v Data.Aeson..:? "user_agent")
         Control.Applicative.<*> (v Data.Aeson..:? "if_modified_since")
         Control.Applicative.<*> (v Data.Aeson..:? "prefix")
         Control.Applicative.<*> (v Data.Aeson..:? "exclude_prefix")
@@ -77,6 +82,7 @@ instance Data.Aeson.FromJSON GetExperimentConfigInput where
 data GetExperimentConfigInputBuilderState = GetExperimentConfigInputBuilderState {
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    user_agentBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     if_modified_sinceBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     prefixBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     exclude_prefixBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
@@ -90,6 +96,7 @@ defaultBuilderState :: GetExperimentConfigInputBuilderState
 defaultBuilderState = GetExperimentConfigInputBuilderState {
     workspace_idBuilderState = Data.Maybe.Nothing,
     org_idBuilderState = Data.Maybe.Nothing,
+    user_agentBuilderState = Data.Maybe.Nothing,
     if_modified_sinceBuilderState = Data.Maybe.Nothing,
     prefixBuilderState = Data.Maybe.Nothing,
     exclude_prefixBuilderState = Data.Maybe.Nothing,
@@ -106,6 +113,10 @@ setWorkspaceId value =
 setOrgId :: Data.Text.Text -> GetExperimentConfigInputBuilder ()
 setOrgId value =
    Control.Monad.State.Strict.modify (\s -> (s { org_idBuilderState = Data.Maybe.Just value }))
+
+setUserAgent :: Data.Maybe.Maybe Data.Text.Text -> GetExperimentConfigInputBuilder ()
+setUserAgent value =
+   Control.Monad.State.Strict.modify (\s -> (s { user_agentBuilderState = value }))
 
 setIfModifiedSince :: Data.Maybe.Maybe Data.Time.UTCTime -> GetExperimentConfigInputBuilder ()
 setIfModifiedSince value =
@@ -132,6 +143,7 @@ build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
     workspace_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetExperimentConfigInput.GetExperimentConfigInput.workspace_id is a required property.") Data.Either.Right (workspace_idBuilderState st)
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetExperimentConfigInput.GetExperimentConfigInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
+    user_agent' <- Data.Either.Right (user_agentBuilderState st)
     if_modified_since' <- Data.Either.Right (if_modified_sinceBuilderState st)
     prefix' <- Data.Either.Right (prefixBuilderState st)
     exclude_prefix' <- Data.Either.Right (exclude_prefixBuilderState st)
@@ -140,6 +152,7 @@ build builder = do
     Data.Either.Right (GetExperimentConfigInput { 
         workspace_id = workspace_id',
         org_id = org_id',
+        user_agent = user_agent',
         if_modified_since = if_modified_since',
         prefix = prefix',
         exclude_prefix = exclude_prefix',
@@ -160,5 +173,6 @@ instance Io.Superposition.Utility.IntoRequestBuilder GetExperimentConfigInput wh
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "if-modified-since" (if_modified_since self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
+        Io.Superposition.Utility.serHeader "user-agent" (user_agent self)
         Io.Superposition.Utility.serField "context" (context self)
 
