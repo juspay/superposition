@@ -12,11 +12,17 @@ SuperTOML configuration files consist of three main sections:
 2. **`[dimensions]`** - Dimensions that define context segmentation
 3. **`[[overrides]]`** - Context-specific configuration overrides
 
+An optional **`[meta]`** table can precede them to mark the file as SuperTOML and record its format version.
+
 ## File Structure
 
 ### TOML Format
 
 ```toml
+[meta]
+type = "supertoml"
+version = 1
+
 [default-configs]
 # Configuration keys with default values and schemas
 
@@ -52,6 +58,33 @@ _context_ = { /* context condition */ }
   ]
 }
 ```
+
+---
+
+## Meta Section
+
+The optional `[meta]` table identifies the file as SuperTOML and states which version of the format it was written for. Exported SuperTOML always includes it.
+
+### Syntax
+
+```toml
+[meta]
+type = "supertoml"
+version = 1
+```
+
+### Parameters
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `type` | Yes | Must be `"supertoml"` |
+| `version` | Yes | SuperTOML format version, a positive integer. The current version is `1` |
+
+A file that declares a version newer than the parser supports is rejected rather than parsed partially.
+
+A file without `[meta]` is read as version `1`, the format that existed before the marker was introduced. This stays true as newer versions are released, so older files keep their meaning. The parser logs a warning for such files; add `[meta]` with `version = 1` to pin the version and silence it.
+
+`[meta]` applies to the TOML format only; the JSON format has no equivalent.
 
 ---
 
@@ -320,6 +353,10 @@ Both values are overridden when the context matches.
 ```toml
 # Ride-hailing pricing configuration
 
+[meta]
+type = "supertoml"
+version = 1
+
 [default-configs]
 per_km_rate = { value = 20.0, schema = { type = "number", minimum = 0 } }
 surge_factor = { value = 0.0, schema = { type = "number", minimum = 0 } }
@@ -433,6 +470,12 @@ The same configuration in JSON format:
 ---
 
 ## Validation Rules
+
+### Meta Validation
+
+1. `[meta]` is optional (a file without it is read as version `1`), but when present it must have both `type` and `version`
+2. `type` must be `"supertoml"`
+3. `version` must be between `1` and the latest version the parser supports
 
 ### Default Configs Validation
 
