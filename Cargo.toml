@@ -118,3 +118,6 @@ service_utils = { path = "crates/service_utils", version = "0.118.1" }
 [workspace.lints.clippy]
 mod_module_files = "warn"
 manual_range_contains = "allow"
+
+[patch.crates-io]
+diesel-adapter = { git = "https://github.com/sauraww/casbin-rust-diesel-adapter", rev = "811ee9d9a58e59620a184c418a8425b113174072" }

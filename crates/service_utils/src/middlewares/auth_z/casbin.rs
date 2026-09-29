@@ -37,6 +37,7 @@ pub struct CasbinPolicyEngine {
     enforcer: RwLock<Enforcer>,
     last_policy_load_time: RwLock<DateTime<Utc>>,
     policy_refresh_interval: u64,
+    read_only: bool,
 }
 
 impl CasbinPolicyEngine {
@@ -46,6 +47,12 @@ impl CasbinPolicyEngine {
     where
         F: AsyncFnOnce(&mut Enforcer) -> superposition::Result<T>,
     {
+        if self.read_only {
+            return Err(unexpected_error!(
+                "Casbin policy changes are disabled on this read-only stack"
+            ));
+        }
+
         let mut enforcer = self.enforcer.write().await;
 
         // Check if refresh is needed while holding the write lock
@@ -382,7 +389,13 @@ impl CasbinPolicyEngine {
         let db_url = get_database_url(kms_client, app_env, Some("CASBIN")).await;
         let db_pool_size = db_pool_size
             .unwrap_or_else(|| get_from_env_or_default("CASBIN_DB_POOL_SIZE", 2));
-        let adapter = DieselAdapter::new(db_url.clone(), db_pool_size).map_err(|e| {
+        let read_only = get_from_env_or_default("CASBIN_READ_ONLY", false);
+        let init_adapter = if read_only {
+            DieselAdapter::new_read_only
+        } else {
+            DieselAdapter::new
+        };
+        let adapter = init_adapter(db_url, db_pool_size).map_err(|e| {
             log::error!("Failed to create Casbin adapter: {e}");
             e.to_string()
         })?;
@@ -398,8 +411,12 @@ impl CasbinPolicyEngine {
         })?;
 
         enforcer.enable_auto_save(false);
-
-        if let Ok(root_admin_email) = get_from_env_unsafe::<String>("ROOT_ADMIN_EMAIL") {
+        // Skip on the passive stack: the root admin row already arrives via
+        // replication, and save_policy() below cannot write to a read-only replica.
+        if !read_only
+            && let Ok(root_admin_email) =
+                get_from_env_unsafe::<String>("ROOT_ADMIN_EMAIL")
+        {
             let result = enforcer
                 .add_grouping_policy(vec![
                     root_admin_email,
@@ -439,6 +456,7 @@ impl CasbinPolicyEngine {
                 "CASBIN_POLICY_REFRESH_INTERVAL",
                 60,
             ),
+            read_only,
         })
     }
 
