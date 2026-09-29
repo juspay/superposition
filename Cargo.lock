@@ -3183,14 +3183,12 @@ dependencies = [
 [[package]]
 name = "diesel-adapter"
 version = "1.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ee23d2655b19f59fb932700e0f0a76fc1fe1790dee83566d1037ade88f7f4463"
+source = "git+https://github.com/sauraww/casbin-rust-diesel-adapter?rev=811ee9d9a58e59620a184c418a8425b113174072#811ee9d9a58e59620a184c418a8425b113174072"
 dependencies = [
  "async-trait",
  "casbin",
  "diesel",
  "futures",
- "libsqlite3-sys",
  "once_cell",
  "tokio",
 ]
