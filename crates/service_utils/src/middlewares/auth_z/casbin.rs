@@ -66,10 +66,18 @@ impl CasbinPolicyEngine {
 
         let resp = f(&mut enforcer).await?;
 
-        enforcer
-            .save_policy()
-            .await
-            .map_err(|e| unexpected_error!("Failed to save Casbin policies: {}", e))?;
+        // The closure has already mutated the in-memory model, so a rejected
+        // write has to be undone by reloading, or readers would act on a change
+        // the database never accepted.
+        if let Err(e) = enforcer.save_policy().await {
+            if let Err(reload_err) = enforcer.load_policy().await {
+                log::error!(
+                    "Failed to reload Casbin policies after a failed save, in-memory policy may be stale: {reload_err}"
+                );
+            }
+
+            return Err(unexpected_error!("Failed to save Casbin policies: {}", e));
+        }
 
         Ok(resp)
     }
@@ -382,7 +390,7 @@ impl CasbinPolicyEngine {
         let db_url = get_database_url(kms_client, app_env, Some("CASBIN")).await;
         let db_pool_size = db_pool_size
             .unwrap_or_else(|| get_from_env_or_default("CASBIN_DB_POOL_SIZE", 2));
-        let adapter = DieselAdapter::new(db_url.clone(), db_pool_size).map_err(|e| {
+        let adapter = DieselAdapter::new(db_url, db_pool_size).map_err(|e| {
             log::error!("Failed to create Casbin adapter: {e}");
             e.to_string()
         })?;
@@ -412,18 +420,21 @@ impl CasbinPolicyEngine {
                     e.to_string()
                 })?;
 
+            // Only persist when the policy was actually added. save_policy()
+            // rewrites the whole table (DELETE + re-INSERT), so running it on
+            // every boot would churn the policy store and can clobber a
+            // concurrent admin change made since this enforcer loaded.
             if result {
                 log::info!("Root admin policy added");
+                enforcer.save_policy().await.map_err(|e| {
+                    log::error!(
+                        "Failed to save Casbin policies after adding root admin: {e}"
+                    );
+                    e.to_string()
+                })?;
             } else {
                 log::info!("Root admin policy already exists");
             }
-
-            enforcer.save_policy().await.map_err(|e| {
-                log::error!(
-                    "Failed to save Casbin policies after adding root admin: {e}"
-                );
-                e.to_string()
-            })?;
         }
 
         let now = Utc::now();

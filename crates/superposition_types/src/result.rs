@@ -129,6 +129,14 @@ impl error::ResponseError for AppError {
                 error,
             )) => Self::generate_err_response(StatusCode::CONFLICT, error.message()),
 
+            AppError::DbError(diesel_error::DatabaseError(
+                diesel_error_kind::ReadOnlyTransaction,
+                _,
+            )) => Self::generate_err_response(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "This instance cannot accept writes, its database is read-only",
+            ),
+
             AppError::DbError(_) => Self::generate_err_response(
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "Something went wrong",
