@@ -146,25 +146,45 @@ RefreshStrategy::Manual
 | Field              | Type                             | Required | Description                         |
 | ------------------ | -------------------------------- | -------- | ----------------------------------- |
 | `refresh_strategy` | `RefreshStrategy`                | Yes      | How experiment data is refreshed    |
-| `evaluation_cache` | `Option<EvaluationCacheOptions>` | No       | Cache for experiment evaluations    |
-| `default_toss`     | `Option<u32>`                    | No       | Default toss value for experiments  |
-
-`ExperimentationOptions` supports a builder pattern:
 
 ```rust
 let exp_options = ExperimentationOptions::new(
-    RefreshStrategy::Polling(PollingStrategy { interval: 5, timeout: Some(3) }),
-)
-.with_evaluation_cache(EvaluationCacheOptions::default())
-.with_default_toss(50);
+    RefreshStrategy::Polling(PollingStrategy::new(5_000)),
+);
 ```
 
 ### `EvaluationCacheOptions`
 
-| Field  | Type             | Default     | Description                     |
-| ------ | ---------------- | ----------- | ------------------------------- |
-| `ttl`  | `Option<u64>`    | `Some(60)`  | Cache time-to-live in seconds   |
-| `size` | `Option<usize>`  | `Some(500)` | Maximum number of cache entries |
+| Field         | Type           | Default | Description                                                  |
+| ------------- | -------------- | ------- | ------------------------------------------------------------ |
+| `max_entries` | `Option<u64>`  | `None`  | Maximum number of cached resolutions; `None`/`0` disables caching |
+
+The evaluation cache is an in-process LRU memoization of resolutions, keyed by
+every input that discriminates one (context query, merge strategy, prefix
+filters, targeting key). Staleness is governed by the refresh strategy: the
+local provider empties the cache whenever config or experiment data is
+reloaded.
+
+Only the local provider supports caching. The remote `SuperpositionAPIProvider`
+deliberately does not: it receives no invalidation signal from the server, so
+cached entries would be served until arbitrary eviction regardless of upstream
+changes.
+
+Enable it via the dedicated constructor:
+
+```rust
+use superposition_provider::EvaluationCacheOptions;
+
+// Local provider — cache emptied on every config/experiment reload.
+let provider = LocalResolutionProvider::with_evaluation_cache(
+    Box::new(http_source),
+    None,
+    RefreshStrategy::Polling(PollingStrategy::new(30_000)),
+    Some(EvaluationCacheOptions::new(1_000)),
+);
+```
+
+See `examples/evaluation_cache_example.rs` for a complete runnable example.
 
 ## Provider Variants
 
@@ -178,12 +198,12 @@ use superposition_provider::{
     data_source::http::HttpDataSource,
     local_provider::LocalResolutionProvider,
     traits::{AllFeatureProvider, FeatureExperimentMeta},
-    PollingStrategy, RefreshStrategy, SuperpositionOptions,
+    AuthMethod, PollingStrategy, RefreshStrategy, SuperpositionOptions,
 };
 
 let http_source = HttpDataSource::new(SuperpositionOptions::new(
     "http://localhost:8080".to_string(),
-    "token".to_string(),
+    AuthMethod::Token("token".to_string()),
     "localorg".to_string(),
     "dev".to_string(),
 ));

@@ -13,8 +13,11 @@ export interface CacheOptions {
 }
 
 export interface EvaluationCacheOptions {
-    ttl?: number;
-    size?: number;
+    /**
+     * Maximum number of resolutions memoized in the native library. Unset
+     * or non-positive disables caching.
+     */
+    maxEntries?: number;
 }
 
 export interface PollingStrategy {

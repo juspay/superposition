@@ -24,11 +24,30 @@ class SuperpositionOptions:
 # Cache Configuration
 # ============================================================================
 
+_MAX_ENTRIES_LIMIT = 2**63 - 1  # must fit in a signed 64-bit integer for the native library
+
+
 @dataclass
 class EvaluationCacheOptions:
-    """Options for evaluation result caching."""
-    ttl: Optional[int] = None
-    size: Optional[int] = None
+    """Options for evaluation result caching.
+
+    The cache lives inside the native FFI library; repeated resolutions with
+    identical inputs are served from Rust without re-evaluating. It is emptied
+    whenever the provider reloads config or experiment data.
+    """
+    max_entries: Optional[int] = None  # maximum number of cached resolutions; None/0 disables caching
+
+    def __post_init__(self) -> None:
+        if self.max_entries is None:
+            return
+        if isinstance(self.max_entries, bool) or not isinstance(self.max_entries, int):
+            raise TypeError(
+                f"max_entries must be an int or None, got {type(self.max_entries).__name__}"
+            )
+        if not 0 <= self.max_entries <= _MAX_ENTRIES_LIMIT:
+            raise ValueError(
+                f"max_entries must be between 0 and {_MAX_ENTRIES_LIMIT}, got {self.max_entries}"
+            )
 
 
 # ============================================================================
