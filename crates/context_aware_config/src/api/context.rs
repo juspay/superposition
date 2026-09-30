@@ -1,3 +1,4 @@
+pub mod auto_reduce;
 mod handlers;
 pub mod helpers;
 pub mod operations;
