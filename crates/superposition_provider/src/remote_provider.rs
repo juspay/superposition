@@ -48,13 +48,12 @@ impl SuperpositionAPIProvider {
 
     async fn resolve_remote(
         &self,
-        context: EvaluationContext,
+        query_data: HashMap<String, Document>,
+        identifier: Option<String>,
         prefix_filter: Option<Vec<String>>,
         exclude_prefix_filter: Option<Vec<String>>,
     ) -> Result<Map<String, Value>> {
         // TODO: Check if we need to add a separte check to verify the status of provider before doing stuff
-
-        let (query_data, targeting_key) = self.get_merged_context(context).await;
 
         let response = self
             .client
@@ -62,7 +61,7 @@ impl SuperpositionAPIProvider {
             .workspace_id(&self.options.workspace_id)
             .org_id(&self.options.org_id)
             .set_context(Some(query_data))
-            .set_identifier(targeting_key)
+            .set_identifier(identifier)
             .set_prefix(prefix_filter)
             .set_exclude_prefix(exclude_prefix_filter)
             .send()
@@ -89,6 +88,33 @@ impl SuperpositionAPIProvider {
 
         Ok(result)
     }
+
+    async fn fetch_applicable_variants(
+        &self,
+        query_data: HashMap<String, Document>,
+        identifier: String,
+        prefix_filter: Option<Vec<String>>,
+        exclude_prefix_filter: Option<Vec<String>>,
+    ) -> Result<Vec<String>> {
+        let applicable_variants = self
+            .client
+            .applicable_variants()
+            .workspace_id(&self.options.workspace_id)
+            .org_id(&self.options.org_id)
+            .set_context(Some(query_data))
+            .identifier(identifier)
+            .set_prefix(prefix_filter)
+            .set_exclude_prefix(exclude_prefix_filter)
+            .send()
+            .await
+            .map_err(|e| {
+                SuperpositionError::NetworkError(format!(
+                    "Failed to get applicable variants: {e}",
+                ))
+            })?;
+
+        Ok(applicable_variants.data.into_iter().map(|v| v.id).collect())
+    }
 }
 
 #[async_trait]
@@ -99,8 +125,53 @@ impl AllFeatureProvider for SuperpositionAPIProvider {
         prefix_filter: Option<Vec<String>>,
         exclude_prefix_filter: Option<Vec<String>>,
     ) -> Result<Map<String, Value>> {
-        self.resolve_remote(context, prefix_filter, exclude_prefix_filter)
-            .await
+        let (query_data, targeting_key) = self.get_merged_context(context).await;
+        self.resolve_remote(
+            query_data,
+            targeting_key,
+            prefix_filter,
+            exclude_prefix_filter,
+        )
+        .await
+    }
+
+    async fn resolve_all_features_with_filter_details(
+        &self,
+        context: EvaluationContext,
+        prefix_filter: Option<Vec<String>>,
+        exclude_prefix_filter: Option<Vec<String>>,
+    ) -> Result<AllFeaturesResolutionDetails> {
+        let (mut query_data, targeting_key) = self.get_merged_context(context).await;
+
+        let variant_ids = match targeting_key {
+            Some(identifier) => {
+                let variant_ids = self
+                    .fetch_applicable_variants(
+                        query_data.clone(),
+                        identifier,
+                        prefix_filter.clone(),
+                        exclude_prefix_filter.clone(),
+                    )
+                    .await?;
+                query_data.insert(
+                    "variantIds".to_string(),
+                    Document::Array(
+                        variant_ids.iter().cloned().map(Document::String).collect(),
+                    ),
+                );
+                variant_ids
+            }
+            None => vec![],
+        };
+
+        let value = self
+            .resolve_remote(query_data, None, prefix_filter, exclude_prefix_filter)
+            .await?;
+
+        Ok(AllFeaturesResolutionDetails {
+            value,
+            variant_ids,
+        })
     }
 }
 
@@ -113,25 +184,13 @@ impl FeatureExperimentMeta for SuperpositionAPIProvider {
         exclude_prefix_filter: Option<Vec<String>>,
     ) -> Result<Vec<String>> {
         let (query_data, targeting_key) = self.get_merged_context(context).await;
-
-        let applicable_variants = self
-            .client
-            .applicable_variants()
-            .workspace_id(&self.options.workspace_id)
-            .org_id(&self.options.org_id)
-            .set_context(Some(query_data))
-            .identifier(targeting_key.unwrap_or_default())
-            .set_prefix(prefix_filter)
-            .set_exclude_prefix(exclude_prefix_filter)
-            .send()
-            .await
-            .map_err(|e| {
-                SuperpositionError::NetworkError(format!(
-                    "Failed to get applicable variants: {e}",
-                ))
-            })?;
-
-        Ok(applicable_variants.data.into_iter().map(|v| v.id).collect())
+        self.fetch_applicable_variants(
+            query_data,
+            targeting_key.unwrap_or_default(),
+            prefix_filter,
+            exclude_prefix_filter,
+        )
+        .await
     }
 }
 
