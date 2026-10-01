@@ -282,3 +282,22 @@ fn test_json_round_trip_preserve_config() {
     assert_eq!(detailed.contexts.len(), reparsed.contexts.len());
     assert_eq!(detailed.overrides.len(), reparsed.overrides.len());
 }
+
+/// The split example config (`imports/main.stoml` and the files it imports)
+/// parses to the same Config as the single-file `example.toml`.
+#[test]
+fn test_imports_match_single_file() {
+    let examples = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../examples/superposition_config_file_examples");
+
+    let single = std::fs::read_to_string(examples.join("example.toml"))
+        .expect("example.toml should be readable");
+    let single = TomlFormat::parse_config(&single).expect("example.toml should parse");
+    let split = superposition_core::parse_toml_file(&examples.join("imports/main.stoml"))
+        .expect("imports/main.stoml should parse");
+
+    assert_eq!(
+        serde_json::to_value(&split).unwrap(),
+        serde_json::to_value(&single).unwrap()
+    );
+}

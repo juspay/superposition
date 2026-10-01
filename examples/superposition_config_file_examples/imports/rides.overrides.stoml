@@ -1,0 +1,11 @@
+[[overrides]]
+_context_ = { vehicle_type = "cab" }
+per_km_rate = 25.0
+
+[[overrides]]
+_context_ = { vehicle_type = "bike" }
+per_km_rate = 15.0
+
+[[overrides]]
+_context_ = { city = "Bangalore", vehicle_type = "cab" }
+per_km_rate = 22.0
