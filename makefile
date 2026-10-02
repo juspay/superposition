@@ -6,6 +6,14 @@ SHELL := /usr/bin/env bash
 FEATURES ?= ssr
 FE_FEATURES ?= hydrate
 CARGO_FLAGS := --color always --no-default-features
+
+HEADLESS := $(filter true 1 yes,$(HEADLESS_SUPERPOSITION))
+ifdef HEADLESS
+FRONTEND_TARGET :=
+else
+FRONTEND_TARGET := frontend
+override FEATURES += frontend
+endif
 EXCLUDE_PACKAGES := experimentation_client_integration_example superposition_sdk
 FMT_EXCLUDE_PACKAGES_REGEX := $(shell echo "$(EXCLUDE_PACKAGES)" | sed "s/ /|/g")
 LINT_FLAGS := --workspace --all-targets --all-features $(addprefix --exclude ,$(EXCLUDE_PACKAGES)) --no-deps
@@ -221,19 +229,19 @@ backend:
 	-rm -rf $(CARGO_TARGET_DIR)/node_modules
 	cargo build $(CARGO_FLAGS)
 
-build: frontend backend
+build: $(FRONTEND_TARGET) backend
 
-run: kill db frontend superposition symlink-target
+run: kill db $(FRONTEND_TARGET) superposition symlink-target
 	@$(CARGO_TARGET_DIR)/debug/superposition
 
-%_run: kill db frontend superposition
+%_run: kill db $(FRONTEND_TARGET) superposition
 	@RUST_LOG=$* $(CARGO_TARGET_DIR)/debug/superposition
 
 run_legacy: kill build db superposition_legacy
 	@$(CARGO_TARGET_DIR)/debug/superposition
 
 test: WASM_PACK_MODE=--profiling
-test: setup frontend superposition
+test: setup $(FRONTEND_TARGET) superposition
 	cargo test
 	@echo "Running superposition"
 	MASTER_ENCRYPTION_KEY=$${MASTER_ENCRYPTION_KEY:-"dGVzdC1tYXN0ZXIta2V5LTMyLWNoYXJhY3RlcnMtb2s="} \
