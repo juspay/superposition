@@ -26,7 +26,7 @@ pub struct FileDataSource {
 }
 
 impl FileDataSource {
-    pub fn new(file_path: PathBuf) -> std::result::Result<Self, String> {
+    pub fn new(file_path: PathBuf) -> Result<Self> {
         let file_format = match file_path
             .extension()
             .and_then(|ext| ext.to_str())
@@ -34,11 +34,16 @@ impl FileDataSource {
         {
             Some(ref ext) if ext == "json" => "json",
             Some(ref ext) if ext == "toml" => "toml",
-            Some(ext) => return Err(format!("Unsupported file extension '{}'.", ext)),
+            Some(ext) => {
+                return Err(SuperpositionError::DataSourceError(format!(
+                    "Unsupported file extension '{}'. Supported formats are 'json' and 'toml'.",
+                    ext
+                )))
+            }
             None => {
-                return Err(
-                    "File path must have an extension to determine format.".into()
-                );
+                return Err(SuperpositionError::DataSourceError(
+                    "File path must have an extension to determine format.".into(),
+                ));
             }
         };
 
@@ -184,10 +189,28 @@ impl SuperpositionDataSource for FileDataSource {
         let (tx, _rx) = broadcast::channel(16);
         let tx_clone = tx.clone();
 
+        // Watch the parent directory, not the file node: editors save via atomic rename (write a
+        // temp file, then rename it over the target), which replaces the inode. A node-level watch
+        // would keep watching the stale inode and miss the new file, so watch the directory and
+        // filter events down to the target file by name.
+        let watch_dir = self
+            .file_path
+            .parent()
+            .filter(|p| !p.as_os_str().is_empty())
+            .map(std::path::Path::to_path_buf)
+            .unwrap_or_else(|| PathBuf::from("."));
+        let target_name = self.file_path.file_name().map(|n| n.to_os_string());
+
         let mut watcher = notify::recommended_watcher(
             move |res: std::result::Result<Event, notify::Error>| match res {
-                Ok(_event) => {
-                    let _ = tx_clone.send(());
+                Ok(event) => {
+                    if event
+                        .paths
+                        .iter()
+                        .any(|p| p.file_name() == target_name.as_deref())
+                    {
+                        let _ = tx_clone.send(());
+                    }
                 }
                 Err(e) => {
                     log::error!("FileDataSource: watch error: {}", e);
@@ -202,11 +225,11 @@ impl SuperpositionDataSource for FileDataSource {
         })?;
 
         watcher
-            .watch(&self.file_path, notify::RecursiveMode::NonRecursive)
+            .watch(&watch_dir, notify::RecursiveMode::NonRecursive)
             .map_err(|e| {
                 SuperpositionError::DataSourceError(format!(
-                    "Failed to watch file {:?}: {}",
-                    self.file_path, e
+                    "Failed to watch directory {:?}: {}",
+                    watch_dir, e
                 ))
             })?;
 

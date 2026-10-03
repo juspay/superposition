@@ -9277,6 +9277,7 @@ dependencies = [
  "chrono",
  "derive_more 0.99.17",
  "env_logger",
+ "futures-util",
  "log",
  "notify",
  "open-feature",
