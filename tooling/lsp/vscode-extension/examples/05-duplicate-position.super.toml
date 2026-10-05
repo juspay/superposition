@@ -1,0 +1,15 @@
+# QUICK FIX — cursor on either dimension line, Cmd+.
+# Both sit at position 1. Expect TWO actions:
+#   "Move 'city' to position 2"  and  "Move 'vehicle_type' to position 2"
+# You pick which one moves — the diagnostic's name order isn't file order.
+
+[default-configs]
+per_km_rate = { value = 20.0, schema = { type = "number", minimum = 5.0 } }
+
+[dimensions]
+city = { position = 1, schema = { type = "string", enum = ["Bangalore", "Delhi"] } }
+vehicle_type = { position = 1, schema = { type = "string", enum = ["auto", "cab"] } }
+
+[[overrides]]
+_context_ = { city = "Bangalore" }
+per_km_rate = 25.0

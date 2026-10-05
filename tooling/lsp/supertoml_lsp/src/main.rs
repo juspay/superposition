@@ -1,5 +1,7 @@
 mod backend;
+mod code_actions;
 mod completions;
+mod definition;
 mod diagnostics;
 mod hover;
 mod utils;
