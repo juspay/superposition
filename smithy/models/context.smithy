@@ -6,6 +6,11 @@ list OverrideWithKeys {
     member: String
 }
 
+@documentation("Override keys that auto-reduce removed because the context's own condition already resolved them to the same value.")
+list DroppedKeys {
+    member: String
+}
+
 resource Context {
     identifiers: {
         workspace_id: String
@@ -73,6 +78,45 @@ structure ContextResponse for Context {
 
     @required
     $last_modified_by
+
+    @documentation("Populated only by CreateContext and BulkOperation PUT when the workspace has enable_auto_reduce set. Lists the override keys that were dropped as redundant. Absent or empty means nothing was dropped.")
+    @notProperty
+    dropped_keys: DroppedKeys
+}
+
+@documentation("Response to CreateContext. Every member is optional because a create whose overrides were all dropped by auto-reduce writes nothing and answers 204 with an empty body; on 200 every member except dropped_keys is present.")
+structure CreateContextResponse {
+    @documentation("200 when the context was written, 204 when auto-reduce found every override key redundant and nothing was written.")
+    @httpResponseCode
+    @notProperty
+    status: Integer
+
+    @notProperty
+    id: String
+
+    value: Condition
+
+    override: Overrides
+
+    override_id: String
+
+    weight: Weight
+
+    description: String
+
+    change_reason: String
+
+    created_at: DateTime
+
+    created_by: String
+
+    last_modified_at: DateTime
+
+    last_modified_by: String
+
+    @documentation("Override keys auto-reduce dropped as redundant. Absent or empty means nothing was dropped.")
+    @notProperty
+    dropped_keys: DroppedKeys
 }
 
 @documentation("Creates a new context with specified conditions and overrides. Contexts define conditional rules for config management.")
@@ -85,13 +129,18 @@ operation CreateContext with [GetOperation, WebhookOperation, WorkspaceWriteOper
         @notProperty
         config_tags: String
 
+        @documentation("Overrides the workspace's enable_auto_reduce setting for this request. Omit to use the workspace setting.")
+        @httpHeader("x-auto-reduce")
+        @notProperty
+        auto_reduce: Boolean
+
         @httpPayload
         @notProperty
         @required
         request: ContextPut
     }
 
-    output: ContextResponse
+    output: CreateContextResponse
 }
 
 @documentation("Validates if a given context condition is well-formed")
@@ -358,6 +407,11 @@ operation BulkOperation with [GetOperation, WebhookOperation, WorkspaceWriteOper
         @httpHeader("x-config-tags")
         @notProperty
         config_tags: String
+
+        @documentation("Overrides the workspace's enable_auto_reduce setting for this request. Omit to use the workspace setting.")
+        @httpHeader("x-auto-reduce")
+        @notProperty
+        auto_reduce: Boolean
 
         @required
         @notProperty

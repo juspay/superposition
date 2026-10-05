@@ -149,6 +149,9 @@ ADD COLUMN IF NOT EXISTS encryption_key TEXT NOT NULL DEFAULT '',
 ADD COLUMN IF NOT EXISTS key_rotated_at TIMESTAMPTZ;
 
 ALTER TABLE superposition.workspaces
+ADD COLUMN IF NOT EXISTS enable_auto_reduce BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE superposition.workspaces
 ADD COLUMN IF NOT EXISTS workspace_lock_id UUID,
 ADD COLUMN IF NOT EXISTS workspace_lock_operation TEXT,
 ADD COLUMN IF NOT EXISTS workspace_locked_by TEXT,
