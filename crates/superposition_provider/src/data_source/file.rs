@@ -118,7 +118,7 @@ impl FileDataSource {
             ))
         })?;
         if let Some(inner) = guard.as_mut() {
-            sync_watched_dirs(inner, dirs)?;
+            sync_watched_dirs(inner, dirs);
         }
         Ok(())
     }
@@ -213,25 +213,30 @@ fn is_relevant(event: &Event, files: &ConfigFiles) -> bool {
             .any(|path| files.canonical.contains(&canonical(path)))
 }
 
-fn sync_watched_dirs(inner: &mut WatcherInner, dirs: HashSet<PathBuf>) -> Result<()> {
-    for dir in inner.dirs.difference(&dirs) {
-        if let Err(e) = inner.watcher.unwatch(dir) {
+/// Watch exactly `dirs`. A folder that can't be watched (e.g. an import
+/// naming a subfolder that doesn't exist yet) is logged and skipped, and
+/// retried on the next sync, so it never hides the parse error that reports
+/// the missing file. `inner.dirs` records only folders actually watched.
+fn sync_watched_dirs(inner: &mut WatcherInner, dirs: HashSet<PathBuf>) {
+    let removed: Vec<PathBuf> = inner.dirs.difference(&dirs).cloned().collect();
+    for dir in removed {
+        if let Err(e) = inner.watcher.unwatch(&dir) {
             log::warn!("FileDataSource: failed to stop watching {:?}: {}", dir, e);
         }
+        inner.dirs.remove(&dir);
     }
-    for dir in dirs.difference(&inner.dirs) {
-        inner
+    let added: Vec<PathBuf> = dirs.difference(&inner.dirs).cloned().collect();
+    for dir in added {
+        match inner
             .watcher
-            .watch(dir, notify::RecursiveMode::NonRecursive)
-            .map_err(|e| {
-                SuperpositionError::DataSourceError(format!(
-                    "Failed to watch folder {:?}: {}",
-                    dir, e
-                ))
-            })?;
+            .watch(&dir, notify::RecursiveMode::NonRecursive)
+        {
+            Ok(()) => {
+                inner.dirs.insert(dir);
+            }
+            Err(e) => log::warn!("FileDataSource: failed to watch {:?}: {}", dir, e),
+        }
     }
-    inner.dirs = dirs;
-    Ok(())
 }
 
 #[async_trait]
@@ -375,7 +380,15 @@ impl SuperpositionDataSource for FileDataSource {
             broadcast_tx: tx,
         };
         let config = ConfigFiles::new(config_files(&self.file_path, self.file_format));
-        sync_watched_dirs(&mut inner, config.dirs())?;
+        sync_watched_dirs(&mut inner, config.dirs());
+        // Without the main file's own folder nothing would ever be noticed.
+        let main_dir = parent_dir(&self.file_path);
+        if !inner.dirs.contains(&main_dir) {
+            return Err(SuperpositionError::DataSourceError(format!(
+                "Failed to watch folder {:?} of config file {:?}",
+                main_dir, self.file_path
+            )));
+        }
         if let Ok(mut current) = self.files.write() {
             *current = config;
         }
@@ -543,42 +556,74 @@ per_km_rate = 21.0
         assert_eq!(source.files.read().unwrap().paths.len(), 4);
     }
 
+    fn watched_dirs(source: &FileDataSource) -> HashSet<PathBuf> {
+        source
+            .watcher
+            .lock()
+            .unwrap()
+            .as_ref()
+            .unwrap()
+            .dirs
+            .clone()
+    }
+
+    /// `MAIN` with one more overrides import, `zones/blr.overrides.stoml`.
+    fn main_importing_zones() -> String {
+        MAIN.replace(
+            "\"city/delhi.overrides.stoml\"",
+            "\"city/delhi.overrides.stoml\", \"zones/blr.overrides.stoml\"",
+        )
+    }
+
     #[tokio::test]
     async fn watches_the_folders_of_imported_files() {
         let dir = split_config("folders");
         let source = FileDataSource::new(dir.join("main.stoml")).unwrap();
         let _stream = source.watch().unwrap().unwrap();
-        let dirs = |source: &FileDataSource| {
-            source
-                .watcher
-                .lock()
-                .unwrap()
-                .as_ref()
-                .unwrap()
-                .dirs
-                .clone()
-        };
         assert_eq!(
-            dirs(&source),
+            watched_dirs(&source),
             HashSet::from([dir.clone(), dir.join("city")])
         );
 
         // A new import in a new subfolder gets watched after the next fetch.
         std::fs::create_dir_all(dir.join("zones")).unwrap();
         std::fs::write(dir.join("zones/blr.overrides.stoml"), "").unwrap();
-        std::fs::write(
-            dir.join("main.stoml"),
-            MAIN.replace(
-                "\"city/delhi.overrides.stoml\"",
-                "\"city/delhi.overrides.stoml\", \"zones/blr.overrides.stoml\"",
-            ),
-        )
-        .unwrap();
+        std::fs::write(dir.join("main.stoml"), main_importing_zones()).unwrap();
         fetch(&source).await.unwrap();
         assert_eq!(
-            dirs(&source),
+            watched_dirs(&source),
             HashSet::from([dir.clone(), dir.join("city"), dir.join("zones")])
         );
+    }
+
+    #[tokio::test]
+    async fn a_missing_import_folder_doesnt_hide_the_parse_error() {
+        let dir = split_config("missing-folder");
+        std::fs::write(dir.join("main.stoml"), main_importing_zones()).unwrap();
+        let source = FileDataSource::new(dir.join("main.stoml")).unwrap();
+
+        // Watching starts anyway, without the folder that doesn't exist.
+        let _stream = source.watch().unwrap().unwrap();
+        assert_eq!(
+            watched_dirs(&source),
+            HashSet::from([dir.clone(), dir.join("city")])
+        );
+
+        // The fetch reports the missing file, not a watch failure.
+        let Err(err) = fetch(&source).await else {
+            panic!("expected a parse error");
+        };
+        let err = err.to_string();
+        assert!(
+            err.contains("can't find `zones/blr.overrides.stoml`"),
+            "{err}"
+        );
+
+        // Once the folder exists, the next fetch watches it.
+        std::fs::create_dir_all(dir.join("zones")).unwrap();
+        std::fs::write(dir.join("zones/blr.overrides.stoml"), "").unwrap();
+        fetch(&source).await.unwrap();
+        assert!(watched_dirs(&source).contains(&dir.join("zones")));
     }
 
     #[tokio::test]

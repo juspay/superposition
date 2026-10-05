@@ -265,17 +265,16 @@ impl LanguageServer for Backend {
     async fn did_close(&self, params: DidCloseTextDocumentParams) {
         let uri = params.text_document.uri;
         self.documents.remove(&uri);
-        // A file in a group keeps its diagnostics: re-check the group from
-        // disk, since unsaved edits were just discarded.
-        match self.group_of(&uri) {
-            Some(group) if group.files.len() > 1 => {
-                if let Some(main) = group.files.first() {
-                    self.check_group(main.clone()).await;
-                }
-            }
-            _ => {
-                self.client.publish_diagnostics(uri, vec![], None).await;
-            }
+        // A main file and the files it imports keep their diagnostics:
+        // re-check the group from disk, since unsaved edits were just
+        // discarded.
+        let main = uri.to_file_path().ok().and_then(|path| {
+            let owner = self.owners.get(&path).map(|main| main.value().clone());
+            workspace::main_to_recheck_on_close(&path, owner)
+        });
+        match main {
+            Some(main) => self.check_group(main).await,
+            None => self.client.publish_diagnostics(uri, vec![], None).await,
         }
     }
 

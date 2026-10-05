@@ -66,12 +66,10 @@ pub fn find_main(file: &Path, loader: &dyn SourceLoader) -> Option<PathBuf> {
             let imports_file = match resolve_toml_imports(&main, &src) {
                 Ok(plan) => plan.imported_files().any(|import| import.path == file),
                 // A broken import line elsewhere in main shouldn't orphan
-                // this file: fall back to looking for its path in the text.
+                // this file: fall back to looking for it as a quoted entry.
                 Err(_) => file
                     .strip_prefix(dir)
-                    .ok()
-                    .and_then(Path::to_str)
-                    .is_some_and(|rel| src.contains(rel)),
+                    .is_ok_and(|rel| lists_import(&src, rel)),
             };
             if imports_file {
                 return Some(main);
@@ -82,6 +80,40 @@ pub fn find_main(file: &Path, loader: &dyn SourceLoader) -> Option<PathBuf> {
         }
     }
     None
+}
+
+/// Whether `src` has `rel` as a quoted string (`"rel"`, `"./rel"`, or the
+/// single-quoted forms) outside a comment: what an import entry looks like.
+/// Used only when main's imports don't resolve, so this can't use the plan.
+fn lists_import(src: &str, rel: &Path) -> bool {
+    let Some(parts) = rel
+        .components()
+        .map(|part| part.as_os_str().to_str())
+        .collect::<Option<Vec<_>>>()
+    else {
+        return false;
+    };
+    let rel = parts.join("/");
+    let entries: Vec<String> = ['"', '\'']
+        .into_iter()
+        .flat_map(|q| [format!("{q}{rel}{q}"), format!("{q}./{rel}{q}")])
+        .collect();
+    src.lines()
+        .map(|line| line.split('#').next().unwrap_or_default())
+        .any(|code| entries.iter().any(|entry| code.contains(entry.as_str())))
+}
+
+/// The main file whose group to re-check when `path` is closed, so its
+/// diagnostics stay (from disk now that unsaved edits are gone). `owner` is
+/// the main file known to import `path`. `None` means just clear `path`'s
+/// diagnostics: an imported file with no known owner, or any other file.
+pub fn main_to_recheck_on_close(path: &Path, owner: Option<PathBuf>) -> Option<PathBuf> {
+    match FileKind::of(path) {
+        // Even when its imports don't resolve, so the error stays visible.
+        FileKind::Main => Some(path.to_path_buf()),
+        FileKind::Imported(_) => owner,
+        FileKind::Other => None,
+    }
 }
 
 /// The result of checking a main file and everything it imports.
@@ -264,6 +296,57 @@ overrides.import = ["city/delhi.overrides.stoml"]
         assert_eq!(
             find_main(Path::new("/ws/city/delhi.overrides.stoml"), &loader),
             Some(PathBuf::from("/ws/city/main.stoml"))
+        );
+    }
+
+    #[test]
+    fn a_main_with_a_broken_import_still_owns_files_it_lists() {
+        let child = Path::new("/ws/city/delhi.overrides.stoml");
+        let found = |main: &str| {
+            let loader = files(&[("/ws/main.stoml", main)]);
+            find_main(child, &loader)
+        };
+        // `../x` makes the imports fail to resolve, so the fallback runs.
+        let broken = "dimensions.import = [\"../x.dimensions.stoml\"]\n";
+
+        for listed in [
+            "overrides.import = [\"city/delhi.overrides.stoml\"]",
+            "overrides.import = ['./city/delhi.overrides.stoml']",
+        ] {
+            assert_eq!(
+                found(&format!("{broken}{listed}\n")),
+                Some(PathBuf::from("/ws/main.stoml")),
+                "{listed}"
+            );
+        }
+        for not_listed in [
+            "overrides.import = [\"xcity/delhi.overrides.stoml\"]",
+            "overrides.import = [\"city/delhi.overrides.stoml.bak\"]",
+            "# overrides.import = [\"city/delhi.overrides.stoml\"]",
+            "overrides.import = []  # \"city/delhi.overrides.stoml\"",
+        ] {
+            assert_eq!(
+                found(&format!("{broken}{not_listed}\n")),
+                None,
+                "{not_listed}"
+            );
+        }
+    }
+
+    #[test]
+    fn closing_a_file_rechecks_its_group_unless_it_has_none() {
+        let main = PathBuf::from("/ws/main.stoml");
+        // A main file is re-checked even if its imports didn't resolve.
+        assert_eq!(main_to_recheck_on_close(&main, None), Some(main.clone()));
+        let child = Path::new("/ws/city/delhi.overrides.stoml");
+        assert_eq!(
+            main_to_recheck_on_close(child, Some(main.clone())),
+            Some(main)
+        );
+        assert_eq!(main_to_recheck_on_close(child, None), None);
+        assert_eq!(
+            main_to_recheck_on_close(Path::new("/ws/config.super.toml"), None),
+            None
         );
     }
 
