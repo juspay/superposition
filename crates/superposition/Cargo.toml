@@ -7,8 +7,12 @@ rust-version.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = ["frontend"]
+frontend = ["dep:frontend", "dep:leptos", "dep:leptos_actix", "dep:actix-files"]
+
 [dependencies]
-actix-files = { version = "0.6" }
+actix-files = { version = "0.6", optional = true }
 actix-web = { workspace = true }
 anyhow = { workspace = true }
 chrono = { workspace = true }
@@ -17,11 +21,11 @@ diesel = { workspace = true }
 dotenv = "0.15.0"
 experimentation_platform = { path = "../experimentation_platform" }
 fred = { workspace = true }
-frontend = { path = "../frontend" }
+frontend = { path = "../frontend", optional = true }
 idgenerator = "2.0.0"
 inventory = { workspace = true }
-leptos = { workspace = true }
-leptos_actix = { version = "0.6.11" }
+leptos = { workspace = true, optional = true }
+leptos_actix = { version = "0.6.11", optional = true }
 log = { workspace = true }
 regex = { workspace = true }
 reqwest = { workspace = true }

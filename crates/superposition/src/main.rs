@@ -9,6 +9,7 @@ mod workspace;
 
 use std::{io::Result, sync::Arc, time::Duration};
 
+#[cfg(feature = "frontend")]
 use actix_files::Files;
 use actix_web::{
     App, HttpRequest, HttpResponse, HttpServer, Scope,
@@ -17,18 +18,24 @@ use actix_web::{
 };
 use context_aware_config::api::*;
 use experimentation_platform::api::*;
+#[cfg(feature = "frontend")]
 use frontend::app::*;
+#[cfg(feature = "frontend")]
 use frontend::types::{Envs as UIEnvs, SsrSharedHttpRequestHeaders};
 use idgenerator::{IdGeneratorOptions, IdInstance};
 use json_subscriber::fmt;
+#[cfg(feature = "frontend")]
 use leptos::*;
+#[cfg(feature = "frontend")]
 use leptos_actix::{LeptosRoutes, generate_route_list};
+#[cfg(feature = "frontend")]
+use service_utils::middlewares::auth_z::is_auth_z_enabled;
 use service_utils::{
     helpers::{get_from_env_or_default, get_from_env_unsafe},
     kms,
     middlewares::{
         auth_n::AuthNHandler,
-        auth_z::{AuthZHandler, AuthZManager, is_auth_z_enabled},
+        auth_z::{AuthZHandler, AuthZManager},
         request_response_logging::RequestResponseLogger,
         workspace_context::OrgWorkspaceMiddlewareFactory,
     },
@@ -47,6 +54,7 @@ use tracing_subscriber::{
 
 use crate::log_span::CustomRootSpanBuilder;
 
+#[cfg(feature = "frontend")]
 pub fn use_request_headers() -> Option<SsrSharedHttpRequestHeaders> {
     use_context::<HttpRequest>().map(|req| {
         let headers = req.headers();
@@ -58,6 +66,7 @@ pub fn use_request_headers() -> Option<SsrSharedHttpRequestHeaders> {
     })
 }
 
+#[cfg(feature = "frontend")]
 #[actix_web::get("favicon.ico")]
 async fn favicon(
     leptos_options: actix_web::web::Data<leptos::LeptosOptions>,
@@ -147,18 +156,23 @@ async fn main() -> Result<()> {
     let cac_port: u16 = get_from_env_unsafe("PORT").unwrap_or(8080);
 
     /* Frontend configurations */
+    #[cfg(feature = "frontend")]
     let ui_redirect_path = format!("{}/admin/organisations", base);
 
+    #[cfg(feature = "frontend")]
     let ui_envs = UIEnvs {
         service_prefix: service_prefix_str,
         host: get_from_env_or_default("API_HOSTNAME", String::new()),
         auth_z: is_auth_z_enabled(),
     };
 
+    #[cfg(feature = "frontend")]
     let routes_ui_envs = ui_envs.clone();
 
+    #[cfg(feature = "frontend")]
     let conf = get_configuration(Some("Cargo.toml")).await.unwrap();
     // Generate the list of routes in your Leptos App
+    #[cfg(feature = "frontend")]
     let routes = generate_route_list(move || {
         view! { <App app_envs=routes_ui_envs.clone() /> }
     });
@@ -238,101 +252,114 @@ async fn main() -> Result<()> {
 
     // --- Step 5: Build and run both servers concurrently ---
     let main_server = HttpServer::new(move || {
+        #[cfg(feature = "frontend")]
         let leptos_options = &conf.leptos_options;
+        #[cfg(feature = "frontend")]
         let site_root = &leptos_options.site_root;
-        let leptos_envs = ui_envs.clone();
-        App::new()
+
+        let app = App::new()
             .app_data(app_state.clone())
             .app_data(Data::new(reload_handle.clone()))
             .app_data(PathConfig::default().error_handler(|err, _| bad_argument!(err).into()))
             .app_data(QueryConfig::default().error_handler(|err, _| bad_argument!(err).into()))
-            .app_data(JsonConfig::default().error_handler(|err, _| bad_argument!(err).into()))
-            .leptos_routes(
-                leptos_options.to_owned(),
-                routes.to_owned(),
-                move || {
-                    provide_context(use_request_headers());
-                    view! { <App app_envs=leptos_envs.clone() /> }
-                },
-            )
-            .service(
-                scope(&base)
-                    .route(
-                        "/health",
-                        get().to(|| async { HttpResponse::Ok().body("Health is good :D") }),
-                    )
-                    .route(
-                        "/log-level/change",
-                        web::post().to(|state: Data<AppState>, handle: Data<reload::Handle<EnvFilter, tracing_subscriber::Registry>>, body: web::Json<serde_json::Value>, req: HttpRequest| async move {
-                            let internal_ops_api_key = match state.app_env {
-                                AppEnv::TEST | AppEnv::DEV => {
-                                    let Ok(internal_ops_api_key) = get_from_env_unsafe::<String>("INTERNAL_OPS_API_KEY") else {
-                                        tracing::error!("INTERNAL_OPS_API_KEY env not set");
-                                        return HttpResponse::InternalServerError().finish();
-                                    };
-                                    internal_ops_api_key
-                                },
-                                _ => {
-                                    let client = kms::new_client().await;
-                                    let api_key = client.get_secret("INTERNAL_OPS_API_KEY").await;
-                                    urlencoding::encode(api_key.as_str()).to_string()
-                                }
-                            };
-                            let Some(header_api_key) = req.headers().get("x-internal-ops-key").and_then(|header| header.to_str().ok()) else {
-                                return HttpResponse::BadRequest().json(serde_json::json!({"error": "Missing internal ops API key"}));
-                            };
-                            if header_api_key != internal_ops_api_key {
-                                return HttpResponse::Forbidden().finish()
+            .app_data(JsonConfig::default().error_handler(|err, _| bad_argument!(err).into()));
+
+        #[cfg(feature = "frontend")]
+        let app = app.leptos_routes(leptos_options.to_owned(), routes.to_owned(), {
+            let leptos_envs = ui_envs.clone();
+            move || {
+                provide_context(use_request_headers());
+                view! { <App app_envs=leptos_envs.clone() /> }
+            }
+        });
+
+        let app = app.service({
+            let base_scope = scope(&base)
+                .route(
+                    "/health",
+                    get().to(|| async { HttpResponse::Ok().body("Health is good :D") }),
+                )
+                .route(
+                    "/log-level/change",
+                    web::post().to(|state: Data<AppState>, handle: Data<reload::Handle<EnvFilter, tracing_subscriber::Registry>>, body: web::Json<serde_json::Value>, req: HttpRequest| async move {
+                        let internal_ops_api_key = match state.app_env {
+                            AppEnv::TEST | AppEnv::DEV => {
+                                let Ok(internal_ops_api_key) = get_from_env_unsafe::<String>("INTERNAL_OPS_API_KEY") else {
+                                    tracing::error!("INTERNAL_OPS_API_KEY env not set");
+                                    return HttpResponse::InternalServerError().finish();
+                                };
+                                internal_ops_api_key
+                            },
+                            _ => {
+                                let client = kms::new_client().await;
+                                let api_key = client.get_secret("INTERNAL_OPS_API_KEY").await;
+                                urlencoding::encode(api_key.as_str()).to_string()
                             }
-                            match body.get("level")
-                                .and_then(|v| v.as_str())
-                                .ok_or("Could not convert log level to string, is this `level` field missing?".to_string())
-                                .and_then(|level| EnvFilter::try_new(level).map_err(|e| e.to_string()))
-                                .and_then(|level| handle.modify(|filter| *filter = level).map_err(|e| e.to_string()))
-                            {
-                                    Ok(()) => HttpResponse::Ok().body("Log level updated successfully"),
-                                    Err(e) => HttpResponse::BadRequest().json(serde_json::json!({"error": format!("Failed to update log level: {}", e)})),
-                            }
-                        }),
-                    )
-                    .service(auth_n.routes())
-                    .service(auth_n.org_routes())
-                    .service(web::redirect("", ui_redirect_path.to_string()))
-                    .service(web::redirect("/", ui_redirect_path.to_string()))
-                    .service(web::redirect("/admin", ui_redirect_path.to_string()))
-                    .service(web::redirect("/admin/", ui_redirect_path.to_string()))
-                    .service(web::redirect("/admin/{org_id}", "workspaces"))
-                    .service(web::redirect("/admin/{org_id}/", "workspaces"))
-                    .service(web::redirect("/admin/{org_id}/{tenant}", "default-config"))
-                    .service(web::redirect("/admin/{org_id}/{tenant}/", "default-config"))
-                    /***************************** UI Routes ******************************/
-                    .route("/fxn/{tail:.*}", leptos_actix::handle_server_fns())
-                    // serve JS/WASM/CSS from `pkg`
-                    .service(Files::new("/pkg", format!("{site_root}/pkg")))
-                    // serve other assets from the `assets` directory
-                    .service(Files::new("/assets", site_root.to_string()))
-                    // serve the favicon from /favicon.ico
-                    /***************************** V1 Routes *****************************/
-                    .resource_routes_workspace_specific(auth_z_manager.clone())
-                    .resource_routes_org_specific(auth_z_manager.clone())
-                    .resource_routes(auth_z_manager.clone())
-                    .service(
-                        scope("/{org_id}")
-                            .resource_routes_org_specific(auth_z_manager.clone())
-                            .service(
-                                scope("/{workspace}")
-                                    .resource_routes_workspace_specific(auth_z_manager.clone()),
-                            ),
-                    )
-            )
-            .route(
-                "/health",
-                get().to(|| async { HttpResponse::Ok().body("Health is good :D") }),
-            )
-            .app_data(Data::new(leptos_options.to_owned()))
-            // Auth middlewares are innermost so outer middlewares still run on auth failures.
-            // Note: in actix-web, the last `.wrap()` runs first on requests.
-            .wrap(auth_z.clone())
+                        };
+                        let Some(header_api_key) = req.headers().get("x-internal-ops-key").and_then(|header| header.to_str().ok()) else {
+                            return HttpResponse::BadRequest().json(serde_json::json!({"error": "Missing internal ops API key"}));
+                        };
+                        if header_api_key != internal_ops_api_key {
+                            return HttpResponse::Forbidden().finish()
+                        }
+                        match body.get("level")
+                            .and_then(|v| v.as_str())
+                            .ok_or("Could not convert log level to string, is this `level` field missing?".to_string())
+                            .and_then(|level| EnvFilter::try_new(level).map_err(|e| e.to_string()))
+                            .and_then(|level| handle.modify(|filter| *filter = level).map_err(|e| e.to_string()))
+                        {
+                                Ok(()) => HttpResponse::Ok().body("Log level updated successfully"),
+                                Err(e) => HttpResponse::BadRequest().json(serde_json::json!({"error": format!("Failed to update log level: {}", e)})),
+                        }
+                    }),
+                )
+                .service(auth_n.routes())
+                .service(auth_n.org_routes());
+
+            /***************************** UI Routes ******************************/
+            #[cfg(feature = "frontend")]
+            let base_scope = base_scope
+                .service(web::redirect("", ui_redirect_path.to_string()))
+                .service(web::redirect("/", ui_redirect_path.to_string()))
+                .service(web::redirect("/admin", ui_redirect_path.to_string()))
+                .service(web::redirect("/admin/", ui_redirect_path.to_string()))
+                .service(web::redirect("/admin/{org_id}", "workspaces"))
+                .service(web::redirect("/admin/{org_id}/", "workspaces"))
+                .service(web::redirect("/admin/{org_id}/{tenant}", "default-config"))
+                .service(web::redirect("/admin/{org_id}/{tenant}/", "default-config"))
+                .route("/fxn/{tail:.*}", leptos_actix::handle_server_fns())
+                // serve JS/WASM/CSS from `pkg`
+                .service(Files::new("/pkg", format!("{site_root}/pkg")))
+                // serve other assets from the `assets` directory
+                .service(Files::new("/assets", site_root.to_string()));
+            // serve the favicon from /favicon.ico
+
+            /***************************** V1 Routes *****************************/
+            base_scope
+                .resource_routes_workspace_specific(auth_z_manager.clone())
+                .resource_routes_org_specific(auth_z_manager.clone())
+                .resource_routes(auth_z_manager.clone())
+                .service(
+                    scope("/{org_id}")
+                        .resource_routes_org_specific(auth_z_manager.clone())
+                        .service(
+                            scope("/{workspace}")
+                                .resource_routes_workspace_specific(auth_z_manager.clone()),
+                        ),
+                )
+        });
+
+        let app = app.route(
+            "/health",
+            get().to(|| async { HttpResponse::Ok().body("Health is good :D") }),
+        );
+
+        #[cfg(feature = "frontend")]
+        let app = app.app_data(Data::new(leptos_options.to_owned()));
+
+        // Auth middlewares are innermost so outer middlewares still run on auth failures.
+        // Note: in actix-web, the last `.wrap()` runs first on requests.
+        app.wrap(auth_z.clone())
             .wrap(auth_n.clone())
             .wrap(
                 actix_web::middleware::DefaultHeaders::new()
