@@ -1,0 +1,3 @@
+[dimensions]
+city = { position = 4, schema = { "type" = "string", "enum" = ["Chennai", "Bangalore", "Delhi"] } }
+city_cohort = { position = 1, schema = { enum = ["south", "otherwise"], type = "string", definitions = { south = { in = [{ var = "city" }, ["Bangalore", "Chennai"]] } } }, type = "LOCAL_COHORT:city" }
