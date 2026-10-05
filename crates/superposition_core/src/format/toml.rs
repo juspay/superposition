@@ -22,6 +22,86 @@ use crate::format::{ConfigFormat, FormatError, MarkupFormat};
 /// TOML format implementation
 pub struct TomlFormat;
 
+/// Value of `meta.type` that marks a document as SuperTOML.
+pub const SUPERTOML_FILE_TYPE: &str = "supertoml";
+
+/// SuperTOML format version written on export. Files declaring a newer
+/// version are rejected, since they may rely on syntax this parser predates.
+pub const SUPERTOML_VERSION: u32 = 1;
+
+/// Version assumed for files without `[meta]`. Such files predate the marker,
+/// so they keep being read as version 1; never bump this with
+/// `SUPERTOML_VERSION`.
+const UNMARKED_VERSION: u32 = 1;
+
+/// `[meta]` table identifying the document as SuperTOML and the format version
+/// it was written against. Validated on parse, defaulted when absent, always
+/// emitted on export.
+#[derive(Serialize, Deserialize)]
+struct MetaToml {
+    #[serde(rename = "type")]
+    file_type: FileType,
+    version: FormatVersion,
+    /// Set when the file had no `[meta]` and the version was assumed.
+    #[serde(skip)]
+    assumed: bool,
+}
+
+impl MetaToml {
+    fn current() -> Self {
+        Self {
+            file_type: FileType(SUPERTOML_FILE_TYPE.to_string()),
+            version: FormatVersion(SUPERTOML_VERSION),
+            assumed: false,
+        }
+    }
+
+    fn unmarked() -> Self {
+        Self {
+            file_type: FileType(SUPERTOML_FILE_TYPE.to_string()),
+            version: FormatVersion(UNMARKED_VERSION),
+            assumed: true,
+        }
+    }
+}
+
+// Validation happens during deserialization so errors carry the value's span.
+#[derive(Serialize, Deserialize)]
+#[serde(try_from = "String")]
+struct FileType(String);
+
+impl TryFrom<String> for FileType {
+    type Error = String;
+    fn try_from(file_type: String) -> Result<Self, Self::Error> {
+        if file_type == SUPERTOML_FILE_TYPE {
+            Ok(Self(file_type))
+        } else {
+            Err(format!(
+                "unsupported file type `{}`, expected `{}`",
+                file_type, SUPERTOML_FILE_TYPE
+            ))
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(try_from = "u32")]
+struct FormatVersion(u32);
+
+impl TryFrom<u32> for FormatVersion {
+    type Error = String;
+    fn try_from(version: u32) -> Result<Self, Self::Error> {
+        if (1..=SUPERTOML_VERSION).contains(&version) {
+            Ok(Self(version))
+        } else {
+            Err(format!(
+                "unsupported SuperTOML version {}, this parser supports versions 1 to {}",
+                version, SUPERTOML_VERSION
+            ))
+        }
+    }
+}
+
 /// TOML-specific structures (kept for backward compatibility)
 #[derive(Serialize, Deserialize)]
 struct DimensionInfoToml {
@@ -108,6 +188,8 @@ impl TryFrom<(Context, &HashMap<String, Overrides>)> for ContextToml {
 
 #[derive(Serialize, Deserialize)]
 struct DetailedConfigToml {
+    #[serde(default = "MetaToml::unmarked")]
+    meta: MetaToml,
     #[serde(rename = "default-configs")]
     default_configs: DefaultConfigsWithSchema,
     dimensions: BTreeMap<String, DimensionInfoToml>,
@@ -116,6 +198,18 @@ struct DetailedConfigToml {
 }
 
 impl DetailedConfigToml {
+    fn emit_meta(meta: MetaToml) -> String {
+        let mut out = String::new();
+        out.push_str("[meta]\n");
+        out.push_str(&format!(
+            "type = {}\n",
+            format_toml_value(&TomlValue::String(meta.file_type.0))
+        ));
+        out.push_str(&format!("version = {}\n", meta.version.0));
+        out.push('\n');
+        out
+    }
+
     fn emit_default_configs(
         default_configs: DefaultConfigsWithSchema,
     ) -> Result<String, FormatError> {
@@ -185,6 +279,9 @@ impl DetailedConfigToml {
     pub fn serialize_to_toml(self) -> Result<String, FormatError> {
         let mut out = String::new();
 
+        out.push_str(&Self::emit_meta(self.meta));
+        out.push('\n');
+
         out.push_str(&Self::emit_default_configs(self.default_configs)?);
         out.push('\n');
 
@@ -204,6 +301,7 @@ impl TryFrom<DetailedConfig> for DetailedConfigToml {
     type Error = FormatError;
     fn try_from(d: DetailedConfig) -> Result<Self, Self::Error> {
         Ok(Self {
+            meta: MetaToml::current(),
             default_configs: d.default_configs,
             dimensions: d
                 .dimensions
@@ -231,6 +329,16 @@ impl TryFrom<DetailedConfig> for DetailedConfigToml {
 impl TryFrom<DetailedConfigToml> for DetailedConfig {
     type Error = FormatError;
     fn try_from(d: DetailedConfigToml) -> Result<Self, Self::Error> {
+        if d.meta.assumed {
+            log::warn!(
+                "SuperTOML file has no [meta] table, reading it as version {}. \
+                 Add [meta] with type = \"{}\" and version = {} to pin the version.",
+                UNMARKED_VERSION,
+                SUPERTOML_FILE_TYPE,
+                UNMARKED_VERSION
+            );
+        }
+
         let dimensions = d
             .dimensions
             .into_iter()
