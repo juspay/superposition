@@ -250,13 +250,16 @@ symlink an authority-widening device — grant someone `old.key`, they write to 
 the change lands on `new.key`, which policy never let them touch.
 
 Consequence: write-grants held only on the old name begin returning 403, so a rename
-needs its grants repointed — one line in the runbook. Config *reads* are workspace-
-and prefix-scoped rather than per-key, so readers are unaffected, which is where the
-compatibility value lies.
+needs its grants repointed — one line in the runbook. Readers are unaffected, which is
+where the compatibility value lies: the config read handlers never call
+`_auth_z.authorized()` at all, so no per-key attribute check happens on a read and a
+rename cannot take a key away from a reader. (An earlier draft of this document called
+reads "workspace- and prefix-scoped", which overstates the mechanism — prefix filtering
+is a client-supplied query parameter, not an authorization boundary.)
 
 **Creating** a link authorizes both the new key and its target. Without the second
 check, a principal could create `allowed.alias -> restricted.key` and surface the
-target's value under a name that a prefix-scoped reader is permitted to see. The
+target's value under a name of their own choosing. The
 redirect on a later PATCH is already authorized against the target, so this closes
 the remaining direction.
 
