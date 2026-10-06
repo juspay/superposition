@@ -105,9 +105,12 @@ Because the pointer lives in JSON rather than a foreign key, three rules replace
    listing them — the same shape as the existing context-usage check at
    `default_config/handlers.rs:512`:
    ```sql
-   WHERE (schema->>'x-superposition-symlink')::boolean IS TRUE
+   WHERE schema->>'x-superposition-symlink' = 'true'
      AND value #>> '{}' = $1
    ```
+   The comparison is on text rather than a `::boolean` cast: a cast raises on a
+   hand-edited non-boolean marker, which would fail the whole query and take config
+   assembly down with it — the opposite of rule 3 below.
 2. **Flatten at write.** If the requested target is itself a link, store the concrete
    key it resolves to. Depth stays 1 and cycles are impossible by construction.
    A serial rename (`old -> new`, then `new -> newer`) cannot leave a chain, because
@@ -159,14 +162,28 @@ with what the write path produces for the same semantic override — and then pe
 them. This is why the distinction is a type, not a convention:
 
 ```rust
-pub struct RawConfig(Config);     // DB truth, no aliases. The only type reduce accepts.
-pub struct ServedConfig(Config);  // aliases expanded. The only type persisted or served.
+pub struct RawConfig(Config);
 
-pub fn generate_cac(..) -> RawConfig                                  // today's query + one filter
-pub fn expand_symlinks(RawConfig, &[(String, String)]) -> ServedConfig
+impl RawConfig {
+    /// Adds the aliases. The result is what may be persisted or served.
+    pub fn expand(self, links: &[SymlinkRow]) -> Config { .. }
+
+    /// The config without aliases. Only for maintenance paths that write contexts
+    /// back; never serve or snapshot this.
+    pub fn into_unexpanded(self) -> Config { .. }
+}
+
+pub fn generate_cac(..) -> RawConfig    // today's query + one filter
 ```
 
-Both newtypes live server-side, in `context_aware_config`. `superposition_types::Config`
+One newtype carries the distinction, because the asymmetry is in the naming: every
+serving path reaches config through `generate_config_from_version`, which expands
+internally, so no serving path can forget. `into_unexpanded` is the single named
+escape hatch, and `grep` for it should only ever find `reduce_handler`. A second
+`ServedConfig` type would churn roughly eight handler signatures without adding a
+guarantee.
+
+`RawConfig` lives server-side, in `context_aware_config`. `superposition_types::Config`
 itself is **unchanged**, so no client, SDK or uniffi binding sees a new type — only the
 three or four server call sites do.
 
