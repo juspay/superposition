@@ -43,7 +43,7 @@ use superposition_types::{
         schema::{self, contexts::dsl::contexts, default_configs::dsl},
     },
     result as superposition,
-    symlink::{is_symlink_schema, normalize_symlink_write, symlink_target},
+    symlink::{carries_symlink_marker, normalize_symlink_write, symlink_target},
 };
 
 use crate::{
@@ -88,7 +88,14 @@ async fn create_handler(
     // A create whose schema carries the symlink marker is a link, not an ordinary
     // key: its value names a target, which must already exist and must not be
     // another link (flatten_target keeps stored links at depth 1).
-    let symlink = if is_symlink_schema(req.schema.inner()) {
+    //
+    // The gate is marker *presence*, not `is_symlink_schema`: a marker that is
+    // there but isn't the boolean `true` must reach `normalize_symlink_write` and
+    // be rejected. Gating on `is_symlink_schema` instead let such a row through as
+    // an ordinary key — skipping the target authorization below — while the read
+    // path's SQL predicate still saw a link and published the target's value under
+    // this name.
+    let symlink = if carries_symlink_marker(req.schema.inner()) {
         let (requested, canonical) =
             normalize_symlink_write(req.schema.inner(), &req.value)
                 .map_err(|e| bad_argument!("{}", e))?;
@@ -312,7 +319,7 @@ async fn update_handler(
     let repoint = req
         .schema
         .as_ref()
-        .map(|schema| is_symlink_schema(schema.inner()))
+        .map(|schema| carries_symlink_marker(schema.inner()))
         .unwrap_or(false);
 
     if repoint

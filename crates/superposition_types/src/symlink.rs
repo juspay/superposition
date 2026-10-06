@@ -32,8 +32,28 @@ pub struct SymlinkRow {
 /// The boolean marker is the *only* discriminator: a row with
 /// `{"type": "string"}` whose value happens to look like a key name is an
 /// ordinary config.
+///
+/// This is the read-side definition, and it must agree exactly with the SQL
+/// predicates in `context_aware_config::symlinks` — see
+/// [`carries_symlink_marker`] for why.
 pub fn is_symlink_schema(schema: &Map<String, Value>) -> bool {
     schema.get(SYMLINK_KEYWORD) == Some(&Value::Bool(true))
+}
+
+/// Whether this schema mentions the symlink marker *at all*, whatever its value.
+///
+/// The write path must branch on this rather than on [`is_symlink_schema`], so
+/// that a marker which is present but not the boolean `true` reaches
+/// [`normalize_symlink_write`] and is rejected, instead of being waved through as
+/// an ordinary key. A waved-through row is how a caller could once store
+/// `{"x-superposition-symlink": "true"}` — a JSON *string* — which the read path's
+/// `->>` unquoting treated as a link while this Rust side treated it as an
+/// ordinary key, skipping the symlink target's authorization check entirely.
+///
+/// The invariant the two functions buy together: a stored row either carries no
+/// marker, or carries the boolean `true`. Nothing else can be written.
+pub fn carries_symlink_marker(schema: &Map<String, Value>) -> bool {
+    schema.contains_key(SYMLINK_KEYWORD)
 }
 
 /// The target key a symlink row points at, or `None` for an ordinary row.
@@ -170,6 +190,40 @@ mod tests {
             assert!(!is_symlink_schema(&schema));
             assert!(normalize_symlink_write(&schema, &json!("a.b")).is_err());
         }
+    }
+
+    #[test]
+    fn a_string_true_marker_is_routed_to_the_write_gate_and_rejected() {
+        // The authorization bypass this closes: `->>` unquotes, so the JSON
+        // string "true" matched the read path's SQL predicate while
+        // `is_symlink_schema` said "ordinary key" — and the write path, gated on
+        // `is_symlink_schema`, skipped the target's authorization check. The
+        // write gate is `carries_symlink_marker`, so the rejection below is the
+        // one that actually fires.
+        let schema = map(json!({ "type": "string", SYMLINK_KEYWORD: "true" }));
+
+        assert!(
+            carries_symlink_marker(&schema),
+            "the write path must route a present-but-not-boolean marker into the \
+             symlink branch, or its rejection is dead code"
+        );
+        assert!(!is_symlink_schema(&schema));
+
+        let err = normalize_symlink_write(&schema, &json!("restricted.key"))
+            .expect_err("a string marker must be refused");
+        assert!(
+            err.contains("must be the boolean true"),
+            "error should name the requirement: {err}"
+        );
+    }
+
+    #[test]
+    fn carries_the_marker_is_wider_than_is_a_symlink() {
+        for marker in [json!(true), json!(false), json!("true"), json!(null)] {
+            let schema = map(json!({ SYMLINK_KEYWORD: marker }));
+            assert!(carries_symlink_marker(&schema));
+        }
+        assert!(!carries_symlink_marker(&map(json!({ "type": "string" }))));
     }
 
     #[test]

@@ -18,13 +18,34 @@ use superposition_types::{
     symlink::{SymlinkRow, is_symlink_schema, symlink_target},
 };
 
-/// Rows that are symlinks. Compares text rather than casting, so a hand-edited
-/// non-boolean marker cannot fail the query.
-pub const IS_A_SYMLINK_SQL: &str = "schema->>'x-superposition-symlink' = 'true'";
+/// The one SQL spelling of "this row is a symlink", shared by both predicates
+/// below so they cannot drift apart.
+///
+/// Both halves matter. `->>` unquotes, so the value test alone also matches the
+/// JSON *string* `"true"`, which
+/// [`is_symlink_schema`] does not — a disagreement that let a write carrying
+/// `{"x-superposition-symlink": "true"}` take the ordinary-key path (skipping the
+/// symlink target's authorization check) while the read path published it as a
+/// link. The `json_typeof` test pins the marker to a real JSON boolean, matching
+/// Rust exactly.
+///
+/// Both tests stay *total*: `json_typeof` returns NULL for an absent key rather
+/// than raising, and the `coalesce` turns that NULL into `false`. A `::boolean`
+/// cast would raise on a hand-edited marker and fail config assembly for the
+/// whole workspace, so no cast may be reintroduced here.
+macro_rules! symlink_marker_sql {
+    () => {
+        "coalesce(json_typeof(schema->'x-superposition-symlink') = 'boolean' \
+         and schema->>'x-superposition-symlink' = 'true', false)"
+    };
+}
 
-/// Rows that are ordinary default configs.
-pub const NOT_A_SYMLINK_SQL: &str =
-    "coalesce(schema->>'x-superposition-symlink', '') <> 'true'";
+/// Rows that are symlinks.
+pub const IS_A_SYMLINK_SQL: &str = symlink_marker_sql!();
+
+/// Rows that are ordinary default configs. Exactly the complement of
+/// [`IS_A_SYMLINK_SQL`], which is only sound because that predicate is total.
+pub const NOT_A_SYMLINK_SQL: &str = concat!("not ", symlink_marker_sql!());
 
 /// A config as the database holds it, with no symlinked keys.
 pub struct RawConfig(Config);
@@ -60,6 +81,13 @@ pub fn fetch_symlinks(
     let rows = dsl::default_configs
         .filter(sql::<Bool>(IS_A_SYMLINK_SQL))
         .select((dsl::key, dsl::value, dsl::description))
+        // Deterministic order. `expand_symlinks` makes a single pass, which is
+        // order-independent only because the write path keeps every link at depth
+        // 1 (so no link's target is itself a link, and the pass never reads a key
+        // another iteration wrote). Ordering costs nothing and makes any future
+        // regression in that invariant reproducible instead of version-to-version
+        // flaky.
+        .order(dsl::key.asc())
         .schema_name(schema_name)
         .load::<(String, Value, String)>(conn)
         .map_err(|err| {
@@ -70,10 +98,19 @@ pub fn fetch_symlinks(
     Ok(rows
         .into_iter()
         .filter_map(|(key, value, description)| {
-            let target = value.as_str()?.to_string();
+            // Log and omit, as `expand_symlinks` does for a missing target: a row
+            // marked as a link whose value is not a key name cannot be resolved,
+            // and dropping it silently is how a serving key vanishes from config
+            // and Redis with no trace.
+            let Some(target) = value.as_str() else {
+                log::error!(
+                    "symlink {key}: value {value} is not a key name, link omitted"
+                );
+                return None;
+            };
             Some(SymlinkRow {
                 key,
-                target,
+                target: target.to_string(),
                 description,
             })
         })
@@ -120,7 +157,16 @@ pub fn symlink_map_for_keys<'a>(
 
     Ok(rows
         .into_iter()
-        .filter_map(|(key, value)| Some((key, value.as_str()?.to_string())))
+        .filter_map(|(key, value)| {
+            // As in `fetch_symlinks`: log and omit rather than drop in silence.
+            let Some(target) = value.as_str() else {
+                log::error!(
+                    "symlink {key}: value {value} is not a key name, link omitted"
+                );
+                return None;
+            };
+            Some((key, target.to_string()))
+        })
         .collect())
 }
 
@@ -439,12 +485,35 @@ mod tests {
     }
 
     #[test]
-    fn sql_predicates_are_total_text_comparisons() {
+    fn sql_predicates_require_a_boolean_marker_and_stay_total() {
+        // The SQL and `superposition_types::symlink::is_symlink_schema` must agree
+        // on exactly one definition of "is a symlink". `->>` unquotes, so the
+        // value test alone also matches the JSON *string* "true", which Rust does
+        // not — the disagreement that let a write skip the symlink target's
+        // authorization check while the read path published the link anyway. The
+        // `json_typeof` test is what pins the marker to a real JSON boolean.
+        assert!(super::IS_A_SYMLINK_SQL.contains("json_typeof"));
+        assert!(super::IS_A_SYMLINK_SQL.contains("= 'boolean'"));
+        assert!(
+            super::IS_A_SYMLINK_SQL
+                .contains("schema->>'x-superposition-symlink' = 'true'")
+        );
+
         // A cast such as (schema->>'...')::boolean raises on a hand-edited
-        // non-boolean marker and would fail the whole query, so both predicates
-        // must compare text.
+        // non-boolean marker and would fail config assembly for the whole
+        // workspace. `json_typeof` does not raise, so no cast may come back.
         assert!(!super::IS_A_SYMLINK_SQL.contains("::boolean"));
         assert!(!super::NOT_A_SYMLINK_SQL.contains("::boolean"));
+
+        // Totality: an absent marker makes `json_typeof` NULL, and NULL must read
+        // as false. Without the coalesce, `not (NULL)` is NULL and every ordinary
+        // row would vanish from `generate_cac`.
+        assert!(super::IS_A_SYMLINK_SQL.contains("coalesce"));
+        assert_eq!(
+            super::NOT_A_SYMLINK_SQL,
+            format!("not {}", super::IS_A_SYMLINK_SQL),
+            "the two predicates must be exact complements, from one spelling"
+        );
 
         // Renaming the keyword must not be able to silently desync the SQL
         // literals above from the on-disk representation in Task 1.
