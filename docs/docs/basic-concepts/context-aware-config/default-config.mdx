@@ -39,3 +39,73 @@ Two functions that can be linked with default configs to ensure correctness:
 - Value Compute
 
 To learn more about these, check out [functions](../safety/functions.mdx)
+
+## Symlinks
+
+A key ending in `.` is already treated as a folder in the default-config list, so config keys in Superposition behave like a filesystem. A symlink extends that idea the way a POSIX symlink does: it's a key whose content is the path of another key, rather than a value of its own.
+
+A symlink is useful for two situations:
+
+- **Renaming a key** while deployed clients still ask for the old name. Point the old name at the new one, and both keep working until every client has migrated.
+- **Giving one canonical value several names** - for example, a short internal name and a longer, documented public one.
+
+The rest of this section uses one running example: renaming `payments.retry_count` to `payments.retry.count`.
+
+### What a symlink is
+
+A symlink is an ordinary default config row. Its `value` is set to the target key's name, and its `schema` carries the marker `"x-superposition-symlink": true`. There is no separate symlink table, and no migration needed to use the feature - any default config can become a symlink.
+
+### Creating a symlink
+
+Create one with the usual create-default-config call, setting `value` to the target key and the schema to the marker:
+
+```bash
+POST /default-config
+{
+  "key": "payments.retry_count",
+  "value": "payments.retry.count",
+  "schema": { "x-superposition-symlink": true },
+  "description": "Old name, kept as a symlink while clients migrate",
+  "change_reason": "Renaming to payments.retry.count"
+}
+```
+
+The server normalizes the short form above into the canonical symlink schema (a string type constrained to the key-name pattern, plus the marker) before storing it. There's deliberately no `symlink_to` field on the request - the target is the `value`, same as it would be for any other key.
+
+The target key must already exist, and it must not itself be a symlink: a symlink's target is resolved to a concrete key at creation (and at repoint) time, so a symlink can never point at another symlink. Depth stays at exactly 1, and cycles are impossible by construction. This also means a serial rename can't leave a chain - renaming `a` to `b` and later `b` to `c` repoints `a` straight at `c`.
+
+A symlink can't carry a validation or compute function of its own; a create or update that tries one is rejected. Those functions describe how a *value* is produced and checked, and a symlink has no value of its own to validate - only the target does.
+
+### Reading a symlink
+
+Reading a symlink returns the target's `value`, `schema`, and function names, while keeping the link's own `key`, `description`, and audit fields. The response adds a `symlink_to` field naming the target, so a client that doesn't know about symlinks still sees a real, typed value under the name it asked for.
+
+Both the old and new name stay in agreement everywhere a value shows up for them - not just in the default, but under every context override and experiment variant too. A symlink's expansion copies the link into the evaluated configuration *and* into every override or variant map that mentions the target, so `payments.retry_count` and `payments.retry.count` always resolve to the same thing.
+
+An override or experiment variant can name either the old or the new key; whichever one it names, the value is stored against the target, so the two names cannot drift apart. Naming both the link and its target in the same override is fine as long as they agree, and is refused if they carry different values - keeping one of them is the fix.
+
+### Writes redirect to the target
+
+A write made against a symlinked key follows one of three rules:
+
+1. A request carrying `value`, `schema`, or either function name - without the symlink marker - edits the **target**. This is what makes updating `payments.retry_count`'s value actually update `payments.retry.count`.
+2. A request carrying only `description` (plus the required `change_reason`) edits the **link's own row** - renaming the description of the alias doesn't touch the target.
+3. A request carrying the symlink marker **repoints the link** to a new target, the same way a create does.
+
+This redirect applies everywhere a default config can be written, including from the Superposition UI - editing the symlinked key's value in the console edits the target underneath it.
+
+### Deleting
+
+A target can't be deleted while a symlink still points at it; the error names the symlinks that depend on it, so you know what to repoint or remove first. Deleting the symlink itself is always fine - it's just a row like any other.
+
+### In the UI
+
+A symlinked key shows a `→ target` badge next to its name in the default-config list. The create form has a "Create as symlink" mode that asks for a target key instead of a value and schema. Symlinks remain selectable in the key pickers for context overrides and experiment variants, same as any other key, with a warning if two keys selected in the same form resolve to the same target.
+
+### Authorization follows the redirect
+
+Because a write to a symlinked key is really a write to its target, authorization is checked against the target too. Creating a symlink requires write authority over both the link's own name and the target - otherwise a symlink could surface a restricted key's value under a name someone is permitted to write.
+
+This has a practical consequence for the renaming use case: a write grant held only on the old key name starts returning `403` once that name becomes a symlink, because the write is now checked against the target. A rename runbook needs to repoint write grants to the new name as part of the migration, not just update clients.
+
+Config *reads* are scoped to a workspace and key prefix rather than to an individual key, so readers are unaffected by any of this - which is exactly where a symlink's compatibility value lies: old readers keep working with no permission changes at all.
