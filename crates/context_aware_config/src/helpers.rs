@@ -171,8 +171,12 @@ pub fn generate_detailed_cac(
 ) -> superposition::Result<DetailedConfig> {
     let (contexts, overrides) = get_context_data(conn, schema_name)?;
 
-    // Fetch default_configs with value, schema and description
+    // Fetch default_configs with value, schema and description, excluding symlink
+    // rows: a link's own schema is just the pointer marker, not a real type.
     let default_config_vec = def_conf::default_configs
+        .filter(diesel::dsl::sql::<diesel::sql_types::Bool>(
+            crate::symlinks::NOT_A_SYMLINK_SQL,
+        ))
         .select((
             def_conf::key,
             def_conf::value,
@@ -203,12 +207,15 @@ pub fn generate_detailed_cac(
 
     let dimensions = fetch_dimensions_info_map(conn, schema_name)?;
 
-    Ok(DetailedConfig {
+    let links = crate::symlinks::fetch_symlinks(conn, schema_name)?;
+    let mut detailed = DetailedConfig {
         contexts,
         overrides,
         default_configs: DefaultConfigsWithSchema::from(default_configs),
         dimensions,
-    })
+    };
+    detailed.expand_symlinks(&links);
+    Ok(detailed)
 }
 
 pub fn add_config_version(
