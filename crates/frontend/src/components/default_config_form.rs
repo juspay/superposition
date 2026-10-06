@@ -5,7 +5,7 @@ use std::ops::Deref;
 use chrono::Utc;
 use futures::join;
 use leptos::{html::Div, *};
-use leptos_router::use_navigate;
+use leptos_router::{A, use_navigate};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use superposition_types::{
@@ -75,10 +75,24 @@ pub fn DefaultConfigForm(
     #[prop(default = None)] value_compute_function_name: Option<String>,
     #[prop(default = None)] prefix: Option<String>,
     #[prop(default = String::new())] description: String,
+    /// The target key, when this is an *existing* symlink being edited.
+    ///
+    /// The API resolves a symlink's value/schema/function names from its
+    /// target on read, and a write to any of those fields redirects to the
+    /// target rather than this key - so when this is set, the form must not
+    /// present them as editable, pre-filled, local-looking inputs. Only
+    /// `description` genuinely belongs to this key's own row.
+    #[prop(default = None)] symlink_to: Option<String>,
     #[prop(into)] redirect_url_cancel: String,
 ) -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
+
+    // A plain, `Copy` flag computed once: whether this form is editing an
+    // already-existing symlink (as opposed to creating one, which is a
+    // different `is_symlink_s`-driven path below).
+    let editing_symlink = edit && symlink_to.is_some();
+    let symlink_to = StoredValue::new(symlink_to);
 
     let (config_key_rs, config_key_ws) = create_signal(
         prefix
@@ -216,14 +230,36 @@ pub fn DefaultConfigForm(
                     future.await.map(|_| ResponseType::Response)
                 }
                 (true, None) => {
-                    let request_payload = try_update_payload(
-                        f_value,
-                        f_schema,
-                        fun_name,
-                        value_compute_fn,
-                        description,
-                        change_reason,
-                    );
+                    // Editing an existing symlink may only change its own
+                    // `description` - `value`/`schema`/function names are
+                    // left out entirely (`None`, not merely unchanged)
+                    // rather than resubmitted, because resubmitting them
+                    // would redirect the write to the target key.
+                    let request_payload = if editing_symlink {
+                        (|| -> Result<DefaultConfigUpdateRequest, String> {
+                            Ok(DefaultConfigUpdateRequest {
+                                value: None,
+                                schema: None,
+                                value_validation_function_name: None,
+                                value_compute_function_name: None,
+                                description: Some(Description::try_from(
+                                    description.clone(),
+                                )?),
+                                change_reason: ChangeReason::try_from(
+                                    change_reason.clone(),
+                                )?,
+                            })
+                        })()
+                    } else {
+                        try_update_payload(
+                            f_value,
+                            f_schema,
+                            fun_name,
+                            value_compute_fn,
+                            description,
+                            change_reason,
+                        )
+                    };
                     match request_payload {
                         Ok(payload) => {
                             update_request_rws.set(Some((key_name, payload)));
@@ -385,6 +421,37 @@ pub fn DefaultConfigForm(
                             })
                         />
                     </div>
+                    <Show when=move || editing_symlink>
+                        <div class="form-control max-w-md w-full">
+                            <Label
+                                title="Symlink"
+                                description="This key links to another key and inherits its value, schema and functions."
+                            />
+                            <div class="flex items-center gap-2">
+                                <span class="badge badge-ghost" title="symlink">
+                                    <i class="ri-links-line mr-1"></i>
+                                    "Symlink"
+                                </span>
+                                <span class="text-sm flex items-center gap-1">
+                                    "→"
+                                    <A
+                                        href=format!(
+                                            "../../{}",
+                                            symlink_to.get_value().unwrap_or_default(),
+                                        )
+                                        class="text-blue-500 underline underline-offset-2"
+                                    >
+                                        {symlink_to.get_value().unwrap_or_default()}
+                                    </A>
+                                </span>
+                            </div>
+                            <p class="text-xs text-gray-500 italic mt-1 max-w-md">
+                                "Value, schema and functions are inherited from the target key, shown above, and are read-only here - edit them on the target's own page. Changing which key this links to isn't supported from this form."
+                            </p>
+                        </div>
+                    </Show>
+
+                    <Show when=move || !editing_symlink>
                     <div class="flex flex-wrap gap-x-10 gap-y-5">
                         <div class="form-control max-w-md w-full">
                             <Label title="Set Schema" />
@@ -418,9 +485,11 @@ pub fn DefaultConfigForm(
                                     // Symlink is an explicit choice in this same
                                     // selector rather than a separate toggle, same
                                     // as "Custom JSON Schema" above. It only applies
-                                    // to creation (editing a symlink is out of
-                                    // scope, see `EditDefaultConfig`), so it is left
-                                    // out of the options while editing.
+                                    // to creation - converting an existing key into
+                                    // a symlink, or an existing symlink's own type,
+                                    // isn't offered here, so it is left out of the
+                                    // options while editing (this whole block is
+                                    // skipped anyway when `editing_symlink`, below).
                                     if !edit {
                                         options
                                             .push(TypeTemplate {
@@ -627,8 +696,9 @@ pub fn DefaultConfigForm(
                             </div>
                         </Show>
                     </div>
+                    </Show>
 
-                    <Show when=move || !is_symlink_s.get()>
+                    <Show when=move || !is_symlink_s.get() && !editing_symlink>
                     <Suspense fallback=move || {
                         view! {
                             <Skeleton

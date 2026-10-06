@@ -36,7 +36,17 @@ fn ConfigInfo(
     /// reading this card should see the link, not a schema that looks like
     /// it belongs to this key - see the schema row below.
     #[prop(default = None)] symlink_to: Option<String>,
+    /// Prepended to every relative link this card builds (the symlink
+    /// target link and the validation/compute function links), so the same
+    /// card renders correct links whether it's shown on the key's own
+    /// detail page (the default, `""`) or one path segment deeper on its
+    /// edit page (`"../"`).
+    #[prop(into, default = String::new())] path_depth_prefix: String,
 ) -> impl IntoView {
+    // Stored rather than a plain `String` so each of the three links below
+    // can take its own clone, instead of the first `move` closure taking
+    // ownership and leaving the others nothing to borrow.
+    let path_depth_prefix = StoredValue::new(path_depth_prefix);
     let schema: &Map<String, Value> = &default_config.schema;
     let Ok(schema_type) = SchemaType::try_from(schema) else {
         return view! { <span class="text-red-500">"Invalid schema"</span> }.into_view();
@@ -80,7 +90,7 @@ fn ConfigInfo(
                                         <span class="text-sm flex items-center gap-1">
                                             "→"
                                             <A
-                                                href=format!("../{target}")
+                                                href=format!("{}../{target}", path_depth_prefix.get_value())
                                                 class="text-blue-500 underline underline-offset-2"
                                             >
                                                 {target}
@@ -119,7 +129,7 @@ fn ConfigInfo(
                                             <div class="h-fit w-[250px]">
                                                 <div class="stat-title">"Validation Function"</div>
                                                 <A
-                                                    href=format!("../../function/{name}")
+                                                    href=format!("{}../../function/{name}", path_depth_prefix.get_value())
                                                     class="text-blue-500 underline underline-offset-2"
                                                 >
                                                     {name}
@@ -134,7 +144,7 @@ fn ConfigInfo(
                                             <div class="h-fit w-[250px]">
                                                 <div class="stat-title">"Value Compute Function"</div>
                                                 <A
-                                                    href=format!("../../function/{name}")
+                                                    href=format!("{}../../function/{name}", path_depth_prefix.get_value())
                                                     class="text-blue-500 underline underline-offset-2"
                                                 >
                                                     {name}
@@ -300,13 +310,16 @@ pub fn EditDefaultConfig() -> impl IntoView {
     let default_config_resource = create_blocking_resource(
         move || (default_config_key.get(), workspace.get().0, org.get().0),
         |(default_config_key, workspace, org_id)| async move {
-            // Editing a symlink isn't in scope here (the symlink toggle in
-            // DefaultConfigForm only applies to creation), so drop down to
-            // the plain `DefaultConfig` right away.
+            // A symlink's value, schema and function names are resolved from
+            // its target on read, and a write to any of them redirects to
+            // that target rather than this key - so, unlike before, this
+            // page keeps `symlink_to` and threads it into both the read-only
+            // card and the form below, instead of silently editing fields
+            // that don't actually belong to this key.
             default_configs::get(&default_config_key, &workspace, &org_id)
                 .await
                 .ok()
-                .map(|response| response.config)
+                .map(|response| (response.config, response.symlink_to))
         },
     );
 
@@ -315,27 +328,46 @@ pub fn EditDefaultConfig() -> impl IntoView {
             view! { <Skeleton variant=SkeletonVariant::DetailPage /> }
         }>
             {move || {
-                let default_config = match default_config_resource.get() {
-                    Some(Some(default_config)) => default_config,
+                let (default_config, symlink_to) = match default_config_resource.get() {
+                    Some(Some(pair)) => pair,
                     _ => return view! { <h1>"Error fetching default config"</h1> }.into_view(),
                 };
+                let is_symlink = symlink_to.is_some();
+                // `Show`'s children callback is `Fn`, so it moves whatever it
+                // captures by reference into an owned closure on first build;
+                // clone into dedicated bindings rather than feeding it
+                // `default_config`/`symlink_to` directly, since both are
+                // still needed below for `DefaultConfigForm`.
+                let config_info_default_config = default_config.clone();
+                let config_info_symlink_to = symlink_to.clone();
 
                 view! {
-                    <DefaultConfigForm
-                        edit=true
-                        config_key=default_config.key.clone()
-                        config_value=default_config.value.clone()
-                        type_schema=Value::from(&default_config.schema)
-                        description=default_config.description.deref().to_string()
-                        validation_function_name=default_config
-                            .value_validation_function_name
-                            .clone()
-                        value_compute_function_name=default_config
-                            .value_compute_function_name
-                            .clone()
-                        redirect_url_cancel=format!("../../{}", default_config.key)
-                    />
+                    <div class="flex flex-col gap-4">
+                        <Show when=move || is_symlink>
+                            <ConfigInfo
+                                default_config=config_info_default_config.clone()
+                                symlink_to=config_info_symlink_to.clone()
+                                path_depth_prefix="../"
+                            />
+                        </Show>
+                        <DefaultConfigForm
+                            edit=true
+                            config_key=default_config.key.clone()
+                            config_value=default_config.value.clone()
+                            type_schema=Value::from(&default_config.schema)
+                            description=default_config.description.deref().to_string()
+                            validation_function_name=default_config
+                                .value_validation_function_name
+                                .clone()
+                            value_compute_function_name=default_config
+                                .value_compute_function_name
+                                .clone()
+                            symlink_to=symlink_to.clone()
+                            redirect_url_cancel=format!("../../{}", default_config.key)
+                        />
+                    </div>
                 }
+                    .into_view()
             }}
         </Suspense>
     }
