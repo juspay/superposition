@@ -3583,6 +3583,7 @@ dependencies = [
  "blake3",
  "cac_client",
  "chrono",
+ "context_aware_config",
  "experimentation_client",
  "fred",
  "inventory",
