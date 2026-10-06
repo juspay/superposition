@@ -9,13 +9,42 @@ use superposition_types::{
 
 use crate::{
     components::{
-        dropdown::{Dropdown, DropdownDirection},
+        dropdown::{Dropdown, DropdownDirection, utils::DropdownOption},
         input::{Input, InputType},
     },
     schema::{EnumVariants, SchemaType},
     types::{OrganisationId, ValueComputeCallbacks, Workspace},
     utils::value_compute_fn_generator,
 };
+
+/// The key an override entry will actually be stored under: a symlinked key
+/// is redirected to its target, same as the server-side rewrite this mirrors
+/// (see `crates/context_aware_config/src/symlinks.rs::apply_symlink_map`).
+fn effective_key(key: &str, links: &HashMap<String, String>) -> String {
+    links.get(key).cloned().unwrap_or_else(|| key.to_string())
+}
+
+/// A default-config key as it appears in the "Add Override" picker. A
+/// symlink's label also carries the `-> target` badge text so the
+/// write-through is visible before the override is committed, not as a
+/// surprise on reload - a symlink stays selectable like any other key.
+#[derive(Clone, PartialEq)]
+struct OverrideKeyOption {
+    config: DefaultConfig,
+    symlink_target: Option<String>,
+}
+
+impl DropdownOption for OverrideKeyOption {
+    fn key(&self) -> String {
+        self.config.key.clone()
+    }
+    fn label(&self) -> String {
+        match &self.symlink_target {
+            Some(target) => format!("{}  →  {target}", self.config.key),
+            None => self.config.key.clone(),
+        }
+    }
+}
 
 #[component]
 fn TypeBadge(r#type: Option<SchemaType>) -> impl IntoView {
@@ -53,6 +82,7 @@ fn OverrideInput(
     allow_remove: bool,
     disabled: bool,
     value_compute_callbacks: ValueComputeCallbacks,
+    #[prop(default = None)] symlink_target: Option<String>,
 ) -> impl IntoView {
     let value_compute_callback = value_compute_callbacks.get(&key).cloned();
     let key = store_value(key);
@@ -73,6 +103,12 @@ fn OverrideInput(
                     <span class="label-text font-bold text-gray-500">{key.get_value()} ":"</span>
                     <div class="flex gap-1">
                         <TypeBadge r#type=r#type.clone() />
+                        {symlink_target.clone().map(|target| view! {
+                            <span class="badge badge-sm badge-ghost" title="symlink">
+                                <i class="ri-links-line mr-1" />
+                                {format!("→ {target}")}
+                            </span>
+                        })}
                     </div>
                 </label>
             </div>
@@ -128,14 +164,34 @@ pub fn OverrideForm(
     #[prop(default = true)] show_add_override: bool,
     #[prop(into, optional)] handle_key_remove: Option<Callback<String, ()>>,
     #[prop(default = false)] disabled: bool,
+    /// Maps a symlinked key to the target it resolves to. Built from the
+    /// `symlink_to` field the key list already returns, so a link stays
+    /// selectable like any other key here, badged with its target, and a
+    /// collision with its target (or another link to the same target) is
+    /// caught before submission instead of surfacing as a 400 from the
+    /// server-side rewrite.
+    #[prop(default = HashMap::new())] symlink_map: HashMap<String, String>,
     fn_environment: Memo<FunctionEnvironment>,
 ) -> impl IntoView {
     let id = store_value(id);
     let default_config = store_value(default_config);
+    let symlink_map = store_value(symlink_map);
     let (override_keys, set_override_keys) = create_signal(HashSet::<String>::from_iter(
         overrides.clone().iter().map(|(k, _)| String::from(k)),
     ));
     let (overrides, set_overrides) = create_signal(overrides);
+
+    let collision = Signal::derive(move || {
+        let links = symlink_map.get_value();
+        let mut seen: HashMap<String, String> = HashMap::new();
+        override_keys.get().into_iter().find_map(|key| {
+            let target = effective_key(&key, &links);
+            match seen.insert(target.clone(), key.clone()) {
+                Some(first) if first != key => Some((first, key, target)),
+                _ => None,
+            }
+        })
+    });
 
     let default_config_map: HashMap<String, DefaultConfig> = default_config
         .get_value()
@@ -143,7 +199,8 @@ pub fn OverrideForm(
         .map(|ele| (ele.key.clone(), ele))
         .collect();
 
-    let handle_config_key_select = Callback::new(move |default_config: DefaultConfig| {
+    let handle_config_key_select = Callback::new(move |option: OverrideKeyOption| {
+        let default_config = option.config;
         let config_key = default_config.key;
 
         if let Ok(config_type) =
@@ -211,7 +268,13 @@ pub fn OverrideForm(
 
     create_effect(move |_| {
         let f_override = overrides.get();
-        handle_change.call(f_override.clone());
+        // A collision is exactly what the server's symlink rewrite refuses
+        // (`crates/context_aware_config/src/symlinks.rs::apply_symlink_map`):
+        // hold the change back here instead of letting it reach a submit
+        // that the server would 400 on.
+        if collision.get().is_none() {
+            handle_change.call(f_override.clone());
+        }
     });
 
     view! {
@@ -224,15 +287,47 @@ pub fn OverrideForm(
                 </div>
                 <div class="card w-full bg-slate-50">
                     <div class="card-body gap-4">
+                        {move || {
+                            collision
+                                .get()
+                                .map(|(first, second, target)| {
+                                    view! {
+                                        <div class="alert alert-warning text-sm flex items-start gap-2">
+                                            <i class="ri-alert-line text-lg"></i>
+                                            <span>
+                                                {
+                                                    format!(
+                                                        "override names both `{first}` and `{second}`, which resolve to the \
+                                                         same config key `{target}`, with different values; keep one of them",
+                                                    )
+                                                }
+                                            </span>
+                                        </div>
+                                    }
+                                })
+                        }}
                         <Show when=move || { overrides.get().is_empty() && show_add_override }>
                             <div class="flex justify-center">
-                                <Dropdown
-                                    dropdown_direction=DropdownDirection::Down
-                                    dropdown_text=String::from("Add Override")
-                                    dropdown_icon=String::from("ri-add-line")
-                                    dropdown_options=default_config.get_value()
-                                    on_select=handle_config_key_select
-                                />
+                                {move || {
+                                    let add_override_options = default_config
+                                        .get_value()
+                                        .into_iter()
+                                        .map(|config| {
+                                            let symlink_target = symlink_map
+                                                .with_value(|m| m.get(&config.key).cloned());
+                                            OverrideKeyOption { config, symlink_target }
+                                        })
+                                        .collect::<Vec<OverrideKeyOption>>();
+                                    view! {
+                                        <Dropdown
+                                            dropdown_direction=DropdownDirection::Down
+                                            dropdown_text=String::from("Add Override")
+                                            dropdown_icon=String::from("ri-add-line")
+                                            dropdown_options=add_override_options
+                                            on_select=handle_config_key_select
+                                        />
+                                    }
+                                }}
                             </div>
                         </Show>
 
@@ -259,6 +354,8 @@ pub fn OverrideForm(
                                     .unwrap_or_default();
                                 let schema_type = SchemaType::try_from(schema);
                                 let enum_variants = EnumVariants::try_from(schema);
+                                let symlink_target = symlink_map
+                                    .with_value(|m| m.get(&config_key).cloned());
                                 view! {
                                     <OverrideInput
                                         id=format!("{}-{}", id.get_value(), config_key)
@@ -271,6 +368,7 @@ pub fn OverrideForm(
                                         allow_remove=!disable_remove
                                         disabled
                                         value_compute_callbacks=value_compute_callbacks.clone()
+                                        symlink_target=symlink_target
                                     />
                                 }
                             }
@@ -284,7 +382,12 @@ pub fn OverrideForm(
                                         .get_value()
                                         .into_iter()
                                         .filter(|config| !override_keys.get().contains(&config.key))
-                                        .collect::<Vec<DefaultConfig>>();
+                                        .map(|config| {
+                                            let symlink_target = symlink_map
+                                                .with_value(|m| m.get(&config.key).cloned());
+                                            OverrideKeyOption { config, symlink_target }
+                                        })
+                                        .collect::<Vec<OverrideKeyOption>>();
                                     view! {
                                         <Dropdown
                                             dropdown_direction=DropdownDirection::Down
