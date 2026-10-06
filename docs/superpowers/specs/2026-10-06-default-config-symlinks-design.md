@@ -88,13 +88,22 @@ Stored row:
   asserts "my **value** lives there". Spending `$ref` on the second forecloses the
   first, which this codebase is plausibly headed toward after 86ecf23a widened the
   accepted schema shapes.
-- *Mechanical:* `try_into_jsonschema` is a bare `JSONSchema::compile` with no resolver
-  (`superposition_core/src/validations.rs:50-55`), and jsonschema 0.17 resolves refs
-  at compile time. A `superposition://` scheme has no handler, so link rows would
-  likely fail to compile at all. Making it work means threading a DB-reading resolver
-  into `superposition_core`, a crate that is otherwise pure and shared with clients.
-  (Worth a 3-line test to confirm the exact 0.17 failure mode; the vendor keyword
-  sidesteps the question.)
+- *Mechanical:* **this argument was wrong as first written, and the correction matters.**
+  The spec originally claimed a `superposition://` ref would fail to compile, since
+  `try_into_jsonschema` is a bare `JSONSchema::compile` with no resolver
+  (`superposition_core/src/validations.rs:50-55`). A test written to confirm that
+  showed the opposite: `jsonschema ~0.17` compiles a schema with an unresolvable
+  external `$ref` without complaint. Both facts are now pinned by tests in that file —
+  `an_external_ref_cannot_resolve_here` and
+  `an_unknown_keyword_compiles_and_validates_anything`.
+
+  What survives is a weaker but still real point, and the semantic argument above does
+  the actual work. A `$ref` form would store a schema that compiles while pointing at
+  something nothing can resolve, so whatever it validates is unspecified and would have
+  to be characterised before being relied on; the vendor keyword's behaviour is known
+  and verified — Draft-7 ignores keywords it does not recognise. Making a `$ref`
+  genuinely resolve would still mean threading a DB-reading resolver into
+  `superposition_core`, a crate that is otherwise pure and shared with clients.
 
 ### Integrity, enforced in the application
 
