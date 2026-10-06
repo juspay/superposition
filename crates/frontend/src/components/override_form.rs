@@ -3,11 +3,16 @@ use std::collections::{HashMap, HashSet};
 use leptos::*;
 use serde_json::{Map, Value};
 use superposition_types::{
-    api::functions::{FunctionEnvironment, KeyType},
+    api::{
+        default_config::DefaultConfigFilters,
+        functions::{FunctionEnvironment, KeyType},
+    },
+    custom_query::PaginationParams,
     database::models::cac::DefaultConfig,
 };
 
 use crate::{
+    api::default_configs,
     components::{
         dropdown::{Dropdown, DropdownDirection, utils::DropdownOption},
         input::{Input, InputType},
@@ -164,25 +169,47 @@ pub fn OverrideForm(
     #[prop(default = true)] show_add_override: bool,
     #[prop(into, optional)] handle_key_remove: Option<Callback<String, ()>>,
     #[prop(default = false)] disabled: bool,
-    /// Maps a symlinked key to the target it resolves to. Built from the
-    /// `symlink_to` field the key list already returns, so a link stays
-    /// selectable like any other key here, badged with its target, and a
-    /// collision with its target (or another link to the same target) is
-    /// caught before submission instead of surfacing as a 400 from the
-    /// server-side rewrite.
-    #[prop(default = HashMap::new())] symlink_map: HashMap<String, String>,
     fn_environment: Memo<FunctionEnvironment>,
 ) -> impl IntoView {
     let id = store_value(id);
     let default_config = store_value(default_config);
-    let symlink_map = store_value(symlink_map);
     let (override_keys, set_override_keys) = create_signal(HashSet::<String>::from_iter(
         overrides.clone().iter().map(|(k, _)| String::from(k)),
     ));
     let (overrides, set_overrides) = create_signal(overrides);
 
+    let workspace = use_context::<Signal<Workspace>>().unwrap();
+    let org_id = use_context::<Signal<OrganisationId>>().unwrap();
+
+    // A link stays selectable like any other key, but is badged with its
+    // target and checked for a collision with it (or with another link to
+    // the same target) before submission. `default_config` (the prop above)
+    // can't carry `symlink_to` - it's the plain `database::models::cac::
+    // DefaultConfig`, not the API's `DefaultConfigResponse` - so this is its
+    // own fetch via `list_resolved` rather than derived from that prop.
+    let symlink_map_resource = create_resource(
+        move || (workspace.get().0, org_id.get().0),
+        |(workspace, org_id)| async move {
+            default_configs::list_resolved(
+                &PaginationParams::all_entries(),
+                &DefaultConfigFilters::default(),
+                &workspace,
+                &org_id,
+            )
+            .await
+            .map(|r| {
+                r.data
+                    .into_iter()
+                    .filter_map(|d| d.symlink_to.map(|target| (d.config.key, target)))
+                    .collect::<HashMap<String, String>>()
+            })
+            .unwrap_or_default()
+        },
+    );
+    let symlink_map = Signal::derive(move || symlink_map_resource.get().unwrap_or_default());
+
     let collision = Signal::derive(move || {
-        let links = symlink_map.get_value();
+        let links = symlink_map.get();
         let mut seen: HashMap<String, String> = HashMap::new();
         override_keys.get().into_iter().find_map(|key| {
             let target = effective_key(&key, &links);
@@ -248,9 +275,6 @@ pub fn OverrideForm(
         };
     });
 
-    let workspace = use_context::<Signal<Workspace>>().unwrap();
-    let org_id = use_context::<Signal<OrganisationId>>().unwrap();
-
     let value_compute_callbacks = default_config
         .get_value()
         .iter()
@@ -314,7 +338,7 @@ pub fn OverrideForm(
                                         .into_iter()
                                         .map(|config| {
                                             let symlink_target = symlink_map
-                                                .with_value(|m| m.get(&config.key).cloned());
+                                                .with(|m| m.get(&config.key).cloned());
                                             OverrideKeyOption { config, symlink_target }
                                         })
                                         .collect::<Vec<OverrideKeyOption>>();
@@ -355,7 +379,7 @@ pub fn OverrideForm(
                                 let schema_type = SchemaType::try_from(schema);
                                 let enum_variants = EnumVariants::try_from(schema);
                                 let symlink_target = symlink_map
-                                    .with_value(|m| m.get(&config_key).cloned());
+                                    .with(|m| m.get(&config_key).cloned());
                                 view! {
                                     <OverrideInput
                                         id=format!("{}-{}", id.get_value(), config_key)
@@ -384,7 +408,7 @@ pub fn OverrideForm(
                                         .filter(|config| !override_keys.get().contains(&config.key))
                                         .map(|config| {
                                             let symlink_target = symlink_map
-                                                .with_value(|m| m.get(&config.key).cloned());
+                                                .with(|m| m.get(&config.key).cloned());
                                             OverrideKeyOption { config, symlink_target }
                                         })
                                         .collect::<Vec<OverrideKeyOption>>();

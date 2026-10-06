@@ -610,16 +610,22 @@ pub async fn fetch_experiment(
 
 pub mod default_configs {
     use superposition_types::{
-        api::default_config::DefaultConfigFilters, database::models::cac::DefaultConfig,
+        api::default_config::{DefaultConfigFilters, DefaultConfigResponse},
+        database::models::cac::DefaultConfig,
     };
 
     use super::*;
 
+    /// A symlink's `symlink_to` rides along as `DefaultConfigResponse`
+    /// (`#[serde(flatten)] config: DefaultConfig` plus `symlink_to`), so a
+    /// caller that needs to know which key is a symlink - as opposed to
+    /// just its already-resolved value and schema - uses this instead of
+    /// discarding the field by deserializing into the bare `DefaultConfig`.
     pub async fn get(
         key_name: &str,
         workspace: &str,
         org_id: &str,
-    ) -> Result<DefaultConfig, String> {
+    ) -> Result<DefaultConfigResponse, String> {
         let host = use_host_server();
         let url = format!("{host}/default-config/{key_name}");
 
@@ -665,6 +671,40 @@ pub mod default_configs {
         workspace: &str,
         org_id: &str,
     ) -> Result<PaginatedResponse<DefaultConfig>, String> {
+        let host = use_host_server();
+        let url = format!(
+            "{}/default-config?{}&{}",
+            host,
+            pagination.to_query_param(),
+            filters.to_query_param()
+        );
+
+        let response = request(
+            url,
+            reqwest::Method::GET,
+            None::<()>,
+            construct_request_headers(&[
+                ("x-workspace", workspace),
+                ("x-org-id", org_id),
+            ])?,
+        )
+        .await?;
+
+        parse_json_response(response).await
+    }
+
+    /// Like `list`, but resolves each row's `symlink_to` too. `list` itself
+    /// is left deserializing into the bare `DefaultConfig` because several
+    /// callers only need the plain key data and are out of this change's
+    /// scope to touch; this is for the callers that need to tell a symlink
+    /// apart from an ordinary key (the default-config list page's badge,
+    /// and the override form's collision check).
+    pub async fn list_resolved(
+        pagination: &PaginationParams,
+        filters: &DefaultConfigFilters,
+        workspace: &str,
+        org_id: &str,
+    ) -> Result<PaginatedResponse<DefaultConfigResponse>, String> {
         let host = use_host_server();
         let url = format!(
             "{}/default-config?{}&{}",

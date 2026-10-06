@@ -68,7 +68,9 @@ pub fn DefaultConfigList() -> impl IntoView {
             )
         },
         |(workspace, pagination_params, org_id, filters)| async move {
-            default_configs::list(&pagination_params, &filters, &workspace, &org_id)
+            // `list_resolved` (not `list`) so `symlink_to` survives into the
+            // row map `table_rows` below, for the badge in `expand`.
+            default_configs::list_resolved(&pagination_params, &filters, &workspace, &org_id)
                 .await
                 .unwrap_or_default()
         },
@@ -160,12 +162,22 @@ pub fn DefaultConfigList() -> impl IntoView {
             view! { <Skeleton /> }
         }>
             {move || {
-                let default_config = default_config_resource.get().unwrap_or_default();
-                let table_rows = default_config
-                    .data
-                    .into_iter()
-                    .map(|config| json!(config).as_object().unwrap().to_owned())
-                    .collect::<Vec<Map<String, Value>>>();
+                // `DefaultConfigResponse` doesn't derive `Clone`, so pull
+                // what's needed out through `.with()` (which hands back
+                // `&Option<T>`, no `Clone` bound) rather than `.get()`.
+                let (table_rows, total_items, total_pages_count) = default_config_resource
+                    .with(|opt| match opt {
+                        Some(default_config) => (
+                            default_config
+                                .data
+                                .iter()
+                                .map(|config| json!(config).as_object().unwrap().to_owned())
+                                .collect::<Vec<Map<String, Value>>>(),
+                            default_config.total_items,
+                            default_config.total_pages,
+                        ),
+                        None => (Vec::new(), 0, 0),
+                    });
                 let mut filtered_rows = table_rows;
                 let page_params = page_params_rws.get();
                 if page_params.grouped {
@@ -180,12 +192,12 @@ pub fn DefaultConfigList() -> impl IntoView {
                         "key",
                     );
                 }
-                let total_default_config_keys = default_config.total_items.to_string();
+                let total_default_config_keys = total_items.to_string();
                 let pagination_params = pagination_params_rws.get();
                 let (current_page, total_pages) = if page_params.grouped {
                     (1, 1)
                 } else {
-                    (pagination_params.page.unwrap_or_default(), default_config.total_pages)
+                    (pagination_params.page.unwrap_or_default(), total_pages_count)
                 };
                 let pagination_props = TablePaginationProps {
                     enabled: true,
@@ -266,5 +278,73 @@ pub fn DefaultConfigList() -> impl IntoView {
                 }
             }}
         </Suspense>
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    //! `symlink_to` needs to survive from `DefaultConfigResponse` into the
+    //! `Map<String, Value>` row `expand` reads it from. The flatten plus
+    //! `skip_serializing_if` on the field *should* carry it through
+    //! re-serialization both ways, but the task that added the badge was
+    //! told explicitly to verify that rather than assume it - so this pins
+    //! it down rather than trusting serde's behavior by inspection alone.
+    use chrono::Utc;
+    use serde_json::{Value, json};
+    use superposition_types::{
+        ExtendedMap,
+        api::default_config::DefaultConfigResponse,
+        database::models::{ChangeReason, Description, cac::DefaultConfig},
+    };
+
+    fn sample_config(key: &str) -> DefaultConfig {
+        DefaultConfig {
+            key: key.to_string(),
+            value: Value::String("hello".to_string()),
+            created_at: Utc::now(),
+            created_by: "tester".to_string(),
+            schema: ExtendedMap::default(),
+            value_validation_function_name: None,
+            last_modified_at: Utc::now(),
+            last_modified_by: "tester".to_string(),
+            description: Description::default(),
+            change_reason: ChangeReason::default(),
+            value_compute_function_name: None,
+        }
+    }
+
+    #[test]
+    fn symlink_to_survives_into_the_row_map() {
+        let response = DefaultConfigResponse {
+            config: sample_config("alias.key"),
+            symlink_to: Some("target.key".to_string()),
+        };
+
+        let row = json!(response).as_object().unwrap().to_owned();
+
+        assert_eq!(
+            row.get("symlink_to"),
+            Some(&Value::String("target.key".to_string())),
+            "symlink_to must survive serde flatten into the row map the \
+             list page's `expand` closure reads from"
+        );
+        assert_eq!(row.get("key"), Some(&Value::String("alias.key".to_string())));
+    }
+
+    #[test]
+    fn an_ordinary_key_has_no_symlink_to_in_its_row_map() {
+        let response = DefaultConfigResponse {
+            config: sample_config("ordinary.key"),
+            symlink_to: None,
+        };
+
+        let row = json!(response).as_object().unwrap().to_owned();
+
+        assert!(
+            !row.contains_key("symlink_to"),
+            "an ordinary key's row must not carry a symlink_to field at all \
+             (skip_serializing_if), so `row.get(\"symlink_to\")` reliably \
+             means None rather than an explicit null"
+        );
     }
 }

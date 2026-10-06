@@ -187,14 +187,34 @@ pub fn DefaultConfig() -> impl IntoView {
             view! { <Skeleton variant=SkeletonVariant::DetailPage /> }
         }>
             {move || {
-                let default_config = match default_config_resource.get() {
-                    Some(Some(config)) => config,
-                    _ => return view! { <h1>"Error fetching default config"</h1> }.into_view(),
+                // `DefaultConfigResponse` doesn't derive `Clone` (it isn't
+                // meant to be copied around wholesale), so pull the two
+                // owned pieces this view needs out through `.with()` rather
+                // than `.get()`.
+                let extracted = default_config_resource
+                    .with(|r| {
+                        r.as_ref()
+                            .and_then(|opt| opt.as_ref())
+                            .map(|response| (response.config.clone(), response.symlink_to.clone()))
+                    });
+                let Some((default_config, symlink_to)) = extracted else {
+                    return view! { <h1>"Error fetching default config"</h1> }.into_view();
                 };
+                let symlink_badge = symlink_to.map(|target| {
+                    view! {
+                        <span class="badge badge-ghost ml-2" title="symlink">
+                            <i class="ri-links-line mr-1" />
+                            {format!("→ {target}")}
+                        </span>
+                    }
+                });
                 view! {
                     <div class="flex flex-col gap-4">
                         <div class="flex justify-between items-center">
-                            <h1 class="text-2xl font-extrabold">{default_config.key.clone()}</h1>
+                            <h1 class="text-2xl font-extrabold flex items-center">
+                                {default_config.key.clone()}
+                                {symlink_badge}
+                            </h1>
                             <div class="w-full max-w-fit flex flex-row join">
                                 <ButtonAnchor
                                     force_style="btn join-item px-5 py-2.5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg rounded-lg"
@@ -248,9 +268,13 @@ pub fn EditDefaultConfig() -> impl IntoView {
     let default_config_resource = create_blocking_resource(
         move || (default_config_key.get(), workspace.get().0, org.get().0),
         |(default_config_key, workspace, org_id)| async move {
+            // Editing a symlink isn't in scope here (the symlink toggle in
+            // DefaultConfigForm only applies to creation), so drop down to
+            // the plain `DefaultConfig` right away.
             default_configs::get(&default_config_key, &workspace, &org_id)
                 .await
                 .ok()
+                .map(|response| response.config)
         },
     );
 

@@ -702,7 +702,13 @@ pub fn ChangeLogSummary(
     let default_config = create_local_resource(
         move || (key_name.clone(), workspace.get().0, org.get().0),
         |(key_name, workspace, org)| async move {
-            default_configs::get(&key_name, &workspace, &org).await
+            // This change log only diffs the already-resolved value/schema;
+            // it has no use for `symlink_to`, so drop down to the plain
+            // `DefaultConfig` right away rather than touching every field
+            // access below.
+            default_configs::get(&key_name, &workspace, &org)
+                .await
+                .map(|response| response.config)
         },
     );
 
