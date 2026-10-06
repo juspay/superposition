@@ -665,40 +665,31 @@ pub mod default_configs {
         Ok(())
     }
 
+    /// A thin wrapper over `list_resolved` that drops `symlink_to` and keeps
+    /// the plain `DefaultConfig` shape: `list` and `list_resolved` used to
+    /// have byte-identical bodies apart from the deserialization target, so
+    /// any future change to the URL, pagination or filter construction had
+    /// to be hand-mirrored between them or they'd drift. One request
+    /// path now, for the several callers that only need the plain key data
+    /// and have no use for `symlink_to`.
     pub async fn list(
         pagination: &PaginationParams,
         filters: &DefaultConfigFilters,
         workspace: &str,
         org_id: &str,
     ) -> Result<PaginatedResponse<DefaultConfig>, String> {
-        let host = use_host_server();
-        let url = format!(
-            "{}/default-config?{}&{}",
-            host,
-            pagination.to_query_param(),
-            filters.to_query_param()
-        );
-
-        let response = request(
-            url,
-            reqwest::Method::GET,
-            None::<()>,
-            construct_request_headers(&[
-                ("x-workspace", workspace),
-                ("x-org-id", org_id),
-            ])?,
-        )
-        .await?;
-
-        parse_json_response(response).await
+        let resolved = list_resolved(pagination, filters, workspace, org_id).await?;
+        Ok(PaginatedResponse {
+            total_pages: resolved.total_pages,
+            total_items: resolved.total_items,
+            data: resolved.data.into_iter().map(|r| r.config).collect(),
+        })
     }
 
-    /// Like `list`, but resolves each row's `symlink_to` too. `list` itself
-    /// is left deserializing into the bare `DefaultConfig` because several
-    /// callers only need the plain key data and are out of this change's
-    /// scope to touch; this is for the callers that need to tell a symlink
-    /// apart from an ordinary key (the default-config list page's badge,
-    /// and the override form's collision check).
+    /// Like `list`, but resolves each row's `symlink_to` too - for the
+    /// callers that need to tell a symlink apart from an ordinary key (the
+    /// default-config list page's badge, and the override form's collision
+    /// check).
     pub async fn list_resolved(
         pagination: &PaginationParams,
         filters: &DefaultConfigFilters,
