@@ -23,6 +23,52 @@
 - Run `make check` (fmt + leptosfmt + clippy with `-Dwarnings`) before every commit.
 - Rust unit tests: `cargo test -p <crate> <filter>`. Integration tests: `cd tests && bun test src/<file>`.
 
+## Commit Sequencing
+
+Each commit is **one reviewable idea**: a human opening the PR should be able to read any
+single commit, understand what it claims, and judge it without holding the other twenty in
+their head. Three rules bind every task:
+
+1. **One idea per commit.** A new module, a signature change with its call sites, a
+   behaviour change, a generated artifact — never two of those together.
+2. **Every commit builds and its tests pass.** The branch is bisectable; a reviewer can
+   check out any commit. Where a signature change breaks call sites, the commit that
+   changes the signature also fixes every call site — that is one idea, not two.
+3. **Generated code lands alone**, in a commit whose subject ends with ` [generated]` and
+   whose body names the command that produced it. A reviewer skips it by reading the
+   subject; nothing hand-written hides inside it.
+
+Tasks below say "commit" once per task. This table is the authority on how many, and
+supersedes the single commit step at the end of each task:
+
+| Task | Commits, in order | What a reviewer judges in each |
+|---|---|---|
+| 1 | `feat(types): add default-config symlink representation` | the representation and its 9 tests (one commit: the probe tests in `superposition_core` are evidence for the same decision) |
+| 2 | `feat(types): expand default-config symlinks into served config` | the two expansion impls and their unit tests |
+| | `test(cac-client): assert a link and its target resolve identically` | the eval invariant, as pure test addition |
+| 3 | `feat(cac): add symlink queries and the RawConfig guard` | the new module alone — nothing else changes yet |
+| | `refactor(cac): exclude symlink rows from generate_cac and return RawConfig` | the signature change plus every call site it breaks, including `reduce`'s `into_unexpanded` |
+| | `feat(cac): expand symlinks when snapshotting, caching and serving` | the three expansion sites |
+| | `feat(cac): resolve symlink schemas for detailed config and explain` | `generate_detailed_cac` and `fetch_default_config_metadata` |
+| 4 | `feat(types): add DefaultConfigResponse with symlink_to` | the response type alone |
+| | `feat(cac): resolve symlinks in default-config reads` | `merge_target_into_link`, `resolve_for_response`, get and list |
+| | `feat(cac): create and repoint default-config symlinks` | create and update, including the PATCH discriminator |
+| | `feat(cac): refuse deleting a key that symlinks point at` | the delete guard alone |
+| 5 | `feat(cac): add override-key normalization with collision refusal` | the pure rewrite, its 4 tests, and the query helper |
+| | `feat(cac): normalize symlinked override keys in context handlers` | the four call sites and their normalize-before-authorize order |
+| 6 | `build(experiments): depend on context_aware_config` | the new crate edge, alone, so it is easy to object to |
+| | `feat(experiments): redirect symlinked variant override keys to targets` | the create and update normalization |
+| 7 | `feat(api): add symlink_to to the default-config response model` | the 4-line Smithy change, readable on its own |
+| | `chore(sdk): regenerate clients for symlink_to [generated]` | nothing — the subject says skip it; body names `make smithy-clients` |
+| 8 | `test: end-to-end coverage for default-config symlinks` | the integration suite |
+| 9 | `feat(frontend): badge symlinked keys in the default-config list` | the list page and its row type |
+| | `feat(frontend): create symlinks from the default-config form` | the form's symlink mode and its `client_side_ready` gate |
+| | `feat(frontend): warn on a symlink collision in the override form` | the picker badge and the pre-submit collision check |
+| 10 | `docs: document default-config symlinks` | the page |
+
+A task whose work turns out smaller than its row suggests may merge adjacent rows; a task
+whose work turns out larger must split further, never bundle. Rule 1 wins over the table.
+
 ## Review Focus
 
 Input classes the spec implies but which no task's happy path exercises. Each has its test added to the task that owns the code.
