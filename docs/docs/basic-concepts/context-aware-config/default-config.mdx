@@ -94,6 +94,16 @@ A write made against a symlinked key follows one of three rules:
 
 This redirect applies everywhere a default config can be written, including from the Superposition UI - editing the symlinked key's value in the console edits the target underneath it.
 
+### Turning an existing key into a symlink
+
+Rule 3 above is how a rename is done: the old key stops holding a value of its own and starts mirroring the new one. Because it stops holding a value, anything that still depends on the old key holding one has to be dealt with first, and the conversion is refused - naming what depends on it - if:
+
+- another symlink points at the key, which would make that symlink a link to a link;
+- the key is overridden in any context, because the stored override names the old key and would stop agreeing with the target;
+- a live (not concluded or discarded) experiment overrides the key, for the same reason.
+
+Move those overrides to the new key and remove them from the old one, then convert. Repointing a key that is *already* a symlink is never affected by this: a link has no overrides of its own and is never another link's target.
+
 ### Deleting
 
 A target can't be deleted while a symlink still points at it; the error names the symlinks that depend on it, so you know what to repoint or remove first. Deleting the symlink itself is always fine - it's just a row like any other.
