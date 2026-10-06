@@ -174,10 +174,15 @@ describe("Default Config Symlinks", () => {
                     change_reason: "test",
                 }),
             ),
-        ).rejects.toThrow();
+        ).rejects.toThrow(/validation or compute functions/);
     });
 
     test("an override naming both a link and its target is refused", async () => {
+        // The override values must differ (1 vs. 2): apply_symlink_map only rejects
+        // two keys that resolve to the same target when their values disagree — if
+        // both named LINK and TARGET with the same value, the rewrite would collapse
+        // them into one entry without error, and this test would stop exercising the
+        // refusal it's named for.
         await expect(
             superpositionClient.send(
                 new CreateContextCommand({
@@ -190,6 +195,6 @@ describe("Default Config Symlinks", () => {
                     },
                 }),
             ),
-        ).rejects.toThrow();
+        ).rejects.toThrow(/resolve to the same config key/);
     });
 });
