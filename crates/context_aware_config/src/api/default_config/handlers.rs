@@ -56,8 +56,8 @@ use crate::{
     },
     helpers::{add_config_version, put_config_in_redis, validate_change_reason},
     symlinks::{
-        flatten_target, resolve_for_response, resolve_many_for_response,
-        symlink_dependents,
+        experiment_dependents, flatten_target, resolve_for_response,
+        resolve_many_for_response, symlink_conversion_refusal, symlink_dependents,
     },
 };
 
@@ -366,6 +366,34 @@ async fn update_handler(
         // existing name, exactly like creating a link, so it needs authority
         // over both.
         _auth_z.authorized(&[&key_str, &target]).await?;
+
+        // Converting an existing key into a symlink is the feature's primary use
+        // case, and it is the write that empties the key of its own value: from
+        // here on `generate_cac` excludes the row and `expand_symlinks` fills the
+        // name in from the target. Anything that still depends on this key holding
+        // its own value must be dealt with first, or the invariant
+        // `eval(config)[link] == eval(config)[target]` breaks in silence. This
+        // mirrors `delete_handler`, which refuses for the same reasons.
+        //
+        // Repointing a key that is *already* a symlink necessarily finds all three
+        // lists empty - overrides naming a link are rewritten to its target on
+        // write, and a link is never another link's target - so this is a no-op
+        // there, and only bites on the conversion.
+        let dependents =
+            symlink_dependents(conn, &workspace_context.schema_name, &key_str)?;
+        let context_ids =
+            get_key_usage_context_ids(&key_str, conn, &workspace_context.schema_name)?;
+        let experiment_ids =
+            experiment_dependents(conn, &workspace_context.schema_name, &key_str)?;
+        if let Some(refusal) = symlink_conversion_refusal(
+            &key_str,
+            &target,
+            &dependents,
+            &context_ids,
+            &experiment_ids,
+        ) {
+            return Err(bad_argument!("{}", refusal));
+        }
 
         req.value = Some(Value::String(target));
         req.schema = Some(ExtendedMap::from(canonical));

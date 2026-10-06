@@ -13,7 +13,10 @@ use superposition_macros::{bad_argument, db_error};
 use superposition_types::{
     Cac, Config, DBConnection, Overrides,
     api::default_config::DefaultConfigResponse,
-    database::{models::cac::DefaultConfig, schema::default_configs::dsl},
+    database::{
+        models::{cac::DefaultConfig, experimentation::ExperimentStatusType},
+        schema::{default_configs::dsl, experiments::dsl as experiments},
+    },
     result as superposition,
     symlink::{SymlinkRow, is_symlink_schema, symlink_target},
 };
@@ -128,6 +131,103 @@ pub fn symlink_dependents(
         .filter(|link| link.target == key)
         .map(|link| link.key)
         .collect())
+}
+
+/// The non-terminal experiments whose stored variants override `key`.
+///
+/// `override_keys` is written after `normalize_override_keys` has run, so it
+/// always names concrete keys; an experiment therefore depends on `key` holding a
+/// value of its own exactly when `key` appears here.
+///
+/// Status is filtered in Rust over the (small) set of non-terminal experiments
+/// rather than with a Postgres array operator, to keep this query plain.
+pub fn experiment_dependents(
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+    key: &str,
+) -> superposition::Result<Vec<String>> {
+    let rows = experiments::experiments
+        .filter(experiments::status.ne_all(vec![
+            ExperimentStatusType::CONCLUDED,
+            ExperimentStatusType::DISCARDED,
+        ]))
+        .select((
+            experiments::id,
+            experiments::name,
+            experiments::override_keys,
+        ))
+        .schema_name(schema_name)
+        .load::<(i64, String, Vec<String>)>(conn)
+        .map_err(|err| {
+            log::error!("failed to fetch experiments for symlink check: {}", err);
+            db_error!(err)
+        })?;
+
+    Ok(rows
+        .into_iter()
+        .filter(|(_, _, keys)| keys.iter().any(|k| k == key))
+        .map(|(id, name, _)| format!("{name} ({id})"))
+        .collect())
+}
+
+/// Why `key` may not become a symlink to `target`, or `None` if it may.
+///
+/// A symlink holds no value of its own: `generate_cac` excludes link rows, and
+/// `expand_symlinks` copies the *target*'s entry into the link's name, both in the
+/// defaults and in every override map that mentions the target. So anything that
+/// depends on `key` carrying its own value breaks the instant the conversion
+/// lands, and breaks silently:
+///
+/// - a context override stored against `key` keeps applying under `key` while
+///   `target` keeps its own value, violating `eval(config)[link] ==
+///   eval(config)[target]` — and that override is then unreachable by `reduce`,
+///   whose rewrite only sees keys that are still in `default_configs`;
+/// - an experiment variant overriding `key` has the same problem, and `conclude`'s
+///   `DeleteOverrides` path removes the link's name from an override map that now
+///   holds the target's, so the override is never removed at all;
+/// - a symlink already pointing at `key` would become a link to a link, which is
+///   the chain the design rules out — and, because `flatten_target` resolves
+///   through it, the route to a cycle.
+///
+/// `delete_handler` refuses on the first two for the same reasons; this is the
+/// same refusal for the write that empties a key out rather than removing it.
+pub fn symlink_conversion_refusal(
+    key: &str,
+    target: &str,
+    dependents: &[String],
+    context_ids: &[String],
+    experiment_ids: &[String],
+) -> Option<String> {
+    if !dependents.is_empty() {
+        return Some(format!(
+            "cannot make `{key}` a symlink to `{target}`: it is itself the target of \
+             symlink(s) {}. A symlink's target cannot be a symlink, so repoint or \
+             delete those first.",
+            dependents.join(", ")
+        ));
+    }
+
+    if !context_ids.is_empty() {
+        return Some(format!(
+            "cannot make `{key}` a symlink to `{target}`: it is overridden in \
+             context(s) {}. A symlink holds no value of its own, so those overrides \
+             would stop agreeing with `{target}` and could no longer be edited. \
+             Move them to `{target}` and remove them from `{key}` first.",
+            context_ids.join(", ")
+        ));
+    }
+
+    if !experiment_ids.is_empty() {
+        return Some(format!(
+            "cannot make `{key}` a symlink to `{target}`: it is overridden by \
+             experiment(s) {}. A symlink holds no value of its own, so those variants \
+             would stop agreeing with `{target}` and would not be cleaned up on \
+             conclude. Conclude or discard them, or move them to `{target}`, first.",
+            experiment_ids.join(", ")
+        ));
+    }
+
+    None
 }
 
 /// For the given keys, which are symlinks and where do they point.
@@ -519,6 +619,71 @@ mod tests {
         // literals above from the on-disk representation in Task 1.
         assert!(super::IS_A_SYMLINK_SQL.contains(SYMLINK_KEYWORD));
         assert!(super::NOT_A_SYMLINK_SQL.contains(SYMLINK_KEYWORD));
+    }
+
+    #[test]
+    fn conversion_is_refused_while_a_symlink_points_at_the_key() {
+        // `a -> b`, then converting `b` would make `a` a link to a link: the
+        // chain the design rules out, and - because `flatten_target` resolves
+        // through it - the route to a `b <-> c` cycle.
+        let refusal =
+            super::symlink_conversion_refusal("b", "c", &["a".to_string()], &[], &[])
+                .expect("a key with symlink dependents must not become a symlink");
+
+        assert!(refusal.contains('b'), "names the key: {refusal}");
+        assert!(refusal.contains('a'), "names what depends on it: {refusal}");
+        assert!(
+            refusal.contains("repoint") || refusal.contains("delete"),
+            "says what the operator must do first: {refusal}"
+        );
+    }
+
+    #[test]
+    fn conversion_is_refused_while_the_key_is_overridden_in_a_context() {
+        // The core invariant: `generate_cac` would stop emitting `old.key`, and
+        // the stored override map names `old.key` rather than `new.key`, so
+        // `expand_symlinks` copies nothing and the two names disagree - silently,
+        // with the override then unreachable by `reduce`.
+        let refusal = super::symlink_conversion_refusal(
+            "old.key",
+            "new.key",
+            &[],
+            &["ctx-1".to_string(), "ctx-2".to_string()],
+            &[],
+        )
+        .expect("a key used in contexts must not become a symlink");
+
+        assert!(refusal.contains("old.key"));
+        assert!(refusal.contains("new.key"), "names the target: {refusal}");
+        assert!(refusal.contains("ctx-1") && refusal.contains("ctx-2"));
+    }
+
+    #[test]
+    fn conversion_is_refused_while_an_experiment_overrides_the_key() {
+        // `conclude`'s DeleteOverrides path removes the link's name from an
+        // override map that would then hold the target's, so the variant override
+        // would never be cleaned up.
+        let refusal = super::symlink_conversion_refusal(
+            "old.key",
+            "new.key",
+            &[],
+            &[],
+            &["my-exp (7)".to_string()],
+        )
+        .expect("a key used by a live experiment must not become a symlink");
+
+        assert!(refusal.contains("my-exp (7)"));
+    }
+
+    #[test]
+    fn conversion_is_allowed_when_nothing_depends_on_the_key() {
+        // Repointing an existing link lands here: overrides naming a link are
+        // rewritten to its target on write, and a link is never another link's
+        // target, so all three lists are necessarily empty.
+        assert_eq!(
+            super::symlink_conversion_refusal("a", "b", &[], &[], &[]),
+            None
+        );
     }
 
     #[test]
