@@ -452,6 +452,37 @@ final class SharedSerde {
         }
     }
 
+    static final class ListGroupedDefaultConfigOutSerializer implements BiConsumer<List<GroupedDefaultConfig>, ShapeSerializer> {
+        static final ListGroupedDefaultConfigOutSerializer INSTANCE = new ListGroupedDefaultConfigOutSerializer();
+
+        @Override
+        public void accept(List<GroupedDefaultConfig> values, ShapeSerializer serializer) {
+            for (var value : values) {
+                serializer.writeStruct(SharedSchemas.LIST_GROUPED_DEFAULT_CONFIG_OUT.listMember(), value);
+            }
+        }
+    }
+
+    static List<GroupedDefaultConfig> deserializeListGroupedDefaultConfigOut(Schema schema, ShapeDeserializer deserializer) {
+        var size = deserializer.containerSize();
+        List<GroupedDefaultConfig> result = size == -1 ? new ArrayList<>() : new ArrayList<>(size);
+        deserializer.readList(schema, result, ListGroupedDefaultConfigOut$MemberDeserializer.INSTANCE);
+        return result;
+    }
+
+    private static final class ListGroupedDefaultConfigOut$MemberDeserializer implements ShapeDeserializer.ListMemberConsumer<List<GroupedDefaultConfig>> {
+        static final ListGroupedDefaultConfigOut$MemberDeserializer INSTANCE = new ListGroupedDefaultConfigOut$MemberDeserializer();
+
+        @Override
+        public void accept(List<GroupedDefaultConfig> state, ShapeDeserializer deserializer) {
+            if (deserializer.isNull()) {
+
+                return;
+            }
+            state.add(GroupedDefaultConfig.builder().deserializeMember(deserializer, SharedSchemas.LIST_GROUPED_DEFAULT_CONFIG_OUT.listMember()).build());
+        }
+    }
+
     static final class ListDefaultConfigOutSerializer implements BiConsumer<List<DefaultConfigResponse>, ShapeSerializer> {
         static final ListDefaultConfigOutSerializer INSTANCE = new ListDefaultConfigOutSerializer();
 

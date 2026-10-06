@@ -172,6 +172,9 @@ import io.juspay.superposition.model.ListExperimentOutput;
 import io.juspay.superposition.model.ListFunction;
 import io.juspay.superposition.model.ListFunctionInput;
 import io.juspay.superposition.model.ListFunctionOutput;
+import io.juspay.superposition.model.ListGroupedDefaultConfigs;
+import io.juspay.superposition.model.ListGroupedDefaultConfigsInput;
+import io.juspay.superposition.model.ListGroupedDefaultConfigsOutput;
 import io.juspay.superposition.model.ListOrganisation;
 import io.juspay.superposition.model.ListOrganisationInput;
 import io.juspay.superposition.model.ListOrganisationOutput;
@@ -517,6 +520,10 @@ final class SuperpositionAsyncClientImpl extends Client implements Superposition
 
     @Override
     public CompletableFuture<ListFunctionOutput> listFunction(ListFunctionInput input, RequestOverrideConfig overrideConfig) {return call(input, ListFunction.instance(), overrideConfig);
+    }
+
+    @Override
+    public CompletableFuture<ListGroupedDefaultConfigsOutput> listGroupedDefaultConfigs(ListGroupedDefaultConfigsInput input, RequestOverrideConfig overrideConfig) {return call(input, ListGroupedDefaultConfigs.instance(), overrideConfig);
     }
 
     @Override

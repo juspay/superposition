@@ -27,6 +27,7 @@ public final class DefaultConfig implements ApiResource {
         "value_validation_function_name", PreludeSchemas.STRING,
         "last_modified_at", SharedSchemas.DATE_TIME);
 
+    private static final List<Schema>$COLLECTION_OPERATIONS = List.of(CreateDefaultConfig.$SCHEMA);
     private static final List<Schema> $OPERATIONS = List.of(CreateDefaultConfig.$SCHEMA);
     private static final Schema $SCHEMA = Schema.createResource($ID);
 
@@ -76,6 +77,10 @@ public final class DefaultConfig implements ApiResource {
         return ListDefaultConfigs.$SCHEMA;
     }
 
+    @Override
+    public List<Schema> collectionOperations() {
+        return $COLLECTION_OPERATIONS;
+    }
     @Override
     public List<Schema> operations() {
         return $OPERATIONS;
