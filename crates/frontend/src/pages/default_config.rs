@@ -242,12 +242,23 @@ pub fn DefaultConfig() -> impl IntoView {
                 let Some((default_config, symlink_to)) = extracted else {
                     return view! { <h1>"Error fetching default config"</h1> }.into_view();
                 };
-                let symlink_badge = symlink_to.clone().map(|target| {
+                let symlink_banner = symlink_to.clone().map(|target| {
                     view! {
-                        <span class="badge badge-ghost ml-2" title="symlink">
-                            <i class="ri-links-line mr-1" />
-                            {format!("→ {target}")}
-                        </span>
+                        <div role="alert" class="alert alert-info">
+                            <i class="ri-links-line text-lg" />
+                            <span>
+                                <span class="font-bold">"Symlink → "</span>
+                                <A
+                                    href=format!("../{target}")
+                                    class="font-semibold underline underline-offset-2"
+                                >
+                                    {target}
+                                </A>
+                                <span class="ml-1">
+                                    "This key has no value of its own - its type and value below are inherited from the target key and are read-only here."
+                                </span>
+                            </span>
+                        </div>
                     }
                 });
                 view! {
@@ -255,7 +266,6 @@ pub fn DefaultConfig() -> impl IntoView {
                         <div class="flex justify-between items-center">
                             <h1 class="text-2xl font-extrabold flex items-center">
                                 {default_config.key.clone()}
-                                {symlink_badge}
                             </h1>
                             <div class="w-full max-w-fit flex flex-row join">
                                 <ButtonAnchor
@@ -272,6 +282,7 @@ pub fn DefaultConfig() -> impl IntoView {
                                 />
                             </div>
                         </div>
+                        {symlink_banner}
                         <ContentDescription
                             description=default_config.description.clone()
                             change_reason=default_config.change_reason.clone()
