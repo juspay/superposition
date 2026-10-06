@@ -35,13 +35,15 @@ fn ConfigInfo(
     /// (so existing machine clients keep seeing a real type), but a human
     /// reading this card should see the link, not a schema that looks like
     /// it belongs to this key - see the schema row below.
-    #[prop(default = None)] symlink_to: Option<String>,
+    #[prop(default = None)]
+    symlink_to: Option<String>,
     /// Prepended to every relative link this card builds (the symlink
     /// target link and the validation/compute function links), so the same
     /// card renders correct links whether it's shown on the key's own
     /// detail page (the default, `""`) or one path segment deeper on its
     /// edit page (`"../"`).
-    #[prop(into, default = String::new())] path_depth_prefix: String,
+    #[prop(into, default = String::new())]
+    path_depth_prefix: String,
 ) -> impl IntoView {
     // Stored rather than a plain `String` so each of the three links below
     // can take its own clone, instead of the first `move` closure taking
@@ -85,27 +87,31 @@ fn ConfigInfo(
                                 <div class="stat-title">
                                     {if symlink_to.is_some() { "Symlink" } else { "Schema" }}
                                 </div>
-                                {symlink_to.clone().map(|target| {
+                                {symlink_to
+                                    .clone()
+                                    .map(|target| {
+                                        view! {
+                                            <span class="text-sm flex items-center gap-1">
+                                                "→"
+                                                <A
+                                                    href=format!("{}../{target}", path_depth_prefix.get_value())
+                                                    class="text-blue-500 underline underline-offset-2"
+                                                >
+                                                    {target}
+                                                </A>
+                                            </span>
+                                        }
+                                    })}
+                            </div>
+                            {symlink_to
+                                .is_some()
+                                .then(|| {
                                     view! {
-                                        <span class="text-sm flex items-center gap-1">
-                                            "→"
-                                            <A
-                                                href=format!("{}../{target}", path_depth_prefix.get_value())
-                                                class="text-blue-500 underline underline-offset-2"
-                                            >
-                                                {target}
-                                            </A>
-                                        </span>
+                                        <div class="text-xs text-gray-500 italic">
+                                            "Type is inherited from the target key and is read-only here."
+                                        </div>
                                     }
                                 })}
-                            </div>
-                            {symlink_to.is_some().then(|| {
-                                view! {
-                                    <div class="text-xs text-gray-500 italic">
-                                        "Type is inherited from the target key and is read-only here."
-                                    </div>
-                                }
-                            })}
                             <Input
                                 disabled=true
                                 id="type-schema"
@@ -129,7 +135,10 @@ fn ConfigInfo(
                                             <div class="h-fit w-[250px]">
                                                 <div class="stat-title">"Validation Function"</div>
                                                 <A
-                                                    href=format!("{}../../function/{name}", path_depth_prefix.get_value())
+                                                    href=format!(
+                                                        "{}../../function/{name}",
+                                                        path_depth_prefix.get_value(),
+                                                    )
                                                     class="text-blue-500 underline underline-offset-2"
                                                 >
                                                     {name}
@@ -144,7 +153,10 @@ fn ConfigInfo(
                                             <div class="h-fit w-[250px]">
                                                 <div class="stat-title">"Value Compute Function"</div>
                                                 <A
-                                                    href=format!("{}../../function/{name}", path_depth_prefix.get_value())
+                                                    href=format!(
+                                                        "{}../../function/{name}",
+                                                        path_depth_prefix.get_value(),
+                                                    )
                                                     class="text-blue-500 underline underline-offset-2"
                                                 >
                                                     {name}
@@ -229,10 +241,6 @@ pub fn DefaultConfig() -> impl IntoView {
             view! { <Skeleton variant=SkeletonVariant::DetailPage /> }
         }>
             {move || {
-                // `DefaultConfigResponse` doesn't derive `Clone` (it isn't
-                // meant to be copied around wholesale), so pull the two
-                // owned pieces this view needs out through `.with()` rather
-                // than `.get()`.
                 let extracted = default_config_resource
                     .with(|r| {
                         r.as_ref()
@@ -240,27 +248,34 @@ pub fn DefaultConfig() -> impl IntoView {
                             .map(|response| (response.config.clone(), response.symlink_to.clone()))
                     });
                 let Some((default_config, symlink_to)) = extracted else {
-                    return view! { <h1>"Error fetching default config"</h1> }.into_view();
+                    return // `DefaultConfigResponse` doesn't derive `Clone` (it isn't
+                    // meant to be copied around wholesale), so pull the two
+                    // owned pieces this view needs out through `.with()` rather
+                    // than `.get()`.
+                    view! { <h1>"Error fetching default config"</h1> }
+                        .into_view();
                 };
-                let symlink_banner = symlink_to.clone().map(|target| {
-                    view! {
-                        <div role="alert" class="alert alert-info">
-                            <i class="ri-links-line text-lg" />
-                            <span>
-                                <span class="font-bold">"Symlink → "</span>
-                                <A
-                                    href=format!("../{target}")
-                                    class="font-semibold underline underline-offset-2"
-                                >
-                                    {target}
-                                </A>
-                                <span class="ml-1">
-                                    "This key has no value of its own - its type and value below are inherited from the target key and are read-only here."
+                let symlink_banner = symlink_to
+                    .clone()
+                    .map(|target| {
+                        view! {
+                            <div role="alert" class="alert alert-info">
+                                <i class="ri-links-line text-lg" />
+                                <span>
+                                    <span class="font-bold">"Symlink → "</span>
+                                    <A
+                                        href=format!("../{target}")
+                                        class="font-semibold underline underline-offset-2"
+                                    >
+                                        {target}
+                                    </A>
+                                    <span class="ml-1">
+                                        "This key has no value of its own - its type and value below are inherited from the target key and are read-only here."
+                                    </span>
                                 </span>
-                            </span>
-                        </div>
-                    }
-                });
+                            </div>
+                        }
+                    });
                 view! {
                     <div class="flex flex-col gap-4">
                         <div class="flex justify-between items-center">
@@ -291,7 +306,10 @@ pub fn DefaultConfig() -> impl IntoView {
                             last_modified_by=default_config.last_modified_by.clone()
                             last_modified_at=default_config.last_modified_at
                         />
-                        <ConfigInfo default_config=default_config.clone() symlink_to=symlink_to.clone() />
+                        <ConfigInfo
+                            default_config=default_config.clone()
+                            symlink_to=symlink_to.clone()
+                        />
                     </div>
                     <Show when=move || matches!(action_rws.get(), Action::Delete)>
                         <ChangeLogSummary
@@ -344,13 +362,13 @@ pub fn EditDefaultConfig() -> impl IntoView {
                     _ => return view! { <h1>"Error fetching default config"</h1> }.into_view(),
                 };
                 let is_symlink = symlink_to.is_some();
+                let config_info_default_config = default_config.clone();
+                let config_info_symlink_to = symlink_to.clone();
                 // `Show`'s children callback is `Fn`, so it moves whatever it
                 // captures by reference into an owned closure on first build;
                 // clone into dedicated bindings rather than feeding it
                 // `default_config`/`symlink_to` directly, since both are
                 // still needed below for `DefaultConfigForm`.
-                let config_info_default_config = default_config.clone();
-                let config_info_symlink_to = symlink_to.clone();
 
                 view! {
                     <div class="flex flex-col gap-4">

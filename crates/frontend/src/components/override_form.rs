@@ -298,12 +298,18 @@ fn OverrideInput(
                     <span class="label-text font-bold text-gray-500">{key.get_value()} ":"</span>
                     <div class="flex gap-1">
                         <TypeBadge r#type=r#type.clone() />
-                        {move || symlink_target.get().map(|target| view! {
-                            <span class="badge badge-sm badge-ghost" title="symlink">
-                                <i class="ri-links-line mr-1" />
-                                {format!("→ {target}")}
-                            </span>
-                        })}
+                        {move || {
+                            symlink_target
+                                .get()
+                                .map(|target| {
+                                    view! {
+                                        <span class="badge badge-sm badge-ghost" title="symlink">
+                                            <i class="ri-links-line mr-1" />
+                                            {format!("→ {target}")}
+                                        </span>
+                                    }
+                                })
+                        }}
                     </div>
                 </label>
             </div>
@@ -476,52 +482,64 @@ pub fn OverrideForm(
                     <div class="card-body gap-4">
                         {move || match symlink_check.get() {
                             SymlinkCheck::Clear => None,
-                            SymlinkCheck::Pending => Some(view! {
-                                <div class="alert text-sm flex items-center gap-2">
-                                    <span class="loading loading-spinner loading-xs"></span>
-                                    <span>"Checking for symlink collisions…"</span>
-                                </div>
-                            }),
-                            check => check.warning().map(|message| view! {
-                                <div class="alert alert-warning text-sm flex items-start gap-2">
-                                    <i class="ri-alert-line text-lg"></i>
-                                    <span>{message}</span>
-                                </div>
-                            }),
-                        }}
-                        <Show when=move || { overrides.get().is_empty() && show_add_override }>
+                            SymlinkCheck::Pending => {
+                                Some(
+                                    view! {
+                                        <div class="alert text-sm flex items-center gap-2">
+                                            <span class="loading loading-spinner loading-xs"></span>
+                                            <span>"Checking for symlink collisions…"</span>
+                                        </div>
+                                    },
+                                )
+                            }
+                            check => {
+                                check
+                                    .warning()
+                                    .map(|message| {
+                                        view! {
+                                            <div class="alert alert-warning text-sm flex items-start gap-2">
+                                                <i class="ri-alert-line text-lg"></i>
+                                                <span>{message}</span>
+                                            </div>
+                                        }
+                                    })
+                            }
+                        }} <Show when=move || { overrides.get().is_empty() && show_add_override }>
                             <div class="flex justify-center">
                                 // Gated on `client_side_ready` like every other
                                 // dropdown subtree (see `side_nav.rs`): a subtree
                                 // re-created inside `{move || ...}` right after
                                 // hydration is the shape that panicked the
                                 // workspaces page (#1148).
-                                <Show when=move || *client_side_ready.get()>
-                                {move || {
-                                    let add_override_options = default_config
-                                        .get_value()
-                                        .into_iter()
-                                        .map(|config| {
-                                            let symlink_target = symlink_map
-                                                .with(|state| state.target_of(&config.key));
-                                            OverrideKeyOption { config, symlink_target }
-                                        })
-                                        .collect::<Vec<OverrideKeyOption>>();
-                                    view! {
-                                        <Dropdown
-                                            dropdown_direction=DropdownDirection::Down
-                                            dropdown_text=String::from("Add Override")
-                                            dropdown_icon=String::from("ri-add-line")
-                                            dropdown_options=add_override_options
-                                            on_select=handle_config_key_select
-                                        />
-                                    }
-                                }}
+                                <Show when=move || {
+                                    *client_side_ready.get()
+                                }>
+                                    {move || {
+                                        let add_override_options = default_config
+                                            .get_value()
+                                            .into_iter()
+                                            .map(|config| {
+                                                let symlink_target = symlink_map
+                                                    .with(|state| state.target_of(&config.key));
+                                                OverrideKeyOption {
+                                                    config,
+                                                    symlink_target,
+                                                }
+                                            })
+                                            .collect::<Vec<OverrideKeyOption>>();
+                                        view! {
+                                            <Dropdown
+                                                dropdown_direction=DropdownDirection::Down
+                                                dropdown_text=String::from("Add Override")
+                                                dropdown_icon=String::from("ri-add-line")
+                                                dropdown_options=add_override_options
+                                                on_select=handle_config_key_select
+                                            />
+                                        }
+                                    }}
                                 </Show>
                             </div>
-                        </Show>
-
-                        <Show when=move || overrides.get().is_empty()>
+                        </Show> <Show when=move || overrides.get().is_empty()>
                             <div class="p-4 text-gray-400 flex flex-col justify-center items-center">
                                 <div>
                                     <i class="ri-add-circle-line text-xl"></i>
@@ -564,32 +582,35 @@ pub fn OverrideForm(
                                     />
                                 }
                             }
-                        />
-
-                        <Show when=move || { !overrides.get().is_empty() && show_add_override }>
+                        /> <Show when=move || { !overrides.get().is_empty() && show_add_override }>
                             <div class="mt-4">
-                                <Show when=move || *client_side_ready.get()>
-                                {move || {
-                                    let unused_config_keys = default_config
-                                        .get_value()
-                                        .into_iter()
-                                        .filter(|config| !override_keys.get().contains(&config.key))
-                                        .map(|config| {
-                                            let symlink_target = symlink_map
-                                                .with(|state| state.target_of(&config.key));
-                                            OverrideKeyOption { config, symlink_target }
-                                        })
-                                        .collect::<Vec<OverrideKeyOption>>();
-                                    view! {
-                                        <Dropdown
-                                            dropdown_direction=DropdownDirection::Down
-                                            dropdown_text=String::from("Add Override")
-                                            dropdown_icon=String::from("ri-add-line")
-                                            dropdown_options=unused_config_keys.clone()
-                                            on_select=handle_config_key_select
-                                        />
-                                    }
-                                }}
+                                <Show when=move || {
+                                    *client_side_ready.get()
+                                }>
+                                    {move || {
+                                        let unused_config_keys = default_config
+                                            .get_value()
+                                            .into_iter()
+                                            .filter(|config| !override_keys.get().contains(&config.key))
+                                            .map(|config| {
+                                                let symlink_target = symlink_map
+                                                    .with(|state| state.target_of(&config.key));
+                                                OverrideKeyOption {
+                                                    config,
+                                                    symlink_target,
+                                                }
+                                            })
+                                            .collect::<Vec<OverrideKeyOption>>();
+                                        view! {
+                                            <Dropdown
+                                                dropdown_direction=DropdownDirection::Down
+                                                dropdown_text=String::from("Add Override")
+                                                dropdown_icon=String::from("ri-add-line")
+                                                dropdown_options=unused_config_keys.clone()
+                                                on_select=handle_config_key_select
+                                            />
+                                        }
+                                    }}
                                 </Show>
                             </div>
                         </Show>

@@ -171,30 +171,24 @@ pub fn DefaultConfigList() -> impl IntoView {
             view! { <Skeleton /> }
         }>
             {move || {
-                // `DefaultConfigResponse` doesn't derive `Clone`, so pull
-                // what's needed out through `.with()` (which hands back
-                // `&Option<T>`, no `Clone` bound) rather than `.get()`.
                 let (table_rows, total_items, total_pages_count) = default_config_resource
                     .with(|opt| match opt {
-                        Some(default_config) => (
-                            default_config
-                                .data
-                                .iter()
-                                .map(|config| json!(config).as_object().unwrap().to_owned())
-                                .collect::<Vec<Map<String, Value>>>(),
-                            default_config.total_items,
-                            default_config.total_pages,
-                        ),
+                        Some(default_config) => {
+                            (
+                                default_config
+                                    .data
+                                    .iter()
+                                    .map(|config| json!(config).as_object().unwrap().to_owned())
+                                    .collect::<Vec<Map<String, Value>>>(),
+                                default_config.total_items,
+                                default_config.total_pages,
+                            )
+                        }
                         None => (Vec::new(), 0, 0),
                     });
                 let mut filtered_rows = table_rows;
                 let page_params = page_params_rws.get();
                 if page_params.grouped {
-                    // The union of every row's keys, not row 0's. `symlink_to`
-                    // is `skip_serializing_if`, so an ordinary first row left it
-                    // out of `cols` and `modify_rows` then had no placeholder to
-                    // write over it - leaving a synthesized folder row carrying
-                    // some child's `symlink_to`.
                     let cols = filtered_rows
                         .iter()
                         .flat_map(|row| row.keys().cloned())
@@ -222,6 +216,14 @@ pub fn DefaultConfigList() -> impl IntoView {
                     total_pages,
                     on_page_change: handle_page_change,
                 };
+                // `DefaultConfigResponse` doesn't derive `Clone`, so pull
+                // what's needed out through `.with()` (which hands back
+                // `&Option<T>`, no `Clone` bound) rather than `.get()`.
+                // The union of every row's keys, not row 0's. `symlink_to`
+                // is `skip_serializing_if`, so an ordinary first row left it
+                // out of `cols` and `modify_rows` then had no placeholder to
+                // write over it - leaving a synthesized folder row carrying
+                // some child's `symlink_to`.
                 view! {
                     <div class="h-full flex flex-col gap-4">
                         <div class="flex justify-between">
