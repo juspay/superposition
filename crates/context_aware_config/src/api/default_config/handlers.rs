@@ -85,6 +85,18 @@ async fn create_handler(
     let req = request.into_inner();
     let conn = write_permit.connection();
 
+    // Authorize the key the caller named before anything is looked up.
+    //
+    // `#[authorized]` only proves the caller may perform *this action on this
+    // resource* at all - its extractor runs `is_allowed` with no attributes - so it
+    // says nothing about this particular key. `flatten_target` below reports
+    // whether an arbitrary caller-supplied key exists, which would make it an
+    // existence oracle for a caller with no authority over the key they are
+    // writing. One ordering rule, shared with `update_handler`: authorize the named
+    // key, then fetch or flatten, then additionally authorize the redirected
+    // target.
+    _auth_z.authorized(&[req.key.deref()]).await?;
+
     // A create whose schema carries the symlink marker is a link, not an ordinary
     // key: its value names a target, which must already exist and must not be
     // another link (flatten_target keeps stored links at depth 1).
@@ -113,17 +125,16 @@ async fn create_handler(
         if target == *req.key {
             return Err(bad_argument!("a symlink cannot point at itself"));
         }
+
+        // Creating a link needs authority over the target too: otherwise a
+        // principal could create `allowed.alias -> restricted.key` and surface a
+        // restricted key's value under a name a prefix-scoped reader is permitted
+        // to see.
+        _auth_z.authorized(&[req.key.deref(), &target]).await?;
+
         Some((target, canonical))
     } else {
         None
-    };
-
-    // Creating a link needs authority over the target too: otherwise a principal
-    // could create `allowed.alias -> restricted.key` and surface a restricted
-    // key's value under a name a prefix-scoped reader is permitted to see.
-    match &symlink {
-        Some((target, _)) => _auth_z.authorized(&[req.key.deref(), target]).await?,
-        None => _auth_z.authorized(&[req.key.deref()]).await?,
     };
 
     let key = req.key;
@@ -294,6 +305,15 @@ async fn update_handler(
 
     let conn = write_permit.connection();
 
+    // Authorize the key the caller named before the row is fetched.
+    //
+    // `#[authorized]`'s extractor checks only the action against the resource,
+    // with no attributes, so without this an unauthorized caller got
+    // "No record found for X" (or the symlink-target probe further down) instead
+    // of a 403 - an existence oracle for any key they cannot write. The
+    // redirected target is authorized additionally, below, once it is known.
+    _auth_z.authorized(&[&key_str]).await?;
+
     let existing = fetch_default_key(&key_str, conn, &workspace_context.schema_name)
         .map_err(|e| match e {
             superposition::AppError::DbError(diesel::NotFound) => {
@@ -397,8 +417,11 @@ async fn update_handler(
 
         req.value = Some(Value::String(target));
         req.schema = Some(ExtendedMap::from(canonical));
-    } else {
-        _auth_z.authorized(&[&addressed_key]).await?;
+    } else if addressed_key != key_str {
+        // A value write against a link lands on its target, so the target needs
+        // authorizing too - additionally, not instead: `key_str` was authorized
+        // before the fetch above.
+        _auth_z.authorized(&[&key_str, &addressed_key]).await?;
     }
 
     // The row the patch actually lands on. For a redirect this is the target's
