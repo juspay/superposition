@@ -7,11 +7,11 @@ use diesel::{
     ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl, SelectableHelper,
     dsl::sql, sql_types::Bool,
 };
-use serde_json::Value;
+use serde_json::{Map, Value};
 use service_utils::service::types::SchemaName;
 use superposition_macros::{bad_argument, db_error};
 use superposition_types::{
-    Config, DBConnection,
+    Cac, Config, DBConnection, Overrides,
     api::default_config::DefaultConfigResponse,
     database::{models::cac::DefaultConfig, schema::default_configs::dsl},
     result as superposition,
@@ -122,6 +122,64 @@ pub fn symlink_map_for_keys<'a>(
         .into_iter()
         .filter_map(|(key, value)| Some((key, value.as_str()?.to_string())))
         .collect())
+}
+
+/// Rewrites symlinked keys in an override map to their targets.
+///
+/// Refuses a map that names both a link and its target with different values: the
+/// rewrite would collapse them into one entry and silently drop a value the caller
+/// asked for.
+pub fn apply_symlink_map(
+    overrides: Map<String, Value>,
+    links: &HashMap<String, String>,
+) -> Result<Map<String, Value>, String> {
+    if links.is_empty() {
+        return Ok(overrides);
+    }
+
+    let mut normalized = Map::new();
+    let mut origin: HashMap<String, String> = HashMap::new();
+
+    for (key, value) in overrides {
+        let target = links.get(&key).cloned().unwrap_or_else(|| key.clone());
+
+        if let Some(existing) = normalized.get(&target) {
+            if *existing != value {
+                let first = origin
+                    .get(&target)
+                    .cloned()
+                    .unwrap_or_else(|| target.clone());
+                return Err(format!(
+                    "override names both `{first}` and `{key}`, which resolve to the \
+                     same config key `{target}`, with different values; keep one of them"
+                ));
+            }
+        }
+
+        origin.insert(target.clone(), key);
+        normalized.insert(target, value);
+    }
+
+    Ok(normalized)
+}
+
+/// Looks up which of these override keys are symlinks and rewrites them.
+pub fn normalize_override_keys(
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+    overrides: Overrides,
+) -> superposition::Result<Overrides> {
+    let links = symlink_map_for_keys(conn, schema_name, overrides.keys())?;
+    if links.is_empty() {
+        return Ok(overrides);
+    }
+
+    let normalized = apply_symlink_map(overrides.into_inner(), &links)
+        .map_err(|err| bad_argument!("{}", err))?;
+
+    Cac::<Overrides>::try_from(normalized)
+        .map(|cac| cac.into_inner())
+        .map_err(|err| bad_argument!("{}", err))
 }
 
 /// Resolves a requested target through any existing symlink, so stored links are
@@ -392,5 +450,93 @@ mod tests {
         // literals above from the on-disk representation in Task 1.
         assert!(super::IS_A_SYMLINK_SQL.contains(SYMLINK_KEYWORD));
         assert!(super::NOT_A_SYMLINK_SQL.contains(SYMLINK_KEYWORD));
+    }
+
+    #[test]
+    fn apply_rewrites_a_link_to_its_target() {
+        use std::collections::HashMap;
+
+        let mut links = HashMap::new();
+        links.insert(
+            "payments.retry_count".to_string(),
+            "payments.retry.count".to_string(),
+        );
+
+        let overrides = json!({ "payments.retry_count": 5 })
+            .as_object()
+            .expect("fixture")
+            .clone();
+
+        let normalized =
+            super::apply_symlink_map(overrides, &links).expect("should rewrite");
+
+        assert_eq!(normalized.get("payments.retry.count"), Some(&json!(5)));
+        assert!(!normalized.contains_key("payments.retry_count"));
+    }
+
+    #[test]
+    fn apply_leaves_ordinary_keys_alone() {
+        use std::collections::HashMap;
+
+        let overrides = json!({ "a.b": 1, "c.d": 2 })
+            .as_object()
+            .expect("fixture")
+            .clone();
+        let normalized = super::apply_symlink_map(overrides.clone(), &HashMap::new())
+            .expect("no links");
+
+        assert_eq!(normalized, overrides);
+    }
+
+    #[test]
+    fn a_link_and_its_target_with_different_values_is_rejected() {
+        // Review Focus 1: normalizing would otherwise collapse two entries into one
+        // and silently lose a value the caller asked for.
+        use std::collections::HashMap;
+
+        let mut links = HashMap::new();
+        links.insert(
+            "payments.retry_count".to_string(),
+            "payments.retry.count".to_string(),
+        );
+
+        let overrides = json!({ "payments.retry_count": 5, "payments.retry.count": 7 })
+            .as_object()
+            .expect("fixture")
+            .clone();
+
+        let err = super::apply_symlink_map(overrides, &links)
+            .expect_err("a colliding override must be refused");
+
+        assert!(
+            err.contains("payments.retry_count"),
+            "error names the link: {err}"
+        );
+        assert!(
+            err.contains("payments.retry.count"),
+            "error names the target: {err}"
+        );
+    }
+
+    #[test]
+    fn a_link_and_its_target_with_the_same_value_collapses_quietly() {
+        use std::collections::HashMap;
+
+        let mut links = HashMap::new();
+        links.insert(
+            "payments.retry_count".to_string(),
+            "payments.retry.count".to_string(),
+        );
+
+        let overrides = json!({ "payments.retry_count": 5, "payments.retry.count": 5 })
+            .as_object()
+            .expect("fixture")
+            .clone();
+
+        let normalized =
+            super::apply_symlink_map(overrides, &links).expect("agreeing values");
+
+        assert_eq!(normalized.len(), 1);
+        assert_eq!(normalized.get("payments.retry.count"), Some(&json!(5)));
     }
 }
