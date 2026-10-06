@@ -28,7 +28,7 @@ use superposition_types::{
     api::{
         default_config::{
             DefaultConfigCreateRequest, DefaultConfigFilters, DefaultConfigKey,
-            DefaultConfigUpdateRequest,
+            DefaultConfigResponse, DefaultConfigUpdateRequest,
         },
         functions::{FunctionEnvironment, FunctionExecutionRequest, KeyType},
         webhook::Action,
@@ -54,6 +54,7 @@ use crate::{
         },
     },
     helpers::{add_config_version, put_config_in_redis, validate_change_reason},
+    symlinks::{resolve_for_response, resolve_many_for_response},
 };
 
 declare_resource!(DefaultConfig);
@@ -214,10 +215,11 @@ async fn get_handler(
     workspace_context: WorkspaceContext,
     key: Path<DefaultConfigKey>,
     db_conn: DbConnection,
-) -> superposition::Result<Json<DefaultConfig>> {
+) -> superposition::Result<Json<DefaultConfigResponse>> {
     let DbConnection(mut conn) = db_conn;
     let res = fetch_default_key(&key, &mut conn, &workspace_context.schema_name)?;
-    Ok(Json(res))
+    let resolved = resolve_for_response(&mut conn, &workspace_context.schema_name, res)?;
+    Ok(Json(resolved))
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -442,7 +444,7 @@ async fn list_handler(
     db_conn: DbConnection,
     pagination: Query<PaginationParams>,
     filters: Query<DefaultConfigFilters>,
-) -> superposition::Result<Json<PaginatedResponse<DefaultConfig>>> {
+) -> superposition::Result<Json<PaginatedResponse<DefaultConfigResponse>>> {
     let DbConnection(mut conn) = db_conn;
 
     let filters = filters.into_inner();
@@ -461,7 +463,9 @@ async fn list_handler(
     if let Some(true) = pagination.all {
         let result: Vec<DefaultConfig> =
             query_builder(&filters).get_results(&mut conn)?;
-        return Ok(Json(PaginatedResponse::all(result)));
+        let resolved =
+            resolve_many_for_response(&mut conn, &workspace_context.schema_name, result)?;
+        return Ok(Json(PaginatedResponse::all(resolved)));
     }
 
     let base_query = query_builder(&filters);
@@ -476,10 +480,12 @@ async fn list_handler(
     }
     let result: Vec<DefaultConfig> = builder.load(&mut conn)?;
     let total_pages = (n_default_configs as f64 / limit as f64).ceil() as i64;
+    let resolved =
+        resolve_many_for_response(&mut conn, &workspace_context.schema_name, result)?;
     Ok(Json(PaginatedResponse {
         total_pages,
         total_items: n_default_configs,
-        data: result,
+        data: resolved,
     }))
 }
 

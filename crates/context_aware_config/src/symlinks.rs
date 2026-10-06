@@ -12,6 +12,7 @@ use service_utils::service::types::SchemaName;
 use superposition_macros::{bad_argument, db_error};
 use superposition_types::{
     Config, DBConnection,
+    api::default_config::DefaultConfigResponse,
     database::{models::cac::DefaultConfig, schema::default_configs::dsl},
     result as superposition,
     symlink::{SymlinkRow, is_symlink_schema, symlink_target},
@@ -157,15 +158,201 @@ pub fn flatten_target(
     Ok(requested.to_string())
 }
 
+/// Builds the row a response should carry for a symlink: everything that says what
+/// the value *is* comes from the target; everything that says what this *name* is
+/// stays the link's own.
+pub fn merge_target_into_link(
+    mut link: DefaultConfig,
+    target: &DefaultConfig,
+) -> DefaultConfig {
+    link.value = target.value.clone();
+    link.schema = target.schema.clone();
+    link.value_validation_function_name = target.value_validation_function_name.clone();
+    link.value_compute_function_name = target.value_compute_function_name.clone();
+    link
+}
+
+/// Resolves a single row for a response. Ordinary rows pass through untouched.
+pub fn resolve_for_response(
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+    row: DefaultConfig,
+) -> superposition::Result<DefaultConfigResponse> {
+    let Some(target_key) =
+        symlink_target(row.schema.inner(), &row.value).map(str::to_string)
+    else {
+        return Ok(DefaultConfigResponse {
+            config: row,
+            symlink_to: None,
+        });
+    };
+
+    let target = dsl::default_configs
+        .filter(dsl::key.eq(&target_key))
+        .select(DefaultConfig::as_select())
+        .schema_name(schema_name)
+        .first::<DefaultConfig>(conn)
+        .optional()
+        .map_err(|err| {
+            log::error!("failed to fetch symlink target with error: {}", err);
+            db_error!(err)
+        })?;
+
+    let Some(target) = target else {
+        log::error!(
+            "symlink {} -> {target_key}: target missing, returning the pointer unresolved",
+            row.key
+        );
+        return Ok(DefaultConfigResponse {
+            config: row,
+            symlink_to: Some(target_key),
+        });
+    };
+
+    let config = merge_target_into_link(row, &target);
+
+    Ok(DefaultConfigResponse {
+        config,
+        symlink_to: Some(target_key),
+    })
+}
+
+/// Resolves a batch of rows for a response in one extra query, regardless of how
+/// many of them are links. `list_handler`'s `pagination.all = true` path can return
+/// every row in the workspace, so resolving link-by-link would be an N+1.
+pub fn resolve_many_for_response(
+    conn: &mut DBConnection,
+    schema_name: &SchemaName,
+    rows: Vec<DefaultConfig>,
+) -> superposition::Result<Vec<DefaultConfigResponse>> {
+    let target_keys: Vec<String> = rows
+        .iter()
+        .filter_map(|row| {
+            symlink_target(row.schema.inner(), &row.value).map(str::to_string)
+        })
+        .collect();
+
+    let targets: HashMap<String, DefaultConfig> = if target_keys.is_empty() {
+        HashMap::new()
+    } else {
+        dsl::default_configs
+            .filter(dsl::key.eq_any(&target_keys))
+            .select(DefaultConfig::as_select())
+            .schema_name(schema_name)
+            .load::<DefaultConfig>(conn)
+            .map_err(|err| {
+                log::error!("failed to batch-fetch symlink targets with error: {}", err);
+                db_error!(err)
+            })?
+            .into_iter()
+            .map(|target| (target.key.clone(), target))
+            .collect()
+    };
+
+    Ok(rows
+        .into_iter()
+        .map(|row| {
+            let Some(target_key) =
+                symlink_target(row.schema.inner(), &row.value).map(str::to_string)
+            else {
+                return DefaultConfigResponse {
+                    config: row,
+                    symlink_to: None,
+                };
+            };
+
+            match targets.get(&target_key) {
+                Some(target) => {
+                    let config = merge_target_into_link(row, target);
+                    DefaultConfigResponse {
+                        config,
+                        symlink_to: Some(target_key),
+                    }
+                }
+                None => {
+                    log::error!(
+                        "symlink {} -> {target_key}: target missing, returning the pointer unresolved",
+                        row.key
+                    );
+                    DefaultConfigResponse {
+                        config: row,
+                        symlink_to: Some(target_key),
+                    }
+                }
+            }
+        })
+        .collect())
+}
+
 #[cfg(test)]
 mod tests {
-    use serde_json::{from_value, json};
+    use serde_json::{Value, from_value, json};
     use superposition_types::{
         Config,
+        database::models::cac::DefaultConfig,
         symlink::{SYMLINK_KEYWORD, SymlinkRow},
     };
 
     use super::RawConfig;
+
+    /// A `DefaultConfig` fixture. Every field is spelled out because the model's
+    /// newtypes (`Description`, `ChangeReason`) validate on construction.
+    fn row(key: &str, value: Value, schema: Value) -> DefaultConfig {
+        use chrono::Utc;
+        use superposition_types::database::models::{ChangeReason, Description};
+
+        DefaultConfig {
+            key: key.to_string(),
+            value,
+            schema: schema.as_object().expect("schema fixture").clone().into(),
+            created_at: Utc::now(),
+            created_by: "test@example.com".to_string(),
+            last_modified_at: Utc::now(),
+            last_modified_by: "test@example.com".to_string(),
+            description: Description::try_from(format!("description of {key}"))
+                .expect("description fixture"),
+            change_reason: ChangeReason::try_from("test".to_string())
+                .expect("change reason fixture"),
+            value_validation_function_name: None,
+            value_compute_function_name: None,
+        }
+    }
+
+    #[test]
+    fn a_resolved_link_takes_the_targets_value_and_keeps_its_own_identity() {
+        use superposition_types::symlink::canonical_symlink_schema;
+
+        let link = row(
+            "payments.retry_count",
+            json!("payments.retry.count"),
+            Value::Object(canonical_symlink_schema()),
+        );
+        let mut target =
+            row("payments.retry.count", json!(3), json!({"type": "integer"}));
+        target.value_validation_function_name = Some("validate_retries".to_string());
+
+        let resolved = super::merge_target_into_link(link, &target);
+
+        // From the target
+        assert_eq!(resolved.value, json!(3));
+        assert_eq!(
+            resolved.schema.inner().get("type"),
+            Some(&json!("integer")),
+            "the stored pointer schema must never reach a response"
+        );
+        assert!(!resolved.schema.inner().contains_key(SYMLINK_KEYWORD));
+        assert_eq!(
+            resolved.value_validation_function_name.as_deref(),
+            Some("validate_retries")
+        );
+
+        // The link's own
+        assert_eq!(resolved.key, "payments.retry_count");
+        assert_eq!(
+            resolved.description.to_string(),
+            "description of payments.retry_count"
+        );
+    }
 
     #[test]
     fn expand_adds_the_link_and_into_unexpanded_does_not() {
