@@ -17,7 +17,7 @@ use crate::{
     api::{get_context_from_condition, resolve_config},
     components::{
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
-        override_form::OverrideForm,
+        override_form::{OverrideForm, use_symlink_map},
         skeleton::{Skeleton, SkeletonVariant},
     },
     logic::Conditions,
@@ -59,6 +59,9 @@ where
     let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let workspace_rws = use_context::<Signal<Workspace>>().unwrap();
     let org_rws = use_context::<Signal<OrganisationId>>().unwrap();
+    // One fetch for this VariantForm instance, shared by every variant's
+    // `OverrideForm` below rather than one fetch per variant.
+    let symlink_map = use_symlink_map(workspace_rws, org_rws);
     let init_override_keys = get_init_state(&variants);
     let (f_variants, set_variants) = create_signal(variants);
     let (override_keys, set_override_keys) = create_signal(init_override_keys);
@@ -417,6 +420,7 @@ where
                                                             fn_environment
                                                             disabled=workspace_settings
                                                                 .with_value(|w| w.auto_populate_control)
+                                                            symlink_map=symlink_map
                                                         />
                                                     }
                                                 } else {
@@ -429,6 +433,7 @@ where
                                                             show_add_override=false
                                                             disable_remove=true
                                                             fn_environment
+                                                            symlink_map=symlink_map
                                                         />
                                                     }
                                                 }
@@ -471,6 +476,10 @@ pub fn DeleteVariant(
     #[prop(into)] on_override_change: Callback<Vec<(String, Value)>, ()>,
     #[prop(into)] on_delete_variant: Callback<(), ()>,
     fn_environment: Memo<FunctionEnvironment>,
+    // `DeleteVariant` is itself rendered once per variant inside a `<For>`
+    // in `DeleteVariantForm`, so the fetch behind this must happen in that
+    // parent (once) and be passed down here, not be fetched again per row.
+    #[prop(into)] symlink_map: Signal<Option<HashMap<String, String>>>,
 ) -> impl IntoView {
     let variant_rws = RwSignal::new(variant);
     let override_keys = Signal::derive(move || {
@@ -594,6 +603,7 @@ pub fn DeleteVariant(
                                         });
                                 }
                                 fn_environment
+                                symlink_map=symlink_map
                             />
                         }
                     }}
@@ -626,6 +636,9 @@ where
     let variants_rws = RwSignal::new(variants);
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
+    // One fetch here, shared by every variant row's `DeleteVariant` below
+    // (which itself renders one `OverrideForm` each, inside a `<For>`).
+    let symlink_map = use_symlink_map(workspace, org);
 
     let combined_resource = create_blocking_resource(
         move || {
@@ -814,6 +827,7 @@ where
                                         on_override_change
                                         on_delete_variant
                                         fn_environment
+                                        symlink_map=symlink_map
                                     />
                                 }
                                     .into_view()

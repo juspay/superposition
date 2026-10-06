@@ -41,7 +41,7 @@ use crate::{
         drawer::{Drawer, DrawerBtn, close_drawer, open_drawer},
         dropdown::{Dropdown, DropdownBtnType},
         experiment_form::{ExperimentForm, ExperimentFormType},
-        override_form::OverrideForm,
+        override_form::{OverrideForm, use_symlink_map},
         pagination::Pagination,
         skeleton::{Skeleton, SkeletonVariant},
         stat::Stat,
@@ -94,6 +94,9 @@ fn Form(
 ) -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
+    // One fetch for this form instance (there's only one `OverrideForm`
+    // here, but this is the shared helper every real caller uses).
+    let symlink_map = use_symlink_map(workspace, org);
     let (context_rs, context_ws) = create_signal(context);
     let (overrides_rs, overrides_ws) = create_signal(overrides);
     let dimensions = StoredValue::new(dimensions);
@@ -203,6 +206,7 @@ fn Form(
                 default_config=default_config
                 handle_change=move |new_overrides| overrides_ws.set(new_overrides)
                 fn_environment
+                symlink_map=symlink_map
             />
 
             {move || {

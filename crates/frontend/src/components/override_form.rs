@@ -22,11 +22,62 @@ use crate::{
     utils::value_compute_fn_generator,
 };
 
+/// Fetches the default-config list once and derives a map from each
+/// symlinked key to its target. A page may render more than one
+/// `OverrideForm` (e.g. one per experiment variant); call this once near
+/// the top of that page or its top-level form component - not once per
+/// `OverrideForm` instance - and pass the resulting `Signal` into every
+/// instance's `symlink_map` prop, so the fetch happens once per page
+/// rather than multiplying per form.
+///
+/// Yields `None` while the fetch is pending *and* if it fails - both cases
+/// mean "not known yet," which `OverrideForm` treats as a reason to hold
+/// off on asserting there's no collision, not as "zero symlinks."
+pub fn use_symlink_map(
+    workspace: Signal<Workspace>,
+    org_id: Signal<OrganisationId>,
+) -> Signal<Option<HashMap<String, String>>> {
+    let resource = create_resource(
+        move || (workspace.get().0, org_id.get().0),
+        |(workspace, org_id)| async move {
+            default_configs::list_resolved(
+                &PaginationParams::all_entries(),
+                &DefaultConfigFilters::default(),
+                &workspace,
+                &org_id,
+            )
+            .await
+            .ok()
+            .map(|r| {
+                r.data
+                    .into_iter()
+                    .filter_map(|d| d.symlink_to.map(|target| (d.config.key, target)))
+                    .collect::<HashMap<String, String>>()
+            })
+        },
+    );
+    Signal::derive(move || resource.get().flatten())
+}
+
 /// The key an override entry will actually be stored under: a symlinked key
 /// is redirected to its target, same as the server-side rewrite this mirrors
 /// (see `crates/context_aware_config/src/symlinks.rs::apply_symlink_map`).
 fn effective_key(key: &str, links: &HashMap<String, String>) -> String {
     links.get(key).cloned().unwrap_or_else(|| key.to_string())
+}
+
+/// The state of the symlink-collision check against `symlink_map`.
+///
+/// `symlink_map` is `None` both while its fetch is still pending *and* if it
+/// failed - either way, the caller doesn't yet know which keys are
+/// symlinks, so it would be wrong to report `Clear`: that reads as "checked,
+/// no collision," when the honest answer is "not checked yet." Only
+/// `Clear` permits propagating a change outward.
+#[derive(Clone, PartialEq)]
+enum SymlinkCheck {
+    Pending,
+    Clear,
+    Collision { first: String, second: String, target: String },
 }
 
 /// A default-config key as it appears in the "Add Override" picker. A
@@ -169,6 +220,15 @@ pub fn OverrideForm(
     #[prop(default = true)] show_add_override: bool,
     #[prop(into, optional)] handle_key_remove: Option<Callback<String, ()>>,
     #[prop(default = false)] disabled: bool,
+    /// Maps a symlinked key to the target it resolves to; `None` while the
+    /// caller's fetch for this is still pending (or failed), `Some(map)`
+    /// once it's known - `map` may itself be empty if there happen to be no
+    /// symlinks, which is a different thing from not knowing yet. One fetch
+    /// per page, done by the real caller (which may render more than one
+    /// `OverrideForm`, e.g. one per variant) and passed down here as a
+    /// `Signal` so this component's own state isn't torn down and rebuilt
+    /// when the fetch resolves.
+    #[prop(into)] symlink_map: Signal<Option<HashMap<String, String>>>,
     fn_environment: Memo<FunctionEnvironment>,
 ) -> impl IntoView {
     let id = store_value(id);
@@ -181,43 +241,23 @@ pub fn OverrideForm(
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org_id = use_context::<Signal<OrganisationId>>().unwrap();
 
-    // A link stays selectable like any other key, but is badged with its
-    // target and checked for a collision with it (or with another link to
-    // the same target) before submission. `default_config` (the prop above)
-    // can't carry `symlink_to` - it's the plain `database::models::cac::
-    // DefaultConfig`, not the API's `DefaultConfigResponse` - so this is its
-    // own fetch via `list_resolved` rather than derived from that prop.
-    let symlink_map_resource = create_resource(
-        move || (workspace.get().0, org_id.get().0),
-        |(workspace, org_id)| async move {
-            default_configs::list_resolved(
-                &PaginationParams::all_entries(),
-                &DefaultConfigFilters::default(),
-                &workspace,
-                &org_id,
-            )
-            .await
-            .map(|r| {
-                r.data
-                    .into_iter()
-                    .filter_map(|d| d.symlink_to.map(|target| (d.config.key, target)))
-                    .collect::<HashMap<String, String>>()
-            })
-            .unwrap_or_default()
-        },
-    );
-    let symlink_map = Signal::derive(move || symlink_map_resource.get().unwrap_or_default());
-
-    let collision = Signal::derive(move || {
-        let links = symlink_map.get();
-        let mut seen: HashMap<String, String> = HashMap::new();
-        override_keys.get().into_iter().find_map(|key| {
-            let target = effective_key(&key, &links);
-            match seen.insert(target.clone(), key.clone()) {
-                Some(first) if first != key => Some((first, key, target)),
-                _ => None,
-            }
-        })
+    let symlink_check = Signal::derive(move || match symlink_map.get() {
+        None => SymlinkCheck::Pending,
+        Some(links) => {
+            let mut seen: HashMap<String, String> = HashMap::new();
+            override_keys
+                .get()
+                .into_iter()
+                .find_map(|key| {
+                    let target = effective_key(&key, &links);
+                    match seen.insert(target.clone(), key.clone()) {
+                        Some(first) if first != key => Some((first, key, target)),
+                        _ => None,
+                    }
+                })
+                .map(|(first, second, target)| SymlinkCheck::Collision { first, second, target })
+                .unwrap_or(SymlinkCheck::Clear)
+        }
     });
 
     let default_config_map: HashMap<String, DefaultConfig> = default_config
@@ -292,11 +332,13 @@ pub fn OverrideForm(
 
     create_effect(move |_| {
         let f_override = overrides.get();
-        // A collision is exactly what the server's symlink rewrite refuses
-        // (`crates/context_aware_config/src/symlinks.rs::apply_symlink_map`):
-        // hold the change back here instead of letting it reach a submit
-        // that the server would 400 on.
-        if collision.get().is_none() {
+        // Only propagate once the check is actually `Clear`: a `Collision`
+        // is exactly what the server's symlink rewrite refuses
+        // (`crates/context_aware_config/src/symlinks.rs::apply_symlink_map`),
+        // and `Pending` means the check hasn't run yet - asserting "no
+        // collision" by default during that window would be a false
+        // negative, not a safe one.
+        if matches!(symlink_check.get(), SymlinkCheck::Clear) {
             handle_change.call(f_override.clone());
         }
     });
@@ -311,24 +353,27 @@ pub fn OverrideForm(
                 </div>
                 <div class="card w-full bg-slate-50">
                     <div class="card-body gap-4">
-                        {move || {
-                            collision
-                                .get()
-                                .map(|(first, second, target)| {
-                                    view! {
-                                        <div class="alert alert-warning text-sm flex items-start gap-2">
-                                            <i class="ri-alert-line text-lg"></i>
-                                            <span>
-                                                {
-                                                    format!(
-                                                        "override names both `{first}` and `{second}`, which resolve to the \
-                                                         same config key `{target}`, with different values; keep one of them",
-                                                    )
-                                                }
-                                            </span>
-                                        </div>
-                                    }
-                                })
+                        {move || match symlink_check.get() {
+                            SymlinkCheck::Pending => Some(view! {
+                                <div class="alert text-sm flex items-center gap-2">
+                                    <span class="loading loading-spinner loading-xs"></span>
+                                    <span>"Checking for symlink collisions…"</span>
+                                </div>
+                            }),
+                            SymlinkCheck::Clear => None,
+                            SymlinkCheck::Collision { first, second, target } => Some(view! {
+                                <div class="alert alert-warning text-sm flex items-start gap-2">
+                                    <i class="ri-alert-line text-lg"></i>
+                                    <span>
+                                        {
+                                            format!(
+                                                "override names both `{first}` and `{second}`, which resolve to the \
+                                                 same config key `{target}`, with different values; keep one of them",
+                                            )
+                                        }
+                                    </span>
+                                </div>
+                            }),
                         }}
                         <Show when=move || { overrides.get().is_empty() && show_add_override }>
                             <div class="flex justify-center">
@@ -338,7 +383,7 @@ pub fn OverrideForm(
                                         .into_iter()
                                         .map(|config| {
                                             let symlink_target = symlink_map
-                                                .with(|m| m.get(&config.key).cloned());
+                                                .with(|opt| opt.as_ref().and_then(|m| m.get(&config.key).cloned()));
                                             OverrideKeyOption { config, symlink_target }
                                         })
                                         .collect::<Vec<OverrideKeyOption>>();
@@ -379,7 +424,7 @@ pub fn OverrideForm(
                                 let schema_type = SchemaType::try_from(schema);
                                 let enum_variants = EnumVariants::try_from(schema);
                                 let symlink_target = symlink_map
-                                    .with(|m| m.get(&config_key).cloned());
+                                    .with(|opt| opt.as_ref().and_then(|m| m.get(&config_key).cloned()));
                                 view! {
                                     <OverrideInput
                                         id=format!("{}-{}", id.get_value(), config_key)
@@ -408,7 +453,7 @@ pub fn OverrideForm(
                                         .filter(|config| !override_keys.get().contains(&config.key))
                                         .map(|config| {
                                             let symlink_target = symlink_map
-                                                .with(|m| m.get(&config.key).cloned());
+                                                .with(|opt| opt.as_ref().and_then(|m| m.get(&config.key).cloned()));
                                             OverrideKeyOption { config, symlink_target }
                                         })
                                         .collect::<Vec<OverrideKeyOption>>();

@@ -22,7 +22,7 @@ use crate::{
         condition_pills::Condition,
         context_form::ContextForm,
         description::ContentDescription,
-        override_form::OverrideForm,
+        override_form::{OverrideForm, use_symlink_map},
         skeleton::{Skeleton, SkeletonVariant},
         step_indicator::{Step, StepIndicator, StepNavigation, StepType},
         table::{Table, types::Column},
@@ -67,6 +67,9 @@ pub fn ContextOverrideForm(
     let dimensions = StoredValue::new(dimensions);
     let default_config = StoredValue::new(default_config);
     let context_id = StoredValue::new(context_id);
+    // One fetch for this form instance, not one per `OverrideForm` (there's
+    // only one here, but this is the shared helper every real caller uses).
+    let symlink_map = use_symlink_map(workspace, org);
 
     let (context_rs, context_ws) = create_signal(context);
     let (overrides_rs, overrides_ws) = create_signal(overrides);
@@ -260,6 +263,7 @@ pub fn ContextOverrideForm(
                                             overrides_ws.set(new_overrides)
                                         }
                                         fn_environment=fn_environment
+                                        symlink_map=symlink_map
                                     />
                                 </div>
                             </div>
