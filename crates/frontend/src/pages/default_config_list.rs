@@ -84,13 +84,25 @@ pub fn DefaultConfigList() -> impl IntoView {
     };
 
     let table_columns = create_memo(move |_| {
-        let expand = move |key_name: &str, _row: &Map<String, Value>| {
+        let expand = move |key_name: &str, row: &Map<String, Value>| {
             let label = key_name.to_string();
             let is_folder = key_name.ends_with('.');
             let prefix = page_params_rws.with(|p| {
                 p.prefix
                     .as_ref()
                     .map_or_else(|| label.clone(), |p| format!("{p}{label}"))
+            });
+            let symlink_to = row
+                .get("symlink_to")
+                .and_then(Value::as_str)
+                .map(str::to_string);
+            let symlink_badge = symlink_to.map(|target| {
+                view! {
+                    <span class="badge badge-sm badge-ghost ml-2" title="symlink">
+                        <i class="ri-links-line mr-1" />
+                        {format!("→ {target}")}
+                    </span>
+                }
             });
 
             if is_folder {
@@ -99,6 +111,7 @@ pub fn DefaultConfigList() -> impl IntoView {
                         <i class="ri-folder-open-line mr-2" />
                         <span class="text-blue-500 underline underline-offset-2">{label}</span>
                     </A>
+                    {symlink_badge}
                 }
                 .into_view()
             } else {
@@ -106,6 +119,7 @@ pub fn DefaultConfigList() -> impl IntoView {
                     <A href=prefix class="ml-[22px] text-blue-500 underline underline-offset-2">
                         {label}
                     </A>
+                    {symlink_badge}
                 }
                 .into_view()
             }
