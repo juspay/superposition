@@ -22,7 +22,7 @@ use crate::{
         condition_pills::Condition,
         context_form::ContextForm,
         description::ContentDescription,
-        override_form::{OverrideForm, use_symlink_map},
+        override_form::{OverrideForm, check_symlink_collisions, use_symlink_map},
         skeleton::{Skeleton, SkeletonVariant},
         step_indicator::{Step, StepIndicator, StepNavigation, StepType},
         table::{Table, types::Column},
@@ -117,8 +117,27 @@ pub fn ContextOverrideForm(
         });
     });
 
+    // The gate for the submit below. `OverrideForm` propagates every edit
+    // outward unconditionally, so `overrides_rs` holds exactly what would be
+    // posted and this check is a check of the real payload.
+    let symlink_check = Signal::derive(move || {
+        check_symlink_collisions(
+            &symlink_map.get(),
+            overrides_rs
+                .get()
+                .iter()
+                .map(|(key, _)| key)
+                .collect::<Vec<_>>()
+                .into_iter(),
+        )
+    });
+
     let redirect_url_success = StoredValue::new(redirect_url_success);
     let on_submit = Callback::new(move |_: ()| {
+        if let Some(reason) = symlink_check.get_untracked().blocking_reason() {
+            enqueue_alert(reason, AlertType::Error, 5000);
+            return;
+        }
         req_inprogress_ws.set(true);
         spawn_local(async move {
             let f_overrides = overrides_rs.get_untracked();
@@ -275,6 +294,9 @@ pub fn ContextOverrideForm(
                             on_next=on_next
                             on_submit=on_submit
                             submit_loading=req_inprogress_rs
+                            submit_disabled=Signal::derive(move || {
+                                symlink_check.get().blocks_submit()
+                            })
                         />
                     </div>
                 </div>

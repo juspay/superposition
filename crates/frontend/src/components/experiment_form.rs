@@ -34,6 +34,7 @@ use crate::components::{
     dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
     form::label::Label,
     metrics_form::ExperimentMetricsForm,
+    override_form::{check_symlink_collisions, use_symlink_map, worst_check},
     skeleton::{Skeleton, SkeletonVariant},
     variant_form::{DeleteVariantForm, VariantForm},
 };
@@ -133,10 +134,44 @@ pub fn ExperimentForm(
             },
         );
 
+    // A tracked mirror of each variant's override keys, read only by the
+    // symlink gate below. `variants_ws` is written untracked on purpose - the
+    // view feeds it straight back into `VariantForm`'s `variants` prop, so a
+    // tracked write would rebuild the form on every keystroke - which means a
+    // check derived from it would never refresh. Nothing that renders the form
+    // reads this mirror, so it can notify freely.
+    let variant_override_keys = RwSignal::new(Vec::<Vec<String>>::new());
+
     let handle_variant_form_change =
         move |updated_varaints: Vec<(String, VariantFormT)>| {
+            variant_override_keys.set(
+                updated_varaints
+                    .iter()
+                    .map(|(_, variant)| {
+                        variant
+                            .overrides
+                            .iter()
+                            .map(|(key, _)| key.clone())
+                            .collect()
+                    })
+                    .collect(),
+            );
             variants_ws.set_untracked(updated_varaints);
         };
+
+    // One fetch for the whole form, shared by every variant's `OverrideForm`.
+    // The gate lives here because this is where the payload is sent: the
+    // variant forms propagate every edit outward unconditionally, so what is
+    // checked below is exactly what would be posted.
+    let symlink_map = use_symlink_map(workspace, org);
+    let symlink_check = Signal::derive(move || {
+        worst_check(
+            variant_override_keys
+                .get()
+                .iter()
+                .map(|keys| check_symlink_collisions(&symlink_map.get(), keys.iter())),
+        )
+    });
 
     let fn_environment = Memo::new(move |_| {
         let context = context_rs.get().into();
@@ -151,6 +186,21 @@ pub fn ExperimentForm(
     });
 
     let on_submit = move || {
+        // `variants_ws` is written with `set_untracked`, so `symlink_check`
+        // can't be relied on to have recomputed: read the variants here.
+        if let Some(reason) =
+            worst_check(variants_rs.get_untracked().iter().map(|(_, variant)| {
+                check_symlink_collisions(
+                    &symlink_map.get_untracked(),
+                    variant.overrides.iter().map(|(key, _)| key),
+                )
+            }))
+            .blocking_reason()
+        {
+            enqueue_alert(reason, AlertType::Error, 5000);
+            return;
+        }
+
         req_inprogress_ws.set(true);
 
         let f_experiment_name = experiment_name.get_untracked();
@@ -332,6 +382,7 @@ pub fn ExperimentForm(
                                 default_config=default_config.get_value()
                                 handle_change=handle_variant_form_change
                                 fn_environment
+                                symlink_map=symlink_map
                             />
                         }
                     }
@@ -345,6 +396,7 @@ pub fn ExperimentForm(
                                 default_config=default_config.get_value()
                                 handle_change=handle_variant_form_change
                                 fn_environment
+                                symlink_map=symlink_map
                             />
                         }
                     }
@@ -353,6 +405,7 @@ pub fn ExperimentForm(
 
             {move || {
                 let loading = req_inprogess_rs.get();
+                let disabled = symlink_check.get().blocks_submit();
                 view! {
                     <Button
                         class="self-end h-12 w-48"
@@ -363,6 +416,7 @@ pub fn ExperimentForm(
                             on_submit();
                         }
                         loading
+                        disabled
                     />
                 }
             }}

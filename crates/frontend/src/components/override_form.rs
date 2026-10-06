@@ -1,6 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use leptos::*;
+use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use superposition_types::{
     api::{
@@ -22,6 +23,39 @@ use crate::{
     utils::value_compute_fn_generator,
 };
 
+/// Which keys are symlinks, as far as the browser knows.
+///
+/// A fetch *failure* is deliberately not the same thing as a fetch still in
+/// flight. Collapsing the two into `None` meant one failed API call turned
+/// every override edit on the page into a silent no-op, because the form
+/// withheld its changes while "not known yet" and the submit button never
+/// knew. Pending holds the submit back for the moment it takes to resolve;
+/// `Unavailable` lets the edit through with a visible warning and leaves the
+/// server - which performs the same check authoritatively in
+/// `apply_symlink_map` - to refuse it if it really collides.
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub enum SymlinkMapState {
+    /// The fetch is still in flight.
+    Pending,
+    /// Known. May be empty, which means "there are no symlinks" - a different
+    /// thing from not knowing yet.
+    Ready(HashMap<String, String>),
+    /// The fetch failed. The browser cannot check; the server still can.
+    Unavailable,
+}
+
+impl SymlinkMapState {
+    /// The target `key` resolves to, if it is a known symlink. Pending and
+    /// failed both answer `None`: there is no badge to show for a map that
+    /// hasn't arrived.
+    pub fn target_of(&self, key: &str) -> Option<String> {
+        match self {
+            Self::Ready(links) => links.get(key).cloned(),
+            Self::Pending | Self::Unavailable => None,
+        }
+    }
+}
+
 /// Fetches the default-config list once and derives a map from each
 /// symlinked key to its target. A page may render more than one
 /// `OverrideForm` (e.g. one per experiment variant); call this once near
@@ -29,34 +63,35 @@ use crate::{
 /// `OverrideForm` instance - and pass the resulting `Signal` into every
 /// instance's `symlink_map` prop, so the fetch happens once per page
 /// rather than multiplying per form.
-///
-/// Yields `None` while the fetch is pending *and* if it fails - both cases
-/// mean "not known yet," which `OverrideForm` treats as a reason to hold
-/// off on asserting there's no collision, not as "zero symlinks."
 pub fn use_symlink_map(
     workspace: Signal<Workspace>,
     org_id: Signal<OrganisationId>,
-) -> Signal<Option<HashMap<String, String>>> {
+) -> Signal<SymlinkMapState> {
     let resource = create_resource(
         move || (workspace.get().0, org_id.get().0),
         |(workspace, org_id)| async move {
-            default_configs::list_resolved(
+            match default_configs::list_resolved(
                 &PaginationParams::all_entries(),
                 &DefaultConfigFilters::default(),
                 &workspace,
                 &org_id,
             )
             .await
-            .ok()
-            .map(|r| {
-                r.data
-                    .into_iter()
-                    .filter_map(|d| d.symlink_to.map(|target| (d.config.key, target)))
-                    .collect::<HashMap<String, String>>()
-            })
+            {
+                Ok(r) => SymlinkMapState::Ready(
+                    r.data
+                        .into_iter()
+                        .filter_map(|d| d.symlink_to.map(|target| (d.config.key, target)))
+                        .collect::<HashMap<String, String>>(),
+                ),
+                Err(e) => {
+                    logging::error!("failed to fetch the symlink map: {e}");
+                    SymlinkMapState::Unavailable
+                }
+            }
         },
     );
-    Signal::derive(move || resource.get().flatten())
+    Signal::derive(move || resource.get().unwrap_or(SymlinkMapState::Pending))
 }
 
 /// The key an override entry will actually be stored under: a symlinked key
@@ -66,18 +101,117 @@ fn effective_key(key: &str, links: &HashMap<String, String>) -> String {
     links.get(key).cloned().unwrap_or_else(|| key.to_string())
 }
 
-/// The state of the symlink-collision check against `symlink_map`.
+/// The state of the symlink-collision check for one override map.
 ///
-/// `symlink_map` is `None` both while its fetch is still pending *and* if it
-/// failed - either way, the caller doesn't yet know which keys are
-/// symlinks, so it would be wrong to report `Clear`: that reads as "checked,
-/// no collision," when the honest answer is "not checked yet." Only
-/// `Clear` permits propagating a change outward.
-#[derive(Clone, PartialEq)]
-enum SymlinkCheck {
+/// The submitting parent gates on this: `OverrideForm` propagates every edit
+/// outward unconditionally, so the parent always holds what the user typed,
+/// and refuses to *send* it while the check says so. Withholding the edit
+/// instead is what let a user see the warning, press Submit, and have the
+/// last clear payload saved - losing the colliding key and every edit made
+/// after it, with a success response.
+#[derive(Clone, PartialEq, Debug)]
+pub enum SymlinkCheck {
+    /// The symlink map hasn't arrived; nothing can be asserted yet.
     Pending,
+    /// Checked: no two keys resolve to the same target.
     Clear,
-    Collision { first: String, second: String, target: String },
+    /// The map couldn't be fetched, so the server is the only authority.
+    Unavailable,
+    Collision {
+        first: String,
+        second: String,
+        target: String,
+    },
+}
+
+impl SymlinkCheck {
+    /// Whether a submit carrying this override map must be held back.
+    pub fn blocks_submit(&self) -> bool {
+        self.blocking_reason().is_some()
+    }
+
+    /// Why a submit is held back, phrased for the user.
+    pub fn blocking_reason(&self) -> Option<String> {
+        match self {
+            Self::Pending => Some(
+                "Still checking the overrides for symlink collisions; try again in \
+                 a moment."
+                    .to_string(),
+            ),
+            Self::Collision { .. } => self.warning(),
+            Self::Clear | Self::Unavailable => None,
+        }
+    }
+
+    /// The banner this check should show in the form, if any.
+    pub fn warning(&self) -> Option<String> {
+        match self {
+            Self::Clear | Self::Pending => None,
+            Self::Unavailable => Some(
+                "Couldn't load the symlink list, so overrides can't be checked for \
+                 collisions here; the server will still refuse a colliding one."
+                    .to_string(),
+            ),
+            Self::Collision {
+                first,
+                second,
+                target,
+            } => Some(format!(
+                "override names both `{first}` and `{second}`, which resolve to the \
+                 same config key `{target}`, with different values; keep one of them"
+            )),
+        }
+    }
+
+    /// How loudly this reads, so several override maps can be reduced to the
+    /// one worth reporting: a collision beats pending beats unavailable.
+    fn severity(&self) -> u8 {
+        match self {
+            Self::Clear => 0,
+            Self::Unavailable => 1,
+            Self::Pending => 2,
+            Self::Collision { .. } => 3,
+        }
+    }
+}
+
+/// Checks one override map's keys for two names that resolve to the same
+/// config key - the collision the server refuses in `apply_symlink_map`.
+///
+/// Public because the gate belongs to whoever submits the payload, not to the
+/// form that collects it.
+pub fn check_symlink_collisions<'a>(
+    state: &SymlinkMapState,
+    keys: impl Iterator<Item = &'a String>,
+) -> SymlinkCheck {
+    let links = match state {
+        SymlinkMapState::Pending => return SymlinkCheck::Pending,
+        SymlinkMapState::Unavailable => return SymlinkCheck::Unavailable,
+        SymlinkMapState::Ready(links) => links,
+    };
+
+    let mut seen: HashMap<String, String> = HashMap::new();
+    for key in keys {
+        let target = effective_key(key, links);
+        if let Some(first) = seen.insert(target.clone(), key.clone()) {
+            if first != *key {
+                return SymlinkCheck::Collision {
+                    first,
+                    second: key.clone(),
+                    target,
+                };
+            }
+        }
+    }
+    SymlinkCheck::Clear
+}
+
+/// The check worth reporting out of several override maps (one per experiment
+/// variant, say).
+pub fn worst_check(checks: impl Iterator<Item = SymlinkCheck>) -> SymlinkCheck {
+    checks
+        .max_by_key(|check| check.severity())
+        .unwrap_or(SymlinkCheck::Clear)
 }
 
 /// A default-config key as it appears in the "Add Override" picker. A
@@ -220,15 +354,14 @@ pub fn OverrideForm(
     #[prop(default = true)] show_add_override: bool,
     #[prop(into, optional)] handle_key_remove: Option<Callback<String, ()>>,
     #[prop(default = false)] disabled: bool,
-    /// Maps a symlinked key to the target it resolves to; `None` while the
-    /// caller's fetch for this is still pending (or failed), `Some(map)`
-    /// once it's known - `map` may itself be empty if there happen to be no
-    /// symlinks, which is a different thing from not knowing yet. One fetch
-    /// per page, done by the real caller (which may render more than one
-    /// `OverrideForm`, e.g. one per variant) and passed down here as a
-    /// `Signal` so this component's own state isn't torn down and rebuilt
-    /// when the fetch resolves.
-    #[prop(into)] symlink_map: Signal<Option<HashMap<String, String>>>,
+    /// Maps a symlinked key to the target it resolves to, with pending and
+    /// failed kept apart (see [`SymlinkMapState`]). One fetch per page, done
+    /// by the real caller (which may render more than one `OverrideForm`,
+    /// e.g. one per variant) and passed down here as a `Signal` so this
+    /// component's own state isn't torn down and rebuilt when the fetch
+    /// resolves.
+    #[prop(into)]
+    symlink_map: Signal<SymlinkMapState>,
     fn_environment: Memo<FunctionEnvironment>,
 ) -> impl IntoView {
     let id = store_value(id);
@@ -241,23 +374,9 @@ pub fn OverrideForm(
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org_id = use_context::<Signal<OrganisationId>>().unwrap();
 
-    let symlink_check = Signal::derive(move || match symlink_map.get() {
-        None => SymlinkCheck::Pending,
-        Some(links) => {
-            let mut seen: HashMap<String, String> = HashMap::new();
-            override_keys
-                .get()
-                .into_iter()
-                .find_map(|key| {
-                    let target = effective_key(&key, &links);
-                    match seen.insert(target.clone(), key.clone()) {
-                        Some(first) if first != key => Some((first, key, target)),
-                        _ => None,
-                    }
-                })
-                .map(|(first, second, target)| SymlinkCheck::Collision { first, second, target })
-                .unwrap_or(SymlinkCheck::Clear)
-        }
+    // Shown here, but enforced by whoever submits: see `check_symlink_collisions`.
+    let symlink_check = Signal::derive(move || {
+        check_symlink_collisions(&symlink_map.get(), override_keys.get().iter())
     });
 
     let default_config_map: HashMap<String, DefaultConfig> = default_config
@@ -331,16 +450,12 @@ pub fn OverrideForm(
         .collect::<ValueComputeCallbacks>();
 
     create_effect(move |_| {
-        let f_override = overrides.get();
-        // Only propagate once the check is actually `Clear`: a `Collision`
-        // is exactly what the server's symlink rewrite refuses
-        // (`crates/context_aware_config/src/symlinks.rs::apply_symlink_map`),
-        // and `Pending` means the check hasn't run yet - asserting "no
-        // collision" by default during that window would be a false
-        // negative, not a safe one.
-        if matches!(symlink_check.get(), SymlinkCheck::Clear) {
-            handle_change.call(f_override.clone());
-        }
+        // Always propagate. The parent must hold exactly what the user typed,
+        // or a gate on its side would be gating a stale payload - which is how
+        // a colliding key and every edit after it used to be dropped with a
+        // success response. The parent gates the *submit* on its own
+        // `check_symlink_collisions` over the overrides it holds.
+        handle_change.call(overrides.get());
     });
 
     view! {
@@ -354,24 +469,17 @@ pub fn OverrideForm(
                 <div class="card w-full bg-slate-50">
                     <div class="card-body gap-4">
                         {move || match symlink_check.get() {
+                            SymlinkCheck::Clear => None,
                             SymlinkCheck::Pending => Some(view! {
                                 <div class="alert text-sm flex items-center gap-2">
                                     <span class="loading loading-spinner loading-xs"></span>
                                     <span>"Checking for symlink collisions…"</span>
                                 </div>
                             }),
-                            SymlinkCheck::Clear => None,
-                            SymlinkCheck::Collision { first, second, target } => Some(view! {
+                            check => check.warning().map(|message| view! {
                                 <div class="alert alert-warning text-sm flex items-start gap-2">
                                     <i class="ri-alert-line text-lg"></i>
-                                    <span>
-                                        {
-                                            format!(
-                                                "override names both `{first}` and `{second}`, which resolve to the \
-                                                 same config key `{target}`, with different values; keep one of them",
-                                            )
-                                        }
-                                    </span>
+                                    <span>{message}</span>
                                 </div>
                             }),
                         }}
@@ -383,7 +491,7 @@ pub fn OverrideForm(
                                         .into_iter()
                                         .map(|config| {
                                             let symlink_target = symlink_map
-                                                .with(|opt| opt.as_ref().and_then(|m| m.get(&config.key).cloned()));
+                                                .with(|state| state.target_of(&config.key));
                                             OverrideKeyOption { config, symlink_target }
                                         })
                                         .collect::<Vec<OverrideKeyOption>>();
@@ -424,7 +532,7 @@ pub fn OverrideForm(
                                 let schema_type = SchemaType::try_from(schema);
                                 let enum_variants = EnumVariants::try_from(schema);
                                 let symlink_target = symlink_map
-                                    .with(|opt| opt.as_ref().and_then(|m| m.get(&config_key).cloned()));
+                                    .with(|state| state.target_of(&config_key));
                                 view! {
                                     <OverrideInput
                                         id=format!("{}-{}", id.get_value(), config_key)
@@ -453,7 +561,7 @@ pub fn OverrideForm(
                                         .filter(|config| !override_keys.get().contains(&config.key))
                                         .map(|config| {
                                             let symlink_target = symlink_map
-                                                .with(|opt| opt.as_ref().and_then(|m| m.get(&config.key).cloned()));
+                                                .with(|state| state.target_of(&config.key));
                                             OverrideKeyOption { config, symlink_target }
                                         })
                                         .collect::<Vec<OverrideKeyOption>>();
@@ -474,5 +582,116 @@ pub fn OverrideForm(
                 </div>
             </div>
         </div>
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn keys(keys: &[&str]) -> Vec<String> {
+        keys.iter().map(|k| k.to_string()).collect()
+    }
+
+    fn ready(pairs: &[(&str, &str)]) -> SymlinkMapState {
+        SymlinkMapState::Ready(
+            pairs
+                .iter()
+                .map(|(k, v)| (k.to_string(), v.to_string()))
+                .collect(),
+        )
+    }
+
+    #[test]
+    fn two_names_for_one_target_collide() {
+        let state = ready(&[("payments.retry_count", "payments.retry.count")]);
+        let keys = keys(&["payments.retry_count", "payments.retry.count"]);
+
+        let check = check_symlink_collisions(&state, keys.iter());
+
+        match check {
+            SymlinkCheck::Collision { ref target, .. } => {
+                assert_eq!(target, "payments.retry.count")
+            }
+            other => panic!("expected a collision, got {other:?}"),
+        }
+        assert!(check.blocks_submit());
+        assert!(check.blocking_reason().is_some());
+    }
+
+    #[test]
+    fn unrelated_keys_are_clear() {
+        let state = ready(&[("payments.retry_count", "payments.retry.count")]);
+        let keys = keys(&["payments.retry_count", "other.key"]);
+
+        let check = check_symlink_collisions(&state, keys.iter());
+
+        assert_eq!(check, SymlinkCheck::Clear);
+        assert!(!check.blocks_submit());
+        assert!(check.warning().is_none());
+    }
+
+    #[test]
+    fn an_empty_map_is_known_and_clear() {
+        // "Ready but empty" means there are no symlinks - not "not known yet".
+        let check = check_symlink_collisions(&ready(&[]), keys(&["a.b"]).iter());
+        assert_eq!(check, SymlinkCheck::Clear);
+    }
+
+    #[test]
+    fn pending_blocks_the_submit_and_a_failed_fetch_does_not() {
+        // The distinction the bug turned on: collapsing both into "not known"
+        // made one failed API call silently swallow every override edit on the
+        // page. A failure warns and defers to the server; pending just waits.
+        let pending =
+            check_symlink_collisions(&SymlinkMapState::Pending, keys(&["a.b"]).iter());
+        assert_eq!(pending, SymlinkCheck::Pending);
+        assert!(pending.blocks_submit());
+
+        let unavailable = check_symlink_collisions(
+            &SymlinkMapState::Unavailable,
+            keys(&["a.b"]).iter(),
+        );
+        assert_eq!(unavailable, SymlinkCheck::Unavailable);
+        assert!(
+            !unavailable.blocks_submit(),
+            "a failed fetch must not drop the edit; the server still checks"
+        );
+        assert!(
+            unavailable.warning().is_some(),
+            "a failed fetch must be visible rather than silent"
+        );
+    }
+
+    #[test]
+    fn target_of_only_answers_from_a_known_map() {
+        let state = ready(&[("alias", "real.key")]);
+        assert_eq!(state.target_of("alias").as_deref(), Some("real.key"));
+        assert_eq!(state.target_of("real.key"), None);
+        assert_eq!(SymlinkMapState::Pending.target_of("alias"), None);
+        assert_eq!(SymlinkMapState::Unavailable.target_of("alias"), None);
+    }
+
+    #[test]
+    fn the_worst_of_several_variants_is_what_gates_the_submit() {
+        let collision = SymlinkCheck::Collision {
+            first: "a".to_string(),
+            second: "b".to_string(),
+            target: "c".to_string(),
+        };
+
+        assert_eq!(
+            worst_check([SymlinkCheck::Clear, SymlinkCheck::Unavailable].into_iter()),
+            SymlinkCheck::Unavailable
+        );
+        assert_eq!(
+            worst_check([SymlinkCheck::Unavailable, SymlinkCheck::Pending].into_iter()),
+            SymlinkCheck::Pending
+        );
+        assert_eq!(
+            worst_check([SymlinkCheck::Pending, collision.clone()].into_iter()),
+            collision
+        );
+        assert_eq!(worst_check(std::iter::empty()), SymlinkCheck::Clear);
     }
 }

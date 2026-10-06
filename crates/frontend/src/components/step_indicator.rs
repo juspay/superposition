@@ -163,6 +163,11 @@ pub fn StepNavigation(
     #[prop(default = false)] is_last_step: bool,
     #[prop(default = false)] next_disabled: bool,
     #[prop(into, optional)] submit_loading: MaybeSignal<bool>,
+    /// Holds the submit back without hiding it - used for the symlink
+    /// collision gate, which must stop a payload being sent rather than
+    /// silently dropping the edit that collided.
+    #[prop(into, optional)]
+    submit_disabled: MaybeSignal<bool>,
     #[prop(default = "Next".to_string())] next_text: String,
     #[prop(default = "Submit".to_string())] submit_text: String,
     #[prop(default = "Previous".to_string())] previous_text: String,
@@ -215,6 +220,7 @@ pub fn StepNavigation(
                                 on_click=on_submit_click
                                 icon_class="ri-check-line"
                                 loading=submit_loading.get()
+                                disabled=submit_disabled.get()
                             />
                         }
                             .into_view()

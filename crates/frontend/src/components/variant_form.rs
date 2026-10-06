@@ -17,7 +17,7 @@ use crate::{
     api::{get_context_from_condition, resolve_config},
     components::{
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
-        override_form::{OverrideForm, use_symlink_map},
+        override_form::{OverrideForm, SymlinkMapState},
         skeleton::{Skeleton, SkeletonVariant},
     },
     logic::Conditions,
@@ -52,6 +52,10 @@ pub fn VariantForm<HC>(
     default_config: Vec<DefaultConfig>,
     handle_change: HC,
     fn_environment: Memo<FunctionEnvironment>,
+    /// Fetched once by the submitting parent, which also gates its submit on
+    /// the same check - see `override_form::check_symlink_collisions`.
+    #[prop(into)]
+    symlink_map: Signal<SymlinkMapState>,
 ) -> impl IntoView
 where
     HC: Fn(Vec<(String, VariantFormT)>) + 'static + Clone,
@@ -59,9 +63,6 @@ where
     let workspace_settings = use_context::<StoredValue<WorkspaceResponse>>().unwrap();
     let workspace_rws = use_context::<Signal<Workspace>>().unwrap();
     let org_rws = use_context::<Signal<OrganisationId>>().unwrap();
-    // One fetch for this VariantForm instance, shared by every variant's
-    // `OverrideForm` below rather than one fetch per variant.
-    let symlink_map = use_symlink_map(workspace_rws, org_rws);
     let init_override_keys = get_init_state(&variants);
     let (f_variants, set_variants) = create_signal(variants);
     let (override_keys, set_override_keys) = create_signal(init_override_keys);
@@ -479,7 +480,7 @@ pub fn DeleteVariant(
     // `DeleteVariant` is itself rendered once per variant inside a `<For>`
     // in `DeleteVariantForm`, so the fetch behind this must happen in that
     // parent (once) and be passed down here, not be fetched again per row.
-    #[prop(into)] symlink_map: Signal<Option<HashMap<String, String>>>,
+    #[prop(into)] symlink_map: Signal<SymlinkMapState>,
 ) -> impl IntoView {
     let variant_rws = RwSignal::new(variant);
     let override_keys = Signal::derive(move || {
@@ -629,6 +630,9 @@ pub fn DeleteVariantForm<HC>(
     default_config: Vec<DefaultConfig>,
     handle_change: HC,
     fn_environment: Memo<FunctionEnvironment>,
+    /// As `VariantForm`'s: fetched once by the submitting parent.
+    #[prop(into)]
+    symlink_map: Signal<SymlinkMapState>,
 ) -> impl IntoView
 where
     HC: Fn(Vec<(String, VariantFormT)>) + 'static + Clone,
@@ -636,9 +640,6 @@ where
     let variants_rws = RwSignal::new(variants);
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
-    // One fetch here, shared by every variant row's `DeleteVariant` below
-    // (which itself renders one `OverrideForm` each, inside a `<For>`).
-    let symlink_map = use_symlink_map(workspace, org);
 
     let combined_resource = create_blocking_resource(
         move || {
