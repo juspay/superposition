@@ -55,7 +55,10 @@ use crate::{
         },
     },
     helpers::{add_config_version, put_config_in_redis, validate_change_reason},
-    symlinks::{flatten_target, resolve_for_response, resolve_many_for_response},
+    symlinks::{
+        flatten_target, resolve_for_response, resolve_many_for_response,
+        symlink_dependents,
+    },
 };
 
 declare_resource!(DefaultConfig);
@@ -663,6 +666,15 @@ async fn delete_handler(
     let key: String = key.into();
 
     let conn = write_permit.connection();
+
+    let dependents = symlink_dependents(conn, &workspace_context.schema_name, &key)?;
+    if !dependents.is_empty() {
+        return Err(bad_argument!(
+            "cannot delete `{key}`: it is the target of symlink(s) {}. \
+             Delete or repoint them first.",
+            dependents.join(", ")
+        ));
+    }
 
     let context_ids =
         get_key_usage_context_ids(&key, conn, &workspace_context.schema_name)
