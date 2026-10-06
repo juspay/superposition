@@ -70,9 +70,14 @@ pub fn DefaultConfigList() -> impl IntoView {
         |(workspace, pagination_params, org_id, filters)| async move {
             // `list_resolved` (not `list`) so `symlink_to` survives into the
             // row map `table_rows` below, for the badge in `expand`.
-            default_configs::list_resolved(&pagination_params, &filters, &workspace, &org_id)
-                .await
-                .unwrap_or_default()
+            default_configs::list_resolved(
+                &pagination_params,
+                &filters,
+                &workspace,
+                &org_id,
+            )
+            .await
+            .unwrap_or_default()
         },
     );
 
@@ -328,7 +333,10 @@ mod tests {
             "symlink_to must survive serde flatten into the row map the \
              list page's `expand` closure reads from"
         );
-        assert_eq!(row.get("key"), Some(&Value::String("alias.key".to_string())));
+        assert_eq!(
+            row.get("key"),
+            Some(&Value::String("alias.key".to_string()))
+        );
     }
 
     #[test]

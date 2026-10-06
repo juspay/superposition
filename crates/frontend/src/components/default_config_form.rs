@@ -175,7 +175,12 @@ pub fn DefaultConfigForm(
         let (f_schema, f_value, fun_name, value_compute_fn) = if is_symlink {
             let mut schema = Map::new();
             schema.insert(SYMLINK_KEYWORD.to_string(), Value::Bool(true));
-            (Value::Object(schema), Value::String(symlink_target), None, None)
+            (
+                Value::Object(schema),
+                Value::String(symlink_target),
+                None,
+                None,
+            )
         } else {
             (
                 config_schema_rs.get_untracked(),
