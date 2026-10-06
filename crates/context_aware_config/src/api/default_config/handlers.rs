@@ -24,7 +24,7 @@ use superposition_macros::{
     bad_argument, db_error, not_found, unexpected_error, validation_error,
 };
 use superposition_types::{
-    DBConnection, PaginatedResponse, Resource, User,
+    DBConnection, ExtendedMap, PaginatedResponse, Resource, User,
     api::{
         default_config::{
             DefaultConfigCreateRequest, DefaultConfigFilters, DefaultConfigKey,
@@ -43,6 +43,7 @@ use superposition_types::{
         schema::{self, contexts::dsl::contexts, default_configs::dsl},
     },
     result as superposition,
+    symlink::{is_symlink_schema, normalize_symlink_write, symlink_target},
 };
 
 use crate::{
@@ -54,7 +55,7 @@ use crate::{
         },
     },
     helpers::{add_config_version, put_config_in_redis, validate_change_reason},
-    symlinks::{resolve_for_response, resolve_many_for_response},
+    symlinks::{flatten_target, resolve_for_response, resolve_many_for_response},
 };
 
 declare_resource!(DefaultConfig);
@@ -79,8 +80,41 @@ async fn create_handler(
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let req = request.into_inner();
-    _auth_z.authorized(&[req.key.deref()]).await?;
     let conn = write_permit.connection();
+
+    // A create whose schema carries the symlink marker is a link, not an ordinary
+    // key: its value names a target, which must already exist and must not be
+    // another link (flatten_target keeps stored links at depth 1).
+    let symlink = if is_symlink_schema(req.schema.inner()) {
+        let (requested, canonical) =
+            normalize_symlink_write(req.schema.inner(), &req.value)
+                .map_err(|e| bad_argument!("{}", e))?;
+
+        if req.value_validation_function_name.is_some()
+            || req.value_compute_function_name.is_some()
+        {
+            return Err(bad_argument!(
+                "a symlink cannot carry validation or compute functions; \
+                 they belong to its target `{requested}`"
+            ));
+        }
+
+        let target = flatten_target(conn, &workspace_context.schema_name, &requested)?;
+        if target == *req.key {
+            return Err(bad_argument!("a symlink cannot point at itself"));
+        }
+        Some((target, canonical))
+    } else {
+        None
+    };
+
+    // Creating a link needs authority over the target too: otherwise a principal
+    // could create `allowed.alias -> restricted.key` and surface a restricted
+    // key's value under a name a prefix-scoped reader is permitted to see.
+    match &symlink {
+        Some((target, _)) => _auth_z.authorized(&[req.key.deref(), target]).await?,
+        None => _auth_z.authorized(&[req.key.deref()]).await?,
+    };
 
     let key = req.key;
     let tags = parse_config_tags(custom_headers.config_tags)?;
@@ -97,12 +131,17 @@ async fn create_handler(
     )
     .await?;
 
-    let value = req.value;
+    let (value, schema) = match symlink {
+        Some((target, canonical)) => {
+            (Value::String(target), ExtendedMap::from(canonical))
+        }
+        None => (req.value, req.schema),
+    };
 
     let default_config = DefaultConfig {
         key: key.to_owned(),
         value,
-        schema: req.schema,
+        schema,
         value_validation_function_name: req.value_validation_function_name,
         created_by: user.get_email(),
         created_at: Utc::now(),
@@ -206,7 +245,9 @@ async fn create_handler(
         config_version.id.to_string(),
     ));
 
-    Ok(http_resp.json(default_config))
+    let response =
+        resolve_for_response(conn, &workspace_context.schema_name, default_config)?;
+    Ok(http_resp.json(response))
 }
 
 #[authorized]
@@ -237,10 +278,8 @@ async fn update_handler(
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let key = key.into_inner();
-    _auth_z.authorized(&[key.deref()]).await?;
-
-    let req = request.into_inner();
-    let key_str = key.into();
+    let mut req = request.into_inner();
+    let key_str: String = key.into();
     let tags = parse_config_tags(custom_headers.config_tags)?;
 
     let conn = write_permit.connection();
@@ -259,6 +298,92 @@ async fn update_handler(
             }
         })?;
 
+    // The update discriminator. Exactly one of these holds:
+    // - the schema carries the symlink marker: the write repoints the link
+    //   itself, regardless of what else is present;
+    // - it doesn't, but the write carries `value`, `schema` or a function name:
+    //   that addresses the *value*, so it redirects to the target when `existing`
+    //   is a link;
+    // - neither: a description-only write (plus the mandatory `change_reason`)
+    //   stays on the link's own row.
+    let repoint = req
+        .schema
+        .as_ref()
+        .map(|schema| is_symlink_schema(schema.inner()))
+        .unwrap_or(false);
+
+    if repoint
+        && (req.value_validation_function_name.is_some()
+            || req.value_compute_function_name.is_some())
+    {
+        return Err(bad_argument!(
+            "a symlink cannot carry validation or compute functions; they belong to its target"
+        ));
+    }
+
+    let addresses_value = req.value.is_some()
+        || req.schema.is_some()
+        || req.value_validation_function_name.is_some()
+        || req.value_compute_function_name.is_some();
+
+    let existing_target =
+        symlink_target(existing.schema.inner(), &existing.value).map(str::to_string);
+
+    let addressed_key = match (repoint, addresses_value, &existing_target) {
+        (true, _, _) => key_str.clone(),
+        (false, true, Some(target)) => target.clone(),
+        (false, _, _) => key_str.clone(),
+    };
+
+    if repoint {
+        let value = req.value.clone().ok_or_else(|| {
+            bad_argument!("repointing a symlink requires its new target as value")
+        })?;
+        let (requested, canonical) = normalize_symlink_write(
+            req.schema
+                .as_ref()
+                .expect("repoint is true only when schema carries the marker")
+                .inner(),
+            &value,
+        )
+        .map_err(|e| bad_argument!("{}", e))?;
+        let target = flatten_target(conn, &workspace_context.schema_name, &requested)?;
+        if target == key_str {
+            return Err(bad_argument!("a symlink cannot point at itself"));
+        }
+
+        // Repointing surfaces a (possibly different) target's value under this
+        // existing name, exactly like creating a link, so it needs authority
+        // over both.
+        _auth_z.authorized(&[&key_str, &target]).await?;
+
+        req.value = Some(Value::String(target));
+        req.schema = Some(ExtendedMap::from(canonical));
+    } else {
+        _auth_z.authorized(&[&addressed_key]).await?;
+    }
+
+    // The row the patch actually lands on. For a redirect this is the target's
+    // own current row, not the link's, so an omitted field falls back to what
+    // the target already holds rather than to the link's pointer value.
+    let target_row = if addressed_key == key_str {
+        existing.clone()
+    } else {
+        fetch_default_key(&addressed_key, conn, &workspace_context.schema_name).map_err(
+            |e| match e {
+                superposition::AppError::DbError(diesel::NotFound) => {
+                    unexpected_error!(
+                        "`{key_str}` points at `{addressed_key}`, which no longer exists"
+                    )
+                }
+                _ => {
+                    log::error!("Failed to fetch {addressed_key}: {e}");
+                    unexpected_error!("Something went wrong.")
+                }
+            },
+        )?
+    };
+
     validate_change_reason(
         &workspace_context,
         &req.change_reason,
@@ -267,7 +392,10 @@ async fn update_handler(
     )
     .await?;
 
-    let value = req.value.clone().unwrap_or_else(|| existing.value.clone());
+    let value = req
+        .value
+        .clone()
+        .unwrap_or_else(|| target_row.value.clone());
 
     if let Some(ref schema) = req.schema {
         let schema = Value::from(schema);
@@ -289,13 +417,16 @@ async fn update_handler(
     }
 
     if let Some(ref validation_function_name) = req.value_validation_function_name {
-        let value = req.value.clone().unwrap_or_else(|| existing.value.clone());
+        let value = req
+            .value
+            .clone()
+            .unwrap_or_else(|| target_row.value.clone());
 
         validate_default_config_with_function(
             &workspace_context,
             conn,
             validation_function_name,
-            &key_str,
+            &addressed_key,
             &value,
             &state.master_encryption_key,
         )
@@ -315,7 +446,7 @@ async fn update_handler(
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
             let change_reason = req.change_reason.clone();
             let val = diesel::update(dsl::default_configs)
-                .filter(dsl::key.eq(key_str.clone()))
+                .filter(dsl::key.eq(addressed_key.clone()))
                 .set((
                     req,
                     dsl::last_modified_at.eq(Utc::now()),
@@ -366,7 +497,8 @@ async fn update_handler(
         AppHeader::XConfigVersion.to_string(),
         config_version.id.to_string(),
     ));
-    Ok(http_resp.json(db_row))
+    let response = resolve_for_response(conn, &workspace_context.schema_name, db_row)?;
+    Ok(http_resp.json(response))
 }
 
 fn validate_fn_published(
