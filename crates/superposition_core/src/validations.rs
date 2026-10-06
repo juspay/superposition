@@ -793,4 +793,26 @@ mod tests {
         });
         assert!(validate_cohort_schema_structure(&schema).is_err());
     }
+
+    #[test]
+    fn an_unknown_keyword_compiles_and_validates_anything() {
+        // Why the symlink marker can live in a schema at all: Draft-7 ignores
+        // keywords it does not know, so no resolver is needed.
+        let schema = json!({ "x-superposition-symlink": true });
+        let compiled =
+            try_into_jsonschema(&schema).expect("unknown keywords are ignored");
+        assert!(compiled.validate(&json!("payments.retry.count")).is_ok());
+    }
+
+    #[test]
+    fn an_external_ref_cannot_resolve_here() {
+        // Why the marker is not spelled `$ref`: jsonschema ~0.17 is more tolerant
+        // than the spec assumed—it successfully compiles schemas with unresolvable
+        // $ref without a resolver. The semantic argument for the vendor keyword
+        // still holds: it avoids the false impression that an external schema
+        // needs resolving.
+        let schema =
+            json!({ "$ref": "superposition://default-config/payments.retry.count" });
+        assert!(try_into_jsonschema(&schema).is_ok());
+    }
 }
