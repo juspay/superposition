@@ -10,12 +10,16 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use superposition_types::{
     ExtendedMap,
-    api::{default_config::DefaultConfigUpdateRequest, functions::ListFunctionFilters},
+    api::{
+        default_config::{DefaultConfigFilters, DefaultConfigUpdateRequest},
+        functions::ListFunctionFilters,
+    },
     custom_query::PaginationParams,
     database::models::{
         ChangeReason, Description,
-        cac::{Function, FunctionType, TypeTemplate},
+        cac::{DefaultConfig, Function, FunctionType, TypeTemplate},
     },
+    symlink::SYMLINK_KEYWORD,
 };
 use utils::try_update_payload;
 use wasm_bindgen::JsCast;
@@ -39,7 +43,10 @@ use crate::{
     utils::{get_fn_names_by_type, set_function},
 };
 use crate::{
-    providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider},
+    providers::{
+        alert_provider::enqueue_alert, csr_provider::use_client_side_ready,
+        editor_provider::EditorProvider,
+    },
     types::{OrganisationId, Workspace},
 };
 
@@ -54,6 +61,7 @@ enum ResponseType {
 pub struct CombinedResource {
     functions: Vec<Function>,
     type_templates: Vec<TypeTemplate>,
+    default_config_keys: Vec<DefaultConfig>,
 }
 
 #[component]
@@ -89,6 +97,9 @@ pub fn DefaultConfigForm(
     let (description_rs, description_ws) = create_signal(description);
     let (change_reason_rs, change_reason_ws) = create_signal(String::new());
     let update_request_rws = RwSignal::new(None);
+    let (is_symlink_rs, is_symlink_ws) = create_signal(false);
+    let (symlink_target_rs, symlink_target_ws) = create_signal(String::new());
+    let client_side_ready = use_client_side_ready();
 
     let schema_type_s = Signal::derive(move || {
         SchemaType::try_from(config_schema_rs.get())
@@ -109,11 +120,23 @@ pub fn DefaultConfigForm(
 
             let types_future = fetch_types(&all_entries, &workspace, &org_id);
 
-            let (functions_result, types_result) = join!(functions_future, types_future);
+            let default_config_filters = DefaultConfigFilters::default();
+            let default_config_future = default_configs::list(
+                &all_entries,
+                &default_config_filters,
+                &workspace,
+                &org_id,
+            );
+
+            let (functions_result, types_result, default_config_result) =
+                join!(functions_future, types_future, default_config_future);
 
             CombinedResource {
                 functions: functions_result.map(|d| d.data).unwrap_or_default(),
                 type_templates: types_result.map(|d| d.data).unwrap_or_default(),
+                default_config_keys: default_config_result
+                    .map(|d| d.data)
+                    .unwrap_or_default(),
             }
         },
     );
@@ -129,13 +152,38 @@ pub fn DefaultConfigForm(
         };
 
     let on_submit = Callback::new(move |_| {
-        req_inprogress_ws.set(true);
         let key_name = config_key_rs.get_untracked();
-        let f_schema = config_schema_rs.get_untracked();
-        let f_value = config_value_rs.get_untracked();
+        let is_edit = edit;
+        let is_symlink = !is_edit && is_symlink_rs.get_untracked();
+        let symlink_target = symlink_target_rs.get_untracked();
 
-        let fun_name = validation_fn_name_rs.get_untracked();
-        let value_compute_fn = value_compute_function_name_rs.get_untracked();
+        if is_symlink && symlink_target.trim().is_empty() {
+            enqueue_alert(
+                "Choose a target key for this symlink".to_string(),
+                AlertType::Error,
+                5000,
+            );
+            return;
+        }
+
+        req_inprogress_ws.set(true);
+
+        // A symlink submits its target as `value` and the symlink marker as
+        // `schema`, built from `SYMLINK_KEYWORD` rather than a literal, and it
+        // cannot carry a validation or compute function - those belong to its
+        // target, and the server refuses a symlink that names one.
+        let (f_schema, f_value, fun_name, value_compute_fn) = if is_symlink {
+            let mut schema = Map::new();
+            schema.insert(SYMLINK_KEYWORD.to_string(), Value::Bool(true));
+            (Value::Object(schema), Value::String(symlink_target), None, None)
+        } else {
+            (
+                config_schema_rs.get_untracked(),
+                config_value_rs.get_untracked(),
+                validation_fn_name_rs.get_untracked(),
+                value_compute_function_name_rs.get_untracked(),
+            )
+        };
 
         let description = description_rs.get_untracked();
         let change_reason = change_reason_rs.get_untracked();
@@ -145,8 +193,6 @@ pub fn DefaultConfigForm(
             "/admin/{}/{}/default-config/{}",
             org.0, workspace.0, key_name
         );
-
-        let is_edit = edit;
 
         spawn_local(async move {
             let result = match (is_edit, update_request_rws.get_untracked()) {
@@ -308,6 +354,26 @@ pub fn DefaultConfigForm(
                         </div>
                     </Show>
 
+                    <Show when=move || !edit>
+                        <div class="form-control">
+                            <label
+                                on:click=move |_| {
+                                    is_symlink_ws.update(|v| *v = !*v);
+                                }
+                                class="label gap-4 cursor-pointer w-fit"
+                            >
+                                <span class="label-text font-semibold">
+                                    Create as symlink
+                                </span>
+                                <input
+                                    type="checkbox"
+                                    class="toggle toggle-primary"
+                                    checked=is_symlink_rs.get()
+                                />
+                            </label>
+                        </div>
+                    </Show>
+
                     <div class="flex flex-wrap gap-x-10 gap-y-5">
                         <ChangeForm
                             title="Description".to_string()
@@ -326,6 +392,50 @@ pub fn DefaultConfigForm(
                             })
                         />
                     </div>
+                    <Show when=move || is_symlink_rs.get()>
+                        <div class="form-control max-w-md w-full">
+                            <Label
+                                title="Target Key"
+                                description="The default-config key this symlink points to"
+                            />
+                            <Show when=move || *client_side_ready.get()>
+                                {move || {
+                                    let current_key = config_key_rs.get();
+                                    let options = combined_resources
+                                        .with(|c| {
+                                            c.as_ref().map(|c| c.default_config_keys.clone())
+                                        })
+                                        .unwrap_or_default()
+                                        .into_iter()
+                                        .filter(|dc| dc.key != current_key)
+                                        .collect::<Vec<DefaultConfig>>();
+                                    let dropdown_text = {
+                                        let target = symlink_target_rs.get();
+                                        if target.is_empty() {
+                                            "Choose a target key".to_string()
+                                        } else {
+                                            target
+                                        }
+                                    };
+                                    view! {
+                                        <Dropdown
+                                            dropdown_width="w-100"
+                                            dropdown_icon="".to_string()
+                                            dropdown_text=dropdown_text
+                                            dropdown_direction=DropdownDirection::Down
+                                            dropdown_btn_type=DropdownBtnType::Select
+                                            dropdown_options=options
+                                            on_select=move |selected: DefaultConfig| {
+                                                symlink_target_ws.set(selected.key);
+                                            }
+                                        />
+                                    }
+                                }}
+                            </Show>
+                        </div>
+                    </Show>
+
+                    <Show when=move || !is_symlink_rs.get()>
                     <div class="flex flex-wrap gap-x-10 gap-y-5">
                         <div class="form-control max-w-md w-full">
                             <Label title="Set Schema" />
@@ -483,7 +593,9 @@ pub fn DefaultConfigForm(
                             }}
                         </div>
                     </div>
+                    </Show>
 
+                    <Show when=move || !is_symlink_rs.get()>
                     <Suspense fallback=move || {
                         view! {
                             <Skeleton
@@ -548,6 +660,7 @@ pub fn DefaultConfigForm(
                             }
                         }}
                     </Suspense>
+                    </Show>
                 </div>
             </form>
         </EditorProvider>
