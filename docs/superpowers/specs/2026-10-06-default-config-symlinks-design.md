@@ -268,8 +268,14 @@ normalization helper applied before hashing and before authorizing:
 | Crate | Endpoints |
 |---|---|
 | `default_config` | create, update, delete |
-| `context` | create, update, move, bulk-operations, validate |
+| `context` | create, update, bulk-operations |
 | `experiments` | create, update (variant overrides), conclude (applies the winning variant into CAC) |
+
+`move` and `validate` are deliberately absent, having been checked against the code:
+`MoveRequest { context, description, change_reason }` (`api/context.rs:86`) carries no
+override map — a move re-points an existing context's condition and reuses its stored,
+already-normalized override — and `validate_handler` (`context/handlers.rs:1276`) takes
+only a condition, passing `Overrides::default()` into `validate_ctx`.
 
 Normalization must run **before `hash(&ctx_override)`** (`context/operations.rs:124-135`).
 Override ids are content hashes, so normalizing afterwards yields two ids for one
