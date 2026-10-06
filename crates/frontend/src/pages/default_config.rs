@@ -28,7 +28,15 @@ use crate::schema::{EnumVariants, JsonSchemaType, SchemaType};
 use crate::types::{OrganisationId, Workspace};
 
 #[component]
-fn ConfigInfo(default_config: DefaultConfig) -> impl IntoView {
+fn ConfigInfo(
+    default_config: DefaultConfig,
+    /// The target key this row links to, when it is a symlink. The API
+    /// resolves a symlink's value/schema/functions to the target's on read
+    /// (so existing machine clients keep seeing a real type), but a human
+    /// reading this card should see the link, not a schema that looks like
+    /// it belongs to this key - see the schema row below.
+    #[prop(default = None)] symlink_to: Option<String>,
+) -> impl IntoView {
     let schema: &Map<String, Value> = &default_config.schema;
     let Ok(schema_type) = SchemaType::try_from(schema) else {
         return view! { <span class="text-red-500">"Invalid schema"</span> }.into_view();
@@ -62,8 +70,32 @@ fn ConfigInfo(default_config: DefaultConfig) -> impl IntoView {
                                 r#type=input_type
                             />
                         </div>
-                        <div class="flex gap-4">
-                            <div class="stat-title">"Schema"</div>
+                        <div class="flex flex-col gap-1">
+                            <div class="flex gap-4 items-center">
+                                <div class="stat-title">
+                                    {if symlink_to.is_some() { "Symlink" } else { "Schema" }}
+                                </div>
+                                {symlink_to.clone().map(|target| {
+                                    view! {
+                                        <span class="text-sm flex items-center gap-1">
+                                            "→"
+                                            <A
+                                                href=format!("../{target}")
+                                                class="text-blue-500 underline underline-offset-2"
+                                            >
+                                                {target}
+                                            </A>
+                                        </span>
+                                    }
+                                })}
+                            </div>
+                            {symlink_to.is_some().then(|| {
+                                view! {
+                                    <div class="text-xs text-gray-500 italic">
+                                        "Type is inherited from the target key and is read-only here."
+                                    </div>
+                                }
+                            })}
                             <Input
                                 disabled=true
                                 id="type-schema"
@@ -200,7 +232,7 @@ pub fn DefaultConfig() -> impl IntoView {
                 let Some((default_config, symlink_to)) = extracted else {
                     return view! { <h1>"Error fetching default config"</h1> }.into_view();
                 };
-                let symlink_badge = symlink_to.map(|target| {
+                let symlink_badge = symlink_to.clone().map(|target| {
                     view! {
                         <span class="badge badge-ghost ml-2" title="symlink">
                             <i class="ri-links-line mr-1" />
@@ -238,7 +270,7 @@ pub fn DefaultConfig() -> impl IntoView {
                             last_modified_by=default_config.last_modified_by.clone()
                             last_modified_at=default_config.last_modified_at
                         />
-                        <ConfigInfo default_config=default_config.clone() />
+                        <ConfigInfo default_config=default_config.clone() symlink_to=symlink_to.clone() />
                     </div>
                     <Show when=move || matches!(action_rws.get(), Action::Delete)>
                         <ChangeLogSummary
