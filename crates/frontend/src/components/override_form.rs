@@ -18,6 +18,7 @@ use crate::{
         dropdown::{Dropdown, DropdownDirection, utils::DropdownOption},
         input::{Input, InputType},
     },
+    providers::csr_provider::use_client_side_ready,
     schema::{EnumVariants, SchemaType},
     types::{OrganisationId, ValueComputeCallbacks, Workspace},
     utils::value_compute_fn_generator,
@@ -272,7 +273,11 @@ fn OverrideInput(
     allow_remove: bool,
     disabled: bool,
     value_compute_callbacks: ValueComputeCallbacks,
-    #[prop(default = None)] symlink_target: Option<String>,
+    /// A `Signal`, not an `Option`: `<For>`'s `each` tracks only `overrides`,
+    /// so a value read once in the `children` closure never refreshes when the
+    /// symlink map resolves and the badge never appeared on pre-existing rows.
+    #[prop(into, default = Signal::derive(|| None))]
+    symlink_target: Signal<Option<String>>,
 ) -> impl IntoView {
     let value_compute_callback = value_compute_callbacks.get(&key).cloned();
     let key = store_value(key);
@@ -293,7 +298,7 @@ fn OverrideInput(
                     <span class="label-text font-bold text-gray-500">{key.get_value()} ":"</span>
                     <div class="flex gap-1">
                         <TypeBadge r#type=r#type.clone() />
-                        {symlink_target.clone().map(|target| view! {
+                        {move || symlink_target.get().map(|target| view! {
                             <span class="badge badge-sm badge-ghost" title="symlink">
                                 <i class="ri-links-line mr-1" />
                                 {format!("→ {target}")}
@@ -373,6 +378,7 @@ pub fn OverrideForm(
 
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org_id = use_context::<Signal<OrganisationId>>().unwrap();
+    let client_side_ready = use_client_side_ready();
 
     // Shown here, but enforced by whoever submits: see `check_symlink_collisions`.
     let symlink_check = Signal::derive(move || {
@@ -485,6 +491,12 @@ pub fn OverrideForm(
                         }}
                         <Show when=move || { overrides.get().is_empty() && show_add_override }>
                             <div class="flex justify-center">
+                                // Gated on `client_side_ready` like every other
+                                // dropdown subtree (see `side_nav.rs`): a subtree
+                                // re-created inside `{move || ...}` right after
+                                // hydration is the shape that panicked the
+                                // workspaces page (#1148).
+                                <Show when=move || *client_side_ready.get()>
                                 {move || {
                                     let add_override_options = default_config
                                         .get_value()
@@ -505,6 +517,7 @@ pub fn OverrideForm(
                                         />
                                     }
                                 }}
+                                </Show>
                             </div>
                         </Show>
 
@@ -531,8 +544,10 @@ pub fn OverrideForm(
                                     .unwrap_or_default();
                                 let schema_type = SchemaType::try_from(schema);
                                 let enum_variants = EnumVariants::try_from(schema);
-                                let symlink_target = symlink_map
-                                    .with(|state| state.target_of(&config_key));
+                                let badge_key = config_key.clone();
+                                let symlink_target = Signal::derive(move || {
+                                    symlink_map.with(|state| state.target_of(&badge_key))
+                                });
                                 view! {
                                     <OverrideInput
                                         id=format!("{}-{}", id.get_value(), config_key)
@@ -553,7 +568,7 @@ pub fn OverrideForm(
 
                         <Show when=move || { !overrides.get().is_empty() && show_add_override }>
                             <div class="mt-4">
-
+                                <Show when=move || *client_side_ready.get()>
                                 {move || {
                                     let unused_config_keys = default_config
                                         .get_value()
@@ -575,7 +590,7 @@ pub fn OverrideForm(
                                         />
                                     }
                                 }}
-
+                                </Show>
                             </div>
                         </Show>
                     </div>

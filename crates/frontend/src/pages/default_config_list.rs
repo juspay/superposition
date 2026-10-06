@@ -99,9 +99,13 @@ pub fn DefaultConfigList() -> impl IntoView {
                     .as_ref()
                     .map_or_else(|| label.clone(), |p| format!("{p}{label}"))
             });
-            let symlink_to = row
-                .get("symlink_to")
-                .and_then(Value::as_str)
+            // Only a real key can be a symlink. A folder row is synthesized by
+            // `modify_rows` from one of its children, so anything it carries in
+            // this column is that child's - or the "-" placeholder `modify_rows`
+            // writes over the columns it knows about.
+            let symlink_to = (!is_folder)
+                .then(|| row.get("symlink_to").and_then(Value::as_str))
+                .flatten()
                 .map(str::to_string);
             let symlink_badge = symlink_to.map(|target| {
                 view! {
@@ -186,10 +190,17 @@ pub fn DefaultConfigList() -> impl IntoView {
                 let mut filtered_rows = table_rows;
                 let page_params = page_params_rws.get();
                 if page_params.grouped {
+                    // The union of every row's keys, not row 0's. `symlink_to`
+                    // is `skip_serializing_if`, so an ordinary first row left it
+                    // out of `cols` and `modify_rows` then had no placeholder to
+                    // write over it - leaving a synthesized folder row carrying
+                    // some child's `symlink_to`.
                     let cols = filtered_rows
-                        .first()
-                        .map(|row| row.keys().cloned().collect())
-                        .unwrap_or_default();
+                        .iter()
+                        .flat_map(|row| row.keys().cloned())
+                        .collect::<std::collections::BTreeSet<String>>()
+                        .into_iter()
+                        .collect::<Vec<String>>();
                     filtered_rows = modify_rows(
                         filtered_rows.clone(),
                         page_params.prefix,
@@ -336,6 +347,43 @@ mod tests {
         assert_eq!(
             row.get("key"),
             Some(&Value::String("alias.key".to_string()))
+        );
+    }
+
+    #[test]
+    fn a_folder_row_does_not_inherit_a_childs_symlink_to() {
+        // `modify_rows` builds a folder row out of one of its children and
+        // overwrites only the columns it was handed. Taking those columns from
+        // row 0 alone meant `symlink_to` - which is `skip_serializing_if`, so
+        // absent from an ordinary row - was missing from the list, and the
+        // folder kept the child's target. The columns must be the union.
+        let rows = vec![
+            json!({ "key": "payments.a" }).as_object().unwrap().clone(),
+            json!({ "key": "payments.b", "symlink_to": "elsewhere.key" })
+                .as_object()
+                .unwrap()
+                .clone(),
+        ];
+
+        let cols = rows
+            .iter()
+            .flat_map(|row| row.keys().cloned())
+            .collect::<std::collections::BTreeSet<String>>()
+            .into_iter()
+            .collect::<Vec<String>>();
+        assert!(cols.contains(&"symlink_to".to_string()));
+
+        let grouped = super::modify_rows(rows, None, cols, "key");
+
+        assert_eq!(grouped.len(), 1, "both keys fold into one folder row");
+        assert_eq!(
+            grouped[0].get("key"),
+            Some(&Value::String("payments.".to_string()))
+        );
+        assert_ne!(
+            grouped[0].get("symlink_to"),
+            Some(&Value::String("elsewhere.key".to_string())),
+            "a folder must not present a child's symlink target as its own"
         );
     }
 
