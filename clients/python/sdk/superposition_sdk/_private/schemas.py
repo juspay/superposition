@@ -5179,6 +5179,11 @@ CREATE_DEFAULT_CONFIG_OUTPUT = Schema.collection(
             ],
         },
 
+        "symlink_to": {
+            "target": STRING,
+            "index": 11,
+        },
+
     }
 )
 
@@ -7802,6 +7807,11 @@ GET_DEFAULT_CONFIG_OUTPUT = Schema.collection(
             ],
         },
 
+        "symlink_to": {
+            "target": STRING,
+            "index": 11,
+        },
+
     }
 )
 
@@ -7983,6 +7993,11 @@ DEFAULT_CONFIG_RESPONSE = Schema.collection(
                 Trait.new(id=ShapeID("smithy.api#required")),
 
             ],
+        },
+
+        "symlink_to": {
+            "target": STRING,
+            "index": 11,
         },
 
     }
@@ -8228,6 +8243,11 @@ UPDATE_DEFAULT_CONFIG_OUTPUT = Schema.collection(
                 Trait.new(id=ShapeID("smithy.api#required")),
 
             ],
+        },
+
+        "symlink_to": {
+            "target": STRING,
+            "index": 11,
         },
 
     }

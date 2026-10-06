@@ -24,6 +24,7 @@ impl super::Client {
     ///   - [`created_by(String)`](crate::operation::update_default_config::UpdateDefaultConfigOutput::created_by): (undocumented)
     ///   - [`last_modified_at(DateTime)`](crate::operation::update_default_config::UpdateDefaultConfigOutput::last_modified_at): (undocumented)
     ///   - [`last_modified_by(String)`](crate::operation::update_default_config::UpdateDefaultConfigOutput::last_modified_by): (undocumented)
+    ///   - [`symlink_to(Option<String>)`](crate::operation::update_default_config::UpdateDefaultConfigOutput::symlink_to): Present only when this key is a symlink; the key whose value and schema this entry resolves to.
                             /// - On failure, responds with [`SdkError<UpdateDefaultConfigError>`](crate::operation::update_default_config::UpdateDefaultConfigError)
     pub fn update_default_config(&self) -> crate::operation::update_default_config::builders::UpdateDefaultConfigFluentBuilder {
                                 crate::operation::update_default_config::builders::UpdateDefaultConfigFluentBuilder::new(self.handle.clone())
