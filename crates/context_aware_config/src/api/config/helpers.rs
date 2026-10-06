@@ -136,12 +136,18 @@ pub fn generate_config_from_version(
                 *version = Some(latest_version);
                 serde_json::from_value::<Config>(config).or_else(|err| {
                     log::error!("failed to decode config: {}", err);
-                    generate_cac(conn, schema_name)
+                    generate_cac(conn, schema_name).and_then(|raw| {
+                        let links = crate::symlinks::fetch_symlinks(conn, schema_name)?;
+                        Ok(raw.expand(&links))
+                    })
                 })
             }
             Err(err) => {
                 log::error!("failed to find latest config: {err}");
-                generate_cac(conn, schema_name)
+                generate_cac(conn, schema_name).and_then(|raw| {
+                    let links = crate::symlinks::fetch_symlinks(conn, schema_name)?;
+                    Ok(raw.expand(&links))
+                })
             }
         }
     }
