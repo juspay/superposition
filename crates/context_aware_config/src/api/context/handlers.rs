@@ -27,7 +27,7 @@ use superposition_core::helpers::{calculate_context_weight, hash};
 use superposition_derives::{authorized, declare_resource};
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
-    Contextual, DBConnection, DimensionInfo, InternalUserContext, ListResponse,
+    Cac, Contextual, DBConnection, DimensionInfo, InternalUserContext, ListResponse,
     Overridden, Overrides, PaginatedResponse, PrefixList, Resource, SortBy, User,
     api::{
         DimensionMatchStrategy,
@@ -59,6 +59,7 @@ use crate::{
         operations,
     },
     helpers::{add_config_version, put_config_in_redis, validate_change_reason},
+    symlinks::normalize_override_keys,
 };
 
 declare_resource!(Context);
@@ -103,10 +104,17 @@ async fn create_handler(
     user: User,
     internal_user: InternalUserContext,
 ) -> superposition::Result<HttpResponse> {
-    let req = req.into_inner();
+    let mut req = req.into_inner();
+    let conn = write_permit.connection();
+    let normalized_override = normalize_override_keys(
+        conn,
+        &workspace_context.schema_name,
+        req.r#override.clone().into_inner(),
+    )?;
+    req.r#override = Cac::<Overrides>::try_from(normalized_override.into_inner())
+        .map_err(|e| bad_argument!("{}", e))?;
     create_authorized(&_auth_z, &req.r#override).await?;
 
-    let conn = write_permit.connection();
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let description = match req.description.clone() {
         Some(val) => val,
@@ -236,13 +244,21 @@ async fn update_handler(
     workspace_context: WorkspaceContext,
     state: Data<AppState>,
     custom_headers: CustomHeaders,
-    req: Json<UpdateRequest>,
+    mut req: Json<UpdateRequest>,
     mut write_permit: WorkspaceWritePermit,
     user: User,
 ) -> superposition::Result<HttpResponse> {
     let conn = write_permit.connection();
     let tags = parse_config_tags(custom_headers.config_tags)?;
     let req_change_reason = req.change_reason.clone();
+
+    let normalized_override = normalize_override_keys(
+        conn,
+        &workspace_context.schema_name,
+        req.override_.clone().into_inner(),
+    )?;
+    req.override_ = Cac::<Overrides>::try_from(normalized_override.into_inner())
+        .map_err(|e| bad_argument!("{}", e))?;
 
     update_authorized(
         &_auth_z,
@@ -851,10 +867,37 @@ async fn bulk_operations_handler(
 
     let conn = write_permit.connection();
     let is_v2 = matches!(req, Either::Right(_));
-    let ops = match req {
+    let mut ops = match req {
         Either::Left(o) => o.into_inner(),
         Either::Right(bo) => bo.into_inner().operations,
     };
+
+    for op in ops.iter_mut() {
+        match op {
+            ContextAction::Put(put_req) => {
+                let normalized_override = normalize_override_keys(
+                    conn,
+                    &workspace_context.schema_name,
+                    put_req.r#override.clone().into_inner(),
+                )?;
+                put_req.r#override =
+                    Cac::<Overrides>::try_from(normalized_override.into_inner())
+                        .map_err(|e| bad_argument!("{}", e))?;
+            }
+            ContextAction::Replace(update_req) => {
+                let normalized_override = normalize_override_keys(
+                    conn,
+                    &workspace_context.schema_name,
+                    update_req.override_.clone().into_inner(),
+                )?;
+                update_req.override_ =
+                    Cac::<Overrides>::try_from(normalized_override.into_inner())
+                        .map_err(|e| bad_argument!("{}", e))?;
+            }
+            ContextAction::Delete(_) | ContextAction::Move { .. } => {}
+        }
+    }
+
     bulk_authorized(&_auth_z, &ops, &workspace_context.schema_name, conn).await?;
 
     let mut webhook_actions: Vec<Action> = Vec::new();
