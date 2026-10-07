@@ -14,6 +14,7 @@ pub mod logic;
 mod overridden;
 #[cfg(feature = "result")]
 pub mod result;
+pub mod symlink;
 
 #[cfg(feature = "server")]
 use std::future::{ready, Ready};

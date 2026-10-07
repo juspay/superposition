@@ -34,6 +34,7 @@ use superposition_types::{
     },
     logic::evaluate_local_cohorts,
     result as superposition,
+    symlink::symlink_target,
 };
 
 use crate::helpers::{evaluate_remote_cohorts, generate_cac};
@@ -136,12 +137,18 @@ pub fn generate_config_from_version(
                 *version = Some(latest_version);
                 serde_json::from_value::<Config>(config).or_else(|err| {
                     log::error!("failed to decode config: {}", err);
-                    generate_cac(conn, schema_name)
+                    generate_cac(conn, schema_name).and_then(|raw| {
+                        let links = crate::symlinks::fetch_symlinks(conn, schema_name)?;
+                        Ok(raw.expand(&links))
+                    })
                 })
             }
             Err(err) => {
                 log::error!("failed to find latest config: {err}");
-                generate_cac(conn, schema_name)
+                generate_cac(conn, schema_name).and_then(|raw| {
+                    let links = crate::symlinks::fetch_symlinks(conn, schema_name)?;
+                    Ok(raw.expand(&links))
+                })
             }
         }
     }
@@ -307,15 +314,18 @@ fn fetch_default_config_metadata(
         return Ok(HashMap::new());
     }
 
+    // Loaded for exactly the keys the caller requested — this must not filter out
+    // symlink rows, or a requested link key would be missing from the result.
     let rows = default_configs::default_configs
         .filter(default_configs::key.eq_any(keys))
         .select((
             default_configs::key,
+            default_configs::value,
             default_configs::schema,
             default_configs::description,
         ))
         .schema_name(schema_name)
-        .load::<(String, Value, Description)>(conn)
+        .load::<(String, Value, Value, Description)>(conn)
         .map_err(|err| {
             log::error!(
                 "failed to fetch default config metadata with error: {}",
@@ -324,18 +334,59 @@ fn fetch_default_config_metadata(
             db_error!(err)
         })?;
 
-    Ok(rows
-        .into_iter()
-        .map(|(key, schema, description)| {
-            (
-                key,
-                DefaultConfigMetadata {
-                    description: String::from(&description),
-                    schema,
-                },
-            )
-        })
-        .collect())
+    let mut links: Vec<(String, String)> = Vec::new();
+    let mut metadata: HashMap<String, DefaultConfigMetadata> = HashMap::new();
+
+    for (key, value, schema, description) in rows {
+        if let Some(schema_map) = schema.as_object() {
+            if let Some(target) = symlink_target(schema_map, &value) {
+                links.push((key.clone(), target.to_string()));
+            }
+        }
+        metadata.insert(
+            key,
+            DefaultConfigMetadata {
+                description: String::from(&description),
+                schema,
+            },
+        );
+    }
+
+    // A link's own schema is just the pointer marker; resolve requested through
+    // their targets so resolve_detailed / explain report the real type. The
+    // caller usually did not request the target key too, so this is a second,
+    // separate lookup rather than a `metadata.get(target)`.
+    if !links.is_empty() {
+        let targets: Vec<String> =
+            links.iter().map(|(_, target)| target.clone()).collect();
+        let target_rows = default_configs::default_configs
+            .filter(default_configs::key.eq_any(targets))
+            .select((default_configs::key, default_configs::schema))
+            .schema_name(schema_name)
+            .load::<(String, Value)>(conn)
+            .map_err(|err| {
+                log::error!("failed to fetch symlink target schemas with error: {}", err);
+                db_error!(err)
+            })?;
+        let target_schemas: HashMap<String, Value> = target_rows.into_iter().collect();
+
+        for (key, target) in links {
+            match target_schemas.get(&target) {
+                Some(target_schema) => {
+                    if let Some(entry) = metadata.get_mut(&key) {
+                        entry.schema = target_schema.clone();
+                    }
+                }
+                None => {
+                    log::error!(
+                        "symlink {key} -> {target}: target missing from default configs, metadata not resolved"
+                    );
+                }
+            }
+        }
+    }
+
+    Ok(metadata)
 }
 
 /// Condition and id of the last matching context that set each key. A key absent from the

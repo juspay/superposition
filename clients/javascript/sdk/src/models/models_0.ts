@@ -1455,6 +1455,11 @@ export interface DefaultConfigResponse {
   created_by: string | undefined;
   last_modified_at: Date | undefined;
   last_modified_by: string | undefined;
+  /**
+   * Present only when this key is a symlink; the key whose value and schema this entry resolves to.
+   * @public
+   */
+  symlink_to?: string | undefined;
 }
 
 /**

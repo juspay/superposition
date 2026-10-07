@@ -17,7 +17,7 @@ use crate::{
     api::{get_context_from_condition, resolve_config},
     components::{
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
-        override_form::OverrideForm,
+        override_form::{OverrideForm, SymlinkMapState},
         skeleton::{Skeleton, SkeletonVariant},
     },
     logic::Conditions,
@@ -52,6 +52,10 @@ pub fn VariantForm<HC>(
     default_config: Vec<DefaultConfig>,
     handle_change: HC,
     fn_environment: Memo<FunctionEnvironment>,
+    /// Fetched once by the submitting parent, which also gates its submit on
+    /// the same check - see `override_form::check_symlink_collisions`.
+    #[prop(into)]
+    symlink_map: Signal<SymlinkMapState>,
 ) -> impl IntoView
 where
     HC: Fn(Vec<(String, VariantFormT)>) + 'static + Clone,
@@ -417,6 +421,7 @@ where
                                                             fn_environment
                                                             disabled=workspace_settings
                                                                 .with_value(|w| w.auto_populate_control)
+                                                            symlink_map=symlink_map
                                                         />
                                                     }
                                                 } else {
@@ -429,6 +434,7 @@ where
                                                             show_add_override=false
                                                             disable_remove=true
                                                             fn_environment
+                                                            symlink_map=symlink_map
                                                         />
                                                     }
                                                 }
@@ -471,6 +477,10 @@ pub fn DeleteVariant(
     #[prop(into)] on_override_change: Callback<Vec<(String, Value)>, ()>,
     #[prop(into)] on_delete_variant: Callback<(), ()>,
     fn_environment: Memo<FunctionEnvironment>,
+    // `DeleteVariant` is itself rendered once per variant inside a `<For>`
+    // in `DeleteVariantForm`, so the fetch behind this must happen in that
+    // parent (once) and be passed down here, not be fetched again per row.
+    #[prop(into)] symlink_map: Signal<SymlinkMapState>,
 ) -> impl IntoView {
     let variant_rws = RwSignal::new(variant);
     let override_keys = Signal::derive(move || {
@@ -594,6 +604,7 @@ pub fn DeleteVariant(
                                         });
                                 }
                                 fn_environment
+                                symlink_map=symlink_map
                             />
                         }
                     }}
@@ -619,6 +630,9 @@ pub fn DeleteVariantForm<HC>(
     default_config: Vec<DefaultConfig>,
     handle_change: HC,
     fn_environment: Memo<FunctionEnvironment>,
+    /// As `VariantForm`'s: fetched once by the submitting parent.
+    #[prop(into)]
+    symlink_map: Signal<SymlinkMapState>,
 ) -> impl IntoView
 where
     HC: Fn(Vec<(String, VariantFormT)>) + 'static + Clone,
@@ -814,6 +828,7 @@ where
                                         on_override_change
                                         on_delete_variant
                                         fn_environment
+                                        symlink_map=symlink_map
                                     />
                                 }
                                     .into_view()

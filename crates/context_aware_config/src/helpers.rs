@@ -53,6 +53,7 @@ use crate::{
             types::FunctionInfo,
         },
     },
+    symlinks::RawConfig,
     validation_functions::execute_fn,
 };
 
@@ -130,9 +131,12 @@ fn get_context_data(
 pub fn generate_cac(
     conn: &mut DBConnection,
     schema_name: &SchemaName,
-) -> superposition::Result<Config> {
+) -> superposition::Result<RawConfig> {
     let (contexts, overrides) = get_context_data(conn, schema_name)?;
     let default_config_vec = def_conf::default_configs
+        .filter(diesel::dsl::sql::<diesel::sql_types::Bool>(
+            crate::symlinks::NOT_A_SYMLINK_SQL,
+        ))
         .select((def_conf::key, def_conf::value))
         .schema_name(schema_name)
         .load::<(String, Value)>(conn)
@@ -151,12 +155,12 @@ pub fn generate_cac(
 
     let dimensions = fetch_dimensions_info_map(conn, schema_name)?;
 
-    Ok(Config {
+    Ok(RawConfig::new(Config {
         contexts,
         overrides,
         default_configs: default_configs.into(),
         dimensions,
-    })
+    }))
 }
 
 /// Generate a DetailedConfig from the database.
@@ -167,8 +171,12 @@ pub fn generate_detailed_cac(
 ) -> superposition::Result<DetailedConfig> {
     let (contexts, overrides) = get_context_data(conn, schema_name)?;
 
-    // Fetch default_configs with value, schema and description
+    // Fetch default_configs with value, schema and description, excluding symlink
+    // rows: a link's own schema is just the pointer marker, not a real type.
     let default_config_vec = def_conf::default_configs
+        .filter(diesel::dsl::sql::<diesel::sql_types::Bool>(
+            crate::symlinks::NOT_A_SYMLINK_SQL,
+        ))
         .select((
             def_conf::key,
             def_conf::value,
@@ -199,12 +207,15 @@ pub fn generate_detailed_cac(
 
     let dimensions = fetch_dimensions_info_map(conn, schema_name)?;
 
-    Ok(DetailedConfig {
+    let links = crate::symlinks::fetch_symlinks(conn, schema_name)?;
+    let mut detailed = DetailedConfig {
         contexts,
         overrides,
         default_configs: DefaultConfigsWithSchema::from(default_configs),
         dimensions,
-    })
+    };
+    detailed.expand_symlinks(&links);
+    Ok(detailed)
 }
 
 pub fn add_config_version(
@@ -216,7 +227,8 @@ pub fn add_config_version(
 ) -> superposition::Result<ConfigVersionListItem> {
     use config_versions::dsl::config_versions;
     let version_id = generate_snowflake_id(state)?;
-    let config = generate_cac(db_conn, schema_name)?;
+    let links = crate::symlinks::fetch_symlinks(db_conn, schema_name)?;
+    let config = generate_cac(db_conn, schema_name)?.expand(&links);
     let json_config = json!(config);
     let config_hash = blake3::hash(json_config.to_string().as_bytes()).to_string();
 
@@ -253,7 +265,8 @@ pub async fn put_config_in_redis(
     };
     let key_ttl: i64 = get_from_env_or_default("REDIS_KEY_TTL", 604800);
     let expiration = Some(Expiration::EX(key_ttl));
-    let raw_config = generate_cac(db_conn, schema_name)?;
+    let links = crate::symlinks::fetch_symlinks(db_conn, schema_name)?;
+    let raw_config = generate_cac(db_conn, schema_name)?.expand(&links);
     let parsed_config = serde_json::to_string(&raw_config).map_err(|e| {
         log::error!("failed to convert cac config to string: {}", e);
         unexpected_error!("could not convert cac config to string")

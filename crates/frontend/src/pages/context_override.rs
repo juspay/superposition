@@ -41,7 +41,7 @@ use crate::{
         drawer::{Drawer, DrawerBtn, close_drawer, open_drawer},
         dropdown::{Dropdown, DropdownBtnType},
         experiment_form::{ExperimentForm, ExperimentFormType},
-        override_form::OverrideForm,
+        override_form::{OverrideForm, check_symlink_collisions, use_symlink_map},
         pagination::Pagination,
         skeleton::{Skeleton, SkeletonVariant},
         stat::Stat,
@@ -94,6 +94,9 @@ fn Form(
 ) -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
+    // One fetch for this form instance (there's only one `OverrideForm`
+    // here, but this is the shared helper every real caller uses).
+    let symlink_map = use_symlink_map(workspace, org);
     let (context_rs, context_ws) = create_signal(context);
     let (overrides_rs, overrides_ws) = create_signal(overrides);
     let dimensions = StoredValue::new(dimensions);
@@ -109,7 +112,26 @@ fn Form(
         overrides: Map::from_iter(overrides_rs.get()),
     });
 
+    // The gate for the submit below. `OverrideForm` propagates every edit
+    // outward unconditionally, so `overrides_rs` holds exactly what would be
+    // posted and this check is a check of the real payload.
+    let symlink_check = Signal::derive(move || {
+        check_symlink_collisions(
+            &symlink_map.get(),
+            overrides_rs
+                .get()
+                .iter()
+                .map(|(key, _)| key)
+                .collect::<Vec<_>>()
+                .into_iter(),
+        )
+    });
+
     let on_submit = move || {
+        if let Some(reason) = symlink_check.get_untracked().blocking_reason() {
+            enqueue_alert(reason, AlertType::Error, 5000);
+            return;
+        }
         req_inprogress_ws.set(true);
         spawn_local(async move {
             let f_overrides = overrides_rs.get_untracked();
@@ -203,10 +225,12 @@ fn Form(
                 default_config=default_config
                 handle_change=move |new_overrides| overrides_ws.set(new_overrides)
                 fn_environment
+                symlink_map=symlink_map
             />
 
             {move || {
                 let loading = req_inprogess_rs.get();
+                let disabled = symlink_check.get().blocks_submit();
                 view! {
                     <Button
                         class="self-end h-12 w-48"
@@ -214,6 +238,7 @@ fn Form(
                         icon_class="ri-send-plane-line"
                         on_click=move |_| on_submit()
                         loading
+                        disabled
                     />
                 }
             }}

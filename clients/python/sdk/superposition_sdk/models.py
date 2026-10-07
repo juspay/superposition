@@ -5665,6 +5665,10 @@ class CreateDefaultConfigOutput:
         **[Required]** - Generic key-value object structure used for flexible data
         representation throughout the API.
 
+    :param symlink_to:
+         Present only when this key is a symlink; the key whose value and schema this
+         entry resolves to.
+
     """
 
     key: str
@@ -5687,6 +5691,7 @@ class CreateDefaultConfigOutput:
 
     value_validation_function_name: str | None = None
     value_compute_function_name: str | None = None
+    symlink_to: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT, self)
@@ -5707,6 +5712,8 @@ class CreateDefaultConfigOutput:
         serializer.write_string(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["created_by"], self.created_by)
         serializer.write_timestamp(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["last_modified_at"], self.last_modified_at)
         serializer.write_string(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["last_modified_by"], self.last_modified_by)
+        if self.symlink_to is not None:
+            serializer.write_string(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["symlink_to"], self.symlink_to)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -5750,6 +5757,9 @@ class CreateDefaultConfigOutput:
 
                 case 10:
                     kwargs["last_modified_by"] = de.read_string(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["last_modified_by"])
+
+                case 11:
+                    kwargs["symlink_to"] = de.read_string(_SCHEMA_CREATE_DEFAULT_CONFIG_OUTPUT.members["symlink_to"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -8047,6 +8057,10 @@ class GetDefaultConfigOutput:
         **[Required]** - Generic key-value object structure used for flexible data
         representation throughout the API.
 
+    :param symlink_to:
+         Present only when this key is a symlink; the key whose value and schema this
+         entry resolves to.
+
     """
 
     key: str
@@ -8069,6 +8083,7 @@ class GetDefaultConfigOutput:
 
     value_validation_function_name: str | None = None
     value_compute_function_name: str | None = None
+    symlink_to: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT, self)
@@ -8089,6 +8104,8 @@ class GetDefaultConfigOutput:
         serializer.write_string(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["created_by"], self.created_by)
         serializer.write_timestamp(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["last_modified_at"], self.last_modified_at)
         serializer.write_string(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["last_modified_by"], self.last_modified_by)
+        if self.symlink_to is not None:
+            serializer.write_string(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["symlink_to"], self.symlink_to)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -8132,6 +8149,9 @@ class GetDefaultConfigOutput:
 
                 case 10:
                     kwargs["last_modified_by"] = de.read_string(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["last_modified_by"])
+
+                case 11:
+                    kwargs["symlink_to"] = de.read_string(_SCHEMA_GET_DEFAULT_CONFIG_OUTPUT.members["symlink_to"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -8226,6 +8246,10 @@ class DefaultConfigResponse:
         **[Required]** - Generic key-value object structure used for flexible data
         representation throughout the API.
 
+    :param symlink_to:
+         Present only when this key is a symlink; the key whose value and schema this
+         entry resolves to.
+
     """
 
     key: str
@@ -8248,6 +8272,7 @@ class DefaultConfigResponse:
 
     value_validation_function_name: str | None = None
     value_compute_function_name: str | None = None
+    symlink_to: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_DEFAULT_CONFIG_RESPONSE, self)
@@ -8268,6 +8293,8 @@ class DefaultConfigResponse:
         serializer.write_string(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["created_by"], self.created_by)
         serializer.write_timestamp(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["last_modified_at"], self.last_modified_at)
         serializer.write_string(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["last_modified_by"], self.last_modified_by)
+        if self.symlink_to is not None:
+            serializer.write_string(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["symlink_to"], self.symlink_to)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -8311,6 +8338,9 @@ class DefaultConfigResponse:
 
                 case 10:
                     kwargs["last_modified_by"] = de.read_string(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["last_modified_by"])
+
+                case 11:
+                    kwargs["symlink_to"] = de.read_string(_SCHEMA_DEFAULT_CONFIG_RESPONSE.members["symlink_to"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -8491,6 +8521,10 @@ class UpdateDefaultConfigOutput:
         **[Required]** - Generic key-value object structure used for flexible data
         representation throughout the API.
 
+    :param symlink_to:
+         Present only when this key is a symlink; the key whose value and schema this
+         entry resolves to.
+
     """
 
     key: str
@@ -8513,6 +8547,7 @@ class UpdateDefaultConfigOutput:
 
     value_validation_function_name: str | None = None
     value_compute_function_name: str | None = None
+    symlink_to: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT, self)
@@ -8533,6 +8568,8 @@ class UpdateDefaultConfigOutput:
         serializer.write_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["created_by"], self.created_by)
         serializer.write_timestamp(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["last_modified_at"], self.last_modified_at)
         serializer.write_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["last_modified_by"], self.last_modified_by)
+        if self.symlink_to is not None:
+            serializer.write_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["symlink_to"], self.symlink_to)
 
     @classmethod
     def deserialize(cls, deserializer: ShapeDeserializer) -> Self:
@@ -8576,6 +8613,9 @@ class UpdateDefaultConfigOutput:
 
                 case 10:
                     kwargs["last_modified_by"] = de.read_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["last_modified_by"])
+
+                case 11:
+                    kwargs["symlink_to"] = de.read_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_OUTPUT.members["symlink_to"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)

@@ -25,6 +25,8 @@ pub struct DefaultConfigResponse  {
     pub last_modified_at: ::aws_smithy_types::DateTime,
     #[allow(missing_docs)] // documentation missing in model
     pub last_modified_by: ::std::string::String,
+    /// Present only when this key is a symlink; the key whose value and schema this entry resolves to.
+    pub symlink_to: ::std::option::Option<::std::string::String>,
 }
 impl  DefaultConfigResponse  {
     #[allow(missing_docs)] // documentation missing in model
@@ -71,6 +73,10 @@ impl  DefaultConfigResponse  {
     pub fn last_modified_by(&self) -> &str {
         use std::ops::Deref; self.last_modified_by.deref()
     }
+    /// Present only when this key is a symlink; the key whose value and schema this entry resolves to.
+    pub fn symlink_to(&self) -> ::std::option::Option<&str> {
+        self.symlink_to.as_deref()
+    }
 }
 impl DefaultConfigResponse {
     /// Creates a new builder-style object to manufacture [`DefaultConfigResponse`](crate::types::DefaultConfigResponse).
@@ -94,6 +100,7 @@ pub struct DefaultConfigResponseBuilder {
     pub(crate) created_by: ::std::option::Option<::std::string::String>,
     pub(crate) last_modified_at: ::std::option::Option<::aws_smithy_types::DateTime>,
     pub(crate) last_modified_by: ::std::option::Option<::std::string::String>,
+    pub(crate) symlink_to: ::std::option::Option<::std::string::String>,
 }
 impl DefaultConfigResponseBuilder {
     #[allow(missing_docs)] // documentation missing in model
@@ -253,6 +260,19 @@ impl DefaultConfigResponseBuilder {
     pub fn get_last_modified_by(&self) -> &::std::option::Option<::std::string::String> {
         &self.last_modified_by
     }
+    /// Present only when this key is a symlink; the key whose value and schema this entry resolves to.
+    pub fn symlink_to(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.symlink_to = ::std::option::Option::Some(input.into());
+        self
+    }
+    /// Present only when this key is a symlink; the key whose value and schema this entry resolves to.
+    pub fn set_symlink_to(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.symlink_to = input; self
+    }
+    /// Present only when this key is a symlink; the key whose value and schema this entry resolves to.
+    pub fn get_symlink_to(&self) -> &::std::option::Option<::std::string::String> {
+        &self.symlink_to
+    }
     /// Consumes the builder and constructs a [`DefaultConfigResponse`](crate::types::DefaultConfigResponse).
     /// This method will fail if any of the following fields are not set:
     /// - [`key`](crate::types::builders::DefaultConfigResponseBuilder::key)
@@ -315,6 +335,8 @@ impl DefaultConfigResponseBuilder {
                     .ok_or_else(||
                         ::aws_smithy_types::error::operation::BuildError::missing_field("last_modified_by", "last_modified_by was not specified but it is required when building DefaultConfigResponse")
                     )?
+                ,
+                symlink_to: self.symlink_to
                 ,
             }
         )
