@@ -5182,6 +5182,10 @@ CREATE_DEFAULT_CONFIG_OUTPUT = Schema.collection(
         "symlink_to": {
             "target": STRING,
             "index": 11,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
         },
 
     }
@@ -7810,6 +7814,10 @@ GET_DEFAULT_CONFIG_OUTPUT = Schema.collection(
         "symlink_to": {
             "target": STRING,
             "index": 11,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
         },
 
     }
@@ -7998,6 +8006,10 @@ DEFAULT_CONFIG_RESPONSE = Schema.collection(
         "symlink_to": {
             "target": STRING,
             "index": 11,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
         },
 
     }
@@ -8248,6 +8260,10 @@ UPDATE_DEFAULT_CONFIG_OUTPUT = Schema.collection(
         "symlink_to": {
             "target": STRING,
             "index": 11,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
         },
 
     }

@@ -24,7 +24,6 @@ public final class DefaultConfig implements ApiResource {
         "last_modified_by", PreludeSchemas.STRING,
         "value", PreludeSchemas.DOCUMENT,
         "created_by", PreludeSchemas.STRING,
-        "symlink_to", PreludeSchemas.STRING,
         "value_validation_function_name", PreludeSchemas.STRING,
         "last_modified_at", SharedSchemas.DATE_TIME);
 

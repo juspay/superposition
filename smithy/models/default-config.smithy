@@ -20,7 +20,6 @@ resource DefaultConfig {
         last_modified_at: DateTime
         last_modified_by: String
         value_compute_function_name: String
-        symlink_to: String
     }
     update: UpdateDefaultConfig
     delete: DeleteDefaultConfig
@@ -67,8 +66,9 @@ structure DefaultConfigResponse for DefaultConfig with [DefaultConfigMixin] {
     @required
     $last_modified_by
 
+    @notProperty
     @documentation("Present only when this key is a symlink; the key whose value and schema this entry resolves to.")
-    $symlink_to
+    symlink_to: String
 }
 
 list ListDefaultConfigOut {
