@@ -22,6 +22,15 @@ const LINK = "symlink_target_count";
 const SECOND_LINK = "symlink.alias.count";
 const GUARD_KEY = "symlink.guard.count";
 const DIMENSION = "symlink.test.dimension";
+// Several other suites (tests/src/context.test.ts, experiments.test.ts,
+// experiment_groups.test.ts) mark this dimension mandatory for the shared
+// test workspace and then clear that setting when they finish. Whichever of
+// them ran last before this file decides what the workspace requires when
+// this suite starts, so every context below carries a value for it - that
+// way the suite's contexts are valid whether or not clientId is currently
+// mandatory, instead of depending on file execution order.
+const CLIENT_DIMENSION = "clientId";
+const CLIENT_DIMENSION_VALUE = "symlink-suite-client";
 
 const base = { workspace_id: ENV.workspace_id, org_id: ENV.org_id };
 const created: string[] = [];
@@ -31,6 +40,10 @@ const created: string[] = [];
 // fail at create - the suite was not idempotent.
 const createdContextIds = new Set<string>();
 const createdExperimentIds = new Set<string>();
+// Only true if this suite created clientId itself. If another suite already
+// created it (and left it behind, or will still need it), this suite must
+// not delete it out from under that suite in afterAll.
+let createdClientDimension = false;
 
 async function createTarget() {
     await superpositionClient.send(
@@ -72,7 +85,10 @@ async function createContext(
         new CreateContextCommand({
             ...base,
             request: {
-                context: { [DIMENSION]: dimensionValue },
+                context: {
+                    [DIMENSION]: dimensionValue,
+                    [CLIENT_DIMENSION]: CLIENT_DIMENSION_VALUE,
+                },
                 override: override as any,
                 description: `symlink test context ${dimensionValue}`,
                 change_reason: "test",
@@ -100,6 +116,30 @@ describe("Default Config Symlinks", () => {
                 change_reason: "test setup",
             }),
         );
+
+        // clientId may already exist - created by context.test.ts,
+        // experiments.test.ts, or experiment_groups.test.ts, whichever ran
+        // before this file - and those suites may currently require it via
+        // the workspace's mandatory_dimensions. Create it if missing; if it
+        // already exists, that's success too. Only tear it down later if
+        // this suite is the one that created it.
+        try {
+            await superpositionClient.send(
+                new CreateDimensionCommand({
+                    ...base,
+                    dimension: CLIENT_DIMENSION,
+                    schema: { type: "string" },
+                    position: 1,
+                    description: "Client identifier dimension",
+                    change_reason: "test setup",
+                }),
+            );
+            createdClientDimension = true;
+        } catch (error: any) {
+            if (!error?.message || !error.message.includes("duplicate key")) {
+                throw error;
+            }
+        }
 
         // An ordinary key the conversion-guard tests below use: one of them
         // repoints TARGET at it, another converts it. Created here rather than
@@ -164,6 +204,25 @@ describe("Default Config Symlinks", () => {
             );
         } catch (error) {
             console.log(`cleanup failed for dimension ${DIMENSION}:`, error);
+        }
+
+        // Only remove clientId if this suite was the one that created it -
+        // otherwise it belongs to whichever suite created it, and deleting
+        // it here would just move the breakage this fix is for onto them.
+        if (createdClientDimension) {
+            try {
+                await superpositionClient.send(
+                    new DeleteDimensionCommand({
+                        ...base,
+                        dimension: CLIENT_DIMENSION,
+                    }),
+                );
+            } catch (error) {
+                console.log(
+                    `cleanup failed for dimension ${CLIENT_DIMENSION}:`,
+                    error,
+                );
+            }
         }
     });
 
@@ -324,7 +383,10 @@ describe("Default Config Symlinks", () => {
             new CreateExperimentCommand({
                 ...base,
                 name: `symlink-variant-normalization-${Date.now()}`,
-                context: { [DIMENSION]: "experiment" },
+                context: {
+                    [DIMENSION]: "experiment",
+                    [CLIENT_DIMENSION]: CLIENT_DIMENSION_VALUE,
+                },
                 variants: [
                     {
                         id: "control",
@@ -364,7 +426,10 @@ describe("Default Config Symlinks", () => {
                 new CreateContextCommand({
                     ...base,
                     request: {
-                        context: { [DIMENSION]: "collide" },
+                        context: {
+                            [DIMENSION]: "collide",
+                            [CLIENT_DIMENSION]: CLIENT_DIMENSION_VALUE,
+                        },
                         override: { [LINK]: 1, [TARGET]: 2 },
                         description: "colliding override",
                         change_reason: "test",
