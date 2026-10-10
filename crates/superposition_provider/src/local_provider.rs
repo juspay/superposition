@@ -4,6 +4,8 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use derive_more::{Deref, DerefMut};
+use futures_util::future::{BoxFuture, Shared};
+use futures_util::FutureExt;
 use open_feature::provider::{
     FeatureProvider, ProviderMetadata, ProviderStatus, ResolutionDetails,
 };
@@ -15,7 +17,7 @@ use superposition_core::{
 };
 use superposition_types::experimental::Experimental;
 use superposition_types::{ConfigFilter, DimensionInfo, PrefixList};
-use tokio::sync::RwLock;
+use tokio::sync::{Mutex, RwLock};
 use tokio::task::JoinHandle;
 use tokio::time::{sleep, Duration};
 
@@ -37,6 +39,11 @@ pub struct LocalResolutionProviderInner {
     metadata: ProviderMetadata,
     status: RwLock<ProviderStatus>,
     global_context: RwLock<EvaluationContext>,
+    // Single-flight: concurrent refreshes (e.g. a burst of on-demand evaluations after the TTL
+    // expires) share ONE in-flight refresh instead of each launching its own — without this, N callers
+    // cause N redundant re-fetches, an N× load spike on the service. Holds the shared refresh future
+    // while one is running; every caller clones and awaits it, so they all observe the same outcome.
+    refresh_in_flight: Mutex<Option<Shared<BoxFuture<'static, Result<()>>>>>,
 }
 
 #[derive(Deref, DerefMut, Clone)]
@@ -62,6 +69,7 @@ impl LocalResolutionProvider {
             },
             status: RwLock::new(ProviderStatus::NotReady),
             global_context: RwLock::new(EvaluationContext::default()),
+            refresh_in_flight: Mutex::new(None),
         }))
     }
 
@@ -146,7 +154,7 @@ impl LocalResolutionProvider {
                         }
                         _ => {
                             return Err(SuperpositionError::ConfigError(format!(
-                                "Primary experiment fetch failed and no fallback configured supporting experiments: {e}",
+                                "Primary experiment fetch failed and no experiment-capable fallback configured: {e}",
                             )));
                         }
                     }
@@ -264,6 +272,7 @@ impl LocalResolutionProvider {
         }
         *self.config_checked_at.write().await = None;
         *self.experiments_checked_at.write().await = None;
+        *self.refresh_in_flight.lock().await = None;
 
         {
             let mut global_context = self.global_context.write().await;
@@ -289,11 +298,46 @@ impl LocalResolutionProvider {
         .map(Duration::from_millis)
     }
 
+    /// Single-flight refresh: if one is already running, join it; otherwise start one. A burst of
+    /// callers (e.g. concurrent on-demand evaluations past the TTL) thus collapses to a single fetch,
+    /// and every caller observes the same outcome — success or failure — instead of each re-fetching.
+    ///
+    /// Every refresh path (manual, polling, watch, on-demand) funnels through here.
+    async fn do_refresh(&self) -> Result<()> {
+        let shared = {
+            let mut slot = self.refresh_in_flight.lock().await;
+            match slot.as_ref() {
+                // A refresh is still running — join it.
+                Some(existing) if existing.peek().is_none() => existing.clone(),
+                // None running, or the last one finished — start a fresh one. The future holds a Weak
+                // ref and upgrades per run, so the slot never keeps the provider alive (no cycle, no
+                // leak); a dropped provider simply makes the refresh a no-op.
+                _ => {
+                    let weak = Arc::downgrade(&self.0);
+                    let fut: BoxFuture<'static, Result<()>> = async move {
+                        match weak.upgrade() {
+                            Some(inner) => {
+                                LocalResolutionProvider(inner).do_refresh_inner().await
+                            }
+                            None => Ok(()),
+                        }
+                    }
+                    .boxed();
+                    let shared = fut.shared();
+                    *slot = Some(shared.clone());
+                    shared
+                }
+            }
+        };
+        shared.await
+    }
+
     /// Runs a refresh, bounded by the strategy's timeout. Without this a data source that never
     /// answers would stall the poller — or, under OnDemand, the evaluating thread — indefinitely.
     ///
-    /// Every refresh path funnels through here, so this is also where staleness is recorded.
-    async fn do_refresh(&self) -> Result<()> {
+    /// Runs as the single coalesced refresh (see [`Self::do_refresh`]), so this is also where
+    /// staleness is recorded — exactly once per real refresh, regardless of how many callers joined.
+    async fn do_refresh_inner(&self) -> Result<()> {
         let result = match self.refresh_timeout() {
             Some(timeout) => {
                 match tokio::time::timeout(timeout, self.refresh_once()).await {
@@ -431,11 +475,21 @@ impl LocalResolutionProvider {
     }
 
     async fn start_polling(&self, interval_ms: u64) -> JoinHandle<()> {
-        let provider = self.clone();
+        // Hold the provider WEAKLY: the loop must not keep it alive. The sleep spans the whole
+        // interval holding no strong ref, so once the caller drops the provider its `Inner` reaches
+        // refcount 0 and is dropped (releasing the data sources and their resources via RAII); the
+        // next tick then upgrades to `None` and the loop ends on its own. A strong `self.clone()`
+        // here would pin the provider — and its background work — for the lifetime of the process.
+        let weak = Arc::downgrade(&self.0);
         tokio::spawn(async move {
             loop {
                 sleep(Duration::from_millis(interval_ms)).await;
-                let _ = provider.do_refresh().await;
+                match weak.upgrade() {
+                    Some(inner) => {
+                        let _ = LocalResolutionProvider(inner).do_refresh().await;
+                    }
+                    None => break,
+                }
             }
         })
     }
@@ -445,7 +499,11 @@ impl LocalResolutionProvider {
         mut watch_stream: crate::types::WatchStream,
         debounce_ms: u64,
     ) -> JoinHandle<()> {
-        let provider = self.clone();
+        // Weak, for the same reason as the poller: the loop must not keep the provider alive.
+        // The blocking `recv()` holds no strong ref, so a dropped provider releases its `Inner`
+        // (and the data source that owns this watcher); the sender then drops, `recv()` returns
+        // `Closed`, and the loop exits — no strong `self.clone()` pinning the provider forever.
+        let weak = Arc::downgrade(&self.0);
 
         tokio::spawn(async move {
             loop {
@@ -454,7 +512,17 @@ impl LocalResolutionProvider {
                         // Debounce: wait, then drain any queued events
                         sleep(Duration::from_millis(debounce_ms)).await;
                         while watch_stream.receiver.try_recv().is_ok() {}
-                        let _ = provider.do_refresh().await;
+                        match weak.upgrade() {
+                            Some(inner) => {
+                                let _ = LocalResolutionProvider(inner).do_refresh().await;
+                            }
+                            None => break,
+                        }
+                    }
+                    Err(tokio::sync::broadcast::error::RecvError::Closed) => {
+                        // Every sender is gone — the data source (and its watcher) was dropped, so
+                        // there is nothing left to watch. Exit instead of spinning on `Closed`.
+                        break;
                     }
                     Err(e) => {
                         log::error!(
@@ -828,5 +896,147 @@ impl SuperpositionDataSource for LocalResolutionProvider {
 
     async fn close(&self) -> Result<()> {
         self.close_provider().await
+    }
+}
+
+#[cfg(test)]
+mod leak_tests {
+    //! The background refresh loops must hold the provider only *weakly*, so that dropping the
+    //! caller's handle lets `Inner` reach refcount 0 and drop — stopping the loop and releasing
+    //! its data sources (and any OS file watcher) via RAII. A strong capture would pin the
+    //! provider, and its background work, for the process lifetime (the RS-LEAK regression).
+    use super::*;
+    use superposition_types::Config;
+    use tokio::sync::broadcast;
+
+    /// Minimal data source: serves an empty config so `init` reaches Ready, supports no
+    /// experiments, and (when watchable) hands out a watch stream kept live by `watch_tx`.
+    struct StubSource {
+        watch_tx: Option<broadcast::Sender<()>>,
+    }
+
+    impl StubSource {
+        fn plain() -> Self {
+            Self { watch_tx: None }
+        }
+
+        fn watchable() -> Self {
+            let (tx, _rx) = broadcast::channel(4);
+            Self { watch_tx: Some(tx) }
+        }
+    }
+
+    #[async_trait]
+    impl SuperpositionDataSource for StubSource {
+        async fn fetch_filtered_config(
+            &self,
+            _context: Option<Map<String, Value>>,
+            _prefix_filter: Option<Vec<String>>,
+            _exclude_prefix_filter: Option<Vec<String>>,
+            _if_modified_since: Option<DateTime<Utc>>,
+        ) -> Result<FetchResponse<ConfigData>> {
+            Ok(FetchResponse::Data(ConfigData {
+                data: Config::default(),
+                fetched_at: Utc::now(),
+            }))
+        }
+
+        async fn fetch_active_experiments(
+            &self,
+            _if_modified_since: Option<DateTime<Utc>>,
+        ) -> Result<FetchResponse<ExperimentData>> {
+            Err(SuperpositionError::DataSourceError("no experiments".into()))
+        }
+
+        async fn fetch_candidate_active_experiments(
+            &self,
+            _context: Option<Map<String, Value>>,
+            _prefix_filter: Option<Vec<String>>,
+            _exclude_prefix_filter: Option<Vec<String>>,
+            _if_modified_since: Option<DateTime<Utc>>,
+        ) -> Result<FetchResponse<ExperimentData>> {
+            Err(SuperpositionError::DataSourceError("no experiments".into()))
+        }
+
+        async fn fetch_matching_active_experiments(
+            &self,
+            _context: Option<Map<String, Value>>,
+            _prefix_filter: Option<Vec<String>>,
+            _exclude_prefix_filter: Option<Vec<String>>,
+            _if_modified_since: Option<DateTime<Utc>>,
+        ) -> Result<FetchResponse<ExperimentData>> {
+            Err(SuperpositionError::DataSourceError("no experiments".into()))
+        }
+
+        fn supports_experiments(&self) -> bool {
+            false
+        }
+
+        fn watch(&self) -> Result<Option<WatchStream>> {
+            Ok(self.watch_tx.as_ref().map(|tx| WatchStream {
+                receiver: tx.subscribe(),
+            }))
+        }
+
+        async fn close(&self) -> Result<()> {
+            Ok(())
+        }
+    }
+
+    /// A one-hour interval keeps the poll task parked in `sleep` (holding only its `Weak`) for the
+    /// duration of the assertions, so the strong count reflects only the caller's handle.
+    fn long_polling() -> RefreshStrategy {
+        RefreshStrategy::Polling(PollingStrategy::new(3_600_000))
+    }
+
+    #[tokio::test]
+    async fn polling_loop_does_not_pin_the_provider() {
+        let provider = LocalResolutionProvider::new(
+            Box::new(StubSource::plain()),
+            None,
+            long_polling(),
+        );
+        provider.init(EvaluationContext::default()).await.unwrap();
+
+        // The spawned poll task must hold a Weak, not a strong, Arc — the caller's handle is the
+        // only strong owner. With a strong `self.clone()` capture this would be 2 (the RS-LEAK bug).
+        assert_eq!(
+            Arc::strong_count(&provider.0),
+            1,
+            "background poll task must not hold a strong Arc to the provider"
+        );
+
+        // Dropping the caller's handle must let Inner reach refcount 0 and drop.
+        let weak = Arc::downgrade(&provider.0);
+        drop(provider);
+        assert!(
+            weak.upgrade().is_none(),
+            "provider Inner should be dropped once the caller's handle is dropped"
+        );
+    }
+
+    #[tokio::test]
+    async fn watch_loop_does_not_pin_the_provider() {
+        let provider = LocalResolutionProvider::new(
+            Box::new(StubSource::watchable()),
+            None,
+            RefreshStrategy::Watch(WatchStrategy {
+                debounce_ms: Some(10),
+            }),
+        );
+        provider.init(EvaluationContext::default()).await.unwrap();
+
+        assert_eq!(
+            Arc::strong_count(&provider.0),
+            1,
+            "background watch task must not hold a strong Arc to the provider"
+        );
+
+        let weak = Arc::downgrade(&provider.0);
+        drop(provider);
+        assert!(
+            weak.upgrade().is_none(),
+            "provider Inner should be dropped once the caller's handle is dropped"
+        );
     }
 }
