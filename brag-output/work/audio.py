@@ -1,13 +1,13 @@
-"""Soundtrack for the Superposition brag video. 120 BPM, A minor, bars start at 2.5s."""
+"""Soundtrack for the Superposition brag video. 120 BPM, A minor, bars start at 4.0s; SFX are cued in composition time and mapped to video time."""
 import numpy as np, wave, sys
 
 SR = 48000
-DUR = 25.0
+DUR = 40.5
 N = int(SR * DUR)
 t = np.arange(N) / SR
 rng = np.random.default_rng(3)
 BEAT = 0.5
-BAR0 = 2.5  # first downbeat
+BAR0 = 4.0  # first downbeat
 
 
 def mtof(m):
@@ -117,12 +117,12 @@ CHORDS = {  # pad voicing, bass root
     'Dm': ([50, 57, 62, 65], 26),
     'E': ([52, 56, 59, 64], 28),
 }
-INC0, INC1 = 16.0, 19.5   # incident: dark section
+INC0, INC1 = 26.5, 31.5   # incident: dark section
 bars = [(0.0, 'Fmaj7')]
 s_, i = BAR0, 0
 while s_ < INC0:
     bars.append((s_, ['Am', 'F', 'C', 'G'][i % 4])); s_ += 4 * BEAT; i += 1
-bars += [(INC0, 'Dm'), (18.0, 'E'), (INC1, 'C'), (20.5, 'G'), (21.5, 'Fmaj7'), (23.0, 'C')]
+bars += [(INC0, 'Dm'), (29.0, 'E'), (INC1, 'C'), (33.5, 'G'), (35.5, 'Fmaj7'), (37.5, 'C')]
 
 def incident(x):
     return INC0 <= x < INC1
@@ -139,26 +139,26 @@ for bi, (st, ch) in enumerate(bars):
             sig = additive(mtof(m), dur, bright, detune=det)
             sig *= env_adsr(len(sig), att, 0.3, 0.8, 0.5, en - st)[: len(sig)]
             place(pad, sig, st, 0.05 if not incident(st) else 0.06)
-    if BAR0 <= st < 21.5:
+    if BAR0 <= st < 35.5:
         k = 0
         step = BEAT / 2
-        while st + k * step < min(en, 21.5):
+        while st + k * step < min(en, 35.5):
             at = st + k * step
             f = mtof(root + (12 if k % 4 == 3 and not incident(at) else 0))
             n = int(0.22 * SR); tt = np.arange(n) / SR
             b = (np.sin(2 * np.pi * f * tt) + 0.25 * np.sin(4 * np.pi * f * tt)) * np.exp(-6 * tt) * np.minimum(1, tt / 0.004) * np.clip((0.22 - tt) / 0.03, 0, 1)
             place(bass, b, at, (0.32 if k % 2 == 0 else 0.22) * (1.1 if incident(at) else 1))
             k += 1
-    if not incident(st) and st < 23.0:
+    if not incident(st) and st < 37.5:
         tones = [m + 12 for m in notes]
         pattern = [0, 2, 1, 3, 2, 1, 3, 2]
         k = 0
-        while st + k * BEAT / 4 < min(en, 23.0):
+        while st + k * BEAT / 4 < min(en, 37.5):
             at = st + k * BEAT / 4
             if incident(at):
                 break
             m = tones[pattern[k % 8] % len(tones)]
-            g = 0.05 if at < BAR0 or at >= 21.5 else 0.075
+            g = 0.05 if at < BAR0 or at >= 35.5 else 0.075
             if k % 4 == 0:
                 g *= 1.35
             place(arp, pluck(mtof(m), 0.35, 14, 0.6), at, g)
@@ -175,30 +175,38 @@ def kick_at(b, g=0.75):
 HAT = lambda: fft_filter(noise_hit(0.06, 70), lo=6000, hi=11000) * np.minimum(1, np.arange(int(0.06*SR)) / (0.002*SR))
 CLAP = lambda: fft_filter(noise_hit(0.18, 22, hp=False), lo=900, hi=5000) * np.minimum(1, np.arange(int(0.18*SR)) / (0.002*SR))
 b = BAR0
-while b < 21.5:
+while b < 35.5:
     if incident(b):
         if (b - INC0) % 1.0 < 1e-6:
             kick_at(b, 0.6)   # half-time heartbeat
     else:
         kick_at(b)
         place(drums, HAT(), b + BEAT / 2, 0.045)
-        if b >= 6.5 and ((b - BAR0) / BEAT) % 4 in (1, 3):
+        if b >= 8.0 and ((b - BAR0) / BEAT) % 4 in (1, 3):
             place(drums, CLAP(), b, 0.10)
     b += BEAT
 
 # ---------------- SFX (in key: A minor) ----------------
 sfx = np.zeros(N)
+KNOTS = [(0, 0), (1.3, 1.7), (2.5, 4.0), (3.25, 5.0), (4.7, 7.0), (5.8, 8.4), (7.25, 11.17), (7.5, 11.5),
+         (8.85, 14.0), (10.2, 15.8), (11.25, 18.17), (11.5, 18.5), (12.4, 19.75), (13.3, 21.35), (14.4, 22.95), (15.75, 26.17), (16, 26.5),
+         (16.9, 27.75), (17.9, 29.1), (19.5, 31.5), (20.6, 33.0), (21.25, 35.17), (21.5, 35.5), (23.0, 37.6), (25, 40.5)]
+def M(c):
+    """Composition time -> video time (matches warp() in index.html)."""
+    return float(np.interp(c, [k[0] for k in KNOTS], [k[1] for k in KNOTS]))
+def placeS(sig, at, g):
+    place(sfx, sig, M(at), g)
 
 def whoosh(end, length=0.5, gain=0.08):
     n = int(length * SR); tt = np.arange(n) / SR
     x = fft_filter(rng.standard_normal(n), lo=600, hi=5000)
     e = (tt / length) ** 2.5 * (1 - np.clip((tt - length + 0.03) / 0.03, 0, 1))
-    place(sfx, x * e, end - length, gain)
+    placeS(x * e, M(end) - length, gain)
 
 def ticks(a, b, step, gain):
     x = a
     while x < b:
-        place(sfx, fft_filter(noise_hit(0.025, 260), lo=2000, hi=6500), x + rng.uniform(-0.006, 0.006), gain * rng.uniform(0.7, 1.0))
+        placeS(fft_filter(noise_hit(0.025, 260), lo=2000, hi=6500), x + rng.uniform(-0.006, 0.006), gain * rng.uniform(0.7, 1.0))
         x += step
 
 def thud(f=mtof(38), dur=0.5):
@@ -208,43 +216,43 @@ def thud(f=mtof(38), dur=0.5):
 for cut, ln in ((2.5, 0.5), (11.5, 0.6), (16.0, 0.5), (21.5, 0.5)):
     whoosh(cut, ln, 0.06)
 # hook: logo lands, quantum chips blink in
-place(sfx, thud(mtof(45), 0.4), 0.18, 0.25)
+placeS(thud(mtof(45), 0.4), 0.18, 0.25)
 for j, m in enumerate((76, 79, 81, 84)):
-    place(sfx, pluck(mtof(m + 12), 0.3, 16, 0.5), 0.35 + j * 0.08, 0.05)
+    placeS(pluck(mtof(m + 12), 0.3, 16, 0.5), 0.35 + j * 0.08, 0.05)
 # one line typed
 ticks(3.25, 4.7, 0.048, 0.045)
-place(sfx, pluck(mtof(76), 0.8, 7, 0.8), 4.75, 0.12)
-place(sfx, pluck(mtof(81), 0.8, 7, 0.8), 4.83, 0.10)
+placeS(pluck(mtof(76), 0.8, 7, 0.8), 4.75, 0.12)
+placeS(pluck(mtof(81), 0.8, 7, 0.8), 4.83, 0.10)
 ticks(5.0, 5.35, 0.045, 0.035)
-place(sfx, bell(mtof(88), 2.0), 5.55, 0.06)
+placeS(bell(mtof(88), 2.0), 5.55, 0.06)
 for j, a in enumerate((5.0, 5.2, 5.4)):
-    place(sfx, thud(mtof([45, 48, 52][j]), 0.3), a, 0.22)
+    placeS(thud(mtof([45, 48, 52][j]), 0.3), a, 0.22)
 # toml edit
-place(sfx, fft_filter(noise_hit(0.03, 200), lo=1500, hi=5000), 7.5, 0.06)
-place(sfx, fft_filter(noise_hit(0.03, 200), lo=1500, hi=5000), 8.95, 0.06)
+placeS(fft_filter(noise_hit(0.03, 200), lo=1500, hi=5000), 7.5, 0.06)
+placeS(fft_filter(noise_hit(0.03, 200), lo=1500, hi=5000), 8.95, 0.06)
 ticks(9.3, 9.32, 0.05, 0.06)
-place(sfx, bell(mtof(81), 2.5), 9.6, 0.09)
-place(sfx, bell(mtof(88), 2.5), 9.63, 0.05)
+placeS(bell(mtof(81), 2.5), 9.6, 0.09)
+placeS(bell(mtof(88), 2.5), 9.63, 0.05)
 # platform
 ticks(12.0, 12.4, 0.09, 0.04)
 for j in range(5):
-    place(sfx, pluck(mtof([69, 72, 76, 79, 81][j]), 0.5, 10, 0.6), 12.57 + j * 0.12, 0.08)
+    placeS(pluck(mtof([69, 72, 76, 79, 81][j]), 0.5, 10, 0.6), 12.57 + j * 0.12, 0.08)
 for j in range(6):
-    place(sfx, pluck(mtof([81, 84, 88][j % 3] + 12), 0.25, 20, 0.3), 13.5 + j * 0.06, 0.02)
-    place(sfx, pluck(mtof([84, 88, 93][j % 3] + 12), 0.25, 20, 0.3), 13.9 + j * 0.06, 0.02)
-place(sfx, thud(mtof(33), 0.5), 13.75, 0.3)
+    placeS(pluck(mtof([81, 84, 88][j % 3] + 12), 0.25, 20, 0.3), 13.5 + j * 0.06, 0.02)
+    placeS(pluck(mtof([84, 88, 93][j % 3] + 12), 0.25, 20, 0.3), 13.9 + j * 0.06, 0.02)
+placeS(thud(mtof(33), 0.5), 13.75, 0.3)
 # incident
 for j, m in enumerate((76, 77)):
-    place(sfx, pluck(mtof(m), 0.6, 6, 0.4), 18.0 + j * 0.16, 0.08)
+    placeS(pluck(mtof(m), 0.6, 6, 0.4), 18.0 + j * 0.16, 0.08)
 ticks(18.24, 18.26, 0.05, 0.05); ticks(18.74, 18.76, 0.05, 0.05)
 ticks(18.89, 19.44, 0.035, 0.04)
-place(sfx, bell(mtof(84), 2.5), 19.84, 0.08)
-place(sfx, bell(mtof(91), 2.5), 19.87, 0.05)
-place(sfx, thud(mtof(36), 0.4), 20.15, 0.25)
+placeS(bell(mtof(84), 2.5), 19.84, 0.08)
+placeS(bell(mtof(91), 2.5), 19.87, 0.05)
+placeS(thud(mtof(36), 0.4), 20.15, 0.25)
 # outro
-place(sfx, bell(mtof(77), 3.5), 21.62, 0.08)
-place(sfx, bell(mtof(84), 3.5), 21.65, 0.06)
-place(sfx, bell(mtof(88), 3.5), 21.68, 0.04)
+placeS(bell(mtof(77), 3.5), 21.62, 0.08)
+placeS(bell(mtof(84), 3.5), 21.65, 0.06)
+placeS(bell(mtof(88), 3.5), 21.68, 0.04)
 
 # ---------------- mix ----------------
 music_dry = pad * duck + bass * 1.0 + arp

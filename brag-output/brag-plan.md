@@ -15,7 +15,10 @@ Taken from the cat-in-a-box logo instead of generic SaaS indigo:
 ## Motion system
 Masked line reveals, spring physics for cards/stickers, one shared editor object that carries across scenes (types → switches tab → shrinks into a dashboard tile), skewed cardboard/ink panel wipes at section changes, chart line drawn in sync with the agent log.
 
-## Storyboard (1920×1080, 30fps, 25s, 120 BPM)
+## Pacing (v3)
+Slowed from 25s to 40.5s so viewers can absorb each idea. A per-scene time map (`warp()` in work/index.html, mirrored as `M()` in work/audio.py) plays animations at roughly 0.75× speed, slows the typing, and puts most of the extra time into holds on settled frames. Video-time scene starts: 0, 4.0, 11.5, 18.5, 26.5, 35.5; each lands on the 120 BPM beat grid.
+
+## Storyboard (1920×1080, 30fps, 120 BPM; times below are composition time, see Pacing)
 | # | Time | Scene |
 |---|---|---|
 | 1 | 0–2.5 | Hook: "Your config is in superposition." Logo box with 10/12/14/16 orbiting as flickering states |

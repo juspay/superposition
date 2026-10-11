@@ -555,6 +555,21 @@ window.render = function (t) {
   wipe($('#w2'), t, 16);
 };
 
+
+// Video time -> composition time. Actions play a little slower; most of the
+// extra time goes to holds on settled frames so viewers can read.
+const KNOTS = [[0, 0], [1.3, 1.7], [2.5, 4.0], [3.25, 5.0], [4.7, 7.0], [5.8, 8.4], [7.25, 11.17], [7.5, 11.5],
+  [8.85, 14.0], [10.2, 15.8], [11.25, 18.17], [11.5, 18.5], [12.4, 19.75], [13.3, 21.35], [14.4, 22.95], [15.75, 26.17], [16, 26.5],
+  [16.9, 27.75], [17.9, 29.1], [19.5, 31.5], [20.6, 33.0], [21.25, 35.17], [21.5, 35.5], [23.0, 37.6], [25, 40.5]];
+window.warp = function (T) {
+  for (let i = 1; i < KNOTS.length; i++) {
+    const [c0, v0] = KNOTS[i - 1], [c1, v1] = KNOTS[i];
+    if (T <= v1) return c0 + (c1 - c0) * (T - v0) / (v1 - v0);
+  }
+  return 25;
+};
+window.renderVideo = T => render(warp(T));
+
 window.ready = (async () => {
   await document.fonts.ready;
   await Promise.all($$('img').map(i => i.decode().catch(() => {})));
