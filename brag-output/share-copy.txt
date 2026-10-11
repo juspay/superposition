@@ -1,0 +1,1 @@
+Your config is in superposition: one key, many true values. Superposition collapses it to the right one for every city, tenant and device: typed, validated, and rolled out through experiments instead of deploys. Open source → github.com/juspay/superposition
