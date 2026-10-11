@@ -1,26 +1,28 @@
-# /brag plan — Superposition
+# /brag plan — Superposition (v2)
 
-**What it is:** An open-source, context-aware configuration platform: typed defaults, overrides that resolve by context (city, tenant, region, device…), and rollouts through experiments instead of deploys.
-**Who for:** Backend/frontend/platform teams who change behaviour in production (payments, pricing, LLM params) and are tired of redeploys and scattered env vars.
-**What sets it apart:** Context-aware config first; feature flags are just one outcome. Predictable specificity, schema-validated values, experiments on top.
-**Most impressive claim:** Change config safely without redeploying, with type safety and controlled rollouts.
-**Visual hook:** The name + logo — Schrödinger's cat in a box. A config key that holds many values at once and "collapses" to one when you observe it with context.
-**Real UI/flow to show:** The docs' own explainer data — `per_km_rate` default 10 → `city=bangalore` 12 → `bangalore + auto` 14 (weight 3); `webhook_url` "htps://api.payment .com/webhook" rejected; 100-user experiment grid. Same palette as the docs presentation (#0a0a0f bg, indigo #6366f1 / #818cf8 accent, green/red, Inter + JetBrains Mono).
-**Tone:** default — punchy, clean, a little nerdy (quantum pun earns its place because it's the product's own name).
-**Share caption:** Your config is in superposition. Superposition collapses it to the right value for every context — typed, validated, rolled out through experiments.
+**What it is:** Open-source, context-aware configuration: typed defaults, overrides resolved by context, experiments instead of deploys.
+**Focus for v2 (requested):** the one-line local-first setup from juspay/superposition#1162 (`LocalResolutionProvider::auto()` + `super.toml`), growing into the full platform, and agents using config as a safe mitigation lever.
+**Angle:** "Your config is in superposition." Start with one line and a file, grow into a platform, hand the lever to your agents.
+**Tone:** default; punchy, tactile, a little playful.
 
-## Angle
-"Schrödinger's config": one key, many true values, collapsed by context.
+## Visual identity
+Taken from the cat-in-a-box logo instead of generic SaaS indigo:
+- Paper `#F3EADC` / `#FBF6EE`, ink `#1C1512`, cardboard `#DE8A45` / `#B9652E`
+- Lab glass: blue `#3460E8`, acid green `#2FAE5F`, alert red `#E4442F`
+- Bricolage Grotesque (display) + JetBrains Mono (code)
+- Hard ink outlines with offset "cardboard" shadows, dot-grid paper, subtle grain
 
-## Storyboard (landscape 1920×1080, 30fps, 22.0s, 120 BPM bed — cuts on bar lines)
+## Motion system
+Masked line reveals, spring physics for cards/stickers, one shared editor object that carries across scenes (types → switches tab → shrinks into a dashboard tile), skewed cardboard/ink panel wipes at section changes, chart line drawn in sync with the agent log.
 
-| # | Time | Scene | On screen | Sound |
-|---|---|---|---|---|
-| 1 | 0.0–3.0 | Hook | `per_km_rate = ` with ghosted overlapping values 10 / 12 / 14 / 16 flickering. Line: "Your config is in superposition." | Filtered pad swell, shimmering arpeggio |
-| 2 | 3.0–6.0 | Reveal | Values implode into the cat-in-box logo; wordmark **Superposition**; "Context-aware configuration. Open source." | Kick + bass drop in on 3.0 |
-| 3 | 6.0–11.0 | Highlight 1: context collapses it | Context chip types `{ city: "bangalore", vehicle: "auto" }`; layers stack: default 10 → city 12 → city+vehicle 14 (weight 3); resolved value glows **14**. Caption "Add context. It collapses to the right value." | Soft key ticks under typing, chime on resolve |
-| 4 | 11.0–15.0 | Highlight 2: typed + validated | `webhook_url` card, schema `"pattern": "^https://"`; value retyped to `htps://api.payment .com/webhook` → ✗ checks → **Rejected before it ships.** | Low muted thud on reject |
-| 5 | 15.0–18.0 | Highlight 3: experiments | 100-dot user grid; 10% control / 10% variant light up. "Roll out through experiments. Not deploys." | Rising plucks per bucket |
-| 6 | 18.0–22.0 | Outro | Logo + wordmark, `docker run -p 8080:8080 ghcr.io/juspay/superposition-demo:latest`, SDK row Rust · JavaScript · Python · Java · Haskell, `github.com/juspay/superposition` | Final chord ring-out |
+## Storyboard (1920×1080, 30fps, 25s, 120 BPM)
+| # | Time | Scene |
+|---|---|---|
+| 1 | 0–2.5 | Hook: "Your config is in superposition." Logo box with 10/12/14/16 orbiting as flickering states |
+| 2 | 2.5–7.5 | main.rs: `let provider = LocalResolutionProvider::auto()?;` typed; `cargo run` → "✓ loaded ./super.toml · watching for edits"; "One line to start." + no server / no token / no database |
+| 3 | 7.5–11.5 | Tab → super.toml (PR example); `max_retries = 5` edited to 8 → app card flips 5→8, "reloaded" |
+| 4 | 11.5–16 | Editor shrinks into a tile labelled "offline fallback"; 4 env vars → "same line, now server-backed"; tiles: Contexts, Experiments, Validation, Audit log, OpenFeature providers |
+| 5 | 16–21.5 | Dark: error-rate chart spikes after `checkout_v2 → 20%`; on-call agent traces it and calls `discard_experiment("checkout_v2")`; recovers. "Fixed with config, not code." |
+| 6 | 21.5–25 | Logo, wordmark, `LocalResolutionProvider::auto()?`, github link |
 
-Durations: 3 + 3 + 5 + 4 + 3 + 4 = 22s.
+Notes: the agent scene illustrates a pattern (agent + Superposition API); it does not name or imply any specific company. `auto()` is from an open PR (juspay/superposition#1162) and is not yet released.

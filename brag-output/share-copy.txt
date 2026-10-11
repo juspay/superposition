@@ -1,1 +1,1 @@
-Your config is in superposition: one key, many true values. Superposition collapses it to the right one for every city, tenant and device: typed, validated, and rolled out through experiments instead of deploys. Open source → github.com/juspay/superposition
+One line to start: LocalResolutionProvider::auto() picks up ./super.toml and hot-reloads it. Add four env vars and the same line runs on the full Superposition platform with contexts, experiments, validation and audit, plus a safe lever your agents can pull when prod breaks. Open source → github.com/juspay/superposition
