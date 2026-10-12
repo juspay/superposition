@@ -118,3 +118,8 @@ service_utils = { path = "crates/service_utils", version = "0.118.1" }
 [workspace.lints.clippy]
 mod_module_files = "warn"
 manual_range_contains = "allow"
+
+[patch.crates-io]
+# Upstream fix that skips CREATE TABLE when casbin_rule exists, so the adapter
+# works on a read-only replica. Drop once a release after 1.2.0 is published.
+diesel-adapter = { git = "https://github.com/apache/casbin-rust-diesel-adapter", rev = "c9841ac66eddd42f8f362bee36726cf2e01120a3" }
