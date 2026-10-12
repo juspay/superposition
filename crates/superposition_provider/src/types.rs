@@ -47,6 +47,36 @@ impl SuperpositionOptions {
             workspace_id,
         }
     }
+
+    /// Read `SUPERPOSITION_ENDPOINT`, `SUPERPOSITION_TOKEN`,
+    /// `SUPERPOSITION_ORG_ID` and `SUPERPOSITION_WORKSPACE_ID`. Returns `None`
+    /// when none are set and an error when only some are.
+    pub fn from_env() -> Result<Option<Self>> {
+        let names = [
+            "SUPERPOSITION_ENDPOINT",
+            "SUPERPOSITION_TOKEN",
+            "SUPERPOSITION_ORG_ID",
+            "SUPERPOSITION_WORKSPACE_ID",
+        ];
+        match names.map(|name| std::env::var(name).ok()) {
+            [None, None, None, None] => Ok(None),
+            [Some(endpoint), Some(token), Some(org_id), Some(workspace_id)] => Ok(Some(
+                Self::new(endpoint, AuthMethod::Token(token), org_id, workspace_id),
+            )),
+            values => {
+                let missing = names
+                    .iter()
+                    .zip(&values)
+                    .filter_map(|(name, value)| value.is_none().then_some(*name))
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                Err(SuperpositionError::ConfigError(format!(
+                    "Missing environment variables: {}",
+                    missing
+                )))
+            }
+        }
+    }
 }
 
 impl From<&SuperpositionOptions> for superposition_sdk::Config {

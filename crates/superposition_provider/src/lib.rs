@@ -16,9 +16,12 @@ pub use remote_provider::SuperpositionAPIProvider;
 pub use traits::*;
 pub use types::*;
 
+/// The OpenFeature SDK this provider is built against. Use it instead of
+/// depending on `open-feature` directly, so the versions always match.
+pub use open_feature;
 pub use open_feature::{
     provider::{ProviderMetadata, ProviderStatus, ResolutionDetails},
-    EvaluationContext,
+    EvaluationContext, OpenFeature,
 };
 
 #[cfg(test)]
