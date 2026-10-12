@@ -1,13 +1,13 @@
 use std::ops::Deref;
 
 use actix_web::{
-    HttpResponse, Scope, delete, get, post, routes,
+    Either, HttpResponse, Scope, delete, get, post, routes,
     web::{Data, Json, Path, Query},
 };
 use chrono::Utc;
 use diesel::{
-    Connection, ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl,
-    SelectableHelper, TextExpressionMethods,
+    Connection, ExpressionMethods, OptionalExtension, PgTextExpressionMethods, QueryDsl,
+    RunQueryDsl, SelectableHelper,
 };
 use jsonschema::ValidationError;
 use serde_json::Value;
@@ -24,11 +24,11 @@ use superposition_macros::{
     bad_argument, db_error, not_found, unexpected_error, validation_error,
 };
 use superposition_types::{
-    DBConnection, PaginatedResponse, Resource, User,
+    DBConnection, PaginatedResponse, Resource, SortBy, User,
     api::{
         default_config::{
             DefaultConfigCreateRequest, DefaultConfigFilters, DefaultConfigKey,
-            DefaultConfigUpdateRequest,
+            DefaultConfigUpdateRequest, ListDefaultConfigResponse, SortOn,
         },
         functions::{FunctionEnvironment, FunctionExecutionRequest, KeyType},
         webhook::Action,
@@ -48,6 +48,7 @@ use superposition_types::{
 use crate::{
     api::{
         context::helpers::validation_function_executor,
+        default_config::grouped_config,
         functions::{
             helpers::{check_fn_published, get_published_function_code},
             types::FunctionInfo,
@@ -442,45 +443,90 @@ async fn list_handler(
     db_conn: DbConnection,
     pagination: Query<PaginationParams>,
     filters: Query<DefaultConfigFilters>,
-) -> superposition::Result<Json<PaginatedResponse<DefaultConfig>>> {
+) -> superposition::Result<
+    Either<
+        Json<PaginatedResponse<DefaultConfig>>,
+        Json<PaginatedResponse<ListDefaultConfigResponse>>,
+    >,
+> {
     let DbConnection(mut conn) = db_conn;
 
     let filters = filters.into_inner();
+
+    let page = pagination.page.unwrap_or(1);
+    let count = pagination.count.unwrap_or(10);
+    let show_all = pagination.all.unwrap_or_default();
+    let offset = count * (page - 1);
+
+    let grouped_config = filters.search.is_none()
+        && (filters.grouped.unwrap_or_default() || filters.prefix.is_some());
+
+    if grouped_config {
+        let resp = grouped_config::list(
+            &workspace_context.schema_name,
+            &mut conn,
+            &filters,
+            offset,
+            count,
+            show_all,
+        )?;
+        return Ok(Either::Right(Json(resp)));
+    }
 
     let query_builder = |filters: &DefaultConfigFilters| {
         let mut builder = dsl::default_configs
             .schema_name(&workspace_context.schema_name)
             .into_boxed();
-        if let Some(ref config_name) = filters.name {
-            builder = builder
-                .filter(schema::default_configs::key.like(format!["%{}%", config_name]));
+        if let Some(ref config_names) = filters.name {
+            builder = builder.filter(dsl::key.eq_any(config_names.0.clone()));
+        } else if let Some(ref search) = filters.search {
+            let pattern = format!("%{}%", search);
+            builder = builder.filter(dsl::key.ilike(pattern));
         }
+
         builder
     };
 
-    if let Some(true) = pagination.all {
-        let result: Vec<DefaultConfig> =
-            query_builder(&filters).get_results(&mut conn)?;
-        return Ok(Json(PaginatedResponse::all(result)));
+    let sort_on = filters.sort_on.unwrap_or_default();
+    let sort_by = filters.sort_by.unwrap_or_default();
+
+    let base_query = match (sort_on, sort_by) {
+        (SortOn::Key, SortBy::Asc) => query_builder(&filters).order(dsl::key.asc()),
+        (SortOn::Key, SortBy::Desc) => query_builder(&filters).order(dsl::key.desc()),
+        (SortOn::CreatedAt, SortBy::Asc) => {
+            query_builder(&filters).order(dsl::created_at.asc())
+        }
+        (SortOn::CreatedAt, SortBy::Desc) => {
+            query_builder(&filters).order(dsl::created_at.desc())
+        }
+        (SortOn::LastModifiedAt, SortBy::Asc) => {
+            query_builder(&filters).order(dsl::last_modified_at.asc())
+        }
+        (SortOn::LastModifiedAt, SortBy::Desc) => {
+            query_builder(&filters).order(dsl::last_modified_at.desc())
+        }
+    };
+
+    if show_all {
+        let result = base_query.get_results::<DefaultConfig>(&mut conn)?;
+        return Ok(Either::Left(Json(PaginatedResponse::all(result))));
     }
 
-    let base_query = query_builder(&filters);
     let count_query = query_builder(&filters);
 
     let n_default_configs: i64 = count_query.count().get_result(&mut conn)?;
-    let limit = pagination.count.unwrap_or(10);
-    let mut builder = base_query.order(dsl::created_at.desc()).limit(limit);
-    if let Some(page) = pagination.page {
-        let offset = (page - 1) * limit;
-        builder = builder.offset(offset);
-    }
-    let result: Vec<DefaultConfig> = builder.load(&mut conn)?;
-    let total_pages = (n_default_configs as f64 / limit as f64).ceil() as i64;
-    Ok(Json(PaginatedResponse {
+    let result = base_query
+        .limit(count)
+        .offset(offset)
+        .load::<DefaultConfig>(&mut conn)?;
+
+    let total_pages = (n_default_configs as f64 / count as f64).ceil() as i64;
+
+    Ok(Either::Left(Json(PaginatedResponse {
         total_pages,
         total_items: n_default_configs,
         data: result,
-    }))
+    })))
 }
 
 pub fn get_key_usage_context_ids(
