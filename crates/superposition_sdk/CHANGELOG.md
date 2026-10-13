@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_sdk-v0.24.1 - 2026-10-13
+#### Bug Fixes
+- add Haskell OpenFeature provider integration tests to CI (#1151) - (0437831) - Datron
+#### Miscellaneous Chores
+- **(version)** v0.118.0 [skip ci] - (9f8783d) - Superposition Bot
+
+- - -
+
 ## superposition_sdk-v0.24.0 - 2026-09-05
 #### Features
 - add workspace-defined metric selections with cleanups (#1145) - (948faaa) - Ayush Jain

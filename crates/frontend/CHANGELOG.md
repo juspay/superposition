@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.58.2 - 2026-10-13
+#### Bug Fixes
+- support anyOf/type-less JSON schemas in key/config creation UI (#1152) - (86ecf23) - Natarajan Kannan
+#### Miscellaneous Chores
+- **(version)** v0.118.1 [skip ci] - (65ef921) - Superposition Bot
+
+- - -
+
 ## frontend-v0.58.1 - 2026-09-16
 #### Bug Fixes
 - workspaces page hydration panic (MetricsForm SSR/CSR id drift) (#1148) - (a79d326) - Natarajan Kannan

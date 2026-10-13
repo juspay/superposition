@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## haskell_client-v0.24.3 - 2026-10-13
+#### Bug Fixes
+- add Haskell OpenFeature provider integration tests to CI (#1151) - (0437831) - Datron
+#### Miscellaneous Chores
+- **(version)** v0.117.2 [skip ci] - (1ba5786) - Superposition Bot
+
+- - -
+
 ## haskell_client-v0.24.2 - 2026-08-31
 #### Bug Fixes
 - pass correct args to FFI function in haskell (#1135) - (cba23b6) - Datron
