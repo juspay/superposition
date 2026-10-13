@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_types-v0.51.2 - 2026-10-13
+#### Bug Fixes
+- let Casbin run against a read-only replica (#1159) - (7d1d081) - sauraww
+- stop logging ERROR for overrides dropped by prefix filter (#1161) - (6170743) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.118.1 [skip ci] - (65ef921) - Superposition Bot
+
+- - -
+
 ## superposition_types-v0.51.1 - 2026-09-16
 #### Bug Fixes
 - resolve-detailed (#1150) - (770603a) - Ankit Kumar Mahato

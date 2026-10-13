@@ -2,6 +2,22 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.118.2 - 2026-10-13
+### Package updates
+- frontend bumped to frontend-v0.58.2
+- service_utils bumped to service_utils-v0.46.1
+- superposition_types bumped to superposition_types-v0.51.2
+- haskell_client bumped to haskell_client-v0.24.3
+- superposition_sdk bumped to superposition_sdk-v0.24.1
+### Global changes
+#### Bug Fixes
+- add Haskell OpenFeature provider integration tests to CI (#1151) - (0437831) - Datron
+- let Casbin run against a read-only replica (#1159) - (7d1d081) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.118.1 [skip ci] - (65ef921) - Superposition Bot
+
+- - -
+
 ## v0.118.1 - 2026-09-16
 ### Package updates
 - frontend bumped to frontend-v0.58.1
