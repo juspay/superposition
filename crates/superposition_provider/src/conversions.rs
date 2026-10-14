@@ -99,6 +99,17 @@ pub fn evaluation_context_to_value(value: EvaluationContextFieldValue) -> Value 
         EvaluationContextFieldValue::String(s) => Value::String(s),
         EvaluationContextFieldValue::DateTime(dt) => Value::String(dt.to_string()),
         EvaluationContextFieldValue::Struct(s) => {
+            // A struct field is `dyn Any`, so the concrete type has to be recovered by
+            // downcast. A plain `serde_json::Value` is accepted as-is, which is the only
+            // way a caller can pass an array (the enum has no Array variant), and
+            // `Vec<String>` is accepted as the common case of that.
+            if let Some(value) = s.downcast_ref::<Value>() {
+                return value.clone();
+            }
+            if let Some(list) = s.downcast_ref::<Vec<String>>() {
+                return Value::Array(list.iter().cloned().map(Value::String).collect());
+            }
+
             // Convert struct to serde_json::Value
             let struct_map = s
                 .downcast_ref::<HashMap<String, EvaluationContextFieldValue>>()
@@ -322,5 +333,59 @@ mod tests {
         assert!(value_to_struct(json!("Rupee")).is_err());
         assert!(value_to_struct(json!(true)).is_err());
         assert!(value_to_struct(json!(10)).is_err());
+    }
+}
+
+#[cfg(test)]
+mod conversion_tests {
+    use super::*;
+    use std::sync::Arc;
+
+    #[test]
+    fn a_json_value_struct_field_survives_conversion() {
+        let arr = Value::Array(vec![
+            Value::String("v1".into()),
+            Value::String("v2".into()),
+        ]);
+        let field = EvaluationContextFieldValue::Struct(Arc::new(arr.clone()));
+        assert_eq!(evaluation_context_to_value(field), arr);
+    }
+
+    #[test]
+    fn a_vec_of_strings_becomes_a_json_array() {
+        let field =
+            EvaluationContextFieldValue::Struct(Arc::new(vec!["v1".to_string(), "v2".to_string()]));
+        assert_eq!(
+            evaluation_context_to_value(field),
+            Value::Array(vec![Value::String("v1".into()), Value::String("v2".into())])
+        );
+    }
+
+    #[test]
+    fn a_map_struct_still_converts_as_before() {
+        let mut m = HashMap::new();
+        m.insert(
+            "k".to_string(),
+            EvaluationContextFieldValue::String("v".into()),
+        );
+        let field = EvaluationContextFieldValue::Struct(Arc::new(m));
+        let out = evaluation_context_to_value(field);
+        assert_eq!(out.get("k"), Some(&Value::String("v".into())));
+    }
+
+    #[test]
+    fn variant_ids_reach_the_query_map_as_an_array() {
+        let ctx = EvaluationContext::default()
+            .with_custom_field("shopId", EvaluationContextFieldValue::String("s1".into()))
+            .with_custom_field(
+                "variantIds",
+                EvaluationContextFieldValue::Struct(Arc::new(vec!["exp-1".to_string()])),
+            );
+        let (query, targeting) = evaluation_context_to_query(ctx);
+        assert_eq!(targeting, None);
+        assert_eq!(
+            query.get("variantIds"),
+            Some(&Value::Array(vec![Value::String("exp-1".into())]))
+        );
     }
 }
