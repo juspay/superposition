@@ -1,0 +1,10 @@
+# Entry point. Every section comes from typed files next to this one.
+# Import lines must come before any [section] header.
+default-configs.import = ["pricing.default-configs.stoml"]
+dimensions.import = ["geo.dimensions.stoml", "ride.dimensions.stoml"]
+overrides.import = [
+  "rides.overrides.stoml",
+  "city/delhi.overrides.stoml",
+  "city/south.overrides.stoml",
+  "auto.overrides.stoml",
+]

@@ -98,6 +98,16 @@ Quick fixes for common issues:
 - **Fix enum value**: Correct an invalid enum value
 - **Add missing dimension**: Add an undeclared dimension
 
+### Multi-file Configs
+
+A `main.stoml` and the files it [imports](./imports) are checked as one group:
+
+- An imported file (`geo.dimensions.stoml`, `surge.overrides.stoml`, ...) finds the `main.stoml` that imports it in its own folder or a parent folder.
+- Completion and hover in an imported file use the dimensions and config keys defined across the whole group, so `_context_ = { ` in an overrides-only file suggests every dimension.
+- Editing any file re-checks the group. Each error is shown in the file it belongs to, even when that file isn't open: rename a dimension in `geo.dimensions.stoml` and the overrides that use it are flagged.
+- Unsaved edits count: open buffers are read before files on disk.
+- A typed file that no `main.stoml` imports gets a warning and only TOML syntax checks.
+
 ## Editor Setup
 
 ### VS Code
@@ -242,7 +252,7 @@ The language server is optimized for large configuration files:
 
 For very large configuration files:
 
-1. **Split into multiple files**: Use includes or imports
+1. **Split into multiple files**: Use [imports](./imports) from a `main.stoml`
 2. **Reduce schema complexity**: Simpler schemas validate faster
 3. **Disable strict mode**: Use `validation.strict: false`
 4. **Increase memory**: Allocate more memory to the language server

@@ -1,8 +1,25 @@
 use std::fmt;
+use std::path::{Path, PathBuf};
 
 /// Unified error type for all configuration formats
 #[derive(Debug)]
 pub enum FormatError {
+    /// An import rule was broken: a bad path, a missing file, a key next to
+    /// `import`, a file holding the wrong section, and so on. `file` is the
+    /// file holding the offending text (usually `main.stoml`), or `None` when
+    /// the config was parsed from a string. `span` is a byte range in `file`.
+    ImportError {
+        file: Option<PathBuf>,
+        span: Option<std::ops::Range<usize>>,
+        message: String,
+    },
+    /// An ordinary error that came from an imported file. Spans and override
+    /// indices inside `error` are local to `file`. Never nested, and never
+    /// wraps an `ImportError`.
+    InFile {
+        file: PathBuf,
+        error: Box<FormatError>,
+    },
     SyntaxError {
         format: super::MarkupFormat,
         message: String,
@@ -100,6 +117,30 @@ impl fmt::Display for FormatError {
             Self::ValidationError { key, errors } => {
                 write!(f, "Schema validation failed for key '{}': {}", key, errors)
             }
+            Self::ImportError {
+                file: Some(file),
+                message,
+                ..
+            } => write!(f, "{}: Import error: {}", file.display(), message),
+            Self::ImportError {
+                file: None,
+                message,
+                ..
+            } => write!(f, "Import error: {}", message),
+            Self::InFile { file, error } => write!(f, "{}: {}", file.display(), error),
+        }
+    }
+}
+
+impl FormatError {
+    /// The file an error points at (`None` means the file that was parsed,
+    /// e.g. `main.stoml`) and the error to report there, with `InFile`
+    /// unwrapped.
+    pub fn location(&self) -> (Option<&Path>, &FormatError) {
+        match self {
+            Self::InFile { file, error } => (Some(file.as_path()), error),
+            Self::ImportError { file, .. } => (file.as_deref(), self),
+            other => (None, other),
         }
     }
 }

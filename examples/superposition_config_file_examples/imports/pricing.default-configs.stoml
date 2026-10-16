@@ -1,0 +1,3 @@
+[default-configs]
+per_km_rate = { "value" = 20.0, "schema" = { "type" = "number" } }
+surge_factor = { "value" = 0.0, "schema" = { "type" = "number" } }

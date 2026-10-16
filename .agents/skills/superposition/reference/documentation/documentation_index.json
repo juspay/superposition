@@ -1,5 +1,5 @@
 {
-  "total_files": 25,
+  "total_files": 26,
   "categories": {
     "other": [
       "applications/cac-redis-module.md",
@@ -17,6 +17,7 @@
       "superposition-config-file/dimensions.md",
       "superposition-config-file/examples.md",
       "superposition-config-file/format-specification.md",
+      "superposition-config-file/imports.md",
       "superposition-config-file/intro.md",
       "superposition-config-file/lsp-support.md",
       "superposition-config-file/type-safety.md"
@@ -4314,7 +4315,7 @@
       "path": "superposition-config-file/intro.md",
       "filename": "intro.md",
       "category": "other",
-      "size_bytes": 5951,
+      "size_bytes": 6004,
       "title": "Introduction to SuperTOML",
       "structure": {
         "title": "Introduction to SuperTOML",
@@ -4402,7 +4403,7 @@
         "images": 0,
         "links": 1,
         "word_count": 39,
-        "line_count": 159
+        "line_count": 160
       },
       "summary": "**Introduction to SuperTOML**\nSections: Why SuperTOML?, Key Features, Type Safety, Cascading Overrides, Deterministic Resolution\n--- sidebar_position: 1 title: Introduction to SuperTOML description: Type-safe, cascading configuration files for modern applications ---\n(39 words, 4 code blocks)",
       "content": null,
@@ -4421,7 +4422,7 @@
       "path": "superposition-config-file/lsp-support.md",
       "filename": "lsp-support.md",
       "category": "other",
-      "size_bytes": 8094,
+      "size_bytes": 8915,
       "title": "LSP Support",
       "structure": {
         "title": "LSP Support",
@@ -4467,119 +4468,124 @@
             "line": 93
           },
           {
+            "level": 3,
+            "text": "Multi-file Configs",
+            "line": 101
+          },
+          {
             "level": 2,
             "text": "Editor Setup",
-            "line": 101
+            "line": 111
           },
           {
             "level": 3,
             "text": "VS Code",
-            "line": 103
+            "line": 113
           },
           {
             "level": 3,
             "text": "Neovim",
-            "line": 116
+            "line": 126
           },
           {
             "level": 3,
             "text": "Emacs",
-            "line": 132
+            "line": 142
           },
           {
             "level": 3,
             "text": "Other Editors",
-            "line": 146
+            "line": 156
           },
           {
             "level": 2,
             "text": "Language Server Configuration",
-            "line": 154
+            "line": 164
           },
           {
             "level": 3,
             "text": "Initialization Options",
-            "line": 156
+            "line": 166
           },
           {
             "level": 3,
             "text": "Settings",
-            "line": 181
+            "line": 191
           },
           {
             "level": 2,
             "text": "Validation Rules",
-            "line": 192
-          },
-          {
-            "level": 3,
-            "text": "Structure Validation",
-            "line": 196
-          },
-          {
-            "level": 3,
-            "text": "Default Configs Validation",
             "line": 202
           },
           {
             "level": 3,
+            "text": "Structure Validation",
+            "line": 206
+          },
+          {
+            "level": 3,
+            "text": "Default Configs Validation",
+            "line": 212
+          },
+          {
+            "level": 3,
             "text": "Dimensions Validation",
-            "line": 208
+            "line": 218
           },
           {
             "level": 3,
             "text": "Overrides Validation",
-            "line": 215
+            "line": 225
           },
           {
             "level": 2,
             "text": "Performance",
-            "line": 223
+            "line": 233
           },
           {
             "level": 3,
             "text": "File Size Limits",
-            "line": 232
+            "line": 242
           },
           {
             "level": 3,
             "text": "Optimizing Large Files",
-            "line": 241
+            "line": 251
           },
           {
             "level": 2,
             "text": "Troubleshooting",
-            "line": 250
+            "line": 260
           },
           {
             "level": 3,
             "text": "Language Server Not Starting",
-            "line": 252
+            "line": 262
           },
           {
             "level": 3,
             "text": "No Autocomplete",
-            "line": 258
+            "line": 268
           },
           {
             "level": 3,
             "text": "Validation Not Working",
-            "line": 264
+            "line": 274
           },
           {
             "level": 3,
             "text": "Slow Performance",
-            "line": 270
+            "line": 280
           },
           {
             "level": 2,
             "text": "Future Features",
-            "line": 277
+            "line": 287
           },
           {
             "level": 2,
             "text": "Contributing",
-            "line": 288
+            "line": 298
           }
         ],
         "code_blocks": [
@@ -4612,7 +4618,7 @@
         "images": 0,
         "links": 0,
         "word_count": 80,
-        "line_count": 295
+        "line_count": 305
       },
       "summary": "**LSP Support**\nSections: Features, Autocomplete, Validation, Hover Information, Diagnostics\n--- sidebar_position: 8 title: LSP Support description: Language Server Protocol support for SuperTOML ---\n(80 words, 6 code blocks)",
       "content": null,
@@ -4915,6 +4921,122 @@
         "quality_scores": {
           "avg_code_quality": 8.596153846153847
         }
+      }
+    },
+    {
+      "path": "superposition-config-file/imports.md",
+      "filename": "imports.md",
+      "category": "other",
+      "size_bytes": 6272,
+      "title": "Imports",
+      "structure": {
+        "title": "Imports",
+        "headers": [
+          {
+            "level": 1,
+            "text": "Imports",
+            "line": 7
+          },
+          {
+            "level": 2,
+            "text": "Rules",
+            "line": 30
+          },
+          {
+            "level": 3,
+            "text": "Only `main.stoml` imports",
+            "line": 32
+          },
+          {
+            "level": 3,
+            "text": "An import replaces the whole section",
+            "line": 36
+          },
+          {
+            "level": 3,
+            "text": "Import lines go at the top",
+            "line": 69
+          },
+          {
+            "level": 3,
+            "text": "Imported files are typed by name",
+            "line": 73
+          },
+          {
+            "level": 3,
+            "text": "Paths",
+            "line": 92
+          },
+          {
+            "level": 3,
+            "text": "Merging",
+            "line": 98
+          },
+          {
+            "level": 2,
+            "text": "Parsing from code",
+            "line": 103
+          },
+          {
+            "level": 2,
+            "text": "Errors",
+            "line": 118
+          },
+          {
+            "level": 2,
+            "text": "Editor support",
+            "line": 132
+          },
+          {
+            "level": 2,
+            "text": "Limitations",
+            "line": 141
+          }
+        ],
+        "code_blocks": [
+          {
+            "language": "text",
+            "code": "config/\n\u251c\u2500\u2500 main.stoml                      # entry point; the only file that may import\n\u251c\u2500\u2500 pricing.default-configs.stoml   # only [default-configs]\n\u251c\u2500\u2500 geo.dimensions.stoml            # only [dimensions]\n\u251c\u2500\u2500 surge.overrides.stoml           # only [[overrides]]\n\u2514\u2500\u2500 city/\n    \u2514\u2500\u2500 blr.overrides.stoml         # subfolders are fine"
+          },
+          {
+            "language": "toml",
+            "code": "# main.stoml: import lines go before any [section]\ndefault-configs.import = [\"pricing.default-configs.stoml\"]\ndimensions.import      = [\"geo.dimensions.stoml\"]\noverrides.import       = [\"surge.overrides.stoml\", \"city/blr.overrides.stoml\"]"
+          },
+          {
+            "language": "toml",
+            "code": "# main.stoml\ndimensions.import = [\"geo.dimensions.stoml\"]   # dimensions come from a file\n\n[default-configs]                               # default configs stay inline\nper_km_rate = { value = 20.0, schema = { type = \"number\" } }"
+          },
+          {
+            "language": "toml",
+            "code": "dimensions.import = [\"geo.dimensions.stoml\"]\ndimensions.city = { position = 1, schema = { type = \"string\" } }   # \u2717 next to import\n\n[dimensions]                                    # \u2717 the section is already imported\ncity = { position = 1, schema = { type = \"string\" } }"
+          },
+          {
+            "language": "toml",
+            "code": "[dimensions]\nimport = [\"geo.dimensions.stoml\"]"
+          },
+          {
+            "language": "toml",
+            "code": "# geo.dimensions.stoml\n[dimensions]\ncity = { position = 4, schema = { type = \"string\", enum = [\"Bangalore\", \"Delhi\"] } }\ncity_cohort = { position = 1, type = \"LOCAL_COHORT:city\", schema = { type = \"string\", enum = [\"south\", \"otherwise\"], definitions = { south = { in = [{ var = \"city\" }, [\"Bangalore\"]] } } } }"
+          },
+          {
+            "language": "rust",
+            "code": "use std::path::Path;\nuse superposition_core::parse_toml_file;\n\nlet config = parse_toml_file(Path::new(\"config/main.stoml\"))?;"
+          }
+        ],
+        "tables": 2,
+        "images": 0,
+        "links": 2,
+        "word_count": 739,
+        "line_count": 146
+      },
+      "summary": "**Imports**\nSections: Rules, Parsing from code, Errors, Editor support, Limitations\n--- sidebar_position: 9 title: Imports description: Split a SuperTOML config across files with main.stoml imports --- # Imports A SuperTOML config doesn't have to live in one file. `main.stoml` can im...\n(739 words, 7 code blocks)",
+      "content": null,
+      "_enhanced": true,
+      "parsed_data": {
+        "tables": 2,
+        "cross_references": 2,
+        "code_blocks": 7,
+        "images": 0
       }
     }
   ]

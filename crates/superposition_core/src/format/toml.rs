@@ -1,4 +1,5 @@
 mod helpers;
+mod imports;
 
 use std::collections::{BTreeMap, HashMap};
 use std::ops::Deref;
@@ -8,11 +9,16 @@ use helpers::{
     format_key, format_toml_value, toml_to_json, try_condition_from_toml,
     try_overrides_from_toml,
 };
+pub use imports::{
+    is_main_file, parse_toml_file, parse_toml_file_detailed, resolve_toml_imports,
+    FsLoader, ImportPlan, ImportRef, Section, SectionSource, SourceLoader,
+    MAIN_FILE_NAMES,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use superposition_types::database::models::cac::{DependencyGraph, DimensionType};
 use superposition_types::{
-    Config, Context, DefaultConfigsWithSchema, DetailedConfig, DimensionInfo,
+    Condition, Config, Context, DefaultConfigsWithSchema, DetailedConfig, DimensionInfo,
     ExtendedMap, Overrides,
 };
 use toml::Value as TomlValue;
@@ -228,45 +234,70 @@ impl TryFrom<DetailedConfig> for DetailedConfigToml {
     }
 }
 
+/// Convert a parsed dimension, falling back to the dimension name when the
+/// description is absent in the imported file.
+fn convert_dimension(
+    name: &str,
+    dimension: DimensionInfoToml,
+) -> Result<DimensionInfo, FormatError> {
+    let mut dim_info = DimensionInfo::try_from(dimension)?;
+    if dim_info.description.trim().is_empty() {
+        dim_info.description = name.to_string();
+    }
+    Ok(dim_info)
+}
+
+/// Fall back to the key name when a default config's description is absent.
+fn fill_default_config_descriptions(default_configs: &mut DefaultConfigsWithSchema) {
+    for (k, info) in default_configs.iter_mut() {
+        if info.description.trim().is_empty() {
+            info.description = k.clone();
+        }
+    }
+}
+
+fn split_context(ctx: ContextToml) -> Result<(Condition, Overrides), FormatError> {
+    let condition = try_condition_from_toml(ctx.context)?;
+    let override_vals = try_overrides_from_toml(ctx.overrides)?;
+    Ok((condition, override_vals))
+}
+
 impl TryFrom<DetailedConfigToml> for DetailedConfig {
     type Error = FormatError;
     fn try_from(d: DetailedConfigToml) -> Result<Self, Self::Error> {
         let dimensions = d
             .dimensions
             .into_iter()
-            .map(|(k, v)| {
-                DimensionInfo::try_from(v).map(|mut dim_info| {
-                    // Fall back to the dimension name when the description is
-                    // absent in the imported file.
-                    if dim_info.description.trim().is_empty() {
-                        dim_info.description = k.clone();
-                    }
-                    (k, dim_info)
-                })
-            })
+            .map(|(k, v)| convert_dimension(&k, v).map(|dim_info| (k, dim_info)))
             .collect::<Result<HashMap<_, DimensionInfo>, FormatError>>()?;
 
         let mut default_configs = d.default_configs;
-        for (k, info) in default_configs.iter_mut() {
-            // Fall back to the key name when the description is absent.
-            if info.description.trim().is_empty() {
-                info.description = k.clone();
-            }
-        }
+        fill_default_config_descriptions(&mut default_configs);
 
-        TomlFormat::try_into_detailed(default_configs, dimensions, d.overrides, |ctx| {
-            let condition = try_condition_from_toml(ctx.context)?;
-            let override_vals = try_overrides_from_toml(ctx.overrides)?;
-            Ok((condition, override_vals))
-        })
+        TomlFormat::try_into_detailed(
+            default_configs,
+            dimensions,
+            d.overrides,
+            split_context,
+        )
     }
+}
+
+/// Parse a single SuperTOML document (no imports), mapping TOML syntax and
+/// type errors with `syntax_error`.
+fn parse_detailed_str(
+    input: &str,
+    syntax_error: impl Fn(toml::de::Error) -> FormatError,
+) -> Result<DetailedConfig, FormatError> {
+    let detailed_toml =
+        toml::from_str::<DetailedConfigToml>(input).map_err(syntax_error)?;
+    DetailedConfig::try_from(detailed_toml)
 }
 
 impl ConfigFormat for TomlFormat {
     fn parse_into_detailed(input: &str) -> Result<DetailedConfig, FormatError> {
-        let detailed_toml = toml::from_str::<DetailedConfigToml>(input)
-            .map_err(|e| TomlFormat::syntax_error(e.to_string(), e.span()))?;
-        DetailedConfig::try_from(detailed_toml)
+        parse_detailed_str(input, |e| TomlFormat::syntax_error(e.to_string(), e.span()))
+            .map_err(|err| imports::explain_string_error(input, err))
     }
 
     fn serialize(detailed_config: DetailedConfig) -> Result<String, FormatError> {
@@ -329,15 +360,8 @@ impl ConfigFormat for TomlFormat {
 /// # Ok::<(), superposition_core::FormatError>(())
 /// ```
 pub fn parse_toml_config(toml_str: &str) -> Result<Config, FormatError> {
-    let detailed_toml_config =
-        toml::from_str::<DetailedConfigToml>(toml_str).map_err(|e| {
-            FormatError::SyntaxError {
-                format: MarkupFormat::Toml,
-                message: e.message().to_string(),
-                span: e.span(),
-            }
-        })?;
-    let detailed_config = DetailedConfig::try_from(detailed_toml_config)?;
+    let detailed_config = parse_detailed_str(toml_str, imports::short_syntax_error)
+        .map_err(|err| imports::explain_string_error(toml_str, err))?;
     let config = Config::from(detailed_config);
 
     Ok(config)

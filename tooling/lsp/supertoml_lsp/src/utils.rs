@@ -1,5 +1,80 @@
 use tower_lsp::lsp_types::Position;
 
+/// Sections whose entries other files can supply through imports.
+const SCHEMA_SECTIONS: [&str; 2] = ["dimensions", "default-configs"];
+
+/// The document's own table, with the dimensions and default configs of the
+/// rest of its import group (`ext`) added, so completion and hover in an
+/// overrides-only file know the dimensions and config keys defined elsewhere.
+/// The document wins where both define a key. `import` lines are dropped so
+/// "import" never shows up as a dimension or config key.
+pub fn effective_raw(
+    local: Option<toml::Table>,
+    ext: Option<&toml::Table>,
+) -> Option<toml::Table> {
+    if local.is_none() && ext.is_none() {
+        return None;
+    }
+    let mut table = local.unwrap_or_default();
+    for section in SCHEMA_SECTIONS {
+        if let Some(entries) = table.get_mut(section).and_then(toml::Value::as_table_mut)
+        {
+            if entries
+                .get("import")
+                .is_some_and(|import| !import.is_table())
+            {
+                entries.remove("import");
+            }
+        }
+        let Some(ext_entries) = ext
+            .and_then(|ext| ext.get(section))
+            .and_then(toml::Value::as_table)
+        else {
+            continue;
+        };
+        let entries = table
+            .entry(section)
+            .or_insert_with(|| toml::Value::Table(toml::Table::new()));
+        if let Some(entries) = entries.as_table_mut() {
+            for (key, value) in ext_entries {
+                if !entries.contains_key(key) {
+                    entries.insert(key.clone(), value.clone());
+                }
+            }
+        }
+    }
+    Some(table)
+}
+
+/// Collect the dimensions and default configs defined across `tables` (the
+/// files of an import group), skipping `import` lines. The first definition
+/// of a key wins.
+pub fn merge_schema<'a>(
+    tables: impl IntoIterator<Item = &'a toml::Table>,
+) -> toml::Table {
+    let mut schema = toml::Table::new();
+    for table in tables {
+        for section in SCHEMA_SECTIONS {
+            let Some(entries) = table.get(section).and_then(toml::Value::as_table) else {
+                continue;
+            };
+            let merged = schema
+                .entry(section)
+                .or_insert_with(|| toml::Value::Table(toml::Table::new()));
+            let Some(merged) = merged.as_table_mut() else {
+                continue;
+            };
+            for (key, value) in entries {
+                let is_import_line = key == "import" && !value.is_table();
+                if !is_import_line && !merged.contains_key(key) {
+                    merged.insert(key.clone(), value.clone());
+                }
+            }
+        }
+    }
+    schema
+}
+
 /// Check if a cursor position is inside a TOML comment.
 ///
 /// In TOML, comments start with `#` and continue to the end of the line.

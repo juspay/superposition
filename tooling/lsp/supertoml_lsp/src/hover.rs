@@ -7,7 +7,14 @@ use crate::utils;
 /// Looks up the word at `pos` in:
 /// - `[dimensions]` → shows position, type, and schema.
 /// - `[default-configs]` → shows the default value and schema.
-pub fn compute(text: &str, pos: Position) -> Option<Hover> {
+///
+/// `ext` holds the dimensions and default configs defined in the other files
+/// of the document's import group (see [`utils::effective_raw`]).
+pub fn compute_with(
+    text: &str,
+    pos: Position,
+    ext: Option<&toml::Table>,
+) -> Option<Hover> {
     // Don't provide hover if cursor is inside a comment
     if utils::is_inside_comment(text, pos) {
         return None;
@@ -17,9 +24,9 @@ pub fn compute(text: &str, pos: Position) -> Option<Hover> {
     let line = lines.get(pos.line as usize)?;
     let word = extract_word(line, pos.character as usize)?;
 
-    // A best-effort parse; we still try to provide hover even when the file
-    // has minor errors by working with the raw table.
-    let raw: toml::Table = toml::from_str(text).ok()?;
+    // A best-effort parse: when the document doesn't parse (it may be
+    // mid-edit), hover still works from the rest of its import group.
+    let raw = utils::effective_raw(toml::from_str(text).ok(), ext)?;
 
     // --- Dimension hover ---
     if let Some(info) = raw
