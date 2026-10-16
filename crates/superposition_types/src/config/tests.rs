@@ -394,3 +394,147 @@ fn excluding_the_allowed_prefix_empties_the_config() {
         }
     );
 }
+
+#[cfg(test)]
+mod symlink_expansion {
+    use serde_json::{from_value, json};
+
+    use crate::{config::DetailedConfig, symlink::SymlinkRow, Config};
+
+    fn link(key: &str, target: &str) -> SymlinkRow {
+        SymlinkRow {
+            key: key.to_string(),
+            target: target.to_string(),
+            description: format!("alias of {target}"),
+        }
+    }
+
+    fn config_with_one_override() -> Config {
+        from_value(json!({
+            "contexts": [{
+                "id": "ctx1",
+                "condition": { "city": "bangalore" },
+                "priority": 0,
+                "weight": 0,
+                "override_with_keys": ["ovr1"]
+            }],
+            "overrides": { "ovr1": { "payments.retry.count": 5 } },
+            "default_configs": { "payments.retry.count": 3 },
+            "dimensions": {}
+        }))
+        .expect("fixture should deserialize")
+    }
+
+    #[test]
+    fn expansion_copies_the_default_value() {
+        let mut config = config_with_one_override();
+        config.expand_symlinks(&[link("payments.retry_count", "payments.retry.count")]);
+
+        assert_eq!(
+            config.default_configs.get("payments.retry_count"),
+            Some(&json!(3))
+        );
+    }
+
+    #[test]
+    fn expansion_copies_into_every_override_map() {
+        let mut config = config_with_one_override();
+        config.expand_symlinks(&[link("payments.retry_count", "payments.retry.count")]);
+
+        let overrides = config.overrides.get("ovr1").expect("override should exist");
+        assert_eq!(overrides.get("payments.retry_count"), Some(&json!(5)));
+        assert_eq!(overrides.get("payments.retry.count"), Some(&json!(5)));
+    }
+
+    #[test]
+    fn two_links_to_one_target_both_resolve() {
+        let mut config = config_with_one_override();
+        config.expand_symlinks(&[
+            link("payments.retry_count", "payments.retry.count"),
+            link("checkout.retries", "payments.retry.count"),
+        ]);
+
+        assert_eq!(
+            config.default_configs.get("payments.retry_count"),
+            Some(&json!(3))
+        );
+        assert_eq!(
+            config.default_configs.get("checkout.retries"),
+            Some(&json!(3))
+        );
+    }
+
+    #[test]
+    fn a_dangling_target_omits_the_key_and_leaves_the_rest_intact() {
+        // Review Focus 3: a hand-edited or directly deleted target must not take
+        // the workspace's config assembly down with it.
+        let mut config = config_with_one_override();
+        config.expand_symlinks(&[link("payments.retry_count", "does.not.exist")]);
+
+        assert!(!config.default_configs.contains_key("payments.retry_count"));
+        assert_eq!(
+            config.default_configs.get("payments.retry.count"),
+            Some(&json!(3)),
+            "the rest of the config must survive"
+        );
+    }
+
+    #[test]
+    fn an_override_not_mentioning_the_target_is_untouched() {
+        let mut config: Config = from_value(json!({
+            "contexts": [],
+            "overrides": { "ovr1": { "something.else": true } },
+            "default_configs": { "payments.retry.count": 3, "something.else": false },
+            "dimensions": {}
+        }))
+        .expect("fixture should deserialize");
+
+        config.expand_symlinks(&[link("payments.retry_count", "payments.retry.count")]);
+
+        let overrides = config.overrides.get("ovr1").expect("override should exist");
+        assert_eq!(overrides.len(), 1, "unrelated override maps must not grow");
+    }
+
+    #[test]
+    fn expansion_leaves_override_ids_untouched() {
+        // A documented invariant: ids are content hashes, and reduce recomputes them.
+        // Expansion mutates override *contents* and must not re-key the map.
+        let mut config = config_with_one_override();
+        let before: Vec<String> = config.overrides.keys().cloned().collect();
+
+        config.expand_symlinks(&[link("payments.retry_count", "payments.retry.count")]);
+
+        let after: Vec<String> = config.overrides.keys().cloned().collect();
+        assert_eq!(before, after);
+    }
+
+    #[test]
+    fn detailed_expansion_takes_the_targets_schema_and_the_links_description() {
+        let mut detailed: DetailedConfig = from_value(json!({
+            "contexts": [],
+            "overrides": {},
+            "default_configs": {
+                "payments.retry.count": {
+                    "value": 3,
+                    "schema": { "type": "integer" },
+                    "description": "retries before failure"
+                }
+            },
+            "dimensions": {}
+        }))
+        .expect("fixture should deserialize");
+
+        detailed.expand_symlinks(&[link("payments.retry_count", "payments.retry.count")]);
+
+        let entry = detailed
+            .default_configs
+            .get("payments.retry_count")
+            .expect("link should be present");
+        assert_eq!(entry.value, json!(3));
+        assert_eq!(entry.schema, json!({ "type": "integer" }));
+        assert_eq!(
+            entry.description, "alias of payments.retry.count",
+            "a link keeps its own description"
+        );
+    }
+}

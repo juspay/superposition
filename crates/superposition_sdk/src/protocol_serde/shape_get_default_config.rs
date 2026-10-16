@@ -157,6 +157,15 @@ pub(crate) fn de_get_default_config(value: &[u8], mut builder: crate::operation:
                             crate::protocol_serde::shape_object::de_object(tokens)?
                         );
                     }
+                    "symlink_to" => {
+                        builder = builder.set_symlink_to(
+                            ::aws_smithy_json::deserialize::token::expect_string_or_null(tokens.next())?.map(|s|
+                                s.to_unescaped().map(|u|
+                                    u.into_owned()
+                                )
+                            ).transpose()?
+                        );
+                    }
                     "value" => {
                         builder = builder.set_value(
                             Some(::aws_smithy_json::deserialize::token::expect_document(tokens)?)

@@ -7687,6 +7687,10 @@
                     },
                     "last_modified_by": {
                         "type": "string"
+                    },
+                    "symlink_to": {
+                        "type": "string",
+                        "description": "Present only when this key is a symlink; the key whose value and schema this entry resolves to."
                     }
                 },
                 "required": [
@@ -8668,6 +8672,10 @@
                     },
                     "last_modified_by": {
                         "type": "string"
+                    },
+                    "symlink_to": {
+                        "type": "string",
+                        "description": "Present only when this key is a symlink; the key whose value and schema this entry resolves to."
                     }
                 },
                 "required": [
@@ -9646,6 +9654,10 @@
                     },
                     "last_modified_by": {
                         "type": "string"
+                    },
+                    "symlink_to": {
+                        "type": "string",
+                        "description": "Present only when this key is a symlink; the key whose value and schema this entry resolves to."
                     }
                 },
                 "required": [
@@ -11792,6 +11804,10 @@
                     },
                     "last_modified_by": {
                         "type": "string"
+                    },
+                    "symlink_to": {
+                        "type": "string",
+                        "description": "Present only when this key is a symlink; the key whose value and schema this entry resolves to."
                     }
                 },
                 "required": [

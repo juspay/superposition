@@ -12,6 +12,7 @@ use actix_web::{
     web::{self, Data, Json, Path, Query},
 };
 use chrono::{DateTime, Utc};
+use context_aware_config::symlinks::normalize_override_keys;
 use diesel::{
     BoolExpressionMethods, Connection, ExpressionMethods, OptionalExtension,
     PgConnection, QueryDsl, RunQueryDsl, SelectableHelper, TextExpressionMethods,
@@ -159,9 +160,24 @@ async fn create_handler(
 ) -> superposition::Result<HttpResponse> {
     use superposition_types::database::schema::experiments::dsl;
     let req = req.into_inner();
-    create_authorized(_auth_z, &req.variants).await?;
-
     let DbConnection(mut conn) = db_conn;
+
+    // Redirect symlinked override keys to their targets *before* authorizing,
+    // since authorization is keyed by config key name: authorizing the
+    // caller's names and rewriting them afterwards would let a grant on the
+    // symlink widen into a grant on its target.
+    let mut variants = req.variants;
+    for variant in variants.iter_mut() {
+        let normalized_override = normalize_override_keys(
+            &mut conn,
+            &workspace_context.schema_name,
+            variant.overrides.clone().into_inner(),
+        )?;
+        variant.overrides = Exp::<Overrides>::try_from(normalized_override)
+            .map_err(|e| bad_argument!("{}", e))?;
+    }
+
+    create_authorized(_auth_z, &variants).await?;
 
     if let Some(ref key) = custom_headers.idempotency_key {
         let existing: Option<Experiment> = dsl::experiments
@@ -175,7 +191,6 @@ async fn create_handler(
         }
     }
 
-    let mut variants = req.variants;
     let description = req.description.clone();
     let change_reason = req.change_reason.clone();
 
@@ -1601,7 +1616,16 @@ async fn update_handler(
     .await?;
 
     let payload = req.into_inner();
-    let variants = payload.variants;
+    let mut variants = payload.variants;
+    for variant in variants.iter_mut() {
+        let normalized_override = normalize_override_keys(
+            &mut conn,
+            &workspace_context.schema_name,
+            variant.overrides.clone().into_inner(),
+        )?;
+        variant.overrides = Exp::<Overrides>::try_from(normalized_override)
+            .map_err(|e| bad_argument!("{}", e))?;
+    }
 
     let first_variant = variants.first().ok_or(bad_argument!(
         "Variant not found in request. Provide at least one entry in variant's list",

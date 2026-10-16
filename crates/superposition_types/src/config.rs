@@ -26,6 +26,7 @@ use crate::{
     overridden::{
         filter_config_keys_by_prefix, filter_into_config_keys_by_prefix, PrefixList,
     },
+    symlink::SymlinkRow,
     Cac, Contextual, Exp, ExtendedMap,
 };
 
@@ -528,7 +529,7 @@ impl From<BTreeMap<String, DefaultConfigInfo>> for DefaultConfigsWithSchema {
 
 /// A detailed configuration that includes schema information for default configs.
 /// This is similar to Config but with default_configs containing both value and schema.
-#[derive(Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(test, derive(PartialEq))]
 pub struct DetailedConfig {
     pub contexts: Vec<Context>,
@@ -551,6 +552,63 @@ impl From<DetailedConfig> for Config {
             overrides: detailed_config.overrides,
             default_configs: ExtendedMap::from(default_configs),
             dimensions: detailed_config.dimensions,
+        }
+    }
+}
+
+impl Config {
+    /// Materialises symlinked keys, so a link and its target resolve identically
+    /// under the defaults *and* under every context.
+    ///
+    /// `links` is already flattened to depth 1 by the write path, so this makes a
+    /// single pass. A link whose target is missing is skipped with an ERROR rather
+    /// than failing assembly for the whole workspace.
+    pub fn expand_symlinks(&mut self, links: &[SymlinkRow]) {
+        for SymlinkRow { key, target, .. } in links {
+            let Some(value) = self.default_configs.get(target).cloned() else {
+                log::error!(
+                    "symlink {key} -> {target}: target missing from default configs, key omitted"
+                );
+                continue;
+            };
+            self.default_configs.insert(key.clone(), value);
+
+            // The half that is easy to forget: without this, the link freezes at
+            // its default while the target moves under a matching context.
+            for overrides in self.overrides.values_mut() {
+                if let Some(overridden) = overrides.get(target).cloned() {
+                    overrides.insert(key.clone(), overridden);
+                }
+            }
+        }
+    }
+}
+
+impl DetailedConfig {
+    /// As [`Config::expand_symlinks`], but a link's entry takes the target's value
+    /// and schema while keeping the link's own description — which is what makes the
+    /// TOML and JSON dumps, `resolve_detailed` and `explain` show a real type.
+    pub fn expand_symlinks(&mut self, links: &[SymlinkRow]) {
+        for SymlinkRow {
+            key,
+            target,
+            description,
+        } in links
+        {
+            let Some(mut info) = self.default_configs.get(target).cloned() else {
+                log::error!(
+                    "symlink {key} -> {target}: target missing from default configs, key omitted"
+                );
+                continue;
+            };
+            info.description = description.clone();
+            self.default_configs.insert(key.clone(), info);
+
+            for overrides in self.overrides.values_mut() {
+                if let Some(overridden) = overrides.get(target).cloned() {
+                    overrides.insert(key.clone(), overridden);
+                }
+            }
         }
     }
 }

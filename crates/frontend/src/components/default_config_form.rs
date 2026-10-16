@@ -5,17 +5,21 @@ use std::ops::Deref;
 use chrono::Utc;
 use futures::join;
 use leptos::{html::Div, *};
-use leptos_router::use_navigate;
+use leptos_router::{A, use_navigate};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use superposition_types::{
     ExtendedMap,
-    api::{default_config::DefaultConfigUpdateRequest, functions::ListFunctionFilters},
+    api::{
+        default_config::{DefaultConfigFilters, DefaultConfigUpdateRequest},
+        functions::ListFunctionFilters,
+    },
     custom_query::PaginationParams,
     database::models::{
         ChangeReason, Description,
-        cac::{Function, FunctionType, TypeTemplate},
+        cac::{DefaultConfig, Function, FunctionType, TypeTemplate},
     },
+    symlink::{SYMLINK_KEYWORD, is_symlink_schema},
 };
 use utils::try_update_payload;
 use wasm_bindgen::JsCast;
@@ -39,7 +43,10 @@ use crate::{
     utils::{get_fn_names_by_type, set_function},
 };
 use crate::{
-    providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider},
+    providers::{
+        alert_provider::enqueue_alert, csr_provider::use_client_side_ready,
+        editor_provider::EditorProvider,
+    },
     types::{OrganisationId, Workspace},
 };
 
@@ -54,6 +61,7 @@ enum ResponseType {
 pub struct CombinedResource {
     functions: Vec<Function>,
     type_templates: Vec<TypeTemplate>,
+    default_config_keys: Vec<DefaultConfig>,
 }
 
 #[component]
@@ -67,10 +75,25 @@ pub fn DefaultConfigForm(
     #[prop(default = None)] value_compute_function_name: Option<String>,
     #[prop(default = None)] prefix: Option<String>,
     #[prop(default = String::new())] description: String,
+    /// The target key, when this is an *existing* symlink being edited.
+    ///
+    /// The API resolves a symlink's value/schema/function names from its
+    /// target on read, and a write to any of those fields redirects to the
+    /// target rather than this key - so when this is set, the form must not
+    /// present them as editable, pre-filled, local-looking inputs. Only
+    /// `description` genuinely belongs to this key's own row.
+    #[prop(default = None)]
+    symlink_to: Option<String>,
     #[prop(into)] redirect_url_cancel: String,
 ) -> impl IntoView {
     let workspace = use_context::<Signal<Workspace>>().unwrap();
     let org = use_context::<Signal<OrganisationId>>().unwrap();
+
+    // A plain, `Copy` flag computed once: whether this form is editing an
+    // already-existing symlink (as opposed to creating one, which is a
+    // different `is_symlink_s`-driven path below).
+    let editing_symlink = edit && symlink_to.is_some();
+    let symlink_to = StoredValue::new(symlink_to);
 
     let (config_key_rs, config_key_ws) = create_signal(
         prefix
@@ -89,6 +112,17 @@ pub fn DefaultConfigForm(
     let (description_rs, description_ws) = create_signal(description);
     let (change_reason_rs, change_reason_ws) = create_signal(String::new());
     let update_request_rws = RwSignal::new(None);
+    let (symlink_target_rs, symlink_target_ws) = create_signal(String::new());
+    let client_side_ready = use_client_side_ready();
+
+    // Symlink-ness is derived from the schema itself: picking "Symlink" in the
+    // type/schema dropdown below sets `config_schema_rs` to the marker schema,
+    // so there is exactly one place that decides whether this is a symlink,
+    // rather than a separate boolean that could drift from the schema.
+    let is_symlink_s = Signal::derive(move || {
+        config_schema_rs
+            .with(|schema| schema.as_object().map(is_symlink_schema).unwrap_or(false))
+    });
 
     let schema_type_s = Signal::derive(move || {
         SchemaType::try_from(config_schema_rs.get())
@@ -109,11 +143,23 @@ pub fn DefaultConfigForm(
 
             let types_future = fetch_types(&all_entries, &workspace, &org_id);
 
-            let (functions_result, types_result) = join!(functions_future, types_future);
+            let default_config_filters = DefaultConfigFilters::default();
+            let default_config_future = default_configs::list(
+                &all_entries,
+                &default_config_filters,
+                &workspace,
+                &org_id,
+            );
+
+            let (functions_result, types_result, default_config_result) =
+                join!(functions_future, types_future, default_config_future);
 
             CombinedResource {
                 functions: functions_result.map(|d| d.data).unwrap_or_default(),
                 type_templates: types_result.map(|d| d.data).unwrap_or_default(),
+                default_config_keys: default_config_result
+                    .map(|d| d.data)
+                    .unwrap_or_default(),
             }
         },
     );
@@ -129,13 +175,43 @@ pub fn DefaultConfigForm(
         };
 
     let on_submit = Callback::new(move |_| {
-        req_inprogress_ws.set(true);
         let key_name = config_key_rs.get_untracked();
-        let f_schema = config_schema_rs.get_untracked();
-        let f_value = config_value_rs.get_untracked();
+        let is_edit = edit;
+        let is_symlink = !is_edit && is_symlink_s.get_untracked();
+        let symlink_target = symlink_target_rs.get_untracked();
 
-        let fun_name = validation_fn_name_rs.get_untracked();
-        let value_compute_fn = value_compute_function_name_rs.get_untracked();
+        if is_symlink && symlink_target.trim().is_empty() {
+            enqueue_alert(
+                "Choose a target key for this symlink".to_string(),
+                AlertType::Error,
+                5000,
+            );
+            return;
+        }
+
+        req_inprogress_ws.set(true);
+
+        // A symlink submits its target as `value` and the symlink marker as
+        // `schema`, built from `SYMLINK_KEYWORD` rather than a literal, and it
+        // cannot carry a validation or compute function - those belong to its
+        // target, and the server refuses a symlink that names one.
+        let (f_schema, f_value, fun_name, value_compute_fn) = if is_symlink {
+            let mut schema = Map::new();
+            schema.insert(SYMLINK_KEYWORD.to_string(), Value::Bool(true));
+            (
+                Value::Object(schema),
+                Value::String(symlink_target),
+                None,
+                None,
+            )
+        } else {
+            (
+                config_schema_rs.get_untracked(),
+                config_value_rs.get_untracked(),
+                validation_fn_name_rs.get_untracked(),
+                value_compute_function_name_rs.get_untracked(),
+            )
+        };
 
         let description = description_rs.get_untracked();
         let change_reason = change_reason_rs.get_untracked();
@@ -146,8 +222,6 @@ pub fn DefaultConfigForm(
             org.0, workspace.0, key_name
         );
 
-        let is_edit = edit;
-
         spawn_local(async move {
             let result = match (is_edit, update_request_rws.get_untracked()) {
                 (true, Some((_, payload))) => {
@@ -157,14 +231,36 @@ pub fn DefaultConfigForm(
                     future.await.map(|_| ResponseType::Response)
                 }
                 (true, None) => {
-                    let request_payload = try_update_payload(
-                        f_value,
-                        f_schema,
-                        fun_name,
-                        value_compute_fn,
-                        description,
-                        change_reason,
-                    );
+                    // Editing an existing symlink may only change its own
+                    // `description` - `value`/`schema`/function names are
+                    // left out entirely (`None`, not merely unchanged)
+                    // rather than resubmitted, because resubmitting them
+                    // would redirect the write to the target key.
+                    let request_payload = if editing_symlink {
+                        (|| -> Result<DefaultConfigUpdateRequest, String> {
+                            Ok(DefaultConfigUpdateRequest {
+                                value: None,
+                                schema: None,
+                                value_validation_function_name: None,
+                                value_compute_function_name: None,
+                                description: Some(Description::try_from(
+                                    description.clone(),
+                                )?),
+                                change_reason: ChangeReason::try_from(
+                                    change_reason.clone(),
+                                )?,
+                            })
+                        })()
+                    } else {
+                        try_update_payload(
+                            f_value,
+                            f_schema,
+                            fun_name,
+                            value_compute_fn,
+                            description,
+                            change_reason,
+                        )
+                    };
                     match request_payload {
                         Ok(payload) => {
                             update_request_rws.set(Some((key_name, payload)));
@@ -326,228 +422,343 @@ pub fn DefaultConfigForm(
                             })
                         />
                     </div>
-                    <div class="flex flex-wrap gap-x-10 gap-y-5">
+                    <Show when=move || editing_symlink>
                         <div class="form-control max-w-md w-full">
-                            <Label title="Set Schema" />
-                            <Suspense fallback=move || {
-                                view! {
-                                    <Skeleton
-                                        variant=SkeletonVariant::Block
-                                        style_class="h-[46px]"
-                                    />
-                                }
-                            }>
-                                {move || {
-                                    let mut options = combined_resources
-                                        .with(|c| c.as_ref().map(|c| c.type_templates.clone()))
-                                        .unwrap_or_default();
-                                    options
-                                        .push(TypeTemplate {
-                                            type_name: "Custom JSON Schema".to_string(),
-                                            type_schema: ExtendedMap::from(
-                                                Map::from_iter([
-                                                    ("type".to_string(), Value::String("object".to_string())),
-                                                ]),
-                                            ),
-                                            created_by: "NA".to_string(),
-                                            created_at: Utc::now(),
-                                            last_modified_at: Utc::now(),
-                                            last_modified_by: "NA".to_string(),
-                                            description: Description::default(),
-                                            change_reason: ChangeReason::default(),
-                                        });
-                                    let config_type = config_type_rs.get();
-                                    let config_t = if config_type.is_empty() && edit {
-                                        "change current type template".into()
-                                    } else if config_type.is_empty() && !edit {
-                                        "Choose a type template".into()
-                                    } else {
-                                        config_type
-                                    };
-                                    let config_type_schema = SchemaType::Single(
-                                        JsonSchemaType::from(&config_schema_rs.get()),
-                                    );
-
-                                    view! {
-                                        <Dropdown
-                                            dropdown_width="w-100"
-                                            dropdown_icon="".to_string()
-                                            dropdown_text=config_t
-                                            dropdown_direction=DropdownDirection::Down
-                                            dropdown_btn_type=DropdownBtnType::Select
-                                            dropdown_options=options
-                                            on_select=Callback::new(move |selected_item: TypeTemplate| {
-                                                logging::log!("selected item {:?}", selected_item);
-                                                let type_schema: &Map<String, Value> = &selected_item
-                                                    .type_schema;
-                                                let parsed_schema_type = SchemaType::try_from(type_schema);
-                                                let parsed_enum_variants = EnumVariants::try_from(
-                                                    type_schema,
-                                                );
-                                                config_type_ws.set(selected_item.type_name);
-                                                config_schema_ws
-                                                    .set(Value::from(selected_item.type_schema));
-                                                if let (Ok(schema_type), Ok(enum_variants)) = (
-                                                    parsed_schema_type,
-                                                    parsed_enum_variants,
-                                                ) {
-                                                    if InputType::from((schema_type, enum_variants))
-                                                        == InputType::Toggle
-                                                    {
-                                                        config_value_ws.set(Value::Bool(false));
-                                                    }
-                                                }
-                                            })
-                                        />
-
-                                        <Input
-                                            id="type-schema"
-                                            class="mt-5 rounded-md resize-y w-full max-w-md pt-3"
-                                            schema_type=config_type_schema
-                                            value=config_schema_rs.get()
-                                            on_change=Callback::new(move |new_config_schema| {
-                                                config_schema_ws.set(new_config_schema)
-                                            })
-                                            disabled=config_type_rs.get().is_empty() && !edit
-                                            r#type=InputType::Monaco(vec![])
-                                        />
-
-                                        <Show when=move || {
-                                            !config_schema_rs.get().is_null()
-                                                && schema_type_s.get().is_err()
-                                        }>
-                                            <span class="flex gap-2 py-2 text-xs font-semibold text-red-600">
-                                                <i class="ri-close-circle-line"></i>
-                                                {schema_type_s.get().unwrap_err()}
-                                            </span>
-                                        </Show>
-                                    }
-                                }}
-                            </Suspense>
+                            <Label
+                                title="Symlink"
+                                description="This key links to another key and inherits its value, schema and functions."
+                            />
+                            <div class="flex items-center gap-2">
+                                <span class="badge badge-ghost" title="symlink">
+                                    <i class="ri-links-line mr-1"></i>
+                                    "Symlink"
+                                </span>
+                                <span class="text-sm flex items-center gap-1">
+                                    "→"
+                                    <A
+                                        href=format!(
+                                            "../../{}",
+                                            symlink_to.get_value().unwrap_or_default(),
+                                        )
+                                        class="text-blue-500 underline underline-offset-2"
+                                    >
+                                        {symlink_to.get_value().unwrap_or_default()}
+                                    </A>
+                                </span>
+                            </div>
+                            <p class="text-xs text-gray-500 italic mt-1 max-w-md">
+                                "Value, schema and functions are inherited from the target key, shown above, and are read-only here - edit them on the target's own page. Changing which key this links to isn't supported from this form."
+                            </p>
                         </div>
-                        <div class="form-control max-w-md w-full">
-                            <Label title="Default Value" />
-                            {move || {
-                                let schema_type = schema_type_s.get();
-                                let enum_variants = enum_variants_s.get();
-                                if schema_type.is_err() || enum_variants.is_err() {
-                                    let tooltip_txt = if config_schema_rs.get().is_null() {
-                                        "Please select a schema type".to_string()
-                                    } else {
-                                        schema_type_s.get().unwrap_err()
-                                    };
-                                    return view! {
-                                        <div
-                                            class="tooltip tooltip-bottom w-full max-w-md"
-                                            data-tip=tooltip_txt
-                                        >
+                    </Show>
+
+                    <Show when=move || !editing_symlink>
+                        <div class="flex flex-wrap gap-x-10 gap-y-5">
+                            <div class="form-control max-w-md w-full">
+                                <Label title="Set Schema" />
+                                <Suspense fallback=move || {
+                                    view! {
+                                        <Skeleton
+                                            variant=SkeletonVariant::Block
+                                            style_class="h-[46px]"
+                                        />
+                                    }
+                                }>
+                                    {move || {
+                                        let mut options = combined_resources
+                                            .with(|c| c.as_ref().map(|c| c.type_templates.clone()))
+                                            .unwrap_or_default();
+                                        options
+                                            .push(TypeTemplate {
+                                                type_name: "Custom JSON Schema".to_string(),
+                                                type_schema: ExtendedMap::from(
+                                                    Map::from_iter([
+                                                        ("type".to_string(), Value::String("object".to_string())),
+                                                    ]),
+                                                ),
+                                                created_by: "NA".to_string(),
+                                                created_at: Utc::now(),
+                                                last_modified_at: Utc::now(),
+                                                last_modified_by: "NA".to_string(),
+                                                description: Description::default(),
+                                                change_reason: ChangeReason::default(),
+                                            });
+                                        if !edit {
+                                            options
+                                                .push(TypeTemplate {
+                                                    type_name: "Symlink".to_string(),
+                                                    type_schema: ExtendedMap::from(
+                                                        Map::from_iter([
+                                                            (SYMLINK_KEYWORD.to_string(), Value::Bool(true)),
+                                                        ]),
+                                                    ),
+                                                    created_by: "NA".to_string(),
+                                                    created_at: Utc::now(),
+                                                    last_modified_at: Utc::now(),
+                                                    last_modified_by: "NA".to_string(),
+                                                    description: Description::default(),
+                                                    change_reason: ChangeReason::default(),
+                                                });
+                                        }
+                                        let config_type = config_type_rs.get();
+                                        let config_t = if config_type.is_empty() && edit {
+                                            "change current type template".into()
+                                        } else if config_type.is_empty() && !edit {
+                                            "Choose a type template".into()
+                                        } else {
+                                            config_type
+                                        };
+                                        let config_type_schema = SchemaType::Single(
+                                            JsonSchemaType::from(&config_schema_rs.get()),
+                                        );
+                                        // Symlink is an explicit choice in this same
+                                        // selector rather than a separate toggle, same
+                                        // as "Custom JSON Schema" above. It only applies
+                                        // to creation - converting an existing key into
+                                        // a symlink, or an existing symlink's own type,
+                                        // isn't offered here, so it is left out of the
+                                        // options while editing (this whole block is
+                                        // skipped anyway when `editing_symlink`, below).
+
+                                        view! {
+                                            <Dropdown
+                                                dropdown_width="w-100"
+                                                dropdown_icon="".to_string()
+                                                dropdown_text=config_t
+                                                dropdown_direction=DropdownDirection::Down
+                                                dropdown_btn_type=DropdownBtnType::Select
+                                                dropdown_options=options
+                                                on_select=Callback::new(move |selected_item: TypeTemplate| {
+                                                    logging::log!("selected item {:?}", selected_item);
+                                                    let type_schema: &Map<String, Value> = &selected_item
+                                                        .type_schema;
+                                                    if is_symlink_schema(type_schema) {
+                                                        config_type_ws.set(selected_item.type_name);
+                                                        config_schema_ws
+                                                            .set(Value::from(selected_item.type_schema));
+                                                        return;
+                                                    }
+                                                    let parsed_schema_type = SchemaType::try_from(type_schema);
+                                                    let parsed_enum_variants = EnumVariants::try_from(
+                                                        type_schema,
+                                                    );
+                                                    config_type_ws.set(selected_item.type_name);
+                                                    config_schema_ws
+                                                        .set(Value::from(selected_item.type_schema));
+                                                    if let (Ok(schema_type), Ok(enum_variants)) = (
+                                                        parsed_schema_type,
+                                                        parsed_enum_variants,
+                                                    ) {
+                                                        if InputType::from((schema_type, enum_variants))
+                                                            == InputType::Toggle
+                                                        {
+                                                            config_value_ws.set(Value::Bool(false));
+                                                        }
+                                                    }
+                                                })
+                                            />
+
+                                            <Show when=move || !is_symlink_s.get()>
+                                                <Input
+                                                    id="type-schema"
+                                                    class="mt-5 rounded-md resize-y w-full max-w-md pt-3"
+                                                    schema_type=config_type_schema.clone()
+                                                    value=config_schema_rs.get()
+                                                    on_change=Callback::new(move |new_config_schema| {
+                                                        config_schema_ws.set(new_config_schema)
+                                                    })
+                                                    disabled=config_type_rs.get().is_empty() && !edit
+                                                    r#type=InputType::Monaco(vec![])
+                                                />
+
+                                                <Show when=move || {
+                                                    !config_schema_rs.get().is_null()
+                                                        && schema_type_s.get().is_err()
+                                                }>
+                                                    <span class="flex gap-2 py-2 text-xs font-semibold text-red-600">
+                                                        <i class="ri-close-circle-line"></i>
+                                                        {schema_type_s.get().unwrap_err()}
+                                                    </span>
+                                                </Show>
+                                            </Show>
+                                        }
+                                    }}
+                                </Suspense>
+                            </div>
+
+                            <Show when=move || is_symlink_s.get()>
+                                <div class="form-control max-w-md w-full">
+                                    <Label
+                                        title="Target Key"
+                                        description="The default-config key this symlink points to"
+                                    />
+                                    <Show when=move || {
+                                        *client_side_ready.get()
+                                    }>
+                                        {move || {
+                                            let current_key = config_key_rs.get();
+                                            let options = combined_resources
+                                                .with(|c| {
+                                                    c.as_ref().map(|c| c.default_config_keys.clone())
+                                                })
+                                                .unwrap_or_default()
+                                                .into_iter()
+                                                .filter(|dc| dc.key != current_key)
+                                                .collect::<Vec<DefaultConfig>>();
+                                            let dropdown_text = {
+                                                let target = symlink_target_rs.get();
+                                                if target.is_empty() {
+                                                    "Choose a target key".to_string()
+                                                } else {
+                                                    target
+                                                }
+                                            };
+                                            view! {
+                                                <Dropdown
+                                                    dropdown_width="w-100"
+                                                    dropdown_icon="".to_string()
+                                                    dropdown_text=dropdown_text
+                                                    dropdown_direction=DropdownDirection::Down
+                                                    dropdown_btn_type=DropdownBtnType::Select
+                                                    dropdown_options=options
+                                                    on_select=move |selected: DefaultConfig| {
+                                                        symlink_target_ws.set(selected.key);
+                                                    }
+                                                />
+                                            }
+                                        }}
+                                    </Show>
+                                </div>
+                            </Show>
+
+                            <Show when=move || !is_symlink_s.get()>
+                                <div class="form-control max-w-md w-full">
+                                    <Label title="Default Value" />
+                                    {move || {
+                                        let schema_type = schema_type_s.get();
+                                        let enum_variants = enum_variants_s.get();
+                                        if schema_type.is_err() || enum_variants.is_err() {
+                                            let tooltip_txt = if config_schema_rs.get().is_null() {
+                                                "Please select a schema type".to_string()
+                                            } else {
+                                                schema_type_s.get().unwrap_err()
+                                            };
+                                            return view! {
+                                                <div
+                                                    class="tooltip tooltip-bottom w-full max-w-md"
+                                                    data-tip=tooltip_txt
+                                                >
+                                                    <Input
+                                                        id="default-config-value-input"
+                                                        class="w-full max-w-md"
+                                                        schema_type=SchemaType::Single(JsonSchemaType::default())
+                                                        value=config_value_rs.get()
+                                                        on_change=move |_| {}
+                                                        disabled=true
+                                                        r#type=InputType::Text
+                                                    />
+                                                </div>
+                                            }
+                                                .into_view();
+                                        }
+                                        let input_type = InputType::from((
+                                            schema_type.clone().unwrap(),
+                                            enum_variants.unwrap(),
+                                        ));
+                                        let class = match input_type {
+                                            InputType::Toggle => "",
+                                            InputType::Select(_) => "mt-2",
+                                            InputType::Integer | InputType::Number => "w-full max-w-md",
+                                            _ => "rounded-md resize-y w-full max-w-md",
+                                        };
+                                        view! {
                                             <Input
                                                 id="default-config-value-input"
-                                                class="w-full max-w-md"
-                                                schema_type=SchemaType::Single(JsonSchemaType::default())
+                                                class
+                                                schema_type=schema_type.unwrap()
                                                 value=config_value_rs.get()
-                                                on_change=move |_| {}
-                                                disabled=true
-                                                r#type=InputType::Text
+                                                on_change=move |new_default_config: Value| {
+                                                    logging::log!(
+                                                        "new value entered for default config = {:?}", new_default_config
+                                                    );
+                                                    config_value_ws.set(new_default_config);
+                                                }
+                                                r#type=input_type
+                                            />
+                                        }
+                                            .into_view()
+                                    }}
+                                </div>
+                            </Show>
+                        </div>
+                    </Show>
+
+                    <Show when=move || !is_symlink_s.get() && !editing_symlink>
+                        <Suspense fallback=move || {
+                            view! {
+                                <Skeleton
+                                    variant=SkeletonVariant::Block
+                                    style_class="h-20 max-w-[936px]"
+                                />
+                            }
+                        }>
+                            {move || {
+                                let mut functions = combined_resources
+                                    .with(|c| c.as_ref().map(|c| c.functions.clone()))
+                                    .unwrap_or_default();
+                                functions.sort_by(|a, b| a.function_name.cmp(&b.function_name));
+                                let validation_function_names = get_fn_names_by_type(
+                                    &functions,
+                                    FunctionType::ValueValidation,
+                                );
+                                let value_compute_function_names = get_fn_names_by_type(
+                                    &functions,
+                                    FunctionType::ValueCompute,
+                                );
+
+                                view! {
+                                    <div class="flex flex-wrap gap-x-10 gap-y-5">
+                                        <div class="form-control">
+                                            <Label
+                                                title="Validation Function"
+                                                description="Function to add validation logic to your key"
+                                            />
+                                            <Dropdown
+                                                dropdown_width="w-100"
+                                                dropdown_icon="".to_string()
+                                                dropdown_text=validation_fn_name_rs
+                                                    .get()
+                                                    .map_or("Add Function".to_string(), |v| v.to_string())
+                                                dropdown_direction=DropdownDirection::Down
+                                                dropdown_btn_type=DropdownBtnType::Select
+                                                dropdown_options=validation_function_names
+                                                on_select=handle_select_dropdown_option_validation
+                                            />
+
+                                        </div>
+
+                                        <div class="form-control">
+                                            <Label
+                                                title="Value Compute Function"
+                                                description="Function to add value compute suggestion to your key"
+                                            />
+                                            <Dropdown
+                                                dropdown_width="w-100"
+                                                dropdown_icon="".to_string()
+                                                dropdown_text=value_compute_function_name_rs
+                                                    .get()
+                                                    .map_or("Add Function".to_string(), |v| v.to_string())
+                                                dropdown_direction=DropdownDirection::Down
+                                                dropdown_btn_type=DropdownBtnType::Select
+                                                dropdown_options=value_compute_function_names
+                                                on_select=handle_select_dropdown_option_value_compute
                                             />
                                         </div>
-                                    }
-                                        .into_view();
+                                    </div>
                                 }
-                                let input_type = InputType::from((
-                                    schema_type.clone().unwrap(),
-                                    enum_variants.unwrap(),
-                                ));
-                                let class = match input_type {
-                                    InputType::Toggle => "",
-                                    InputType::Select(_) => "mt-2",
-                                    InputType::Integer | InputType::Number => "w-full max-w-md",
-                                    _ => "rounded-md resize-y w-full max-w-md",
-                                };
-                                view! {
-                                    <Input
-                                        id="default-config-value-input"
-                                        class
-                                        schema_type=schema_type.unwrap()
-                                        value=config_value_rs.get()
-                                        on_change=move |new_default_config: Value| {
-                                            logging::log!(
-                                                "new value entered for default config = {:?}", new_default_config
-                                            );
-                                            config_value_ws.set(new_default_config);
-                                        }
-                                        r#type=input_type
-                                    />
-                                }
-                                    .into_view()
                             }}
-                        </div>
-                    </div>
-
-                    <Suspense fallback=move || {
-                        view! {
-                            <Skeleton
-                                variant=SkeletonVariant::Block
-                                style_class="h-20 max-w-[936px]"
-                            />
-                        }
-                    }>
-                        {move || {
-                            let mut functions = combined_resources
-                                .with(|c| c.as_ref().map(|c| c.functions.clone()))
-                                .unwrap_or_default();
-                            functions.sort_by(|a, b| a.function_name.cmp(&b.function_name));
-                            let validation_function_names = get_fn_names_by_type(
-                                &functions,
-                                FunctionType::ValueValidation,
-                            );
-                            let value_compute_function_names = get_fn_names_by_type(
-                                &functions,
-                                FunctionType::ValueCompute,
-                            );
-
-                            view! {
-                                <div class="flex flex-wrap gap-x-10 gap-y-5">
-                                    <div class="form-control">
-                                        <Label
-                                            title="Validation Function"
-                                            description="Function to add validation logic to your key"
-                                        />
-                                        <Dropdown
-                                            dropdown_width="w-100"
-                                            dropdown_icon="".to_string()
-                                            dropdown_text=validation_fn_name_rs
-                                                .get()
-                                                .map_or("Add Function".to_string(), |v| v.to_string())
-                                            dropdown_direction=DropdownDirection::Down
-                                            dropdown_btn_type=DropdownBtnType::Select
-                                            dropdown_options=validation_function_names
-                                            on_select=handle_select_dropdown_option_validation
-                                        />
-
-                                    </div>
-
-                                    <div class="form-control">
-                                        <Label
-                                            title="Value Compute Function"
-                                            description="Function to add value compute suggestion to your key"
-                                        />
-                                        <Dropdown
-                                            dropdown_width="w-100"
-                                            dropdown_icon="".to_string()
-                                            dropdown_text=value_compute_function_name_rs
-                                                .get()
-                                                .map_or("Add Function".to_string(), |v| v.to_string())
-                                            dropdown_direction=DropdownDirection::Down
-                                            dropdown_btn_type=DropdownBtnType::Select
-                                            dropdown_options=value_compute_function_names
-                                            on_select=handle_select_dropdown_option_value_compute
-                                        />
-                                    </div>
-                                </div>
-                            }
-                        }}
-                    </Suspense>
+                        </Suspense>
+                    </Show>
                 </div>
             </form>
         </EditorProvider>
@@ -589,7 +800,13 @@ pub fn ChangeLogSummary(
     let default_config = create_local_resource(
         move || (key_name.clone(), workspace.get().0, org.get().0),
         |(key_name, workspace, org)| async move {
-            default_configs::get(&key_name, &workspace, &org).await
+            // This change log only diffs the already-resolved value/schema;
+            // it has no use for `symlink_to`, so drop down to the plain
+            // `DefaultConfig` right away rather than touching every field
+            // access below.
+            default_configs::get(&key_name, &workspace, &org)
+                .await
+                .map(|response| response.config)
         },
     );
 

@@ -63,6 +63,7 @@ export interface GetDefaultConfigCommandOutput extends DefaultConfigResponse, __
  * //   created_by: "STRING_VALUE", // required
  * //   last_modified_at: new Date("TIMESTAMP"), // required
  * //   last_modified_by: "STRING_VALUE", // required
+ * //   symlink_to: "STRING_VALUE",
  * // };
  *
  * ```

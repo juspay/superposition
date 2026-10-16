@@ -462,7 +462,8 @@ async fn reduce_handler(
 
     let dimensions_info_map =
         fetch_dimensions_info_map(conn, &workspace_context.schema_name)?;
-    let mut config = generate_cac(conn, &workspace_context.schema_name)?;
+    let mut config =
+        generate_cac(conn, &workspace_context.schema_name)?.into_unexpanded();
     let default_config = (*config.default_configs).clone();
     for (key, _) in default_config {
         let contexts = config.contexts;
@@ -482,7 +483,8 @@ async fn reduce_handler(
         )
         .await?;
         if is_approve {
-            config = generate_cac(conn, &workspace_context.schema_name)?;
+            config =
+                generate_cac(conn, &workspace_context.schema_name)?.into_unexpanded();
         }
     }
 

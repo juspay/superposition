@@ -10,6 +10,7 @@ module Io.Superposition.Model.UpdateDefaultConfigOutput (
     setCreatedBy,
     setLastModifiedAt,
     setLastModifiedBy,
+    setSymlinkTo,
     build,
     UpdateDefaultConfigOutputBuilder,
     UpdateDefaultConfigOutput,
@@ -23,7 +24,8 @@ module Io.Superposition.Model.UpdateDefaultConfigOutput (
     created_at,
     created_by,
     last_modified_at,
-    last_modified_by
+    last_modified_by,
+    symlink_to
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad.State.Strict
@@ -51,7 +53,8 @@ data UpdateDefaultConfigOutput = UpdateDefaultConfigOutput {
     created_at :: Data.Time.UTCTime,
     created_by :: Data.Text.Text,
     last_modified_at :: Data.Time.UTCTime,
-    last_modified_by :: Data.Text.Text
+    last_modified_by :: Data.Text.Text,
+    symlink_to :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -70,7 +73,8 @@ instance Data.Aeson.ToJSON UpdateDefaultConfigOutput where
         "created_at" Data.Aeson..= created_at a,
         "created_by" Data.Aeson..= created_by a,
         "last_modified_at" Data.Aeson..= last_modified_at a,
-        "last_modified_by" Data.Aeson..= last_modified_by a
+        "last_modified_by" Data.Aeson..= last_modified_by a,
+        "symlink_to" Data.Aeson..= symlink_to a
         ]
     
 
@@ -89,6 +93,7 @@ instance Data.Aeson.FromJSON UpdateDefaultConfigOutput where
         Control.Applicative.<*> (v Data.Aeson..: "created_by")
         Control.Applicative.<*> (v Data.Aeson..: "last_modified_at")
         Control.Applicative.<*> (v Data.Aeson..: "last_modified_by")
+        Control.Applicative.<*> (v Data.Aeson..:? "symlink_to")
     
 
 
@@ -104,7 +109,8 @@ data UpdateDefaultConfigOutputBuilderState = UpdateDefaultConfigOutputBuilderSta
     created_atBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     created_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     last_modified_atBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
-    last_modified_byBuilderState :: Data.Maybe.Maybe Data.Text.Text
+    last_modified_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    symlink_toBuilderState :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Generics.Generic
   )
@@ -121,7 +127,8 @@ defaultBuilderState = UpdateDefaultConfigOutputBuilderState {
     created_atBuilderState = Data.Maybe.Nothing,
     created_byBuilderState = Data.Maybe.Nothing,
     last_modified_atBuilderState = Data.Maybe.Nothing,
-    last_modified_byBuilderState = Data.Maybe.Nothing
+    last_modified_byBuilderState = Data.Maybe.Nothing,
+    symlink_toBuilderState = Data.Maybe.Nothing
 }
 
 type UpdateDefaultConfigOutputBuilder = Control.Monad.State.Strict.State UpdateDefaultConfigOutputBuilderState
@@ -170,6 +177,10 @@ setLastModifiedBy :: Data.Text.Text -> UpdateDefaultConfigOutputBuilder ()
 setLastModifiedBy value =
    Control.Monad.State.Strict.modify (\s -> (s { last_modified_byBuilderState = Data.Maybe.Just value }))
 
+setSymlinkTo :: Data.Maybe.Maybe Data.Text.Text -> UpdateDefaultConfigOutputBuilder ()
+setSymlinkTo value =
+   Control.Monad.State.Strict.modify (\s -> (s { symlink_toBuilderState = value }))
+
 build :: UpdateDefaultConfigOutputBuilder () -> Data.Either.Either Data.Text.Text UpdateDefaultConfigOutput
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
@@ -184,6 +195,7 @@ build builder = do
     created_by' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateDefaultConfigOutput.UpdateDefaultConfigOutput.created_by is a required property.") Data.Either.Right (created_byBuilderState st)
     last_modified_at' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateDefaultConfigOutput.UpdateDefaultConfigOutput.last_modified_at is a required property.") Data.Either.Right (last_modified_atBuilderState st)
     last_modified_by' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateDefaultConfigOutput.UpdateDefaultConfigOutput.last_modified_by is a required property.") Data.Either.Right (last_modified_byBuilderState st)
+    symlink_to' <- Data.Either.Right (symlink_toBuilderState st)
     Data.Either.Right (UpdateDefaultConfigOutput { 
         key = key',
         value = value',
@@ -195,7 +207,8 @@ build builder = do
         created_at = created_at',
         created_by = created_by',
         last_modified_at = last_modified_at',
-        last_modified_by = last_modified_by'
+        last_modified_by = last_modified_by',
+        symlink_to = symlink_to'
     })
 
 
@@ -211,20 +224,22 @@ instance Io.Superposition.Utility.FromResponseParser UpdateDefaultConfigOutput w
         var5 <- Io.Superposition.Utility.deSerField "last_modified_by"
         var6 <- Io.Superposition.Utility.deSerField "value"
         var7 <- Io.Superposition.Utility.deSerField "created_by"
-        var8 <- Io.Superposition.Utility.deSerField "key"
-        var9 <- Io.Superposition.Utility.deSerField "value_validation_function_name"
-        var10 <- Io.Superposition.Utility.deSerField "last_modified_at"
+        var8 <- Io.Superposition.Utility.deSerField "symlink_to"
+        var9 <- Io.Superposition.Utility.deSerField "key"
+        var10 <- Io.Superposition.Utility.deSerField "value_validation_function_name"
+        var11 <- Io.Superposition.Utility.deSerField "last_modified_at"
         pure $ UpdateDefaultConfigOutput {
-            key = var8,
+            key = var9,
             value = var6,
             schema = var0,
             description = var3,
             change_reason = var1,
-            value_validation_function_name = var9,
+            value_validation_function_name = var10,
             value_compute_function_name = var2,
             created_at = var4,
             created_by = var7,
-            last_modified_at = var10,
-            last_modified_by = var5
+            last_modified_at = var11,
+            last_modified_by = var5,
+            symlink_to = var8
         }
 
