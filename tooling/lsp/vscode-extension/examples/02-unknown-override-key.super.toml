@@ -1,0 +1,13 @@
+# QUICK FIX — cursor on `cancellation_fee`, Cmd+.
+# Expect: "Declare 'cancellation_fee' in [default-configs]"
+# The generated schema type is inferred from the value you wrote (50 -> integer).
+
+[default-configs]
+per_km_rate = { value = 20.0, schema = { type = "number", minimum = 5.0 } }
+
+[dimensions]
+city = { position = 1, schema = { type = "string", enum = ["Bangalore", "Delhi"] } }
+
+[[overrides]]
+_context_ = { city = "Bangalore" }
+cancellation_fee = 50
