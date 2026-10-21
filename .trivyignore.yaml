@@ -1,0 +1,106 @@
+# Accepted/triaged vulnerabilities that cannot currently be fixed upstream.
+# Used by the Trivy CI gate (.github/workflows/trivy.yaml) via --ignorefile.
+#
+# Every entry MUST document why it cannot be fixed and when it should be
+# re-evaluated. Trivy automatically re-surfaces an entry once it expires.
+vulnerabilities:
+    - id: CVE-2026-18140
+      paths:
+          - Cargo.lock
+      created: 2026-10-21
+      expires: 2027-01-31
+      statement: >-
+          aws-smithy-json DoS via unbounded recursion when parsing crafted JSON.
+          Fix (0.62.7) requires rustc >= 1.91.1 but the workspace pins 1.90.0.
+          The 0.61.4 instance is pinned by smithy-rs generated code
+          (crates/superposition_sdk) and the 0.60.7 instance is pinned by
+          aws-config, which cannot move past 1.8.3 because rustyscript 0.12.3
+          (max published) pins rustls =0.23.28 via deno_tls while newer
+          aws-smithy-http-client requires rustls >= 0.23.31. Re-evaluate when
+          rustyscript publishes a new release or the rust toolchain is bumped.
+          Only reachable when parsing untrusted JSON responses.
+
+    - id: GHSA-82j2-j2ch-gfr8
+      paths:
+          - Cargo.lock
+      created: 2026-10-21
+      expires: 2027-01-31
+      statement: >-
+          rustls-webpki DoS via panic on malformed CRL. The remaining 0.101.7
+          (rustls 0.21 chain of aws-smithy-http-client 1.0.6) and 0.102.8
+          (deno_tls/deno_fetch of rustyscript 0.12.3) instances have no patched
+          release on their branches; fixes ship only in 0.103.13+, which those
+          pinned dependency chains cannot reach (rustyscript 0.12.3 is the
+          latest published version and pins rustls =0.23.28). The 0.103.4
+          instance has been updated to 0.103.13. Re-evaluate when rustyscript
+          or aws-smithy-http-client publish compatible releases.
+
+    - id: GHSA-3v94-mw7p-v465
+      paths:
+          - Cargo.lock
+      created: 2026-10-21
+      expires: 2027-01-31
+      statement: >-
+          hickory-proto NSEC3 closest-encloser proof validation issue. No fixed
+          version is published (advisory open, affects 0.25.0-alpha line).
+          Dependency comes from deno_net via rustyscript 0.12.3 (max published).
+
+    - id: GHSA-5j98-2g5x-46v6
+      paths:
+          - Cargo.lock
+      created: 2026-10-21
+      expires: 2027-01-31
+      statement: >-
+          hickory-resolver lookup() issue, fixed in 0.26.2. Unreachable:
+          deno_fetch (via rustyscript 0.12.3, max published) requires
+          hickory-resolver ^0.25.0-alpha. Re-evaluate when rustyscript updates
+          its deno crate stack.
+
+    - id: GHSA-h5x4-m2qf-r4f2
+      paths:
+          - Cargo.lock
+      created: 2026-10-21
+      expires: 2027-01-31
+      statement: >-
+          diesel SQLite backend UTF-8 corruption. Not reachable: superposition
+          runs the Postgres backend only (diesel features "postgres"; the
+          sqlite feature of diesel-adapter is disabled). Upgrade to diesel
+          2.3.8 is blocked: diesel-adapter (pinned git rev of
+          casbin-rust-diesel-adapter) pulls real diesel, whose 2.3.x needs
+          diesel_derives ~2.3.0, conflicting with juspay_diesel 2.3.1 (max
+          published) which pins diesel_derives ~2.2.0. Re-evaluate when
+          juspay_diesel publishes a new release.
+
+    - id: CVE-2026-85393
+      paths:
+          - docs/package-lock.json
+      created: 2026-10-21
+      expires: 2027-01-31
+      statement: >-
+          node-forge signature forgery via RSA signature malleability. No fixed
+          version published (latest is 1.4.0, still affected). Pulled in by
+          selfsigned (dev-only self-signed certificate generation for the docs
+          webpack dev server). Re-evaluate when node-forge publishes a fix.
+
+    - id: CVE-2026-93687
+      paths:
+          - docs/package-lock.json
+      created: 2026-10-21
+      expires: 2027-01-31
+      statement: >-
+          braces DoS via stack overflow on nested brace expansion. No fixed
+          version published (latest is 3.0.3, still affected). Transitive dev
+          dependency (chokidar/micromatch) of the docs build tooling.
+          Re-evaluate when braces publishes a fix.
+
+    - id: CVE-2026-73231
+      paths:
+          - docs/package-lock.json
+      created: 2026-10-21
+      expires: 2027-01-31
+      statement: >-
+          @faker-js/faker arbitrary code execution. Fixed only in >= 10.5.0,
+          but postman-collection (used by docusaurus-plugin-openapi-docs /
+          openapi-to-postmanv2) pins the 5.x API (faker.address.*), which was
+          removed in faker 6+; forcing 10.x breaks the docs build. Re-evaluate
+          when postman-collection supports a patched faker release.
