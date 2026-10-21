@@ -48,5 +48,18 @@
   },
   "engines": {
     "node": ">=18.0"
+  },
+  "overrides": {
+    "tinypool": "^2.1.2",
+    "lodash": "^4.18.0",
+    "serialize-javascript": "^7.0.3",
+    "webpack-dev-middleware": "^7.4.6",
+    "http-cache-semantics": "^4.3.0",
+    "openapi-to-postmanv2": {
+      "js-yaml": "^4.3.2"
+    },
+    "serve-handler": {
+      "minimatch": "^3.1.4"
+    }
   }
 }

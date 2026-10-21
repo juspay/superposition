@@ -4,7 +4,7 @@ bcdoc==0.16.0
 blinker==1.8.2
 botocore==1.33.6
 Brotli==1.2.0
-certifi==2024.8.30
+certifi==2026.10.19
 cffi==1.16.0
 charset-normalizer==3.3.2
 click==8.1.7
@@ -38,7 +38,7 @@ ruamel.base==1.0.0
 ruamel.yaml==0.17.21
 ruamel.yaml.clib==0.2.7
 six==1.16.0
-urllib3==2.7.0
+urllib3==2.8.0
 wcwidth==0.2.12
 Werkzeug==3.1.6
 zope.event==5.0
