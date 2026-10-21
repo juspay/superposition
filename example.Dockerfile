@@ -1,4 +1,5 @@
-FROM ghcr.io/juspay/superposition:latest as runtime
+ARG SUPERPOSITION_BASE=ghcr.io/juspay/superposition:latest
+FROM ${SUPERPOSITION_BASE} as runtime
 
 WORKDIR /app
 
