@@ -15,5 +15,8 @@
     "test": "bun test",
     "test:clean": "./test-with-cleanup.sh",
     "cleanup": "./test-with-cleanup.sh --cleanup-only --org-pattern \"org%\""
+  },
+  "overrides": {
+    "fast-xml-parser": "^4.5.5"
   }
 }
