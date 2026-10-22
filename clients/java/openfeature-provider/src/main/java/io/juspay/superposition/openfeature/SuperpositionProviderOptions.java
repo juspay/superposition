@@ -34,6 +34,8 @@ public class SuperpositionProviderOptions {
     RefreshStrategy refreshStrategy;
     /** Fallback configuration if remote fetch fails (optional). */
     @Nullable SuperpositionConfig fallbackConfig;
+    /** Evaluation cache options for the native resolution cache (optional). */
+    @Nullable EvaluationCacheOptions evaluationCacheOptions;
     /** Experimentation-specific options (optional). */
     @Nullable ExperimentationOptions experimentationOptions;
     /**

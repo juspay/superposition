@@ -18,7 +18,6 @@ async fn main() {
         org_id: "localorg".to_string(),
         workspace_id: "test".to_string(),
         fallback_config: None,
-        evaluation_cache: None,
         refresh_strategy: RefreshStrategy::Polling(PollingStrategy {
             interval: 1,
             timeout: None,
@@ -28,8 +27,6 @@ async fn main() {
                 interval: 1,
                 timeout: None,
             }),
-            evaluation_cache: None,
-            default_toss: None,
         }),
     };
     api.set_provider(SuperpositionProvider::new(options)).await;
