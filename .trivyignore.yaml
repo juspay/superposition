@@ -4,36 +4,20 @@
 # Every entry MUST document why it cannot be fixed and when it should be
 # re-evaluated. Trivy automatically re-surfaces an entry once it expires.
 vulnerabilities:
-    - id: CVE-2026-18140
-      paths:
-          - Cargo.lock
-      created: 2026-10-21
-      expires: 2027-01-31
-      statement: >-
-          aws-smithy-json DoS via unbounded recursion when parsing crafted JSON.
-          Fix (0.62.7) requires rustc >= 1.91.1 but the workspace pins 1.90.0.
-          The 0.61.4 instance is pinned by smithy-rs generated code
-          (crates/superposition_sdk) and the 0.60.7 instance is pinned by
-          aws-config, which cannot move past 1.8.3 because rustyscript 0.12.3
-          (max published) pins rustls =0.23.28 via deno_tls while newer
-          aws-smithy-http-client requires rustls >= 0.23.31. Re-evaluate when
-          rustyscript publishes a new release or the rust toolchain is bumped.
-          Only reachable when parsing untrusted JSON responses.
-
     - id: GHSA-82j2-j2ch-gfr8
       paths:
           - Cargo.lock
       created: 2026-10-21
       expires: 2027-01-31
       statement: >-
-          rustls-webpki DoS via panic on malformed CRL. The remaining 0.101.7
-          (rustls 0.21 chain of aws-smithy-http-client 1.0.6) and 0.102.8
-          (deno_tls/deno_fetch of rustyscript 0.12.3) instances have no patched
-          release on their branches; fixes ship only in 0.103.13+, which those
-          pinned dependency chains cannot reach (rustyscript 0.12.3 is the
-          latest published version and pins rustls =0.23.28). The 0.103.4
-          instance has been updated to 0.103.13. Re-evaluate when rustyscript
-          or aws-smithy-http-client publish compatible releases.
+          rustls-webpki DoS via panic on malformed CRL. Only the 0.101.7
+          instance remains (no patched release exists on the 0.101 branch);
+          it is reachable only through the legacy rustls 0.21.12 pulled in by
+          sqlx-core, reqwest and the optional rustls feature of
+          aws-smithy-http-client 1.x. The deno_tls chain of rustyscript
+          0.12.3 now uses the patched rustls-webpki 0.103.16. Re-evaluate
+          when sqlx/reqwest move to rustls 0.23 and the rustls 0.21 chain
+          drops out of the lockfile.
 
     - id: GHSA-3v94-mw7p-v465
       paths:
@@ -70,28 +54,6 @@ vulnerabilities:
           diesel_derives ~2.3.0, conflicting with juspay_diesel 2.3.1 (max
           published) which pins diesel_derives ~2.2.0. Re-evaluate when
           juspay_diesel publishes a new release.
-
-    - id: CVE-2026-85393
-      paths:
-          - docs/package-lock.json
-      created: 2026-10-21
-      expires: 2027-01-31
-      statement: >-
-          node-forge signature forgery via RSA signature malleability. No fixed
-          version published (latest is 1.4.0, still affected). Pulled in by
-          selfsigned (dev-only self-signed certificate generation for the docs
-          webpack dev server). Re-evaluate when node-forge publishes a fix.
-
-    - id: CVE-2026-93687
-      paths:
-          - docs/package-lock.json
-      created: 2026-10-21
-      expires: 2027-01-31
-      statement: >-
-          braces DoS via stack overflow on nested brace expansion. No fixed
-          version published (latest is 3.0.3, still affected). Transitive dev
-          dependency (chokidar/micromatch) of the docs build tooling.
-          Re-evaluate when braces publishes a fix.
 
     # ---- clients/* (smithy-generated SDKs) ------------------------------------
     # Dependency pins inside clients/* are produced and owned by the smithy
