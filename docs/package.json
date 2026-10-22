@@ -50,6 +50,10 @@
     "node": ">=18.0"
   },
   "overrides": {
+    "body-parser": "^1.20.9",
+    "follow-redirects": "^1.16.2",
+    "joi": "^17.13.9",
+    "node-forge": "^1.4.1",
     "tinypool": "^2.1.2",
     "lodash": "^4.18.0",
     "serialize-javascript": "^7.0.3",
