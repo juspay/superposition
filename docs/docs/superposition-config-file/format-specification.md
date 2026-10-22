@@ -432,6 +432,21 @@ The same configuration in JSON format:
 
 ---
 
+## Imports
+
+A config can be split across files. `main.stoml` (or `main.super.toml`) imports whole sections from typed files, with the import lines before any `[section]`:
+
+```toml
+# main.stoml
+default-configs.import = ["pricing.default-configs.stoml"]
+dimensions.import      = ["geo.dimensions.stoml"]
+overrides.import       = ["surge.overrides.stoml"]
+```
+
+A section that imports may define nothing else, and each imported file holds only its own section. See [Imports](./imports) for the full rules.
+
+---
+
 ## Validation Rules
 
 ### Default Configs Validation

@@ -27,6 +27,10 @@ pub use ffi_legacy::{
 };
 
 // Re-export format module and types
+pub use format::toml::{
+    parse_toml_file, parse_toml_file_detailed, resolve_toml_imports, FsLoader,
+    SourceLoader,
+};
 pub use format::{json::JsonFormat, toml::TomlFormat, ConfigFormat, FormatError};
 
 // Re-export Config type

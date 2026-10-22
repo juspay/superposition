@@ -3,6 +3,7 @@ mod completions;
 mod diagnostics;
 mod hover;
 mod utils;
+mod workspace;
 
 use tower_lsp::{LspService, Server};
 

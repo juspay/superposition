@@ -3,29 +3,28 @@ use tower_lsp::lsp_types::*;
 
 use crate::utils;
 
-/// Validate a SuperTOML document and return LSP diagnostics.
-///
-/// Two passes are performed:
-/// 1. Raw TOML syntax check — uses the `toml` crate's span information for
-///    accurate line/column reporting.
-/// 2. SuperTOML semantic validation via `parse_toml_config` — maps each
-///    `FormatError` variant to a best-effort source range by searching for the
-///    relevant token in the document text.
+/// Validate a single SuperTOML document from its text alone and return LSP
+/// diagnostics. Used for buffers with no file path; files on disk go through
+/// [`crate::workspace::check_group`] so imports are followed.
 pub fn compute(text: &str) -> Vec<Diagnostic> {
-    // Pass 2: SuperTOML semantic validation.
-    let Err(parse_err) = parse_toml_config(text) else {
-        return vec![];
-    };
-    let range = find_error_range(text, &parse_err);
-    let (range, diagnostic) = match parse_err {
-        FormatError::SyntaxError {
-            format: _,
-            message,
-            span,
-        } => (
-            span.map(|s| byte_span_to_range(text, s))
+    match parse_toml_config(text) {
+        Ok(_) => vec![],
+        Err(err) => vec![diagnostic_for(text, &err)],
+    }
+}
+
+/// Turn a parse error into a diagnostic in `text`, the file it points at.
+/// Spans are used when the error has one; otherwise the range is found by
+/// searching for the relevant token.
+pub fn diagnostic_for(text: &str, err: &FormatError) -> Diagnostic {
+    let range = find_error_range(text, err);
+    let (range, message) = match err {
+        FormatError::SyntaxError { message, span, .. }
+        | FormatError::ImportError { message, span, .. } => (
+            span.clone()
+                .map(|s| byte_span_to_range(text, s))
                 .unwrap_or_default(),
-            message,
+            message.clone(),
         ),
         FormatError::InvalidDimension(dim_err) => {
             (range, format!("Invalid dimension: {}", dim_err))
@@ -74,28 +73,35 @@ pub fn compute(text: &str) -> Vec<Diagnostic> {
                     .join(", ")
             ),
         ),
-        FormatError::ConversionError { format: _, message } => {
+        FormatError::ConversionError { message, .. } => {
             (range, format!("Conversion error: {}", message))
         }
-        FormatError::SerializationError { format: _, message } => {
+        FormatError::SerializationError { message, .. } => {
             (range, format!("Serialization error: {}", message))
         }
         FormatError::ValidationError { key, errors } => {
-            let range = find_key_range_in_toml(text, &key);
             (range, format!("Validation error for '{}': {}", key, errors))
         }
+        // Callers unwrap this with `FormatError::location` and pass the
+        // imported file's text; the inner error's spans point into it.
+        FormatError::InFile { error, .. } => return diagnostic_for(text, error),
     };
-    Vec::from([Diagnostic {
+    error(range, message)
+}
+
+pub fn error(range: Range, message: String) -> Diagnostic {
+    Diagnostic {
         range,
         severity: Some(DiagnosticSeverity::ERROR),
         source: Some("supertoml-analyzer".to_string()),
-        message: diagnostic,
+        message,
         ..Default::default()
-    }])
+    }
 }
 
 /// Map a `FormatError` to a source range by searching for the relevant token.
-fn find_error_range(text: &str, err: &FormatError) -> Range {
+/// `Range::default()` when there's nothing to search for or it isn't found.
+pub fn find_error_range(text: &str, err: &FormatError) -> Range {
     match err {
         FormatError::InvalidDimension(dim) => find_text_range(text, dim),
 
@@ -116,10 +122,13 @@ fn find_error_range(text: &str, err: &FormatError) -> Range {
             find_text_range(text, dimension)
         }
 
-        // TomlSyntaxError is handled in pass 1; these rarely reach pass 2.
+        FormatError::InFile { error, .. } => find_error_range(text, error),
+
+        // These carry their own span (or have nothing to point at).
         FormatError::SyntaxError { .. }
         | FormatError::ConversionError { .. }
-        | FormatError::SerializationError { .. } => Range::default(),
+        | FormatError::SerializationError { .. }
+        | FormatError::ImportError { .. } => Range::default(),
     }
 }
 
@@ -468,7 +477,7 @@ fn find_all_override_sections(text: &str) -> Vec<usize> {
     sections
 }
 
-fn find_text_range(text: &str, search: &str) -> Range {
+pub fn find_text_range(text: &str, search: &str) -> Range {
     let mut search_start = 0;
     while let Some(pos) = text[search_start..].find(search) {
         let abs_pos = search_start + pos;
@@ -485,7 +494,7 @@ fn find_text_range(text: &str, search: &str) -> Range {
     Range::default()
 }
 
-fn byte_span_to_range(text: &str, span: std::ops::Range<usize>) -> Range {
+pub fn byte_span_to_range(text: &str, span: std::ops::Range<usize>) -> Range {
     Range::new(
         byte_offset_to_position(text, span.start),
         byte_offset_to_position(text, span.end),

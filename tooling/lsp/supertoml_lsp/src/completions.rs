@@ -43,7 +43,19 @@ enum CursorContext {
 }
 
 /// Produce completion items for the given cursor position.
+#[cfg(test)]
 pub fn compute(text: &str, pos: Position) -> Option<CompletionResponse> {
+    compute_with(text, pos, None)
+}
+
+/// Produce completion items for the given cursor position. `ext` holds the
+/// dimensions and default configs defined in the other files of the
+/// document's import group (see [`utils::effective_raw`]).
+pub fn compute_with(
+    text: &str,
+    pos: Position,
+    ext: Option<&toml::Table>,
+) -> Option<CompletionResponse> {
     // Don't provide completions if cursor is inside a comment
     if utils::is_inside_comment(text, pos) {
         return None;
@@ -67,6 +79,7 @@ pub fn compute(text: &str, pos: Position) -> Option<CompletionResponse> {
             .join("\n");
         toml::from_str::<toml::Table>(&text_without_current_line).ok()
     });
+    let raw = utils::effective_raw(raw, ext);
 
     let items: Vec<CompletionItem> = match ctx {
         CursorContext::ContextInlineTable => raw
@@ -1677,5 +1690,75 @@ key2 = { value = 2, schema = { type = "integer" } }
         let result = get_default_config_table(&table);
         assert!(result.is_some());
         assert!(result.unwrap().contains_key("key2"));
+    }
+
+    fn labels(result: Option<CompletionResponse>) -> Vec<String> {
+        match result {
+            Some(CompletionResponse::Array(items)) => {
+                items.into_iter().map(|item| item.label).collect()
+            }
+            _ => vec![],
+        }
+    }
+
+    #[test]
+    fn test_overrides_only_file_completes_from_its_import_group() {
+        let text = "[[overrides]]\n_context_ = { \n";
+        let ext: toml::Table = toml::from_str(
+            r#"
+[default-configs]
+per_km_rate = { value = 20.0, schema = { type = "number" } }
+
+[dimensions]
+city = { position = 1, schema = { type = "string", enum = ["Bangalore", "Delhi"] } }
+"#,
+        )
+        .unwrap();
+
+        let pos = Position {
+            line: 1,
+            character: 14,
+        };
+        assert!(labels(compute(text, pos)).is_empty());
+        assert_eq!(labels(compute_with(text, pos, Some(&ext))), ["city"]);
+
+        let text = "[[overrides]]\n_context_ = { city = \"Delhi\" }\n\n";
+        let pos = Position {
+            line: 2,
+            character: 0,
+        };
+        assert_eq!(labels(compute_with(text, pos, Some(&ext))), ["per_km_rate"]);
+
+        let text = "[[overrides]]\n_context_ = { city = ";
+        let pos = Position {
+            line: 1,
+            character: 21,
+        };
+        assert_eq!(
+            labels(compute_with(text, pos, Some(&ext))),
+            ["\"Bangalore\"", "\"Delhi\""]
+        );
+    }
+
+    #[test]
+    fn test_import_is_never_suggested_as_a_dimension() {
+        let text = r#"dimensions.import = ["geo.dimensions.stoml"]
+
+[default-configs]
+per_km_rate = { value = 20.0, schema = { type = "number" } }
+
+[[overrides]]
+_context_ = { 
+"#;
+        let ext: toml::Table = toml::from_str(
+            "[dimensions]\ncity = { position = 1, schema = { type = \"string\" } }\n",
+        )
+        .unwrap();
+        let pos = Position {
+            line: 6,
+            character: 14,
+        };
+        assert!(labels(compute(text, pos)).is_empty());
+        assert_eq!(labels(compute_with(text, pos, Some(&ext))), ["city"]);
     }
 }

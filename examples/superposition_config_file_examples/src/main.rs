@@ -1,6 +1,8 @@
 use serde_json::{json, Map, Value};
 use std::fs;
-use superposition_core::{eval, ConfigFormat, JsonFormat, MergeStrategy, TomlFormat};
+use superposition_core::{
+    eval, parse_toml_file, ConfigFormat, JsonFormat, MergeStrategy, TomlFormat,
+};
 
 fn evaluate_and_print(
     config: &superposition_core::Config,
@@ -54,12 +56,43 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     run_json_example()?;
 
-    println!("\n=== Both examples completed successfully! ===");
+    // Example 3: TOML split across files with imports
+    println!("\n═══════════════════════════════════════════════════════════════");
+    println!("               EXAMPLE 3: TOML WITH IMPORTS                    ");
+    println!("═══════════════════════════════════════════════════════════════");
+
+    run_imports_example()?;
+
+    println!("\n=== All examples completed successfully! ===");
     println!("\nThis example demonstrated:");
     println!("1. TomlFormat::parse_config() - Parsing TOML into a Config struct");
     println!("2. JsonFormat::parse_config() - Parsing JSON into a Config struct");
     println!("3. eval_config() - Evaluating the Config with different input dimensions");
     println!("4. Both formats produce equivalent results");
+    println!("5. parse_toml_file() - Parsing a main.stoml that imports its sections");
+
+    Ok(())
+}
+
+fn run_imports_example() -> Result<(), Box<dyn std::error::Error>> {
+    // main.stoml pulls its default configs, dimensions and overrides from
+    // typed files in the same folder (and a subfolder).
+    let manifest_dir = std::env!("CARGO_MANIFEST_DIR");
+    let main_path = std::path::Path::new(manifest_dir).join("imports/main.stoml");
+    println!("\nReading TOML with imports from: {}", main_path.display());
+
+    let config = parse_toml_file(&main_path)?;
+    println!("✓ Successfully parsed main.stoml and its imports");
+    println!("  - Default config keys: {}", config.default_configs.len());
+    println!("  - Dimensions: {}", config.dimensions.len());
+    println!("  - Contexts: {}", config.contexts.len());
+
+    // Same answers as the single-file example.toml
+    let mut dims = Map::new();
+    dims.insert("city".to_string(), Value::String("Delhi".to_string()));
+    dims.insert("vehicle_type".to_string(), Value::String("cab".to_string()));
+    dims.insert("hour_of_day".to_string(), Value::Number(6.into()));
+    evaluate_and_print(&config, "Cab ride in Delhi at 6 AM (from imports)", dims);
 
     Ok(())
 }
