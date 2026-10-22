@@ -27,3 +27,17 @@ executable provider-sdk-tests
                         open-feature,
                         SuperpositionSDK,
                         superposition-open-feature-provider
+
+-- executable polling-example
+--     import:             warnings
+--     default-language:   GHC2021
+--     default-extensions: OverloadedStrings
+--     hs-source-dirs:     app
+--     main-is:            PollingExample.hs
+--     build-depends:      base ^>=4.18.2.0,
+--                         aeson,
+--                         bytestring,
+--                         text,
+--                         network-uri,
+--                         open-feature,
+--                         superposition-open-feature-provider
