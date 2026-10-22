@@ -4,7 +4,6 @@ use actix_web::{
     HttpRequest,
     web::{Data, Header, Json},
 };
-use cac_client::eval_cac;
 use chrono::{DateTime, Utc};
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, dsl::max};
 use serde_json::{Map, Value};
@@ -16,9 +15,10 @@ use service_utils::{
     },
     service::types::{AppState, EncryptionKey, SchemaName, WorkspaceContext},
 };
+use superposition_core::{eval_config, eval_with_key_sources};
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
-    Condition, Config, ConfigFilter, DBConnection, PrefixList,
+    Config, ConfigFilter, Context, DBConnection, PrefixList,
     api::config::{
         ContextPayload, DetailedResolvedConfigValue, DetailedResolvedConfiguration,
         ExplainKeyQuery, ExplainResolveQuery, Explanation, ExplanationTimelineItem,
@@ -295,7 +295,7 @@ fn evaluate_resolved_config(
     merge_strategy: MergeStrategy,
     _show_reason: bool, // TODO: Remove this
 ) -> Map<String, Value> {
-    eval_cac(config, query_data.into_inner(), merge_strategy)
+    eval_config(config, query_data.into_inner(), merge_strategy, None, None)
 }
 
 fn fetch_default_config_metadata(
@@ -338,33 +338,10 @@ fn fetch_default_config_metadata(
         .collect())
 }
 
-/// Condition and id of the last matching context that set each key. A key absent from the
-/// map was never overridden, so its value came from the default config.
-fn resolve_key_sources(
-    config: &Config,
-    context_data: &Map<String, Value>,
-) -> HashMap<String, (Condition, String)> {
-    let mut sources = HashMap::new();
-    for context in config.contexts.iter() {
-        if !superposition_types::apply(&context.condition, context_data) {
-            continue;
-        }
-        let override_id = context.override_with_keys.get_key();
-        let Some(overrides) = config.overrides.get(override_id) else {
-            continue;
-        };
-        let condition = context.condition.clone();
-        for key in overrides.keys() {
-            sources.insert(key.clone(), (condition.clone(), context.id.clone()));
-        }
-    }
-    sources
-}
-
 fn build_resolved_config(
     resolved_config: Map<String, Value>,
     metadata: &HashMap<String, DefaultConfigMetadata>,
-    sources: &HashMap<String, (Condition, String)>,
+    sources: &HashMap<String, &Context>,
 ) -> DetailedResolvedConfiguration {
     resolved_config
         .into_iter()
@@ -381,8 +358,8 @@ fn build_resolved_config(
                     description,
                     schema: schema.cloned(),
                     value,
-                    context: source.map(|(condition, _)| condition.clone()),
-                    context_id: source.map(|(_, id)| id.clone()),
+                    context: source.map(|context| context.condition.clone()),
+                    context_id: source.map(|context| context.id.clone()),
                 },
             )
         })
@@ -429,7 +406,6 @@ pub fn resolve_detailed(
     master_encryption_key: &Option<EncryptionKey>,
 ) -> superposition::Result<DetailedResolvedConfiguration> {
     let resolve_remote = resolve_options.resolve_remote;
-    let show_reason = resolve_options.show_reasoning.unwrap_or_default();
     let resolution_config = apply_resolution_filters(config, resolve_options)?;
 
     let context_data = prepare_remote_query_data(
@@ -442,17 +418,22 @@ pub fn resolve_detailed(
     )?;
     let merge_strategy = merge_strategy.into_inner();
 
-    let evaluated_context = evaluate_local_cohorts(
-        &resolution_config.dimensions,
-        context_data.clone().into_inner(),
-    );
-    let sources = resolve_key_sources(&resolution_config, &evaluated_context);
-
-    let resolved_config = evaluate_resolved_config(
-        resolution_config,
-        context_data,
+    // a single pass yields both the values and the context that set each key
+    let Config {
+        default_configs,
+        contexts,
+        overrides,
+        dimensions,
+    } = resolution_config;
+    let (resolved_config, sources) = eval_with_key_sources(
+        default_configs,
+        &contexts,
+        &overrides,
+        &dimensions,
+        context_data.into_inner(),
         merge_strategy,
-        show_reason,
+        None,
+        None,
     );
     let keys = resolved_config.keys().cloned().collect::<Vec<_>>();
     let metadata =
