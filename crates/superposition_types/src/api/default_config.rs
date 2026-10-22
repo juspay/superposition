@@ -83,3 +83,16 @@ where
     let value: Value = Deserialize::deserialize(deserializer)?;
     Ok(Some(value))
 }
+
+/// A default config as the API returns it.
+///
+/// For a symlink, `value`, `schema` and both function names are the **target's**,
+/// so a consumer renders a real type without knowing symlinks exist; `symlink_to`
+/// is the only field a link has and an ordinary key does not.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DefaultConfigResponse {
+    #[serde(flatten)]
+    pub config: crate::database::models::cac::DefaultConfig,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub symlink_to: Option<String>,
+}

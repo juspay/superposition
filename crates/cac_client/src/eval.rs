@@ -154,3 +154,113 @@ pub fn eval(
 
     result.into_inner()
 }
+
+#[cfg(test)]
+mod symlink_invariant {
+    use serde_json::{from_value, json, Map, Value};
+    use superposition_types::{symlink::SymlinkRow, Config};
+
+    use crate::{eval_cac, MergeStrategy};
+
+    const LINK: &str = "payments.retry_count";
+    const TARGET: &str = "payments.retry.count";
+
+    fn link() -> Vec<SymlinkRow> {
+        vec![SymlinkRow {
+            key: LINK.to_string(),
+            target: TARGET.to_string(),
+            description: "renamed".to_string(),
+        }]
+    }
+
+    fn query(city: &str) -> Map<String, Value> {
+        let mut data = Map::new();
+        data.insert("city".to_string(), json!(city));
+        data
+    }
+
+    fn scalar_config() -> Config {
+        let mut config: Config = from_value(json!({
+            "contexts": [{
+                "id": "ctx1",
+                "condition": { "city": "bangalore" },
+                "priority": 0,
+                "weight": 0,
+                "override_with_keys": ["ovr1"]
+            }],
+            "overrides": { "ovr1": { TARGET: 5 } },
+            "default_configs": { TARGET: 3 },
+            "dimensions": {}
+        }))
+        .expect("fixture should deserialize");
+        config.expand_symlinks(&link());
+        config
+    }
+
+    #[test]
+    fn link_equals_target_on_the_default() {
+        let resolved =
+            eval_cac(scalar_config(), query("chennai"), MergeStrategy::REPLACE);
+
+        assert_eq!(resolved.get(LINK), Some(&json!(3)));
+        assert_eq!(resolved.get(LINK), resolved.get(TARGET));
+    }
+
+    #[test]
+    fn link_equals_target_under_a_matching_context() {
+        let resolved =
+            eval_cac(scalar_config(), query("bangalore"), MergeStrategy::REPLACE);
+
+        assert_eq!(
+            resolved.get(LINK),
+            Some(&json!(5)),
+            "the link must move with the target, not freeze at the default"
+        );
+        assert_eq!(resolved.get(LINK), resolved.get(TARGET));
+    }
+
+    #[test]
+    fn link_equals_target_under_merge_strategy() {
+        // Review Focus 4: object values under MERGE must agree too, not just scalars
+        // under REPLACE.
+        let mut config: Config = from_value(json!({
+            "contexts": [{
+                "id": "ctx1",
+                "condition": { "city": "bangalore" },
+                "priority": 0,
+                "weight": 0,
+                "override_with_keys": ["ovr1"]
+            }],
+            "overrides": { "ovr1": { TARGET: { "attempts": 5 } } },
+            "default_configs": { TARGET: { "attempts": 3, "backoff": "linear" } },
+            "dimensions": {}
+        }))
+        .expect("fixture should deserialize");
+        config.expand_symlinks(&link());
+
+        let resolved = eval_cac(config, query("bangalore"), MergeStrategy::MERGE);
+
+        assert_eq!(
+            resolved.get(LINK),
+            Some(&json!({ "attempts": 5, "backoff": "linear" }))
+        );
+        assert_eq!(resolved.get(LINK), resolved.get(TARGET));
+    }
+
+    #[test]
+    fn link_survives_a_prefix_filter_that_excludes_the_target() {
+        use superposition_types::PrefixList;
+
+        let config = scalar_config();
+        let allow = PrefixList::from_iter(vec!["payments.retry_".to_string()]);
+        let exclude = PrefixList::default();
+        let filtered = config.filter_default_by_prefix(&allow, &exclude);
+
+        assert_eq!(
+            filtered.get(LINK),
+            Some(&json!(3)),
+            "an old client pinned to the old prefix keeps working through a rename"
+        );
+        assert!(!filtered.contains_key(TARGET));
+    }
+}

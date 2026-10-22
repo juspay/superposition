@@ -14,6 +14,7 @@ anyhow = { workspace = true }
 blake3 = { workspace = true }
 cac_client = { path = "../cac_client" }
 chrono = { workspace = true }
+context_aware_config = { path = "../context_aware_config" }
 diesel = { workspace = true }
 experimentation_client = { path = "../experimentation_client" }
 fred = { workspace = true, features = ["metrics"] }

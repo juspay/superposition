@@ -10,6 +10,7 @@ module Io.Superposition.Model.DefaultConfigResponse (
     setCreatedBy,
     setLastModifiedAt,
     setLastModifiedBy,
+    setSymlinkTo,
     build,
     DefaultConfigResponseBuilder,
     DefaultConfigResponse,
@@ -23,7 +24,8 @@ module Io.Superposition.Model.DefaultConfigResponse (
     created_at,
     created_by,
     last_modified_at,
-    last_modified_by
+    last_modified_by,
+    symlink_to
 ) where
 import qualified Control.Applicative
 import qualified Control.Monad.State.Strict
@@ -50,7 +52,8 @@ data DefaultConfigResponse = DefaultConfigResponse {
     created_at :: Data.Time.UTCTime,
     created_by :: Data.Text.Text,
     last_modified_at :: Data.Time.UTCTime,
-    last_modified_by :: Data.Text.Text
+    last_modified_by :: Data.Text.Text,
+    symlink_to :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -69,7 +72,8 @@ instance Data.Aeson.ToJSON DefaultConfigResponse where
         "created_at" Data.Aeson..= created_at a,
         "created_by" Data.Aeson..= created_by a,
         "last_modified_at" Data.Aeson..= last_modified_at a,
-        "last_modified_by" Data.Aeson..= last_modified_by a
+        "last_modified_by" Data.Aeson..= last_modified_by a,
+        "symlink_to" Data.Aeson..= symlink_to a
         ]
     
 
@@ -88,6 +92,7 @@ instance Data.Aeson.FromJSON DefaultConfigResponse where
         Control.Applicative.<*> (v Data.Aeson..: "created_by")
         Control.Applicative.<*> (v Data.Aeson..: "last_modified_at")
         Control.Applicative.<*> (v Data.Aeson..: "last_modified_by")
+        Control.Applicative.<*> (v Data.Aeson..:? "symlink_to")
     
 
 
@@ -103,7 +108,8 @@ data DefaultConfigResponseBuilderState = DefaultConfigResponseBuilderState {
     created_atBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     created_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     last_modified_atBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
-    last_modified_byBuilderState :: Data.Maybe.Maybe Data.Text.Text
+    last_modified_byBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    symlink_toBuilderState :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Generics.Generic
   )
@@ -120,7 +126,8 @@ defaultBuilderState = DefaultConfigResponseBuilderState {
     created_atBuilderState = Data.Maybe.Nothing,
     created_byBuilderState = Data.Maybe.Nothing,
     last_modified_atBuilderState = Data.Maybe.Nothing,
-    last_modified_byBuilderState = Data.Maybe.Nothing
+    last_modified_byBuilderState = Data.Maybe.Nothing,
+    symlink_toBuilderState = Data.Maybe.Nothing
 }
 
 type DefaultConfigResponseBuilder = Control.Monad.State.Strict.State DefaultConfigResponseBuilderState
@@ -169,6 +176,10 @@ setLastModifiedBy :: Data.Text.Text -> DefaultConfigResponseBuilder ()
 setLastModifiedBy value =
    Control.Monad.State.Strict.modify (\s -> (s { last_modified_byBuilderState = Data.Maybe.Just value }))
 
+setSymlinkTo :: Data.Maybe.Maybe Data.Text.Text -> DefaultConfigResponseBuilder ()
+setSymlinkTo value =
+   Control.Monad.State.Strict.modify (\s -> (s { symlink_toBuilderState = value }))
+
 build :: DefaultConfigResponseBuilder () -> Data.Either.Either Data.Text.Text DefaultConfigResponse
 build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
@@ -183,6 +194,7 @@ build builder = do
     created_by' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DefaultConfigResponse.DefaultConfigResponse.created_by is a required property.") Data.Either.Right (created_byBuilderState st)
     last_modified_at' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DefaultConfigResponse.DefaultConfigResponse.last_modified_at is a required property.") Data.Either.Right (last_modified_atBuilderState st)
     last_modified_by' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.DefaultConfigResponse.DefaultConfigResponse.last_modified_by is a required property.") Data.Either.Right (last_modified_byBuilderState st)
+    symlink_to' <- Data.Either.Right (symlink_toBuilderState st)
     Data.Either.Right (DefaultConfigResponse { 
         key = key',
         value = value',
@@ -194,7 +206,8 @@ build builder = do
         created_at = created_at',
         created_by = created_by',
         last_modified_at = last_modified_at',
-        last_modified_by = last_modified_by'
+        last_modified_by = last_modified_by',
+        symlink_to = symlink_to'
     })
 
 

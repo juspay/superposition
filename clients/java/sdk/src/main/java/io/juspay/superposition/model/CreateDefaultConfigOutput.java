@@ -44,6 +44,7 @@ public final class CreateDefaultConfigOutput implements SerializableStruct {
                 new RequiredTrait())
         .putMember("last_modified_by", PreludeSchemas.STRING,
                 new RequiredTrait())
+        .putMember("symlink_to", PreludeSchemas.STRING)
         .build();
 
     private static final Schema $SCHEMA_KEY = $SCHEMA.member("key");
@@ -57,6 +58,7 @@ public final class CreateDefaultConfigOutput implements SerializableStruct {
     private static final Schema $SCHEMA_CREATED_BY = $SCHEMA.member("created_by");
     private static final Schema $SCHEMA_LAST_MODIFIED_AT = $SCHEMA.member("last_modified_at");
     private static final Schema $SCHEMA_LAST_MODIFIED_BY = $SCHEMA.member("last_modified_by");
+    private static final Schema $SCHEMA_SYMLINK_TO = $SCHEMA.member("symlink_to");
 
     private final transient String key;
     private final transient Document value;
@@ -69,6 +71,7 @@ public final class CreateDefaultConfigOutput implements SerializableStruct {
     private final transient String createdBy;
     private final transient Instant lastModifiedAt;
     private final transient String lastModifiedBy;
+    private final transient String symlinkTo;
 
     private CreateDefaultConfigOutput(Builder builder) {
         this.key = builder.key;
@@ -82,6 +85,7 @@ public final class CreateDefaultConfigOutput implements SerializableStruct {
         this.createdBy = builder.createdBy;
         this.lastModifiedAt = builder.lastModifiedAt;
         this.lastModifiedBy = builder.lastModifiedBy;
+        this.symlinkTo = builder.symlinkTo;
     }
 
     public String key() {
@@ -132,6 +136,13 @@ public final class CreateDefaultConfigOutput implements SerializableStruct {
         return lastModifiedBy;
     }
 
+    /**
+     * Present only when this key is a symlink; the key whose value and schema this entry resolves to.
+     */
+    public String symlinkTo() {
+        return symlinkTo;
+    }
+
     @Override
     public String toString() {
         return ToStringSerializer.serialize(this);
@@ -156,12 +167,13 @@ public final class CreateDefaultConfigOutput implements SerializableStruct {
                && Objects.equals(this.createdAt, that.createdAt)
                && Objects.equals(this.createdBy, that.createdBy)
                && Objects.equals(this.lastModifiedAt, that.lastModifiedAt)
-               && Objects.equals(this.lastModifiedBy, that.lastModifiedBy);
+               && Objects.equals(this.lastModifiedBy, that.lastModifiedBy)
+               && Objects.equals(this.symlinkTo, that.symlinkTo);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(key, value, schemaMember, description, changeReason, valueValidationFunctionName, valueComputeFunctionName, createdAt, createdBy, lastModifiedAt, lastModifiedBy);
+        return Objects.hash(key, value, schemaMember, description, changeReason, valueValidationFunctionName, valueComputeFunctionName, createdAt, createdBy, lastModifiedAt, lastModifiedBy, symlinkTo);
     }
 
     @Override
@@ -186,6 +198,9 @@ public final class CreateDefaultConfigOutput implements SerializableStruct {
         serializer.writeString($SCHEMA_CREATED_BY, createdBy);
         serializer.writeTimestamp($SCHEMA_LAST_MODIFIED_AT, lastModifiedAt);
         serializer.writeString($SCHEMA_LAST_MODIFIED_BY, lastModifiedBy);
+        if (symlinkTo != null) {
+            serializer.writeString($SCHEMA_SYMLINK_TO, symlinkTo);
+        }
     }
 
     @Override
@@ -203,6 +218,7 @@ public final class CreateDefaultConfigOutput implements SerializableStruct {
             case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, lastModifiedBy);
             case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_VALUE_VALIDATION_FUNCTION_NAME, member, valueValidationFunctionName);
             case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_VALUE_COMPUTE_FUNCTION_NAME, member, valueComputeFunctionName);
+            case 11 -> (T) SchemaUtils.validateSameMember($SCHEMA_SYMLINK_TO, member, symlinkTo);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -227,6 +243,7 @@ public final class CreateDefaultConfigOutput implements SerializableStruct {
         builder.createdBy(this.createdBy);
         builder.lastModifiedAt(this.lastModifiedAt);
         builder.lastModifiedBy(this.lastModifiedBy);
+        builder.symlinkTo(this.symlinkTo);
         return builder;
     }
 
@@ -253,6 +270,7 @@ public final class CreateDefaultConfigOutput implements SerializableStruct {
         private String createdBy;
         private Instant lastModifiedAt;
         private String lastModifiedBy;
+        private String symlinkTo;
 
         private Builder() {}
 
@@ -367,6 +385,16 @@ public final class CreateDefaultConfigOutput implements SerializableStruct {
             return this;
         }
 
+        /**
+         * Present only when this key is a symlink; the key whose value and schema this entry resolves to.
+         *
+         * @return this builder.
+         */
+        public Builder symlinkTo(String symlinkTo) {
+            this.symlinkTo = symlinkTo;
+            return this;
+        }
+
         @Override
         public CreateDefaultConfigOutput build() {
             tracker.validate();
@@ -388,6 +416,7 @@ public final class CreateDefaultConfigOutput implements SerializableStruct {
                 case 8 -> lastModifiedBy((String) SchemaUtils.validateSameMember($SCHEMA_LAST_MODIFIED_BY, member, value));
                 case 9 -> valueValidationFunctionName((String) SchemaUtils.validateSameMember($SCHEMA_VALUE_VALIDATION_FUNCTION_NAME, member, value));
                 case 10 -> valueComputeFunctionName((String) SchemaUtils.validateSameMember($SCHEMA_VALUE_COMPUTE_FUNCTION_NAME, member, value));
+                case 11 -> symlinkTo((String) SchemaUtils.validateSameMember($SCHEMA_SYMLINK_TO, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -456,6 +485,7 @@ public final class CreateDefaultConfigOutput implements SerializableStruct {
                     case 8 -> builder.lastModifiedBy(de.readString(member));
                     case 9 -> builder.valueValidationFunctionName(de.readString(member));
                     case 10 -> builder.valueComputeFunctionName(de.readString(member));
+                    case 11 -> builder.symlinkTo(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

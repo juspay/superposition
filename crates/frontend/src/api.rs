@@ -610,16 +610,22 @@ pub async fn fetch_experiment(
 
 pub mod default_configs {
     use superposition_types::{
-        api::default_config::DefaultConfigFilters, database::models::cac::DefaultConfig,
+        api::default_config::{DefaultConfigFilters, DefaultConfigResponse},
+        database::models::cac::DefaultConfig,
     };
 
     use super::*;
 
+    /// A symlink's `symlink_to` rides along as `DefaultConfigResponse`
+    /// (`#[serde(flatten)] config: DefaultConfig` plus `symlink_to`), so a
+    /// caller that needs to know which key is a symlink - as opposed to
+    /// just its already-resolved value and schema - uses this instead of
+    /// discarding the field by deserializing into the bare `DefaultConfig`.
     pub async fn get(
         key_name: &str,
         workspace: &str,
         org_id: &str,
-    ) -> Result<DefaultConfig, String> {
+    ) -> Result<DefaultConfigResponse, String> {
         let host = use_host_server();
         let url = format!("{host}/default-config/{key_name}");
 
@@ -659,12 +665,37 @@ pub mod default_configs {
         Ok(())
     }
 
+    /// A thin wrapper over `list_resolved` that drops `symlink_to` and keeps
+    /// the plain `DefaultConfig` shape: `list` and `list_resolved` used to
+    /// have byte-identical bodies apart from the deserialization target, so
+    /// any future change to the URL, pagination or filter construction had
+    /// to be hand-mirrored between them or they'd drift. One request
+    /// path now, for the several callers that only need the plain key data
+    /// and have no use for `symlink_to`.
     pub async fn list(
         pagination: &PaginationParams,
         filters: &DefaultConfigFilters,
         workspace: &str,
         org_id: &str,
     ) -> Result<PaginatedResponse<DefaultConfig>, String> {
+        let resolved = list_resolved(pagination, filters, workspace, org_id).await?;
+        Ok(PaginatedResponse {
+            total_pages: resolved.total_pages,
+            total_items: resolved.total_items,
+            data: resolved.data.into_iter().map(|r| r.config).collect(),
+        })
+    }
+
+    /// Like `list`, but resolves each row's `symlink_to` too - for the
+    /// callers that need to tell a symlink apart from an ordinary key (the
+    /// default-config list page's badge, and the override form's collision
+    /// check).
+    pub async fn list_resolved(
+        pagination: &PaginationParams,
+        filters: &DefaultConfigFilters,
+        workspace: &str,
+        org_id: &str,
+    ) -> Result<PaginatedResponse<DefaultConfigResponse>, String> {
         let host = use_host_server();
         let url = format!(
             "{}/default-config?{}&{}",
