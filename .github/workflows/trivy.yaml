@@ -1,0 +1,110 @@
+name: Trivy Security Scan
+
+permissions:
+    contents: read
+
+on:
+    pull_request:
+        branches: [main]
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    trivy-scan:
+        name: Trivy vulnerability scan
+        runs-on: anton1
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            # Image builds are the expensive part of this workflow, so each
+            # image is built only when the Dockerfiles that define it changed;
+            # otherwise the published image is pulled and scanned instead.
+            #   superposition image  <- Dockerfile
+            #   superposition-demo   <- example.Dockerfile + Dockerfile (base)
+            - name: Detect Dockerfile changes
+              id: dockerfiles
+              shell: bash
+              run: |
+                  BASE="origin/${{ github.base_ref || 'main' }}"
+                  CHANGED="$(git diff --name-only "${BASE}...HEAD")"
+                  echo "Files changed vs ${BASE}:"
+                  echo "${CHANGED}"
+                  if echo "${CHANGED}" | grep -qxE 'Dockerfile'; then
+                      echo "superposition=true" >> "$GITHUB_OUTPUT"
+                  else
+                      echo "superposition=false" >> "$GITHUB_OUTPUT"
+                  fi
+                  if echo "${CHANGED}" | grep -qxE 'Dockerfile|example\.Dockerfile'; then
+                      echo "demo=true" >> "$GITHUB_OUTPUT"
+                  else
+                      echo "demo=false" >> "$GITHUB_OUTPUT"
+                  fi
+
+            - name: Install Trivy
+              shell: bash
+              run: |
+                  curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b "$HOME/.local/bin" v0.76.0
+                  echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+            - name: Scan repository dependencies (CRITICAL/HIGH gate)
+              shell: bash
+              run: |
+                  trivy fs \
+                    --scanners vuln \
+                    --severity CRITICAL,HIGH \
+                    --exit-code 1 \
+                    --ignorefile .trivyignore.yaml \
+                    --skip-dirs node_modules \
+                    --skip-dirs target \
+                    --skip-dirs .direnv \
+                    .
+
+            - name: Build or pull superposition image
+              shell: bash
+              run: |
+                  if [ "${{ steps.dockerfiles.outputs.superposition }}" = "true" ]; then
+                      docker build -t "superposition:pr-${{ github.sha }}" .
+                  else
+                      echo "Dockerfile unchanged; scanning published image instead of building"
+                      docker pull ghcr.io/juspay/superposition:latest
+                      docker tag ghcr.io/juspay/superposition:latest "superposition:pr-${{ github.sha }}"
+                  fi
+
+            - name: Scan superposition image (CRITICAL/HIGH gate)
+              shell: bash
+              run: |
+                  trivy image \
+                    --scanners vuln \
+                    --severity CRITICAL,HIGH \
+                    --exit-code 1 \
+                    --ignorefile .trivyignore.yaml \
+                    "superposition:pr-${{ github.sha }}"
+
+            - name: Build or pull superposition-demo image
+              shell: bash
+              run: |
+                  if [ "${{ steps.dockerfiles.outputs.demo }}" = "true" ]; then
+                      docker build \
+                        -f example.Dockerfile \
+                        --build-arg "SUPERPOSITION_BASE=superposition:pr-${{ github.sha }}" \
+                        -t "superposition-demo:pr-${{ github.sha }}" .
+                  else
+                      echo "example.Dockerfile unchanged; scanning published image instead of building"
+                      docker pull ghcr.io/juspay/superposition-demo:latest
+                      docker tag ghcr.io/juspay/superposition-demo:latest "superposition-demo:pr-${{ github.sha }}"
+                  fi
+
+            - name: Scan superposition-demo image (CRITICAL/HIGH gate)
+              shell: bash
+              run: |
+                  trivy image \
+                    --scanners vuln \
+                    --severity CRITICAL,HIGH \
+                    --exit-code 1 \
+                    --ignorefile .trivyignore.yaml \
+                    "superposition-demo:pr-${{ github.sha }}"

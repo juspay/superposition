@@ -406,6 +406,11 @@ jobs:
               with:
                   fetch-depth: 0
 
+            - name: Install Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24.1.0
+
             - name: Install Smithy CLI
               run: |
                   mkdir -p smithy-install/smithy && \
