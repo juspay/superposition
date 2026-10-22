@@ -1,3 +1,4 @@
+use std::env;
 use std::path::PathBuf;
 use std::sync::Mutex;
 
@@ -47,6 +48,36 @@ impl FileDataSource {
             file_format,
             watcher: Mutex::new(None),
         })
+    }
+
+    /// The file named by `SUPERPOSITION_CONFIG_FILE`, or else `super.toml` in
+    /// the current directory if it exists.
+    pub fn from_env() -> Result<Option<Self>> {
+        let path = match env::var_os("SUPERPOSITION_CONFIG_FILE") {
+            Some(path) => PathBuf::from(path),
+            None => {
+                let default = env::current_dir()
+                    .map_err(|error| {
+                        SuperpositionError::ConfigError(format!(
+                            "could not determine the current directory: {error}"
+                        ))
+                    })?
+                    .join("super.toml");
+                if !default.is_file() {
+                    return Ok(None);
+                }
+                default
+            }
+        };
+        if !path.is_file() {
+            return Err(SuperpositionError::ConfigError(format!(
+                "SUPERPOSITION_CONFIG_FILE points to {}, which is not a file",
+                path.display()
+            )));
+        }
+        Self::new(path)
+            .map(Some)
+            .map_err(SuperpositionError::ConfigError)
     }
 
     async fn last_modified_at(&self) -> Result<DateTime<Utc>> {
