@@ -45,6 +45,7 @@ export interface GetWebhookByEventCommandOutput extends WebhookResponse, __Metad
  * const input = { // GetWebhookByEventInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   event: "STRING_VALUE", // required
  * };
  * const command = new GetWebhookByEventCommand(input);

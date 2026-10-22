@@ -1,6 +1,7 @@
 module Io.Superposition.Model.ListAuditLogsInput (
     setWorkspaceId,
     setOrgId,
+    setUserAgent,
     setCount,
     setPage,
     setAll',
@@ -16,6 +17,7 @@ module Io.Superposition.Model.ListAuditLogsInput (
     ListAuditLogsInput,
     workspace_id,
     org_id,
+    user_agent,
     count,
     page,
     all',
@@ -48,6 +50,7 @@ import qualified Network.HTTP.Types.Method
 data ListAuditLogsInput = ListAuditLogsInput {
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text,
+    user_agent :: Data.Maybe.Maybe Data.Text.Text,
     count :: Data.Maybe.Maybe Data.Int.Int32,
     page :: Data.Maybe.Maybe Data.Int.Int32,
     all' :: Data.Maybe.Maybe Bool,
@@ -68,6 +71,7 @@ instance Data.Aeson.ToJSON ListAuditLogsInput where
     toJSON a = Data.Aeson.object [
         "workspace_id" Data.Aeson..= workspace_id a,
         "org_id" Data.Aeson..= org_id a,
+        "user_agent" Data.Aeson..= user_agent a,
         "count" Data.Aeson..= count a,
         "page" Data.Aeson..= page a,
         "all" Data.Aeson..= all' a,
@@ -87,6 +91,7 @@ instance Data.Aeson.FromJSON ListAuditLogsInput where
     parseJSON = Data.Aeson.withObject "ListAuditLogsInput" $ \v -> ListAuditLogsInput
         Data.Functor.<$> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
+        Control.Applicative.<*> (v Data.Aeson..:? "user_agent")
         Control.Applicative.<*> (v Data.Aeson..:? "count")
         Control.Applicative.<*> (v Data.Aeson..:? "page")
         Control.Applicative.<*> (v Data.Aeson..:? "all")
@@ -104,6 +109,7 @@ instance Data.Aeson.FromJSON ListAuditLogsInput where
 data ListAuditLogsInputBuilderState = ListAuditLogsInputBuilderState {
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    user_agentBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     countBuilderState :: Data.Maybe.Maybe Data.Int.Int32,
     pageBuilderState :: Data.Maybe.Maybe Data.Int.Int32,
     all'BuilderState :: Data.Maybe.Maybe Bool,
@@ -122,6 +128,7 @@ defaultBuilderState :: ListAuditLogsInputBuilderState
 defaultBuilderState = ListAuditLogsInputBuilderState {
     workspace_idBuilderState = Data.Maybe.Nothing,
     org_idBuilderState = Data.Maybe.Nothing,
+    user_agentBuilderState = Data.Maybe.Nothing,
     countBuilderState = Data.Maybe.Nothing,
     pageBuilderState = Data.Maybe.Nothing,
     all'BuilderState = Data.Maybe.Nothing,
@@ -143,6 +150,10 @@ setWorkspaceId value =
 setOrgId :: Data.Text.Text -> ListAuditLogsInputBuilder ()
 setOrgId value =
    Control.Monad.State.Strict.modify (\s -> (s { org_idBuilderState = Data.Maybe.Just value }))
+
+setUserAgent :: Data.Maybe.Maybe Data.Text.Text -> ListAuditLogsInputBuilder ()
+setUserAgent value =
+   Control.Monad.State.Strict.modify (\s -> (s { user_agentBuilderState = value }))
 
 setCount :: Data.Maybe.Maybe Data.Int.Int32 -> ListAuditLogsInputBuilder ()
 setCount value =
@@ -189,6 +200,7 @@ build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
     workspace_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListAuditLogsInput.ListAuditLogsInput.workspace_id is a required property.") Data.Either.Right (workspace_idBuilderState st)
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListAuditLogsInput.ListAuditLogsInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
+    user_agent' <- Data.Either.Right (user_agentBuilderState st)
     count' <- Data.Either.Right (countBuilderState st)
     page' <- Data.Either.Right (pageBuilderState st)
     all'' <- Data.Either.Right (all'BuilderState st)
@@ -202,6 +214,7 @@ build builder = do
     Data.Either.Right (ListAuditLogsInput { 
         workspace_id = workspace_id',
         org_id = org_id',
+        user_agent = user_agent',
         count = count',
         page = page',
         all' = all'',
@@ -223,15 +236,16 @@ instance Io.Superposition.Utility.IntoRequestBuilder ListAuditLogsInput where
             ]
         Io.Superposition.Utility.serQueryMap (dimension_params self)
         Io.Superposition.Utility.serQuery "all" (all' self)
-        Io.Superposition.Utility.serQuery "table" (tables self)
         Io.Superposition.Utility.serQuery "from_date" (from_date self)
-        Io.Superposition.Utility.serQuery "to_date" (to_date self)
         Io.Superposition.Utility.serQuery "count" (count self)
+        Io.Superposition.Utility.serQuery "sort_by" (sort_by self)
+        Io.Superposition.Utility.serQuery "table" (tables self)
+        Io.Superposition.Utility.serQuery "to_date" (to_date self)
         Io.Superposition.Utility.serQuery "action" (action self)
         Io.Superposition.Utility.serQuery "page" (page self)
-        Io.Superposition.Utility.serQuery "sort_by" (sort_by self)
         Io.Superposition.Utility.serQuery "username" (username self)
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
+        Io.Superposition.Utility.serHeader "user-agent" (user_agent self)
         
 

@@ -1,12 +1,14 @@
 module Io.Superposition.Model.GetWebhookByEventInput (
     setWorkspaceId,
     setOrgId,
+    setUserAgent,
     setEvent,
     build,
     GetWebhookByEventInputBuilder,
     GetWebhookByEventInput,
     workspace_id,
     org_id,
+    user_agent,
     event
 ) where
 import qualified Control.Applicative
@@ -25,6 +27,7 @@ import qualified Network.HTTP.Types.Method
 data GetWebhookByEventInput = GetWebhookByEventInput {
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text,
+    user_agent :: Data.Maybe.Maybe Data.Text.Text,
     event :: Data.Text.Text
 } deriving (
   GHC.Show.Show,
@@ -36,6 +39,7 @@ instance Data.Aeson.ToJSON GetWebhookByEventInput where
     toJSON a = Data.Aeson.object [
         "workspace_id" Data.Aeson..= workspace_id a,
         "org_id" Data.Aeson..= org_id a,
+        "user_agent" Data.Aeson..= user_agent a,
         "event" Data.Aeson..= event a
         ]
     
@@ -46,6 +50,7 @@ instance Data.Aeson.FromJSON GetWebhookByEventInput where
     parseJSON = Data.Aeson.withObject "GetWebhookByEventInput" $ \v -> GetWebhookByEventInput
         Data.Functor.<$> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
+        Control.Applicative.<*> (v Data.Aeson..:? "user_agent")
         Control.Applicative.<*> (v Data.Aeson..: "event")
     
 
@@ -54,6 +59,7 @@ instance Data.Aeson.FromJSON GetWebhookByEventInput where
 data GetWebhookByEventInputBuilderState = GetWebhookByEventInputBuilderState {
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    user_agentBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     eventBuilderState :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
   GHC.Generics.Generic
@@ -63,6 +69,7 @@ defaultBuilderState :: GetWebhookByEventInputBuilderState
 defaultBuilderState = GetWebhookByEventInputBuilderState {
     workspace_idBuilderState = Data.Maybe.Nothing,
     org_idBuilderState = Data.Maybe.Nothing,
+    user_agentBuilderState = Data.Maybe.Nothing,
     eventBuilderState = Data.Maybe.Nothing
 }
 
@@ -76,6 +83,10 @@ setOrgId :: Data.Text.Text -> GetWebhookByEventInputBuilder ()
 setOrgId value =
    Control.Monad.State.Strict.modify (\s -> (s { org_idBuilderState = Data.Maybe.Just value }))
 
+setUserAgent :: Data.Maybe.Maybe Data.Text.Text -> GetWebhookByEventInputBuilder ()
+setUserAgent value =
+   Control.Monad.State.Strict.modify (\s -> (s { user_agentBuilderState = value }))
+
 setEvent :: Data.Text.Text -> GetWebhookByEventInputBuilder ()
 setEvent value =
    Control.Monad.State.Strict.modify (\s -> (s { eventBuilderState = Data.Maybe.Just value }))
@@ -85,10 +96,12 @@ build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
     workspace_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetWebhookByEventInput.GetWebhookByEventInput.workspace_id is a required property.") Data.Either.Right (workspace_idBuilderState st)
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetWebhookByEventInput.GetWebhookByEventInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
+    user_agent' <- Data.Either.Right (user_agentBuilderState st)
     event' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetWebhookByEventInput.GetWebhookByEventInput.event is a required property.") Data.Either.Right (eventBuilderState st)
     Data.Either.Right (GetWebhookByEventInput { 
         workspace_id = workspace_id',
         org_id = org_id',
+        user_agent = user_agent',
         event = event'
     })
 
@@ -104,5 +117,6 @@ instance Io.Superposition.Utility.IntoRequestBuilder GetWebhookByEventInput wher
         
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
+        Io.Superposition.Utility.serHeader "user-agent" (user_agent self)
         
 

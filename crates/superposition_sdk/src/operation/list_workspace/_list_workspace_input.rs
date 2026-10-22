@@ -11,6 +11,8 @@ pub struct ListWorkspaceInput  {
     pub all: ::std::option::Option<bool>,
     #[allow(missing_docs)] // documentation missing in model
     pub org_id: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub user_agent: ::std::option::Option<::std::string::String>,
 }
 impl  ListWorkspaceInput  {
     /// Number of items to be returned in each page.
@@ -29,6 +31,10 @@ impl  ListWorkspaceInput  {
     pub fn org_id(&self) -> ::std::option::Option<&str> {
         self.org_id.as_deref()
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn user_agent(&self) -> ::std::option::Option<&str> {
+        self.user_agent.as_deref()
+    }
 }
 impl ListWorkspaceInput {
     /// Creates a new builder-style object to manufacture [`ListWorkspaceInput`](crate::operation::list_workspace::ListWorkspaceInput).
@@ -45,6 +51,7 @@ pub struct ListWorkspaceInputBuilder {
     pub(crate) page: ::std::option::Option<i32>,
     pub(crate) all: ::std::option::Option<bool>,
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
+    pub(crate) user_agent: ::std::option::Option<::std::string::String>,
 }
 impl ListWorkspaceInputBuilder {
     /// Number of items to be returned in each page.
@@ -100,6 +107,19 @@ impl ListWorkspaceInputBuilder {
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
         &self.org_id
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn user_agent(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.user_agent = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_user_agent(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.user_agent = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_user_agent(&self) -> &::std::option::Option<::std::string::String> {
+        &self.user_agent
+    }
     /// Consumes the builder and constructs a [`ListWorkspaceInput`](crate::operation::list_workspace::ListWorkspaceInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::list_workspace::ListWorkspaceInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
@@ -111,6 +131,8 @@ impl ListWorkspaceInputBuilder {
                 all: self.all
                 ,
                 org_id: self.org_id
+                ,
+                user_agent: self.user_agent
                 ,
             }
         )

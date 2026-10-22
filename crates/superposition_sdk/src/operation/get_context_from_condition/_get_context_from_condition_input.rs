@@ -8,6 +8,8 @@ pub struct GetContextFromConditionInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub org_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
+    pub user_agent: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
     pub context: ::std::option::Option<::aws_smithy_types::Document>,
 }
 impl  GetContextFromConditionInput  {
@@ -18,6 +20,10 @@ impl  GetContextFromConditionInput  {
     #[allow(missing_docs)] // documentation missing in model
     pub fn org_id(&self) -> ::std::option::Option<&str> {
         self.org_id.as_deref()
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn user_agent(&self) -> ::std::option::Option<&str> {
+        self.user_agent.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn context(&self) -> ::std::option::Option<&::aws_smithy_types::Document> {
@@ -37,6 +43,7 @@ impl GetContextFromConditionInput {
 pub struct GetContextFromConditionInputBuilder {
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
+    pub(crate) user_agent: ::std::option::Option<::std::string::String>,
     pub(crate) context: ::std::option::Option<::aws_smithy_types::Document>,
 }
 impl GetContextFromConditionInputBuilder {
@@ -69,6 +76,19 @@ impl GetContextFromConditionInputBuilder {
         &self.org_id
     }
     #[allow(missing_docs)] // documentation missing in model
+    pub fn user_agent(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.user_agent = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_user_agent(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.user_agent = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_user_agent(&self) -> &::std::option::Option<::std::string::String> {
+        &self.user_agent
+    }
+    #[allow(missing_docs)] // documentation missing in model
     pub fn context(mut self, input: ::aws_smithy_types::Document) -> Self {
         self.context = ::std::option::Option::Some(input);
         self
@@ -88,6 +108,8 @@ impl GetContextFromConditionInputBuilder {
                 workspace_id: self.workspace_id
                 ,
                 org_id: self.org_id
+                ,
+                user_agent: self.user_agent
                 ,
                 context: self.context
                 ,

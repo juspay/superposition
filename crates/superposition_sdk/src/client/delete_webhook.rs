@@ -5,6 +5,7 @@ impl super::Client {
                             /// - The fluent builder is configurable:
     ///   - [`workspace_id(impl Into<String>)`](crate::operation::delete_webhook::builders::DeleteWebhookFluentBuilder::workspace_id) / [`set_workspace_id(Option<String>)`](crate::operation::delete_webhook::builders::DeleteWebhookFluentBuilder::set_workspace_id):<br>required: **true**<br>(undocumented)<br>
     ///   - [`org_id(impl Into<String>)`](crate::operation::delete_webhook::builders::DeleteWebhookFluentBuilder::org_id) / [`set_org_id(Option<String>)`](crate::operation::delete_webhook::builders::DeleteWebhookFluentBuilder::set_org_id):<br>required: **true**<br>(undocumented)<br>
+    ///   - [`user_agent(impl Into<String>)`](crate::operation::delete_webhook::builders::DeleteWebhookFluentBuilder::user_agent) / [`set_user_agent(Option<String>)`](crate::operation::delete_webhook::builders::DeleteWebhookFluentBuilder::set_user_agent):<br>required: **false**<br>(undocumented)<br>
     ///   - [`name(impl Into<String>)`](crate::operation::delete_webhook::builders::DeleteWebhookFluentBuilder::name) / [`set_name(Option<String>)`](crate::operation::delete_webhook::builders::DeleteWebhookFluentBuilder::set_name):<br>required: **true**<br>(undocumented)<br>
                             /// - On success, responds with [`DeleteWebhookOutput`](crate::operation::delete_webhook::DeleteWebhookOutput)
                             /// - On failure, responds with [`SdkError<DeleteWebhookError>`](crate::operation::delete_webhook::DeleteWebhookError)

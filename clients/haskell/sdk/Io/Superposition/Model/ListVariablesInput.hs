@@ -4,6 +4,7 @@ module Io.Superposition.Model.ListVariablesInput (
     setAll',
     setWorkspaceId,
     setOrgId,
+    setUserAgent,
     setName,
     setCreatedBy,
     setLastModifiedBy,
@@ -17,6 +18,7 @@ module Io.Superposition.Model.ListVariablesInput (
     all',
     workspace_id,
     org_id,
+    user_agent,
     name,
     created_by,
     last_modified_by,
@@ -45,6 +47,7 @@ data ListVariablesInput = ListVariablesInput {
     all' :: Data.Maybe.Maybe Bool,
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text,
+    user_agent :: Data.Maybe.Maybe Data.Text.Text,
     name :: Data.Maybe.Maybe ([] Data.Text.Text),
     created_by :: Data.Maybe.Maybe ([] Data.Text.Text),
     last_modified_by :: Data.Maybe.Maybe ([] Data.Text.Text),
@@ -63,6 +66,7 @@ instance Data.Aeson.ToJSON ListVariablesInput where
         "all" Data.Aeson..= all' a,
         "workspace_id" Data.Aeson..= workspace_id a,
         "org_id" Data.Aeson..= org_id a,
+        "user_agent" Data.Aeson..= user_agent a,
         "name" Data.Aeson..= name a,
         "created_by" Data.Aeson..= created_by a,
         "last_modified_by" Data.Aeson..= last_modified_by a,
@@ -80,6 +84,7 @@ instance Data.Aeson.FromJSON ListVariablesInput where
         Control.Applicative.<*> (v Data.Aeson..:? "all")
         Control.Applicative.<*> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
+        Control.Applicative.<*> (v Data.Aeson..:? "user_agent")
         Control.Applicative.<*> (v Data.Aeson..:? "name")
         Control.Applicative.<*> (v Data.Aeson..:? "created_by")
         Control.Applicative.<*> (v Data.Aeson..:? "last_modified_by")
@@ -95,6 +100,7 @@ data ListVariablesInputBuilderState = ListVariablesInputBuilderState {
     all'BuilderState :: Data.Maybe.Maybe Bool,
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    user_agentBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     nameBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     created_byBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     last_modified_byBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
@@ -111,6 +117,7 @@ defaultBuilderState = ListVariablesInputBuilderState {
     all'BuilderState = Data.Maybe.Nothing,
     workspace_idBuilderState = Data.Maybe.Nothing,
     org_idBuilderState = Data.Maybe.Nothing,
+    user_agentBuilderState = Data.Maybe.Nothing,
     nameBuilderState = Data.Maybe.Nothing,
     created_byBuilderState = Data.Maybe.Nothing,
     last_modified_byBuilderState = Data.Maybe.Nothing,
@@ -140,6 +147,10 @@ setOrgId :: Data.Text.Text -> ListVariablesInputBuilder ()
 setOrgId value =
    Control.Monad.State.Strict.modify (\s -> (s { org_idBuilderState = Data.Maybe.Just value }))
 
+setUserAgent :: Data.Maybe.Maybe Data.Text.Text -> ListVariablesInputBuilder ()
+setUserAgent value =
+   Control.Monad.State.Strict.modify (\s -> (s { user_agentBuilderState = value }))
+
 setName :: Data.Maybe.Maybe ([] Data.Text.Text) -> ListVariablesInputBuilder ()
 setName value =
    Control.Monad.State.Strict.modify (\s -> (s { nameBuilderState = value }))
@@ -168,6 +179,7 @@ build builder = do
     all'' <- Data.Either.Right (all'BuilderState st)
     workspace_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListVariablesInput.ListVariablesInput.workspace_id is a required property.") Data.Either.Right (workspace_idBuilderState st)
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListVariablesInput.ListVariablesInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
+    user_agent' <- Data.Either.Right (user_agentBuilderState st)
     name' <- Data.Either.Right (nameBuilderState st)
     created_by' <- Data.Either.Right (created_byBuilderState st)
     last_modified_by' <- Data.Either.Right (last_modified_byBuilderState st)
@@ -179,6 +191,7 @@ build builder = do
         all' = all'',
         workspace_id = workspace_id',
         org_id = org_id',
+        user_agent = user_agent',
         name = name',
         created_by = created_by',
         last_modified_by = last_modified_by',
@@ -203,5 +216,6 @@ instance Io.Superposition.Utility.IntoRequestBuilder ListVariablesInput where
         Io.Superposition.Utility.serQuery "created_by" (created_by self)
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
+        Io.Superposition.Utility.serHeader "user-agent" (user_agent self)
         
 

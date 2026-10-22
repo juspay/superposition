@@ -31,6 +31,8 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
         .putMember("org_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-org-id"),
                 new RequiredTrait())
+        .putMember("user_agent", PreludeSchemas.STRING,
+                new HttpHeaderTrait("user-agent"))
         .putMember("id", PreludeSchemas.STRING,
                 new HttpLabelTrait(),
                 new RequiredTrait())
@@ -47,6 +49,7 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
+    private static final Schema $SCHEMA_USER_AGENT = $SCHEMA.member("user_agent");
     private static final Schema $SCHEMA_ID = $SCHEMA.member("id");
     private static final Schema $SCHEMA_VARIANT_LIST = $SCHEMA.member("variant_list");
     private static final Schema $SCHEMA_DESCRIPTION = $SCHEMA.member("description");
@@ -57,6 +60,7 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
 
     private final transient String workspaceId;
     private final transient String orgId;
+    private final transient String userAgent;
     private final transient String id;
     private final transient List<VariantUpdateRequest> variantList;
     private final transient String description;
@@ -68,6 +72,7 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
     private UpdateOverridesExperimentInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
+        this.userAgent = builder.userAgent;
         this.id = builder.id;
         this.variantList = Collections.unmodifiableList(builder.variantList);
         this.description = builder.description;
@@ -83,6 +88,10 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
 
     public String orgId() {
         return orgId;
+    }
+
+    public String userAgent() {
+        return userAgent;
     }
 
     public String id() {
@@ -141,6 +150,7 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
         UpdateOverridesExperimentInput that = (UpdateOverridesExperimentInput) other;
         return Objects.equals(this.workspaceId, that.workspaceId)
                && Objects.equals(this.orgId, that.orgId)
+               && Objects.equals(this.userAgent, that.userAgent)
                && Objects.equals(this.id, that.id)
                && Objects.equals(this.variantList, that.variantList)
                && Objects.equals(this.description, that.description)
@@ -152,7 +162,7 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, id, variantList, description, changeReason, metrics, experimentGroupId, configTags);
+        return Objects.hash(workspaceId, orgId, userAgent, id, variantList, description, changeReason, metrics, experimentGroupId, configTags);
     }
 
     @Override
@@ -164,6 +174,9 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
     public void serializeMembers(ShapeSerializer serializer) {
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
+        if (userAgent != null) {
+            serializer.writeString($SCHEMA_USER_AGENT, userAgent);
+        }
         serializer.writeString($SCHEMA_ID, id);
         serializer.writeList($SCHEMA_VARIANT_LIST, variantList, variantList.size(), SharedSerde.ListVariantUpdateRequestSerializer.INSTANCE);
         if (description != null) {
@@ -190,10 +203,11 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
             case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_ID, member, id);
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_VARIANT_LIST, member, variantList);
             case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, changeReason);
-            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, description);
-            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, metrics);
-            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_GROUP_ID, member, experimentGroupId);
-            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONFIG_TAGS, member, configTags);
+            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, userAgent);
+            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, description);
+            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, metrics);
+            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_GROUP_ID, member, experimentGroupId);
+            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONFIG_TAGS, member, configTags);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -209,6 +223,7 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
         var builder = new Builder();
         builder.workspaceId(this.workspaceId);
         builder.orgId(this.orgId);
+        builder.userAgent(this.userAgent);
         builder.id(this.id);
         builder.variantList(this.variantList);
         builder.description(this.description);
@@ -233,6 +248,7 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private String workspaceId;
         private String orgId;
+        private String userAgent;
         private String id;
         private List<VariantUpdateRequest> variantList;
         private String description;
@@ -265,6 +281,14 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
         public Builder orgId(String orgId) {
             this.orgId = Objects.requireNonNull(orgId, "orgId cannot be null");
             tracker.setMember($SCHEMA_ORG_ID);
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
+        public Builder userAgent(String userAgent) {
+            this.userAgent = userAgent;
             return this;
         }
 
@@ -351,10 +375,11 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
                 case 2 -> id((String) SchemaUtils.validateSameMember($SCHEMA_ID, member, value));
                 case 3 -> variantList((List<VariantUpdateRequest>) SchemaUtils.validateSameMember($SCHEMA_VARIANT_LIST, member, value));
                 case 4 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
-                case 5 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
-                case 6 -> metrics((Document) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, value));
-                case 7 -> experimentGroupId((String) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_GROUP_ID, member, value));
-                case 8 -> configTags((String) SchemaUtils.validateSameMember($SCHEMA_CONFIG_TAGS, member, value));
+                case 5 -> userAgent((String) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, value));
+                case 6 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
+                case 7 -> metrics((Document) SchemaUtils.validateSameMember($SCHEMA_METRICS, member, value));
+                case 8 -> experimentGroupId((String) SchemaUtils.validateSameMember($SCHEMA_EXPERIMENT_GROUP_ID, member, value));
+                case 9 -> configTags((String) SchemaUtils.validateSameMember($SCHEMA_CONFIG_TAGS, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -405,10 +430,11 @@ public final class UpdateOverridesExperimentInput implements SerializableStruct 
                     case 2 -> builder.id(de.readString(member));
                     case 3 -> builder.variantList(SharedSerde.deserializeListVariantUpdateRequest(member, de));
                     case 4 -> builder.changeReason(de.readString(member));
-                    case 5 -> builder.description(de.readString(member));
-                    case 6 -> builder.metrics(de.readDocument());
-                    case 7 -> builder.experimentGroupId(de.readString(member));
-                    case 8 -> builder.configTags(de.readString(member));
+                    case 5 -> builder.userAgent(de.readString(member));
+                    case 6 -> builder.description(de.readString(member));
+                    case 7 -> builder.metrics(de.readDocument());
+                    case 8 -> builder.experimentGroupId(de.readString(member));
+                    case 9 -> builder.configTags(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

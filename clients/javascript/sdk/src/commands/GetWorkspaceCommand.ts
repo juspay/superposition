@@ -44,6 +44,7 @@ export interface GetWorkspaceCommandOutput extends WorkspaceResponse, __Metadata
  * const client = new SuperpositionClient(config);
  * const input = { // GetWorkspaceInput
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   workspace_name: "STRING_VALUE", // required
  * };
  * const command = new GetWorkspaceCommand(input);

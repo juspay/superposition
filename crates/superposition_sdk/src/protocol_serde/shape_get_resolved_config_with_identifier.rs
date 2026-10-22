@@ -83,9 +83,21 @@ pub fn ser_get_resolved_config_with_identifier_headers(
                             })?;
                             builder = builder.header("x-org-id", header_value);
     }
-    if let ::std::option::Option::Some(inner_5) = &input.merge_strategy {
+    if let ::std::option::Option::Some(inner_5) = &input.user_agent {
         let formatted_6 = inner_5.as_str();
         let header_value = formatted_6;
+                            let header_value: ::http::HeaderValue = header_value.parse().map_err(|err| {
+                                ::aws_smithy_types::error::operation::BuildError::invalid_field("user_agent", format!(
+                                "`{}` cannot be used as a header value: {}",
+                                &header_value,
+                                err
+                            ))
+                            })?;
+                            builder = builder.header("user-agent", header_value);
+    }
+    if let ::std::option::Option::Some(inner_7) = &input.merge_strategy {
+        let formatted_8 = inner_7.as_str();
+        let header_value = formatted_8;
                             let header_value: ::http::HeaderValue = header_value.parse().map_err(|err| {
                                 ::aws_smithy_types::error::operation::BuildError::invalid_field("merge_strategy", format!(
                                 "`{}` cannot be used as a header value: {}",

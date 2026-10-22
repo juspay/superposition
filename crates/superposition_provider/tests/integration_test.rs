@@ -384,12 +384,14 @@ async fn run_provider_tests(org_id: &str, workspace_id: &str) {
         auth: AuthMethod::Token(TOKEN.to_string()),
         org_id: org_id.to_string(),
         workspace_id: workspace_id.to_string(),
+        user_agent: Some("superposition-provider-integration-test".to_string()),
     };
     let wrong_http_options = SuperpositionOptions {
         endpoint: ENDPOINT.to_string(),
         auth: AuthMethod::Token("12345678".to_string()),
         org_id: org_id.to_string(),
         workspace_id: "workspace_id".to_string(),
+        user_agent: None,
     };
     let primary_source = HttpDataSource::new(http_options.clone());
     let fallback_source = FileDataSource::new("tests/config.toml".into()).unwrap();

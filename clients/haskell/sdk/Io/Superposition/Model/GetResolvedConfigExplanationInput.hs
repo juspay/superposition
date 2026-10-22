@@ -1,6 +1,7 @@
 module Io.Superposition.Model.GetResolvedConfigExplanationInput (
     setWorkspaceId,
     setOrgId,
+    setUserAgent,
     setKey,
     setVersion,
     setMergeStrategy,
@@ -12,6 +13,7 @@ module Io.Superposition.Model.GetResolvedConfigExplanationInput (
     GetResolvedConfigExplanationInput,
     workspace_id,
     org_id,
+    user_agent,
     key,
     version,
     merge_strategy,
@@ -37,6 +39,7 @@ import qualified Network.HTTP.Types.Method
 data GetResolvedConfigExplanationInput = GetResolvedConfigExplanationInput {
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text,
+    user_agent :: Data.Maybe.Maybe Data.Text.Text,
     key :: Data.Text.Text,
     version :: Data.Maybe.Maybe Data.Text.Text,
     merge_strategy :: Data.Maybe.Maybe Io.Superposition.Model.MergeStrategy.MergeStrategy,
@@ -53,6 +56,7 @@ instance Data.Aeson.ToJSON GetResolvedConfigExplanationInput where
     toJSON a = Data.Aeson.object [
         "workspace_id" Data.Aeson..= workspace_id a,
         "org_id" Data.Aeson..= org_id a,
+        "user_agent" Data.Aeson..= user_agent a,
         "key" Data.Aeson..= key a,
         "version" Data.Aeson..= version a,
         "merge_strategy" Data.Aeson..= merge_strategy a,
@@ -68,6 +72,7 @@ instance Data.Aeson.FromJSON GetResolvedConfigExplanationInput where
     parseJSON = Data.Aeson.withObject "GetResolvedConfigExplanationInput" $ \v -> GetResolvedConfigExplanationInput
         Data.Functor.<$> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
+        Control.Applicative.<*> (v Data.Aeson..:? "user_agent")
         Control.Applicative.<*> (v Data.Aeson..: "key")
         Control.Applicative.<*> (v Data.Aeson..:? "version")
         Control.Applicative.<*> (v Data.Aeson..:? "merge_strategy")
@@ -81,6 +86,7 @@ instance Data.Aeson.FromJSON GetResolvedConfigExplanationInput where
 data GetResolvedConfigExplanationInputBuilderState = GetResolvedConfigExplanationInputBuilderState {
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    user_agentBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     keyBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     versionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     merge_strategyBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.MergeStrategy.MergeStrategy,
@@ -95,6 +101,7 @@ defaultBuilderState :: GetResolvedConfigExplanationInputBuilderState
 defaultBuilderState = GetResolvedConfigExplanationInputBuilderState {
     workspace_idBuilderState = Data.Maybe.Nothing,
     org_idBuilderState = Data.Maybe.Nothing,
+    user_agentBuilderState = Data.Maybe.Nothing,
     keyBuilderState = Data.Maybe.Nothing,
     versionBuilderState = Data.Maybe.Nothing,
     merge_strategyBuilderState = Data.Maybe.Nothing,
@@ -112,6 +119,10 @@ setWorkspaceId value =
 setOrgId :: Data.Text.Text -> GetResolvedConfigExplanationInputBuilder ()
 setOrgId value =
    Control.Monad.State.Strict.modify (\s -> (s { org_idBuilderState = Data.Maybe.Just value }))
+
+setUserAgent :: Data.Maybe.Maybe Data.Text.Text -> GetResolvedConfigExplanationInputBuilder ()
+setUserAgent value =
+   Control.Monad.State.Strict.modify (\s -> (s { user_agentBuilderState = value }))
 
 setKey :: Data.Text.Text -> GetResolvedConfigExplanationInputBuilder ()
 setKey value =
@@ -142,6 +153,7 @@ build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
     workspace_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetResolvedConfigExplanationInput.GetResolvedConfigExplanationInput.workspace_id is a required property.") Data.Either.Right (workspace_idBuilderState st)
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetResolvedConfigExplanationInput.GetResolvedConfigExplanationInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
+    user_agent' <- Data.Either.Right (user_agentBuilderState st)
     key' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetResolvedConfigExplanationInput.GetResolvedConfigExplanationInput.key is a required property.") Data.Either.Right (keyBuilderState st)
     version' <- Data.Either.Right (versionBuilderState st)
     merge_strategy' <- Data.Either.Right (merge_strategyBuilderState st)
@@ -151,6 +163,7 @@ build builder = do
     Data.Either.Right (GetResolvedConfigExplanationInput { 
         workspace_id = workspace_id',
         org_id = org_id',
+        user_agent = user_agent',
         key = key',
         version = version',
         merge_strategy = merge_strategy',
@@ -175,5 +188,6 @@ instance Io.Superposition.Utility.IntoRequestBuilder GetResolvedConfigExplanatio
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-merge-strategy" (merge_strategy self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
+        Io.Superposition.Utility.serHeader "user-agent" (user_agent self)
         Io.Superposition.Utility.serField "context" (context self)
 

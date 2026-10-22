@@ -45,6 +45,7 @@ export interface CreateExperimentGroupCommandOutput extends ExperimentGroupRespo
  * const input = { // CreateExperimentGroupRequest
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   name: "STRING_VALUE", // required
  *   description: "STRING_VALUE", // required
  *   change_reason: "STRING_VALUE", // required

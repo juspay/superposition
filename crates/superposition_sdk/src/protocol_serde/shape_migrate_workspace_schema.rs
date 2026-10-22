@@ -73,6 +73,18 @@ pub fn ser_migrate_workspace_schema_headers(
                             })?;
                             builder = builder.header("x-org-id", header_value);
     }
+    if let ::std::option::Option::Some(inner_3) = &input.user_agent {
+        let formatted_4 = inner_3.as_str();
+        let header_value = formatted_4;
+                            let header_value: ::http::HeaderValue = header_value.parse().map_err(|err| {
+                                ::aws_smithy_types::error::operation::BuildError::invalid_field("user_agent", format!(
+                                "`{}` cannot be used as a header value: {}",
+                                &header_value,
+                                err
+                            ))
+                            })?;
+                            builder = builder.header("user-agent", header_value);
+    }
     Ok(builder)
 }
 

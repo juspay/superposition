@@ -159,6 +159,7 @@ class SuperpositionAPIProvider(AbstractProvider, AllFeatureProvider, FeatureExpe
                 input=ApplicableVariantsInput(
                     workspace_id=self.options.workspace_id,
                     org_id=self.options.org_id,
+                    user_agent=self.options.user_agent,
                     identifier=targeting_key,
                     context=merged_context,
                     prefix=prefix_filter,
@@ -288,6 +289,7 @@ class SuperpositionAPIProvider(AbstractProvider, AllFeatureProvider, FeatureExpe
                 input=GetResolvedConfigWithIdentifierInput(
                     workspace_id=self.options.workspace_id,
                     org_id=self.options.org_id,
+                    user_agent=self.options.user_agent,
                     context=merged_context,
                     prefix=prefix_filter,
                     exclude_prefix=exclude_prefix_filter,

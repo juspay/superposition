@@ -5,6 +5,7 @@ impl super::Client {
                             /// - The fluent builder is configurable:
     ///   - [`workspace_id(impl Into<String>)`](crate::operation::get_webhook::builders::GetWebhookFluentBuilder::workspace_id) / [`set_workspace_id(Option<String>)`](crate::operation::get_webhook::builders::GetWebhookFluentBuilder::set_workspace_id):<br>required: **true**<br>(undocumented)<br>
     ///   - [`org_id(impl Into<String>)`](crate::operation::get_webhook::builders::GetWebhookFluentBuilder::org_id) / [`set_org_id(Option<String>)`](crate::operation::get_webhook::builders::GetWebhookFluentBuilder::set_org_id):<br>required: **true**<br>(undocumented)<br>
+    ///   - [`user_agent(impl Into<String>)`](crate::operation::get_webhook::builders::GetWebhookFluentBuilder::user_agent) / [`set_user_agent(Option<String>)`](crate::operation::get_webhook::builders::GetWebhookFluentBuilder::set_user_agent):<br>required: **false**<br>(undocumented)<br>
     ///   - [`name(impl Into<String>)`](crate::operation::get_webhook::builders::GetWebhookFluentBuilder::name) / [`set_name(Option<String>)`](crate::operation::get_webhook::builders::GetWebhookFluentBuilder::set_name):<br>required: **true**<br>(undocumented)<br>
                             /// - On success, responds with [`GetWebhookOutput`](crate::operation::get_webhook::GetWebhookOutput) with field(s):
     ///   - [`name(String)`](crate::operation::get_webhook::GetWebhookOutput::name): (undocumented)

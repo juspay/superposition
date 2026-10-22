@@ -45,6 +45,7 @@ export interface ListAuditLogsCommandOutput extends ListAuditLogsOutput, __Metad
  * const input = { // ListAuditLogsInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   count: Number("int"),
  *   page: Number("int"),
  *   all: true || false,

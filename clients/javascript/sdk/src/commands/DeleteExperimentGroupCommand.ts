@@ -45,6 +45,7 @@ export interface DeleteExperimentGroupCommandOutput extends ExperimentGroupRespo
  * const input = { // DeleteExperimentGroupInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   id: "STRING_VALUE", // required
  * };
  * const command = new DeleteExperimentGroupCommand(input);

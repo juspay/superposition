@@ -42,6 +42,7 @@ export interface ValidateContextCommandOutput extends __MetadataBearer {}
  * const input = { // ValidateContextInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   context: { // Condition // required
  *     "<keys>": "DOCUMENT_VALUE",
  *   },

@@ -1,6 +1,7 @@
 module Io.Superposition.Model.UpdateDefaultConfigInput (
     setWorkspaceId,
     setOrgId,
+    setUserAgent,
     setKey,
     setChangeReason,
     setValue,
@@ -13,6 +14,7 @@ module Io.Superposition.Model.UpdateDefaultConfigInput (
     UpdateDefaultConfigInput,
     workspace_id,
     org_id,
+    user_agent,
     key,
     change_reason,
     value,
@@ -38,6 +40,7 @@ import qualified Network.HTTP.Types.Method
 data UpdateDefaultConfigInput = UpdateDefaultConfigInput {
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text,
+    user_agent :: Data.Maybe.Maybe Data.Text.Text,
     key :: Data.Text.Text,
     change_reason :: Data.Text.Text,
     value :: Data.Maybe.Maybe Data.Aeson.Value,
@@ -55,6 +58,7 @@ instance Data.Aeson.ToJSON UpdateDefaultConfigInput where
     toJSON a = Data.Aeson.object [
         "workspace_id" Data.Aeson..= workspace_id a,
         "org_id" Data.Aeson..= org_id a,
+        "user_agent" Data.Aeson..= user_agent a,
         "key" Data.Aeson..= key a,
         "change_reason" Data.Aeson..= change_reason a,
         "value" Data.Aeson..= value a,
@@ -71,6 +75,7 @@ instance Data.Aeson.FromJSON UpdateDefaultConfigInput where
     parseJSON = Data.Aeson.withObject "UpdateDefaultConfigInput" $ \v -> UpdateDefaultConfigInput
         Data.Functor.<$> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
+        Control.Applicative.<*> (v Data.Aeson..:? "user_agent")
         Control.Applicative.<*> (v Data.Aeson..: "key")
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
         Control.Applicative.<*> (v Data.Aeson..:? "value")
@@ -85,6 +90,7 @@ instance Data.Aeson.FromJSON UpdateDefaultConfigInput where
 data UpdateDefaultConfigInputBuilderState = UpdateDefaultConfigInputBuilderState {
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    user_agentBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     keyBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     change_reasonBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     valueBuilderState :: Data.Maybe.Maybe Data.Aeson.Value,
@@ -100,6 +106,7 @@ defaultBuilderState :: UpdateDefaultConfigInputBuilderState
 defaultBuilderState = UpdateDefaultConfigInputBuilderState {
     workspace_idBuilderState = Data.Maybe.Nothing,
     org_idBuilderState = Data.Maybe.Nothing,
+    user_agentBuilderState = Data.Maybe.Nothing,
     keyBuilderState = Data.Maybe.Nothing,
     change_reasonBuilderState = Data.Maybe.Nothing,
     valueBuilderState = Data.Maybe.Nothing,
@@ -118,6 +125,10 @@ setWorkspaceId value =
 setOrgId :: Data.Text.Text -> UpdateDefaultConfigInputBuilder ()
 setOrgId value =
    Control.Monad.State.Strict.modify (\s -> (s { org_idBuilderState = Data.Maybe.Just value }))
+
+setUserAgent :: Data.Maybe.Maybe Data.Text.Text -> UpdateDefaultConfigInputBuilder ()
+setUserAgent value =
+   Control.Monad.State.Strict.modify (\s -> (s { user_agentBuilderState = value }))
 
 setKey :: Data.Text.Text -> UpdateDefaultConfigInputBuilder ()
 setKey value =
@@ -152,6 +163,7 @@ build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
     workspace_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateDefaultConfigInput.UpdateDefaultConfigInput.workspace_id is a required property.") Data.Either.Right (workspace_idBuilderState st)
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateDefaultConfigInput.UpdateDefaultConfigInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
+    user_agent' <- Data.Either.Right (user_agentBuilderState st)
     key' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateDefaultConfigInput.UpdateDefaultConfigInput.key is a required property.") Data.Either.Right (keyBuilderState st)
     change_reason' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateDefaultConfigInput.UpdateDefaultConfigInput.change_reason is a required property.") Data.Either.Right (change_reasonBuilderState st)
     value' <- Data.Either.Right (valueBuilderState st)
@@ -162,6 +174,7 @@ build builder = do
     Data.Either.Right (UpdateDefaultConfigInput { 
         workspace_id = workspace_id',
         org_id = org_id',
+        user_agent = user_agent',
         key = key',
         change_reason = change_reason',
         value = value',
@@ -182,6 +195,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder UpdateDefaultConfigInput wh
         
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
+        Io.Superposition.Utility.serHeader "user-agent" (user_agent self)
         Io.Superposition.Utility.serField "schema" (schema self)
         Io.Superposition.Utility.serField "change_reason" (change_reason self)
         Io.Superposition.Utility.serField "value_compute_function_name" (value_compute_function_name self)

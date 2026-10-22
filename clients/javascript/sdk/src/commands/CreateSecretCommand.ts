@@ -45,6 +45,7 @@ export interface CreateSecretCommandOutput extends SecretResponse, __MetadataBea
  * const input = { // CreateSecretInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   name: "STRING_VALUE", // required
  *   value: "STRING_VALUE", // required
  *   description: "STRING_VALUE", // required

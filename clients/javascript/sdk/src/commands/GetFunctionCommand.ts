@@ -45,6 +45,7 @@ export interface GetFunctionCommandOutput extends FunctionResponse, __MetadataBe
  * const input = { // GetFunctionInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   function_name: "STRING_VALUE", // required
  * };
  * const command = new GetFunctionCommand(input);

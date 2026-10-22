@@ -45,6 +45,7 @@ export interface UpdateFunctionCommandOutput extends FunctionResponse, __Metadat
  * const input = { // UpdateFunctionRequest
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   function_name: "STRING_VALUE", // required
  *   description: "STRING_VALUE",
  *   change_reason: "STRING_VALUE", // required

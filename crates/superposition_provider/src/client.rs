@@ -200,6 +200,7 @@ impl CacConfig {
             .get_config()
             .workspace_id(&options.workspace_id)
             .org_id(&options.org_id)
+            .set_user_agent(options.user_agent.clone())
             .send()
             .await
             .map_err(|e| {
@@ -502,6 +503,7 @@ impl ExperimentationConfig {
             .list_experiment()
             .workspace_id(&options.workspace_id)
             .org_id(&options.org_id)
+            .set_user_agent(options.user_agent.clone())
             .all(true)
             .status(ExperimentStatusType::Created)
             .status(ExperimentStatusType::Inprogress)
@@ -537,6 +539,7 @@ impl ExperimentationConfig {
             .list_experiment_groups()
             .workspace_id(&options.workspace_id)
             .org_id(&options.org_id)
+            .set_user_agent(options.user_agent.clone())
             .all(true)
             .send()
             .await

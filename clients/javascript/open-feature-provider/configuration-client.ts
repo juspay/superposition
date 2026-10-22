@@ -201,6 +201,7 @@ export class ConfigurationClient {
         const commandInput: GetConfigCommandInput = {
             workspace_id: this.config.workspace_id,
             org_id: this.config.org_id,
+            user_agent: this.config.user_agent,
             context: {},
         };
         const command = new GetConfigCommand(commandInput);

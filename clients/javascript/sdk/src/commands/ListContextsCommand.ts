@@ -48,6 +48,7 @@ export interface ListContextsCommandOutput extends ListContextsOutput, __Metadat
  *   all: true || false,
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   prefix: [ // StringList
  *     "STRING_VALUE",
  *   ],

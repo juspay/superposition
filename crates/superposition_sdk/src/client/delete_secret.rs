@@ -5,6 +5,7 @@ impl super::Client {
                             /// - The fluent builder is configurable:
     ///   - [`workspace_id(impl Into<String>)`](crate::operation::delete_secret::builders::DeleteSecretFluentBuilder::workspace_id) / [`set_workspace_id(Option<String>)`](crate::operation::delete_secret::builders::DeleteSecretFluentBuilder::set_workspace_id):<br>required: **true**<br>(undocumented)<br>
     ///   - [`org_id(impl Into<String>)`](crate::operation::delete_secret::builders::DeleteSecretFluentBuilder::org_id) / [`set_org_id(Option<String>)`](crate::operation::delete_secret::builders::DeleteSecretFluentBuilder::set_org_id):<br>required: **true**<br>(undocumented)<br>
+    ///   - [`user_agent(impl Into<String>)`](crate::operation::delete_secret::builders::DeleteSecretFluentBuilder::user_agent) / [`set_user_agent(Option<String>)`](crate::operation::delete_secret::builders::DeleteSecretFluentBuilder::set_user_agent):<br>required: **false**<br>(undocumented)<br>
     ///   - [`name(impl Into<String>)`](crate::operation::delete_secret::builders::DeleteSecretFluentBuilder::name) / [`set_name(Option<String>)`](crate::operation::delete_secret::builders::DeleteSecretFluentBuilder::set_name):<br>required: **true**<br>(undocumented)<br>
                             /// - On success, responds with [`DeleteSecretOutput`](crate::operation::delete_secret::DeleteSecretOutput) with field(s):
     ///   - [`name(String)`](crate::operation::delete_secret::DeleteSecretOutput::name): (undocumented)

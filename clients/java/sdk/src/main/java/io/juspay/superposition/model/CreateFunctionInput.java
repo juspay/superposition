@@ -27,6 +27,8 @@ public final class CreateFunctionInput implements SerializableStruct {
         .putMember("org_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-org-id"),
                 new RequiredTrait())
+        .putMember("user_agent", PreludeSchemas.STRING,
+                new HttpHeaderTrait("user-agent"))
         .putMember("function_name", PreludeSchemas.STRING,
                 new RequiredTrait())
         .putMember("description", PreludeSchemas.STRING,
@@ -43,6 +45,7 @@ public final class CreateFunctionInput implements SerializableStruct {
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
+    private static final Schema $SCHEMA_USER_AGENT = $SCHEMA.member("user_agent");
     private static final Schema $SCHEMA_FUNCTION_NAME = $SCHEMA.member("function_name");
     private static final Schema $SCHEMA_DESCRIPTION = $SCHEMA.member("description");
     private static final Schema $SCHEMA_CHANGE_REASON = $SCHEMA.member("change_reason");
@@ -52,6 +55,7 @@ public final class CreateFunctionInput implements SerializableStruct {
 
     private final transient String workspaceId;
     private final transient String orgId;
+    private final transient String userAgent;
     private final transient String functionName;
     private final transient String description;
     private final transient String changeReason;
@@ -62,6 +66,7 @@ public final class CreateFunctionInput implements SerializableStruct {
     private CreateFunctionInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
+        this.userAgent = builder.userAgent;
         this.functionName = builder.functionName;
         this.description = builder.description;
         this.changeReason = builder.changeReason;
@@ -76,6 +81,10 @@ public final class CreateFunctionInput implements SerializableStruct {
 
     public String orgId() {
         return orgId;
+    }
+
+    public String userAgent() {
+        return userAgent;
     }
 
     public String functionName() {
@@ -118,6 +127,7 @@ public final class CreateFunctionInput implements SerializableStruct {
         CreateFunctionInput that = (CreateFunctionInput) other;
         return Objects.equals(this.workspaceId, that.workspaceId)
                && Objects.equals(this.orgId, that.orgId)
+               && Objects.equals(this.userAgent, that.userAgent)
                && Objects.equals(this.functionName, that.functionName)
                && Objects.equals(this.description, that.description)
                && Objects.equals(this.changeReason, that.changeReason)
@@ -128,7 +138,7 @@ public final class CreateFunctionInput implements SerializableStruct {
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, functionName, description, changeReason, function, runtimeVersion, functionType);
+        return Objects.hash(workspaceId, orgId, userAgent, functionName, description, changeReason, function, runtimeVersion, functionType);
     }
 
     @Override
@@ -140,6 +150,9 @@ public final class CreateFunctionInput implements SerializableStruct {
     public void serializeMembers(ShapeSerializer serializer) {
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
+        if (userAgent != null) {
+            serializer.writeString($SCHEMA_USER_AGENT, userAgent);
+        }
         serializer.writeString($SCHEMA_FUNCTION_NAME, functionName);
         serializer.writeString($SCHEMA_DESCRIPTION, description);
         serializer.writeString($SCHEMA_CHANGE_REASON, changeReason);
@@ -160,6 +173,7 @@ public final class CreateFunctionInput implements SerializableStruct {
             case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_FUNCTION, member, function);
             case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_RUNTIME_VERSION, member, runtimeVersion);
             case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_TYPE, member, functionType);
+            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, userAgent);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -175,6 +189,7 @@ public final class CreateFunctionInput implements SerializableStruct {
         var builder = new Builder();
         builder.workspaceId(this.workspaceId);
         builder.orgId(this.orgId);
+        builder.userAgent(this.userAgent);
         builder.functionName(this.functionName);
         builder.description(this.description);
         builder.changeReason(this.changeReason);
@@ -198,6 +213,7 @@ public final class CreateFunctionInput implements SerializableStruct {
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private String workspaceId;
         private String orgId;
+        private String userAgent;
         private String functionName;
         private String description;
         private String changeReason;
@@ -229,6 +245,14 @@ public final class CreateFunctionInput implements SerializableStruct {
         public Builder orgId(String orgId) {
             this.orgId = Objects.requireNonNull(orgId, "orgId cannot be null");
             tracker.setMember($SCHEMA_ORG_ID);
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
+        public Builder userAgent(String userAgent) {
+            this.userAgent = userAgent;
             return this;
         }
 
@@ -310,6 +334,7 @@ public final class CreateFunctionInput implements SerializableStruct {
                 case 5 -> function((String) SchemaUtils.validateSameMember($SCHEMA_FUNCTION, member, value));
                 case 6 -> runtimeVersion((FunctionRuntimeVersion) SchemaUtils.validateSameMember($SCHEMA_RUNTIME_VERSION, member, value));
                 case 7 -> functionType((FunctionTypes) SchemaUtils.validateSameMember($SCHEMA_FUNCTION_TYPE, member, value));
+                case 8 -> userAgent((String) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -372,6 +397,7 @@ public final class CreateFunctionInput implements SerializableStruct {
                     case 5 -> builder.function(de.readString(member));
                     case 6 -> builder.runtimeVersion(FunctionRuntimeVersion.builder().deserializeMember(de, member).build());
                     case 7 -> builder.functionType(FunctionTypes.builder().deserializeMember(de, member).build());
+                    case 8 -> builder.userAgent(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

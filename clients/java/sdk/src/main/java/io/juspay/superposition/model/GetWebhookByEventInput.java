@@ -28,6 +28,8 @@ public final class GetWebhookByEventInput implements SerializableStruct {
         .putMember("org_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-org-id"),
                 new RequiredTrait())
+        .putMember("user_agent", PreludeSchemas.STRING,
+                new HttpHeaderTrait("user-agent"))
         .putMember("event", PreludeSchemas.STRING,
                 new RequiredTrait(),
                 new HttpLabelTrait())
@@ -35,15 +37,18 @@ public final class GetWebhookByEventInput implements SerializableStruct {
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
+    private static final Schema $SCHEMA_USER_AGENT = $SCHEMA.member("user_agent");
     private static final Schema $SCHEMA_EVENT = $SCHEMA.member("event");
 
     private final transient String workspaceId;
     private final transient String orgId;
+    private final transient String userAgent;
     private final transient String event;
 
     private GetWebhookByEventInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
+        this.userAgent = builder.userAgent;
         this.event = builder.event;
     }
 
@@ -53,6 +58,10 @@ public final class GetWebhookByEventInput implements SerializableStruct {
 
     public String orgId() {
         return orgId;
+    }
+
+    public String userAgent() {
+        return userAgent;
     }
 
     public String event() {
@@ -75,12 +84,13 @@ public final class GetWebhookByEventInput implements SerializableStruct {
         GetWebhookByEventInput that = (GetWebhookByEventInput) other;
         return Objects.equals(this.workspaceId, that.workspaceId)
                && Objects.equals(this.orgId, that.orgId)
+               && Objects.equals(this.userAgent, that.userAgent)
                && Objects.equals(this.event, that.event);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, event);
+        return Objects.hash(workspaceId, orgId, userAgent, event);
     }
 
     @Override
@@ -92,6 +102,9 @@ public final class GetWebhookByEventInput implements SerializableStruct {
     public void serializeMembers(ShapeSerializer serializer) {
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
+        if (userAgent != null) {
+            serializer.writeString($SCHEMA_USER_AGENT, userAgent);
+        }
         serializer.writeString($SCHEMA_EVENT, event);
     }
 
@@ -102,6 +115,7 @@ public final class GetWebhookByEventInput implements SerializableStruct {
             case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, workspaceId);
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
             case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_EVENT, member, event);
+            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, userAgent);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -117,6 +131,7 @@ public final class GetWebhookByEventInput implements SerializableStruct {
         var builder = new Builder();
         builder.workspaceId(this.workspaceId);
         builder.orgId(this.orgId);
+        builder.userAgent(this.userAgent);
         builder.event(this.event);
         return builder;
     }
@@ -135,6 +150,7 @@ public final class GetWebhookByEventInput implements SerializableStruct {
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private String workspaceId;
         private String orgId;
+        private String userAgent;
         private String event;
 
         private Builder() {}
@@ -165,6 +181,14 @@ public final class GetWebhookByEventInput implements SerializableStruct {
         }
 
         /**
+         * @return this builder.
+         */
+        public Builder userAgent(String userAgent) {
+            this.userAgent = userAgent;
+            return this;
+        }
+
+        /**
          * <p><strong>Required</strong>
          * @return this builder.
          */
@@ -187,6 +211,7 @@ public final class GetWebhookByEventInput implements SerializableStruct {
                 case 0 -> workspaceId((String) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, value));
                 case 1 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
                 case 2 -> event((String) SchemaUtils.validateSameMember($SCHEMA_EVENT, member, value));
+                case 3 -> userAgent((String) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -229,6 +254,7 @@ public final class GetWebhookByEventInput implements SerializableStruct {
                     case 0 -> builder.workspaceId(de.readString(member));
                     case 1 -> builder.orgId(de.readString(member));
                     case 2 -> builder.event(de.readString(member));
+                    case 3 -> builder.userAgent(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

@@ -5,6 +5,7 @@ impl super::Client {
                             /// - The fluent builder is configurable:
     ///   - [`workspace_id(impl Into<String>)`](crate::operation::get_dimension::builders::GetDimensionFluentBuilder::workspace_id) / [`set_workspace_id(Option<String>)`](crate::operation::get_dimension::builders::GetDimensionFluentBuilder::set_workspace_id):<br>required: **true**<br>(undocumented)<br>
     ///   - [`org_id(impl Into<String>)`](crate::operation::get_dimension::builders::GetDimensionFluentBuilder::org_id) / [`set_org_id(Option<String>)`](crate::operation::get_dimension::builders::GetDimensionFluentBuilder::set_org_id):<br>required: **true**<br>(undocumented)<br>
+    ///   - [`user_agent(impl Into<String>)`](crate::operation::get_dimension::builders::GetDimensionFluentBuilder::user_agent) / [`set_user_agent(Option<String>)`](crate::operation::get_dimension::builders::GetDimensionFluentBuilder::set_user_agent):<br>required: **false**<br>(undocumented)<br>
     ///   - [`dimension(impl Into<String>)`](crate::operation::get_dimension::builders::GetDimensionFluentBuilder::dimension) / [`set_dimension(Option<String>)`](crate::operation::get_dimension::builders::GetDimensionFluentBuilder::set_dimension):<br>required: **true**<br>(undocumented)<br>
                             /// - On success, responds with [`GetDimensionOutput`](crate::operation::get_dimension::GetDimensionOutput) with field(s):
     ///   - [`dimension(String)`](crate::operation::get_dimension::GetDimensionOutput::dimension): (undocumented)

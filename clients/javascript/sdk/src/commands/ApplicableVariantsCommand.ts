@@ -45,6 +45,7 @@ export interface ApplicableVariantsCommandOutput extends ApplicableVariantsOutpu
  * const input = { // ApplicableVariantsInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   context: { // Condition // required
  *     "<keys>": "DOCUMENT_VALUE",
  *   },

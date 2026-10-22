@@ -82,6 +82,18 @@ pub fn ser_create_secret_headers(
                             })?;
                             builder = builder.header("x-org-id", header_value);
     }
+    if let ::std::option::Option::Some(inner_5) = &input.user_agent {
+        let formatted_6 = inner_5.as_str();
+        let header_value = formatted_6;
+                            let header_value: ::http::HeaderValue = header_value.parse().map_err(|err| {
+                                ::aws_smithy_types::error::operation::BuildError::invalid_field("user_agent", format!(
+                                "`{}` cannot be used as a header value: {}",
+                                &header_value,
+                                err
+                            ))
+                            })?;
+                            builder = builder.header("user-agent", header_value);
+    }
     Ok(builder)
 }
 

@@ -45,6 +45,7 @@ export interface UpdateOverrideCommandOutput extends ContextResponse, __Metadata
  * const input = { // UpdateOverrideInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   config_tags: "STRING_VALUE",
  *   request: { // UpdateContextOverrideRequest
  *     context: { // ContextIdentifier Union: only one key present

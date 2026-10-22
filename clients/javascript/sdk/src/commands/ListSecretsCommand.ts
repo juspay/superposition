@@ -48,6 +48,7 @@ export interface ListSecretsCommandOutput extends ListSecretsOutput, __MetadataB
  *   all: true || false,
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   name: [ // StringList
  *     "STRING_VALUE",
  *   ],

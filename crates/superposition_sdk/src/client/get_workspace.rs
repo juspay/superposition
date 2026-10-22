@@ -4,6 +4,7 @@ impl super::Client {
                             ///
                             /// - The fluent builder is configurable:
     ///   - [`org_id(impl Into<String>)`](crate::operation::get_workspace::builders::GetWorkspaceFluentBuilder::org_id) / [`set_org_id(Option<String>)`](crate::operation::get_workspace::builders::GetWorkspaceFluentBuilder::set_org_id):<br>required: **true**<br>(undocumented)<br>
+    ///   - [`user_agent(impl Into<String>)`](crate::operation::get_workspace::builders::GetWorkspaceFluentBuilder::user_agent) / [`set_user_agent(Option<String>)`](crate::operation::get_workspace::builders::GetWorkspaceFluentBuilder::set_user_agent):<br>required: **false**<br>(undocumented)<br>
     ///   - [`workspace_name(impl Into<String>)`](crate::operation::get_workspace::builders::GetWorkspaceFluentBuilder::workspace_name) / [`set_workspace_name(Option<String>)`](crate::operation::get_workspace::builders::GetWorkspaceFluentBuilder::set_workspace_name):<br>required: **true**<br>(undocumented)<br>
                             /// - On success, responds with [`GetWorkspaceOutput`](crate::operation::get_workspace::GetWorkspaceOutput) with field(s):
     ///   - [`workspace_name(String)`](crate::operation::get_workspace::GetWorkspaceOutput::workspace_name): (undocumented)

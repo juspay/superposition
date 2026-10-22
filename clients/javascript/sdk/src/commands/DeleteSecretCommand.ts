@@ -45,6 +45,7 @@ export interface DeleteSecretCommandOutput extends SecretResponse, __MetadataBea
  * const input = { // DeleteSecretInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   name: "STRING_VALUE", // required
  * };
  * const command = new DeleteSecretCommand(input);

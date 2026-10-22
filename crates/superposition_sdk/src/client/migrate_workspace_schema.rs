@@ -4,6 +4,7 @@ impl super::Client {
                             ///
                             /// - The fluent builder is configurable:
     ///   - [`org_id(impl Into<String>)`](crate::operation::migrate_workspace_schema::builders::MigrateWorkspaceSchemaFluentBuilder::org_id) / [`set_org_id(Option<String>)`](crate::operation::migrate_workspace_schema::builders::MigrateWorkspaceSchemaFluentBuilder::set_org_id):<br>required: **true**<br>(undocumented)<br>
+    ///   - [`user_agent(impl Into<String>)`](crate::operation::migrate_workspace_schema::builders::MigrateWorkspaceSchemaFluentBuilder::user_agent) / [`set_user_agent(Option<String>)`](crate::operation::migrate_workspace_schema::builders::MigrateWorkspaceSchemaFluentBuilder::set_user_agent):<br>required: **false**<br>(undocumented)<br>
     ///   - [`workspace_name(impl Into<String>)`](crate::operation::migrate_workspace_schema::builders::MigrateWorkspaceSchemaFluentBuilder::workspace_name) / [`set_workspace_name(Option<String>)`](crate::operation::migrate_workspace_schema::builders::MigrateWorkspaceSchemaFluentBuilder::set_workspace_name):<br>required: **true**<br>(undocumented)<br>
                             /// - On success, responds with [`MigrateWorkspaceSchemaOutput`](crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaOutput) with field(s):
     ///   - [`workspace_name(String)`](crate::operation::migrate_workspace_schema::MigrateWorkspaceSchemaOutput::workspace_name): (undocumented)

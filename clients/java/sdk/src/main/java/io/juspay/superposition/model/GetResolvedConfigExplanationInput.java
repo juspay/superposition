@@ -32,6 +32,8 @@ public final class GetResolvedConfigExplanationInput implements SerializableStru
         .putMember("org_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-org-id"),
                 new RequiredTrait())
+        .putMember("user_agent", PreludeSchemas.STRING,
+                new HttpHeaderTrait("user-agent"))
         .putMember("key", PreludeSchemas.STRING,
                 new RequiredTrait(),
                 new HttpLabelTrait())
@@ -48,6 +50,7 @@ public final class GetResolvedConfigExplanationInput implements SerializableStru
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
+    private static final Schema $SCHEMA_USER_AGENT = $SCHEMA.member("user_agent");
     private static final Schema $SCHEMA_KEY = $SCHEMA.member("key");
     private static final Schema $SCHEMA_VERSION = $SCHEMA.member("version");
     private static final Schema $SCHEMA_MERGE_STRATEGY = $SCHEMA.member("merge_strategy");
@@ -57,6 +60,7 @@ public final class GetResolvedConfigExplanationInput implements SerializableStru
 
     private final transient String workspaceId;
     private final transient String orgId;
+    private final transient String userAgent;
     private final transient String key;
     private final transient String version;
     private final transient MergeStrategy mergeStrategy;
@@ -67,6 +71,7 @@ public final class GetResolvedConfigExplanationInput implements SerializableStru
     private GetResolvedConfigExplanationInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
+        this.userAgent = builder.userAgent;
         this.key = builder.key;
         this.version = builder.version;
         this.mergeStrategy = builder.mergeStrategy;
@@ -81,6 +86,10 @@ public final class GetResolvedConfigExplanationInput implements SerializableStru
 
     public String orgId() {
         return orgId;
+    }
+
+    public String userAgent() {
+        return userAgent;
     }
 
     public String key() {
@@ -134,6 +143,7 @@ public final class GetResolvedConfigExplanationInput implements SerializableStru
         GetResolvedConfigExplanationInput that = (GetResolvedConfigExplanationInput) other;
         return Objects.equals(this.workspaceId, that.workspaceId)
                && Objects.equals(this.orgId, that.orgId)
+               && Objects.equals(this.userAgent, that.userAgent)
                && Objects.equals(this.key, that.key)
                && Objects.equals(this.version, that.version)
                && Objects.equals(this.mergeStrategy, that.mergeStrategy)
@@ -144,7 +154,7 @@ public final class GetResolvedConfigExplanationInput implements SerializableStru
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, key, version, mergeStrategy, contextId, resolveRemote, context);
+        return Objects.hash(workspaceId, orgId, userAgent, key, version, mergeStrategy, contextId, resolveRemote, context);
     }
 
     @Override
@@ -156,6 +166,9 @@ public final class GetResolvedConfigExplanationInput implements SerializableStru
     public void serializeMembers(ShapeSerializer serializer) {
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
+        if (userAgent != null) {
+            serializer.writeString($SCHEMA_USER_AGENT, userAgent);
+        }
         serializer.writeString($SCHEMA_KEY, key);
         if (version != null) {
             serializer.writeString($SCHEMA_VERSION, version);
@@ -181,11 +194,12 @@ public final class GetResolvedConfigExplanationInput implements SerializableStru
             case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, workspaceId);
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
             case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_KEY, member, key);
-            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, version);
-            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_MERGE_STRATEGY, member, mergeStrategy);
-            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT_ID, member, contextId);
-            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_RESOLVE_REMOTE, member, resolveRemote);
-            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
+            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, userAgent);
+            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, version);
+            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_MERGE_STRATEGY, member, mergeStrategy);
+            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT_ID, member, contextId);
+            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_RESOLVE_REMOTE, member, resolveRemote);
+            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -201,6 +215,7 @@ public final class GetResolvedConfigExplanationInput implements SerializableStru
         var builder = new Builder();
         builder.workspaceId(this.workspaceId);
         builder.orgId(this.orgId);
+        builder.userAgent(this.userAgent);
         builder.key(this.key);
         builder.version(this.version);
         builder.mergeStrategy(this.mergeStrategy);
@@ -224,6 +239,7 @@ public final class GetResolvedConfigExplanationInput implements SerializableStru
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private String workspaceId;
         private String orgId;
+        private String userAgent;
         private String key;
         private String version;
         private MergeStrategy mergeStrategy;
@@ -255,6 +271,14 @@ public final class GetResolvedConfigExplanationInput implements SerializableStru
         public Builder orgId(String orgId) {
             this.orgId = Objects.requireNonNull(orgId, "orgId cannot be null");
             tracker.setMember($SCHEMA_ORG_ID);
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
+        public Builder userAgent(String userAgent) {
+            this.userAgent = userAgent;
             return this;
         }
 
@@ -324,11 +348,12 @@ public final class GetResolvedConfigExplanationInput implements SerializableStru
                 case 0 -> workspaceId((String) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, value));
                 case 1 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
                 case 2 -> key((String) SchemaUtils.validateSameMember($SCHEMA_KEY, member, value));
-                case 3 -> version((String) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, value));
-                case 4 -> mergeStrategy((MergeStrategy) SchemaUtils.validateSameMember($SCHEMA_MERGE_STRATEGY, member, value));
-                case 5 -> contextId((String) SchemaUtils.validateSameMember($SCHEMA_CONTEXT_ID, member, value));
-                case 6 -> resolveRemote((boolean) SchemaUtils.validateSameMember($SCHEMA_RESOLVE_REMOTE, member, value));
-                case 7 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
+                case 3 -> userAgent((String) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, value));
+                case 4 -> version((String) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, value));
+                case 5 -> mergeStrategy((MergeStrategy) SchemaUtils.validateSameMember($SCHEMA_MERGE_STRATEGY, member, value));
+                case 6 -> contextId((String) SchemaUtils.validateSameMember($SCHEMA_CONTEXT_ID, member, value));
+                case 7 -> resolveRemote((boolean) SchemaUtils.validateSameMember($SCHEMA_RESOLVE_REMOTE, member, value));
+                case 8 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -371,11 +396,12 @@ public final class GetResolvedConfigExplanationInput implements SerializableStru
                     case 0 -> builder.workspaceId(de.readString(member));
                     case 1 -> builder.orgId(de.readString(member));
                     case 2 -> builder.key(de.readString(member));
-                    case 3 -> builder.version(de.readString(member));
-                    case 4 -> builder.mergeStrategy(MergeStrategy.builder().deserializeMember(de, member).build());
-                    case 5 -> builder.contextId(de.readString(member));
-                    case 6 -> builder.resolveRemote(de.readBoolean(member));
-                    case 7 -> builder.context(SharedSerde.deserializeContextMap(member, de));
+                    case 3 -> builder.userAgent(de.readString(member));
+                    case 4 -> builder.version(de.readString(member));
+                    case 5 -> builder.mergeStrategy(MergeStrategy.builder().deserializeMember(de, member).build());
+                    case 6 -> builder.contextId(de.readString(member));
+                    case 7 -> builder.resolveRemote(de.readBoolean(member));
+                    case 8 -> builder.context(SharedSerde.deserializeContextMap(member, de));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

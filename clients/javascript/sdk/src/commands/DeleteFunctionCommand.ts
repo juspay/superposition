@@ -42,6 +42,7 @@ export interface DeleteFunctionCommandOutput extends __MetadataBearer {}
  * const input = { // DeleteFunctionInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   function_name: "STRING_VALUE", // required
  * };
  * const command = new DeleteFunctionCommand(input);

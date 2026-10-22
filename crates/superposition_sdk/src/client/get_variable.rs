@@ -5,6 +5,7 @@ impl super::Client {
                             /// - The fluent builder is configurable:
     ///   - [`workspace_id(impl Into<String>)`](crate::operation::get_variable::builders::GetVariableFluentBuilder::workspace_id) / [`set_workspace_id(Option<String>)`](crate::operation::get_variable::builders::GetVariableFluentBuilder::set_workspace_id):<br>required: **true**<br>(undocumented)<br>
     ///   - [`org_id(impl Into<String>)`](crate::operation::get_variable::builders::GetVariableFluentBuilder::org_id) / [`set_org_id(Option<String>)`](crate::operation::get_variable::builders::GetVariableFluentBuilder::set_org_id):<br>required: **true**<br>(undocumented)<br>
+    ///   - [`user_agent(impl Into<String>)`](crate::operation::get_variable::builders::GetVariableFluentBuilder::user_agent) / [`set_user_agent(Option<String>)`](crate::operation::get_variable::builders::GetVariableFluentBuilder::set_user_agent):<br>required: **false**<br>(undocumented)<br>
     ///   - [`name(impl Into<String>)`](crate::operation::get_variable::builders::GetVariableFluentBuilder::name) / [`set_name(Option<String>)`](crate::operation::get_variable::builders::GetVariableFluentBuilder::set_name):<br>required: **true**<br>(undocumented)<br>
                             /// - On success, responds with [`GetVariableOutput`](crate::operation::get_variable::GetVariableOutput) with field(s):
     ///   - [`name(String)`](crate::operation::get_variable::GetVariableOutput::name): (undocumented)

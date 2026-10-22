@@ -48,6 +48,7 @@ export interface ListFunctionCommandOutput extends ListFunctionOutput, __Metadat
  *   all: true || false,
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   function_type: [ // FunctionTypesList
  *     "VALUE_VALIDATION" || "VALUE_COMPUTE" || "CONTEXT_VALIDATION" || "CHANGE_REASON_VALIDATION",
  *   ],

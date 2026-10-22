@@ -54,6 +54,7 @@ export interface CreateDefaultConfigCommandOutput extends DefaultConfigResponse,
  *   value_compute_function_name: "STRING_VALUE",
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  * };
  * const command = new CreateDefaultConfigCommand(input);
  * const response = await client.send(command);

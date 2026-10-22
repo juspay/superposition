@@ -29,21 +29,26 @@ public final class GetContextFromConditionInput implements SerializableStruct {
         .putMember("org_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-org-id"),
                 new RequiredTrait())
+        .putMember("user_agent", PreludeSchemas.STRING,
+                new HttpHeaderTrait("user-agent"))
         .putMember("context", PreludeSchemas.DOCUMENT,
                 new HttpPayloadTrait())
         .build();
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
+    private static final Schema $SCHEMA_USER_AGENT = $SCHEMA.member("user_agent");
     private static final Schema $SCHEMA_CONTEXT = $SCHEMA.member("context");
 
     private final transient String workspaceId;
     private final transient String orgId;
+    private final transient String userAgent;
     private final transient Document context;
 
     private GetContextFromConditionInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
+        this.userAgent = builder.userAgent;
         this.context = builder.context;
     }
 
@@ -53,6 +58,10 @@ public final class GetContextFromConditionInput implements SerializableStruct {
 
     public String orgId() {
         return orgId;
+    }
+
+    public String userAgent() {
+        return userAgent;
     }
 
     public Document context() {
@@ -75,12 +84,13 @@ public final class GetContextFromConditionInput implements SerializableStruct {
         GetContextFromConditionInput that = (GetContextFromConditionInput) other;
         return Objects.equals(this.workspaceId, that.workspaceId)
                && Objects.equals(this.orgId, that.orgId)
+               && Objects.equals(this.userAgent, that.userAgent)
                && Objects.equals(this.context, that.context);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, context);
+        return Objects.hash(workspaceId, orgId, userAgent, context);
     }
 
     @Override
@@ -92,6 +102,9 @@ public final class GetContextFromConditionInput implements SerializableStruct {
     public void serializeMembers(ShapeSerializer serializer) {
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
+        if (userAgent != null) {
+            serializer.writeString($SCHEMA_USER_AGENT, userAgent);
+        }
         if (context != null) {
             serializer.writeDocument($SCHEMA_CONTEXT, context);
         }
@@ -103,7 +116,8 @@ public final class GetContextFromConditionInput implements SerializableStruct {
         return switch (member.memberIndex()) {
             case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, workspaceId);
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
-            case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
+            case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, userAgent);
+            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -119,6 +133,7 @@ public final class GetContextFromConditionInput implements SerializableStruct {
         var builder = new Builder();
         builder.workspaceId(this.workspaceId);
         builder.orgId(this.orgId);
+        builder.userAgent(this.userAgent);
         builder.context(this.context);
         return builder;
     }
@@ -137,6 +152,7 @@ public final class GetContextFromConditionInput implements SerializableStruct {
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private String workspaceId;
         private String orgId;
+        private String userAgent;
         private Document context;
 
         private Builder() {}
@@ -169,6 +185,14 @@ public final class GetContextFromConditionInput implements SerializableStruct {
         /**
          * @return this builder.
          */
+        public Builder userAgent(String userAgent) {
+            this.userAgent = userAgent;
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
         public Builder context(Document context) {
             this.context = context;
             return this;
@@ -186,7 +210,8 @@ public final class GetContextFromConditionInput implements SerializableStruct {
             switch (member.memberIndex()) {
                 case 0 -> workspaceId((String) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, value));
                 case 1 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
-                case 2 -> context((Document) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
+                case 2 -> userAgent((String) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, value));
+                case 3 -> context((Document) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -225,7 +250,8 @@ public final class GetContextFromConditionInput implements SerializableStruct {
                 switch (member.memberIndex()) {
                     case 0 -> builder.workspaceId(de.readString(member));
                     case 1 -> builder.orgId(de.readString(member));
-                    case 2 -> builder.context(de.readDocument());
+                    case 2 -> builder.userAgent(de.readString(member));
+                    case 3 -> builder.context(de.readDocument());
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

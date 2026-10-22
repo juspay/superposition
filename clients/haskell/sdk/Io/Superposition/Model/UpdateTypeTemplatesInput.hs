@@ -1,6 +1,7 @@
 module Io.Superposition.Model.UpdateTypeTemplatesInput (
     setWorkspaceId,
     setOrgId,
+    setUserAgent,
     setTypeName,
     setTypeSchema,
     setDescription,
@@ -10,6 +11,7 @@ module Io.Superposition.Model.UpdateTypeTemplatesInput (
     UpdateTypeTemplatesInput,
     workspace_id,
     org_id,
+    user_agent,
     type_name,
     type_schema,
     description,
@@ -32,6 +34,7 @@ import qualified Network.HTTP.Types.Method
 data UpdateTypeTemplatesInput = UpdateTypeTemplatesInput {
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text,
+    user_agent :: Data.Maybe.Maybe Data.Text.Text,
     type_name :: Data.Text.Text,
     type_schema :: Data.Map.Map Data.Text.Text Data.Aeson.Value,
     description :: Data.Maybe.Maybe Data.Text.Text,
@@ -46,6 +49,7 @@ instance Data.Aeson.ToJSON UpdateTypeTemplatesInput where
     toJSON a = Data.Aeson.object [
         "workspace_id" Data.Aeson..= workspace_id a,
         "org_id" Data.Aeson..= org_id a,
+        "user_agent" Data.Aeson..= user_agent a,
         "type_name" Data.Aeson..= type_name a,
         "type_schema" Data.Aeson..= type_schema a,
         "description" Data.Aeson..= description a,
@@ -59,6 +63,7 @@ instance Data.Aeson.FromJSON UpdateTypeTemplatesInput where
     parseJSON = Data.Aeson.withObject "UpdateTypeTemplatesInput" $ \v -> UpdateTypeTemplatesInput
         Data.Functor.<$> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
+        Control.Applicative.<*> (v Data.Aeson..:? "user_agent")
         Control.Applicative.<*> (v Data.Aeson..: "type_name")
         Control.Applicative.<*> (v Data.Aeson..: "type_schema")
         Control.Applicative.<*> (v Data.Aeson..:? "description")
@@ -70,6 +75,7 @@ instance Data.Aeson.FromJSON UpdateTypeTemplatesInput where
 data UpdateTypeTemplatesInputBuilderState = UpdateTypeTemplatesInputBuilderState {
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    user_agentBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     type_nameBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     type_schemaBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value),
     descriptionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
@@ -82,6 +88,7 @@ defaultBuilderState :: UpdateTypeTemplatesInputBuilderState
 defaultBuilderState = UpdateTypeTemplatesInputBuilderState {
     workspace_idBuilderState = Data.Maybe.Nothing,
     org_idBuilderState = Data.Maybe.Nothing,
+    user_agentBuilderState = Data.Maybe.Nothing,
     type_nameBuilderState = Data.Maybe.Nothing,
     type_schemaBuilderState = Data.Maybe.Nothing,
     descriptionBuilderState = Data.Maybe.Nothing,
@@ -97,6 +104,10 @@ setWorkspaceId value =
 setOrgId :: Data.Text.Text -> UpdateTypeTemplatesInputBuilder ()
 setOrgId value =
    Control.Monad.State.Strict.modify (\s -> (s { org_idBuilderState = Data.Maybe.Just value }))
+
+setUserAgent :: Data.Maybe.Maybe Data.Text.Text -> UpdateTypeTemplatesInputBuilder ()
+setUserAgent value =
+   Control.Monad.State.Strict.modify (\s -> (s { user_agentBuilderState = value }))
 
 setTypeName :: Data.Text.Text -> UpdateTypeTemplatesInputBuilder ()
 setTypeName value =
@@ -119,6 +130,7 @@ build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
     workspace_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateTypeTemplatesInput.UpdateTypeTemplatesInput.workspace_id is a required property.") Data.Either.Right (workspace_idBuilderState st)
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateTypeTemplatesInput.UpdateTypeTemplatesInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
+    user_agent' <- Data.Either.Right (user_agentBuilderState st)
     type_name' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateTypeTemplatesInput.UpdateTypeTemplatesInput.type_name is a required property.") Data.Either.Right (type_nameBuilderState st)
     type_schema' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.UpdateTypeTemplatesInput.UpdateTypeTemplatesInput.type_schema is a required property.") Data.Either.Right (type_schemaBuilderState st)
     description' <- Data.Either.Right (descriptionBuilderState st)
@@ -126,6 +138,7 @@ build builder = do
     Data.Either.Right (UpdateTypeTemplatesInput { 
         workspace_id = workspace_id',
         org_id = org_id',
+        user_agent = user_agent',
         type_name = type_name',
         type_schema = type_schema',
         description = description',
@@ -143,6 +156,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder UpdateTypeTemplatesInput wh
         
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
+        Io.Superposition.Utility.serHeader "user-agent" (user_agent self)
         Io.Superposition.Utility.serField "change_reason" (change_reason self)
         Io.Superposition.Utility.serField "type_schema" (type_schema self)
         Io.Superposition.Utility.serField "description" (description self)

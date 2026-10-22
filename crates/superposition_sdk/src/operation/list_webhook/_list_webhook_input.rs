@@ -13,6 +13,8 @@ pub struct ListWebhookInput  {
     pub workspace_id: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
     pub org_id: ::std::option::Option<::std::string::String>,
+    #[allow(missing_docs)] // documentation missing in model
+    pub user_agent: ::std::option::Option<::std::string::String>,
 }
 impl  ListWebhookInput  {
     /// Number of items to be returned in each page.
@@ -35,6 +37,10 @@ impl  ListWebhookInput  {
     pub fn org_id(&self) -> ::std::option::Option<&str> {
         self.org_id.as_deref()
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn user_agent(&self) -> ::std::option::Option<&str> {
+        self.user_agent.as_deref()
+    }
 }
 impl ListWebhookInput {
     /// Creates a new builder-style object to manufacture [`ListWebhookInput`](crate::operation::list_webhook::ListWebhookInput).
@@ -52,6 +58,7 @@ pub struct ListWebhookInputBuilder {
     pub(crate) all: ::std::option::Option<bool>,
     pub(crate) workspace_id: ::std::option::Option<::std::string::String>,
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
+    pub(crate) user_agent: ::std::option::Option<::std::string::String>,
 }
 impl ListWebhookInputBuilder {
     /// Number of items to be returned in each page.
@@ -121,6 +128,19 @@ impl ListWebhookInputBuilder {
     pub fn get_org_id(&self) -> &::std::option::Option<::std::string::String> {
         &self.org_id
     }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn user_agent(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        self.user_agent = ::std::option::Option::Some(input.into());
+        self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn set_user_agent(mut self, input: ::std::option::Option<::std::string::String>) -> Self {
+        self.user_agent = input; self
+    }
+    #[allow(missing_docs)] // documentation missing in model
+    pub fn get_user_agent(&self) -> &::std::option::Option<::std::string::String> {
+        &self.user_agent
+    }
     /// Consumes the builder and constructs a [`ListWebhookInput`](crate::operation::list_webhook::ListWebhookInput).
     pub fn build(self) -> ::std::result::Result<crate::operation::list_webhook::ListWebhookInput, ::aws_smithy_types::error::operation::BuildError> {
         ::std::result::Result::Ok(
@@ -134,6 +154,8 @@ impl ListWebhookInputBuilder {
                 workspace_id: self.workspace_id
                 ,
                 org_id: self.org_id
+                ,
+                user_agent: self.user_agent
                 ,
             }
         )

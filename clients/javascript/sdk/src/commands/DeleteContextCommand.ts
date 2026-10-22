@@ -42,6 +42,7 @@ export interface DeleteContextCommandOutput extends __MetadataBearer {}
  * const input = { // DeleteContextInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   id: "STRING_VALUE", // required
  *   config_tags: "STRING_VALUE",
  * };

@@ -45,6 +45,7 @@ export interface GetResolvedConfigExplanationCommandOutput extends GetResolvedCo
  * const input = { // GetResolvedConfigExplanationInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   key: "STRING_VALUE", // required
  *   version: "STRING_VALUE",
  *   merge_strategy: "MERGE" || "REPLACE",

@@ -45,6 +45,7 @@ export interface CreateDimensionCommandOutput extends DimensionResponse, __Metad
  * const input = { // CreateDimensionInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   dimension: "STRING_VALUE", // required
  *   position: Number("int"), // required
  *   schema: { // Object // required

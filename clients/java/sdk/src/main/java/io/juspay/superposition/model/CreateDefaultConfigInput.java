@@ -42,6 +42,8 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
         .putMember("org_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-org-id"),
                 new RequiredTrait())
+        .putMember("user_agent", PreludeSchemas.STRING,
+                new HttpHeaderTrait("user-agent"))
         .build();
 
     private static final Schema $SCHEMA_KEY = $SCHEMA.member("key");
@@ -53,6 +55,7 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
     private static final Schema $SCHEMA_VALUE_COMPUTE_FUNCTION_NAME = $SCHEMA.member("value_compute_function_name");
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
+    private static final Schema $SCHEMA_USER_AGENT = $SCHEMA.member("user_agent");
 
     private final transient String key;
     private final transient Document value;
@@ -63,6 +66,7 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
     private final transient String valueComputeFunctionName;
     private final transient String workspaceId;
     private final transient String orgId;
+    private final transient String userAgent;
 
     private CreateDefaultConfigInput(Builder builder) {
         this.key = builder.key;
@@ -74,6 +78,7 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
         this.valueComputeFunctionName = builder.valueComputeFunctionName;
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
+        this.userAgent = builder.userAgent;
     }
 
     public String key() {
@@ -116,6 +121,10 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
         return orgId;
     }
 
+    public String userAgent() {
+        return userAgent;
+    }
+
     @Override
     public String toString() {
         return ToStringSerializer.serialize(this);
@@ -138,12 +147,13 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
                && Objects.equals(this.valueValidationFunctionName, that.valueValidationFunctionName)
                && Objects.equals(this.valueComputeFunctionName, that.valueComputeFunctionName)
                && Objects.equals(this.workspaceId, that.workspaceId)
-               && Objects.equals(this.orgId, that.orgId);
+               && Objects.equals(this.orgId, that.orgId)
+               && Objects.equals(this.userAgent, that.userAgent);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(key, value, schemaMember, description, changeReason, valueValidationFunctionName, valueComputeFunctionName, workspaceId, orgId);
+        return Objects.hash(key, value, schemaMember, description, changeReason, valueValidationFunctionName, valueComputeFunctionName, workspaceId, orgId, userAgent);
     }
 
     @Override
@@ -166,6 +176,9 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
         }
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
+        if (userAgent != null) {
+            serializer.writeString($SCHEMA_USER_AGENT, userAgent);
+        }
     }
 
     @Override
@@ -181,6 +194,7 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
             case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
             case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_VALUE_VALIDATION_FUNCTION_NAME, member, valueValidationFunctionName);
             case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_VALUE_COMPUTE_FUNCTION_NAME, member, valueComputeFunctionName);
+            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, userAgent);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -203,6 +217,7 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
         builder.valueComputeFunctionName(this.valueComputeFunctionName);
         builder.workspaceId(this.workspaceId);
         builder.orgId(this.orgId);
+        builder.userAgent(this.userAgent);
         return builder;
     }
 
@@ -227,6 +242,7 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
         private String valueComputeFunctionName;
         private String workspaceId;
         private String orgId;
+        private String userAgent;
 
         private Builder() {}
 
@@ -321,6 +337,14 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
             return this;
         }
 
+        /**
+         * @return this builder.
+         */
+        public Builder userAgent(String userAgent) {
+            this.userAgent = userAgent;
+            return this;
+        }
+
         @Override
         public CreateDefaultConfigInput build() {
             tracker.validate();
@@ -340,6 +364,7 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
                 case 6 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
                 case 7 -> valueValidationFunctionName((String) SchemaUtils.validateSameMember($SCHEMA_VALUE_VALIDATION_FUNCTION_NAME, member, value));
                 case 8 -> valueComputeFunctionName((String) SchemaUtils.validateSameMember($SCHEMA_VALUE_COMPUTE_FUNCTION_NAME, member, value));
+                case 9 -> userAgent((String) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -400,6 +425,7 @@ public final class CreateDefaultConfigInput implements SerializableStruct {
                     case 6 -> builder.orgId(de.readString(member));
                     case 7 -> builder.valueValidationFunctionName(de.readString(member));
                     case 8 -> builder.valueComputeFunctionName(de.readString(member));
+                    case 9 -> builder.userAgent(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

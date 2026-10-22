@@ -33,6 +33,8 @@ public final class UpdateExperimentGroupInput implements SerializableStruct {
         .putMember("org_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-org-id"),
                 new RequiredTrait())
+        .putMember("user_agent", PreludeSchemas.STRING,
+                new HttpHeaderTrait("user-agent"))
         .putMember("id", PreludeSchemas.STRING,
                 new HttpLabelTrait(),
                 new RequiredTrait())
@@ -45,6 +47,7 @@ public final class UpdateExperimentGroupInput implements SerializableStruct {
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
+    private static final Schema $SCHEMA_USER_AGENT = $SCHEMA.member("user_agent");
     private static final Schema $SCHEMA_ID = $SCHEMA.member("id");
     private static final Schema $SCHEMA_CHANGE_REASON = $SCHEMA.member("change_reason");
     private static final Schema $SCHEMA_DESCRIPTION = $SCHEMA.member("description");
@@ -52,6 +55,7 @@ public final class UpdateExperimentGroupInput implements SerializableStruct {
 
     private final transient String workspaceId;
     private final transient String orgId;
+    private final transient String userAgent;
     private final transient String id;
     private final transient String changeReason;
     private final transient String description;
@@ -60,6 +64,7 @@ public final class UpdateExperimentGroupInput implements SerializableStruct {
     private UpdateExperimentGroupInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
+        this.userAgent = builder.userAgent;
         this.id = builder.id;
         this.changeReason = builder.changeReason;
         this.description = builder.description;
@@ -72,6 +77,10 @@ public final class UpdateExperimentGroupInput implements SerializableStruct {
 
     public String orgId() {
         return orgId;
+    }
+
+    public String userAgent() {
+        return userAgent;
     }
 
     public String id() {
@@ -115,6 +124,7 @@ public final class UpdateExperimentGroupInput implements SerializableStruct {
         UpdateExperimentGroupInput that = (UpdateExperimentGroupInput) other;
         return Objects.equals(this.workspaceId, that.workspaceId)
                && Objects.equals(this.orgId, that.orgId)
+               && Objects.equals(this.userAgent, that.userAgent)
                && Objects.equals(this.id, that.id)
                && Objects.equals(this.changeReason, that.changeReason)
                && Objects.equals(this.description, that.description)
@@ -123,7 +133,7 @@ public final class UpdateExperimentGroupInput implements SerializableStruct {
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, id, changeReason, description, trafficPercentage);
+        return Objects.hash(workspaceId, orgId, userAgent, id, changeReason, description, trafficPercentage);
     }
 
     @Override
@@ -135,6 +145,9 @@ public final class UpdateExperimentGroupInput implements SerializableStruct {
     public void serializeMembers(ShapeSerializer serializer) {
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
+        if (userAgent != null) {
+            serializer.writeString($SCHEMA_USER_AGENT, userAgent);
+        }
         serializer.writeString($SCHEMA_ID, id);
         serializer.writeString($SCHEMA_CHANGE_REASON, changeReason);
         if (description != null) {
@@ -153,8 +166,9 @@ public final class UpdateExperimentGroupInput implements SerializableStruct {
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
             case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_ID, member, id);
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, changeReason);
-            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, description);
-            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_TRAFFIC_PERCENTAGE, member, trafficPercentage);
+            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, userAgent);
+            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, description);
+            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_TRAFFIC_PERCENTAGE, member, trafficPercentage);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -170,6 +184,7 @@ public final class UpdateExperimentGroupInput implements SerializableStruct {
         var builder = new Builder();
         builder.workspaceId(this.workspaceId);
         builder.orgId(this.orgId);
+        builder.userAgent(this.userAgent);
         builder.id(this.id);
         builder.changeReason(this.changeReason);
         builder.description(this.description);
@@ -191,6 +206,7 @@ public final class UpdateExperimentGroupInput implements SerializableStruct {
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private String workspaceId;
         private String orgId;
+        private String userAgent;
         private String id;
         private String changeReason;
         private String description;
@@ -220,6 +236,14 @@ public final class UpdateExperimentGroupInput implements SerializableStruct {
         public Builder orgId(String orgId) {
             this.orgId = Objects.requireNonNull(orgId, "orgId cannot be null");
             tracker.setMember($SCHEMA_ORG_ID);
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
+        public Builder userAgent(String userAgent) {
+            this.userAgent = userAgent;
             return this;
         }
 
@@ -279,8 +303,9 @@ public final class UpdateExperimentGroupInput implements SerializableStruct {
                 case 1 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
                 case 2 -> id((String) SchemaUtils.validateSameMember($SCHEMA_ID, member, value));
                 case 3 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
-                case 4 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
-                case 5 -> trafficPercentage((int) SchemaUtils.validateSameMember($SCHEMA_TRAFFIC_PERCENTAGE, member, value));
+                case 4 -> userAgent((String) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, value));
+                case 5 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
+                case 6 -> trafficPercentage((int) SchemaUtils.validateSameMember($SCHEMA_TRAFFIC_PERCENTAGE, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -327,8 +352,9 @@ public final class UpdateExperimentGroupInput implements SerializableStruct {
                     case 1 -> builder.orgId(de.readString(member));
                     case 2 -> builder.id(de.readString(member));
                     case 3 -> builder.changeReason(de.readString(member));
-                    case 4 -> builder.description(de.readString(member));
-                    case 5 -> builder.trafficPercentage(de.readInteger(member));
+                    case 4 -> builder.userAgent(de.readString(member));
+                    case 5 -> builder.description(de.readString(member));
+                    case 6 -> builder.trafficPercentage(de.readInteger(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

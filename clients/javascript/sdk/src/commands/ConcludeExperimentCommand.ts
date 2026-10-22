@@ -45,6 +45,7 @@ export interface ConcludeExperimentCommandOutput extends ExperimentResponse, __M
  * const input = { // ConcludeExperimentInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   id: "STRING_VALUE", // required
  *   chosen_variant: "STRING_VALUE", // required
  *   description: "STRING_VALUE",

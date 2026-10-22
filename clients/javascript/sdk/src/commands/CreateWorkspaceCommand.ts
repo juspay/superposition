@@ -44,6 +44,7 @@ export interface CreateWorkspaceCommandOutput extends WorkspaceResponse, __Metad
  * const client = new SuperpositionClient(config);
  * const input = { // CreateWorkspaceRequest
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   workspace_admin_email: "STRING_VALUE", // required
  *   workspace_name: "STRING_VALUE", // required
  *   workspace_status: "ENABLED" || "DISABLED",

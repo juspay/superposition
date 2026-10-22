@@ -45,6 +45,7 @@ export interface UpdateVariableCommandOutput extends VariableResponse, __Metadat
  * const input = { // UpdateVariableInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   name: "STRING_VALUE", // required
  *   value: "STRING_VALUE",
  *   description: "STRING_VALUE",

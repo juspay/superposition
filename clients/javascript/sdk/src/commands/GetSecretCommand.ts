@@ -45,6 +45,7 @@ export interface GetSecretCommandOutput extends SecretResponse, __MetadataBearer
  * const input = { // GetSecretInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   name: "STRING_VALUE", // required
  * };
  * const command = new GetSecretCommand(input);

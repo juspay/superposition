@@ -42,6 +42,7 @@ export interface DeleteDimensionCommandOutput extends __MetadataBearer {}
  * const input = { // DeleteDimensionInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   dimension: "STRING_VALUE", // required
  * };
  * const command = new DeleteDimensionCommand(input);

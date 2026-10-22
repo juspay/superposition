@@ -31,6 +31,8 @@ public final class UpdateDimensionInput implements SerializableStruct {
         .putMember("org_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-org-id"),
                 new RequiredTrait())
+        .putMember("user_agent", PreludeSchemas.STRING,
+                new HttpHeaderTrait("user-agent"))
         .putMember("dimension", PreludeSchemas.STRING,
                 new HttpLabelTrait(),
                 new RequiredTrait())
@@ -45,6 +47,7 @@ public final class UpdateDimensionInput implements SerializableStruct {
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
+    private static final Schema $SCHEMA_USER_AGENT = $SCHEMA.member("user_agent");
     private static final Schema $SCHEMA_DIMENSION = $SCHEMA.member("dimension");
     private static final Schema $SCHEMA_SCHEMA_MEMBER = $SCHEMA.member("schema");
     private static final Schema $SCHEMA_POSITION = $SCHEMA.member("position");
@@ -55,6 +58,7 @@ public final class UpdateDimensionInput implements SerializableStruct {
 
     private final transient String workspaceId;
     private final transient String orgId;
+    private final transient String userAgent;
     private final transient String dimension;
     private final transient Map<String, Document> schemaMember;
     private final transient Integer position;
@@ -66,6 +70,7 @@ public final class UpdateDimensionInput implements SerializableStruct {
     private UpdateDimensionInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
+        this.userAgent = builder.userAgent;
         this.dimension = builder.dimension;
         this.schemaMember = builder.schemaMember == null ? null : Collections.unmodifiableMap(builder.schemaMember);
         this.position = builder.position;
@@ -81,6 +86,10 @@ public final class UpdateDimensionInput implements SerializableStruct {
 
     public String orgId() {
         return orgId;
+    }
+
+    public String userAgent() {
+        return userAgent;
     }
 
     public String dimension() {
@@ -140,6 +149,7 @@ public final class UpdateDimensionInput implements SerializableStruct {
         UpdateDimensionInput that = (UpdateDimensionInput) other;
         return Objects.equals(this.workspaceId, that.workspaceId)
                && Objects.equals(this.orgId, that.orgId)
+               && Objects.equals(this.userAgent, that.userAgent)
                && Objects.equals(this.dimension, that.dimension)
                && Objects.equals(this.schemaMember, that.schemaMember)
                && Objects.equals(this.position, that.position)
@@ -151,7 +161,7 @@ public final class UpdateDimensionInput implements SerializableStruct {
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, dimension, schemaMember, position, valueValidationFunctionName, description, changeReason, valueComputeFunctionName);
+        return Objects.hash(workspaceId, orgId, userAgent, dimension, schemaMember, position, valueValidationFunctionName, description, changeReason, valueComputeFunctionName);
     }
 
     @Override
@@ -163,6 +173,9 @@ public final class UpdateDimensionInput implements SerializableStruct {
     public void serializeMembers(ShapeSerializer serializer) {
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
+        if (userAgent != null) {
+            serializer.writeString($SCHEMA_USER_AGENT, userAgent);
+        }
         serializer.writeString($SCHEMA_DIMENSION, dimension);
         if (schemaMember != null) {
             serializer.writeMap($SCHEMA_SCHEMA_MEMBER, schemaMember, schemaMember.size(), SharedSerde.ObjectShapeSerializer.INSTANCE);
@@ -190,11 +203,12 @@ public final class UpdateDimensionInput implements SerializableStruct {
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
             case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_DIMENSION, member, dimension);
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, changeReason);
-            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_SCHEMA_MEMBER, member, schemaMember);
-            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_POSITION, member, position);
-            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_VALUE_VALIDATION_FUNCTION_NAME, member, valueValidationFunctionName);
-            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, description);
-            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_VALUE_COMPUTE_FUNCTION_NAME, member, valueComputeFunctionName);
+            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, userAgent);
+            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_SCHEMA_MEMBER, member, schemaMember);
+            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_POSITION, member, position);
+            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_VALUE_VALIDATION_FUNCTION_NAME, member, valueValidationFunctionName);
+            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, description);
+            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_VALUE_COMPUTE_FUNCTION_NAME, member, valueComputeFunctionName);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -210,6 +224,7 @@ public final class UpdateDimensionInput implements SerializableStruct {
         var builder = new Builder();
         builder.workspaceId(this.workspaceId);
         builder.orgId(this.orgId);
+        builder.userAgent(this.userAgent);
         builder.dimension(this.dimension);
         builder.schemaMember(this.schemaMember);
         builder.position(this.position);
@@ -234,6 +249,7 @@ public final class UpdateDimensionInput implements SerializableStruct {
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private String workspaceId;
         private String orgId;
+        private String userAgent;
         private String dimension;
         private Map<String, Document> schemaMember;
         private Integer position;
@@ -266,6 +282,14 @@ public final class UpdateDimensionInput implements SerializableStruct {
         public Builder orgId(String orgId) {
             this.orgId = Objects.requireNonNull(orgId, "orgId cannot be null");
             tracker.setMember($SCHEMA_ORG_ID);
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
+        public Builder userAgent(String userAgent) {
+            this.userAgent = userAgent;
             return this;
         }
 
@@ -347,11 +371,12 @@ public final class UpdateDimensionInput implements SerializableStruct {
                 case 1 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
                 case 2 -> dimension((String) SchemaUtils.validateSameMember($SCHEMA_DIMENSION, member, value));
                 case 3 -> changeReason((String) SchemaUtils.validateSameMember($SCHEMA_CHANGE_REASON, member, value));
-                case 4 -> schemaMember((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_SCHEMA_MEMBER, member, value));
-                case 5 -> position((int) SchemaUtils.validateSameMember($SCHEMA_POSITION, member, value));
-                case 6 -> valueValidationFunctionName((String) SchemaUtils.validateSameMember($SCHEMA_VALUE_VALIDATION_FUNCTION_NAME, member, value));
-                case 7 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
-                case 8 -> valueComputeFunctionName((String) SchemaUtils.validateSameMember($SCHEMA_VALUE_COMPUTE_FUNCTION_NAME, member, value));
+                case 4 -> userAgent((String) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, value));
+                case 5 -> schemaMember((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_SCHEMA_MEMBER, member, value));
+                case 6 -> position((int) SchemaUtils.validateSameMember($SCHEMA_POSITION, member, value));
+                case 7 -> valueValidationFunctionName((String) SchemaUtils.validateSameMember($SCHEMA_VALUE_VALIDATION_FUNCTION_NAME, member, value));
+                case 8 -> description((String) SchemaUtils.validateSameMember($SCHEMA_DESCRIPTION, member, value));
+                case 9 -> valueComputeFunctionName((String) SchemaUtils.validateSameMember($SCHEMA_VALUE_COMPUTE_FUNCTION_NAME, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -398,11 +423,12 @@ public final class UpdateDimensionInput implements SerializableStruct {
                     case 1 -> builder.orgId(de.readString(member));
                     case 2 -> builder.dimension(de.readString(member));
                     case 3 -> builder.changeReason(de.readString(member));
-                    case 4 -> builder.schemaMember(SharedSerde.deserializeObjectShape(member, de));
-                    case 5 -> builder.position(de.readInteger(member));
-                    case 6 -> builder.valueValidationFunctionName(de.readString(member));
-                    case 7 -> builder.description(de.readString(member));
-                    case 8 -> builder.valueComputeFunctionName(de.readString(member));
+                    case 4 -> builder.userAgent(de.readString(member));
+                    case 5 -> builder.schemaMember(SharedSerde.deserializeObjectShape(member, de));
+                    case 6 -> builder.position(de.readInteger(member));
+                    case 7 -> builder.valueValidationFunctionName(de.readString(member));
+                    case 8 -> builder.description(de.readString(member));
+                    case 9 -> builder.valueComputeFunctionName(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

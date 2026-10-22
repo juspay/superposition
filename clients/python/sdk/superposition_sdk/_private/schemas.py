@@ -49,9 +49,19 @@ ADD_MEMBERS_TO_GROUP_INPUT = Schema.collection(
             ],
         },
 
-        "id": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "id": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -61,7 +71,7 @@ ADD_MEMBERS_TO_GROUP_INPUT = Schema.collection(
 
         "change_reason": {
             "target": STRING,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -70,7 +80,7 @@ ADD_MEMBERS_TO_GROUP_INPUT = Schema.collection(
 
         "member_experiment_ids": {
             "target": STRING_LIST,
-            "index": 4,
+            "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -387,9 +397,18 @@ APPLICABLE_VARIANTS_INPUT = Schema.collection(
             ],
         },
 
+        "user_agent": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+
+            ],
+        },
+
         "context": {
             "target": CONDITION,
-            "index": 2,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -398,7 +417,7 @@ APPLICABLE_VARIANTS_INPUT = Schema.collection(
 
         "identifier": {
             "target": STRING,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -409,7 +428,7 @@ APPLICABLE_VARIANTS_INPUT = Schema.collection(
 
         "prefix": {
             "target": STRING_LIST,
-            "index": 4,
+            "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="prefix"),
@@ -419,7 +438,7 @@ APPLICABLE_VARIANTS_INPUT = Schema.collection(
 
         "exclude_prefix": {
             "target": STRING_LIST,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="exclude_prefix"),
@@ -681,9 +700,18 @@ LIST_AUDIT_LOGS_INPUT = Schema.collection(
             ],
         },
 
+        "user_agent": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+
+            ],
+        },
+
         "count": {
             "target": INTEGER,
-            "index": 2,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="count"),
 
@@ -692,7 +720,7 @@ LIST_AUDIT_LOGS_INPUT = Schema.collection(
 
         "page": {
             "target": INTEGER,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="page"),
 
@@ -701,7 +729,7 @@ LIST_AUDIT_LOGS_INPUT = Schema.collection(
 
         "all": {
             "target": BOOLEAN,
-            "index": 4,
+            "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="all"),
 
@@ -710,7 +738,7 @@ LIST_AUDIT_LOGS_INPUT = Schema.collection(
 
         "from_date": {
             "target": DATE_TIME,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="from_date"),
@@ -720,7 +748,7 @@ LIST_AUDIT_LOGS_INPUT = Schema.collection(
 
         "to_date": {
             "target": DATE_TIME,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="to_date"),
@@ -730,7 +758,7 @@ LIST_AUDIT_LOGS_INPUT = Schema.collection(
 
         "tables": {
             "target": STRING_LIST,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="table"),
@@ -740,7 +768,7 @@ LIST_AUDIT_LOGS_INPUT = Schema.collection(
 
         "action": {
             "target": AUDIT_ACTION_LIST,
-            "index": 8,
+            "index": 9,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="action"),
@@ -750,7 +778,7 @@ LIST_AUDIT_LOGS_INPUT = Schema.collection(
 
         "username": {
             "target": STRING,
-            "index": 9,
+            "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="username"),
@@ -760,7 +788,7 @@ LIST_AUDIT_LOGS_INPUT = Schema.collection(
 
         "dimension_params": {
             "target": DIMENSION_QUERY_PARAMS,
-            "index": 10,
+            "index": 11,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQueryParams")),
@@ -770,7 +798,7 @@ LIST_AUDIT_LOGS_INPUT = Schema.collection(
 
         "sort_by": {
             "target": SORT_BY,
-            "index": 11,
+            "index": 12,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="sort_by"),
@@ -1136,9 +1164,18 @@ BULK_OPERATION_INPUT = Schema.collection(
             ],
         },
 
-        "config_tags": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+
+            ],
+        },
+
+        "config_tags": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-config-tags"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -1148,7 +1185,7 @@ BULK_OPERATION_INPUT = Schema.collection(
 
         "operations": {
             "target": BULK_OPERATION_LIST,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -1493,9 +1530,19 @@ CONCLUDE_EXPERIMENT_INPUT = Schema.collection(
             ],
         },
 
-        "id": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "id": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -1505,7 +1552,7 @@ CONCLUDE_EXPERIMENT_INPUT = Schema.collection(
 
         "chosen_variant": {
             "target": STRING,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -1514,12 +1561,12 @@ CONCLUDE_EXPERIMENT_INPUT = Schema.collection(
 
         "description": {
             "target": STRING,
-            "index": 4,
+            "index": 5,
         },
 
         "change_reason": {
             "target": STRING,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -1528,7 +1575,7 @@ CONCLUDE_EXPERIMENT_INPUT = Schema.collection(
 
         "config_tags": {
             "target": STRING,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-config-tags"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -2062,9 +2109,19 @@ GET_CONFIG_INPUT = Schema.collection(
             ],
         },
 
+        "user_agent": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
         "prefix": {
             "target": STRING_LIST,
-            "index": 2,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="prefix"),
@@ -2074,7 +2131,7 @@ GET_CONFIG_INPUT = Schema.collection(
 
         "exclude_prefix": {
             "target": STRING_LIST,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="exclude_prefix"),
@@ -2084,7 +2141,7 @@ GET_CONFIG_INPUT = Schema.collection(
 
         "version": {
             "target": STRING,
-            "index": 4,
+            "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="version"),
@@ -2094,7 +2151,7 @@ GET_CONFIG_INPUT = Schema.collection(
 
         "if_modified_since": {
             "target": DATE_TIME,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="if-modified-since"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -2104,7 +2161,7 @@ GET_CONFIG_INPUT = Schema.collection(
 
         "context": {
             "target": CONTEXT_MAP,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 
@@ -2242,9 +2299,19 @@ GET_CONFIG_JSON_INPUT = Schema.collection(
             ],
         },
 
+        "user_agent": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
         "if_modified_since": {
             "target": DATE_TIME,
-            "index": 2,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="if-modified-since"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -2331,9 +2398,19 @@ GET_CONFIG_TOML_INPUT = Schema.collection(
             ],
         },
 
+        "user_agent": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
         "if_modified_since": {
             "target": DATE_TIME,
-            "index": 2,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="if-modified-since"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -2445,9 +2522,19 @@ GET_DETAILED_RESOLVED_CONFIG_INPUT = Schema.collection(
             ],
         },
 
+        "user_agent": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
         "prefix": {
             "target": STRING_LIST,
-            "index": 2,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="prefix"),
@@ -2457,7 +2544,7 @@ GET_DETAILED_RESOLVED_CONFIG_INPUT = Schema.collection(
 
         "exclude_prefix": {
             "target": STRING_LIST,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="exclude_prefix"),
@@ -2467,7 +2554,7 @@ GET_DETAILED_RESOLVED_CONFIG_INPUT = Schema.collection(
 
         "version": {
             "target": STRING,
-            "index": 4,
+            "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="version"),
@@ -2477,7 +2564,7 @@ GET_DETAILED_RESOLVED_CONFIG_INPUT = Schema.collection(
 
         "show_reasoning": {
             "target": BOOLEAN,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="show_reasoning"),
@@ -2487,7 +2574,7 @@ GET_DETAILED_RESOLVED_CONFIG_INPUT = Schema.collection(
 
         "merge_strategy": {
             "target": MERGE_STRATEGY,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-merge-strategy"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -2497,7 +2584,7 @@ GET_DETAILED_RESOLVED_CONFIG_INPUT = Schema.collection(
 
         "context_id": {
             "target": STRING,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="context_id"),
@@ -2507,7 +2594,7 @@ GET_DETAILED_RESOLVED_CONFIG_INPUT = Schema.collection(
 
         "resolve_remote": {
             "target": BOOLEAN,
-            "index": 8,
+            "index": 9,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="resolve_remote"),
@@ -2517,7 +2604,7 @@ GET_DETAILED_RESOLVED_CONFIG_INPUT = Schema.collection(
 
         "context": {
             "target": CONTEXT_MAP,
-            "index": 9,
+            "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 
@@ -2623,9 +2710,19 @@ GET_RESOLVED_CONFIG_INPUT = Schema.collection(
             ],
         },
 
+        "user_agent": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
         "prefix": {
             "target": STRING_LIST,
-            "index": 2,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="prefix"),
@@ -2635,7 +2732,7 @@ GET_RESOLVED_CONFIG_INPUT = Schema.collection(
 
         "exclude_prefix": {
             "target": STRING_LIST,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="exclude_prefix"),
@@ -2645,7 +2742,7 @@ GET_RESOLVED_CONFIG_INPUT = Schema.collection(
 
         "version": {
             "target": STRING,
-            "index": 4,
+            "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="version"),
@@ -2655,7 +2752,7 @@ GET_RESOLVED_CONFIG_INPUT = Schema.collection(
 
         "show_reasoning": {
             "target": BOOLEAN,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="show_reasoning"),
@@ -2665,7 +2762,7 @@ GET_RESOLVED_CONFIG_INPUT = Schema.collection(
 
         "merge_strategy": {
             "target": MERGE_STRATEGY,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-merge-strategy"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -2675,7 +2772,7 @@ GET_RESOLVED_CONFIG_INPUT = Schema.collection(
 
         "context_id": {
             "target": STRING,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="context_id"),
@@ -2685,7 +2782,7 @@ GET_RESOLVED_CONFIG_INPUT = Schema.collection(
 
         "resolve_remote": {
             "target": BOOLEAN,
-            "index": 8,
+            "index": 9,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="resolve_remote"),
@@ -2695,7 +2792,7 @@ GET_RESOLVED_CONFIG_INPUT = Schema.collection(
 
         "context": {
             "target": CONTEXT_MAP,
-            "index": 9,
+            "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 
@@ -2801,9 +2898,19 @@ GET_RESOLVED_CONFIG_EXPLANATION_INPUT = Schema.collection(
             ],
         },
 
-        "key": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "key": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -2814,7 +2921,7 @@ GET_RESOLVED_CONFIG_EXPLANATION_INPUT = Schema.collection(
 
         "version": {
             "target": STRING,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="version"),
@@ -2824,7 +2931,7 @@ GET_RESOLVED_CONFIG_EXPLANATION_INPUT = Schema.collection(
 
         "merge_strategy": {
             "target": MERGE_STRATEGY,
-            "index": 4,
+            "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-merge-strategy"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -2834,7 +2941,7 @@ GET_RESOLVED_CONFIG_EXPLANATION_INPUT = Schema.collection(
 
         "context_id": {
             "target": STRING,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="context_id"),
@@ -2844,7 +2951,7 @@ GET_RESOLVED_CONFIG_EXPLANATION_INPUT = Schema.collection(
 
         "resolve_remote": {
             "target": BOOLEAN,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="resolve_remote"),
@@ -2854,7 +2961,7 @@ GET_RESOLVED_CONFIG_EXPLANATION_INPUT = Schema.collection(
 
         "context": {
             "target": CONTEXT_MAP,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 
@@ -3049,9 +3156,19 @@ GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT = Schema.collection(
             ],
         },
 
+        "user_agent": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
         "prefix": {
             "target": STRING_LIST,
-            "index": 2,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="prefix"),
@@ -3061,7 +3178,7 @@ GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT = Schema.collection(
 
         "exclude_prefix": {
             "target": STRING_LIST,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="exclude_prefix"),
@@ -3071,7 +3188,7 @@ GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT = Schema.collection(
 
         "version": {
             "target": STRING,
-            "index": 4,
+            "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="version"),
@@ -3081,7 +3198,7 @@ GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT = Schema.collection(
 
         "show_reasoning": {
             "target": BOOLEAN,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="show_reasoning"),
@@ -3091,7 +3208,7 @@ GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT = Schema.collection(
 
         "merge_strategy": {
             "target": MERGE_STRATEGY,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-merge-strategy"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -3101,7 +3218,7 @@ GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT = Schema.collection(
 
         "context_id": {
             "target": STRING,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="context_id"),
@@ -3111,7 +3228,7 @@ GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT = Schema.collection(
 
         "resolve_remote": {
             "target": BOOLEAN,
-            "index": 8,
+            "index": 9,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="resolve_remote"),
@@ -3121,7 +3238,7 @@ GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT = Schema.collection(
 
         "context": {
             "target": CONTEXT_MAP,
-            "index": 9,
+            "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 
@@ -3130,7 +3247,7 @@ GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT = Schema.collection(
 
         "identifier": {
             "target": STRING,
-            "index": 10,
+            "index": 11,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="identifier"),
@@ -3280,9 +3397,19 @@ GET_VERSION_INPUT = Schema.collection(
             ],
         },
 
-        "id": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "id": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -3400,9 +3527,18 @@ LIST_VERSIONS_INPUT = Schema.collection(
             ],
         },
 
+        "user_agent": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+
+            ],
+        },
+
         "count": {
             "target": INTEGER,
-            "index": 2,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="count"),
@@ -3412,7 +3548,7 @@ LIST_VERSIONS_INPUT = Schema.collection(
 
         "page": {
             "target": INTEGER,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="page"),
@@ -3566,9 +3702,19 @@ CREATE_CONTEXT_INPUT = Schema.collection(
             ],
         },
 
-        "config_tags": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "config_tags": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-config-tags"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -3578,7 +3724,7 @@ CREATE_CONTEXT_INPUT = Schema.collection(
 
         "request": {
             "target": CONTEXT_PUT,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -3746,9 +3892,19 @@ DELETE_CONTEXT_INPUT = Schema.collection(
             ],
         },
 
-        "id": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "id": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -3758,7 +3914,7 @@ DELETE_CONTEXT_INPUT = Schema.collection(
 
         "config_tags": {
             "target": STRING,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-config-tags"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -3826,9 +3982,19 @@ GET_CONTEXT_INPUT = Schema.collection(
             ],
         },
 
-        "id": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "id": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -3995,9 +4161,18 @@ GET_CONTEXT_FROM_CONDITION_INPUT = Schema.collection(
             ],
         },
 
+        "user_agent": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+
+            ],
+        },
+
         "context": {
             "target": DOCUMENT,
-            "index": 2,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpPayload")),
@@ -4258,9 +4433,18 @@ LIST_CONTEXTS_INPUT = Schema.collection(
             ],
         },
 
+        "user_agent": {
+            "target": STRING,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+
+            ],
+        },
+
         "prefix": {
             "target": STRING_LIST,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="prefix"),
@@ -4270,7 +4454,7 @@ LIST_CONTEXTS_INPUT = Schema.collection(
 
         "exclude_prefix": {
             "target": STRING_LIST,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="exclude_prefix"),
@@ -4280,7 +4464,7 @@ LIST_CONTEXTS_INPUT = Schema.collection(
 
         "sort_on": {
             "target": CONTEXT_FILTER_SORT_ON,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="sort_on"),
@@ -4290,7 +4474,7 @@ LIST_CONTEXTS_INPUT = Schema.collection(
 
         "sort_by": {
             "target": SORT_BY,
-            "index": 8,
+            "index": 9,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="sort_by"),
@@ -4300,7 +4484,7 @@ LIST_CONTEXTS_INPUT = Schema.collection(
 
         "created_by": {
             "target": STRING_LIST,
-            "index": 9,
+            "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="created_by"),
@@ -4310,7 +4494,7 @@ LIST_CONTEXTS_INPUT = Schema.collection(
 
         "last_modified_by": {
             "target": STRING_LIST,
-            "index": 10,
+            "index": 11,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="last_modified_by"),
@@ -4320,7 +4504,7 @@ LIST_CONTEXTS_INPUT = Schema.collection(
 
         "plaintext": {
             "target": STRING,
-            "index": 11,
+            "index": 12,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="plaintext"),
@@ -4330,7 +4514,7 @@ LIST_CONTEXTS_INPUT = Schema.collection(
 
         "dimension_match_strategy": {
             "target": DIMENSION_MATCH_STRATEGY,
-            "index": 12,
+            "index": 13,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="dimension_match_strategy"),
@@ -4340,7 +4524,7 @@ LIST_CONTEXTS_INPUT = Schema.collection(
 
         "dimension_params": {
             "target": DIMENSION_QUERY_PARAMS,
-            "index": 13,
+            "index": 14,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQueryParams")),
@@ -4446,9 +4630,19 @@ MOVE_CONTEXT_INPUT = Schema.collection(
             ],
         },
 
-        "id": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "id": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -4458,7 +4652,7 @@ MOVE_CONTEXT_INPUT = Schema.collection(
 
         "request": {
             "target": CONTEXT_MOVE,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -4625,9 +4819,18 @@ UPDATE_OVERRIDE_INPUT = Schema.collection(
             ],
         },
 
-        "config_tags": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+
+            ],
+        },
+
+        "config_tags": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-config-tags"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -4637,7 +4840,7 @@ UPDATE_OVERRIDE_INPUT = Schema.collection(
 
         "request": {
             "target": UPDATE_CONTEXT_OVERRIDE_REQUEST,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -4804,9 +5007,18 @@ VALIDATE_CONTEXT_INPUT = Schema.collection(
             ],
         },
 
+        "user_agent": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+
+            ],
+        },
+
         "context": {
             "target": CONDITION,
-            "index": 2,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -4873,9 +5085,18 @@ WEIGHT_RECOMPUTE_INPUT = Schema.collection(
             ],
         },
 
-        "config_tags": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+
+            ],
+        },
+
+        "config_tags": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-config-tags"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -5076,6 +5297,16 @@ CREATE_DEFAULT_CONFIG_INPUT = Schema.collection(
             ],
         },
 
+        "user_agent": {
+            "target": STRING,
+            "index": 9,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
     }
 )
 
@@ -5226,9 +5457,19 @@ CREATE_DIMENSION_INPUT = Schema.collection(
             ],
         },
 
-        "dimension": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "dimension": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -5237,7 +5478,7 @@ CREATE_DIMENSION_INPUT = Schema.collection(
 
         "position": {
             "target": INTEGER,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -5246,7 +5487,7 @@ CREATE_DIMENSION_INPUT = Schema.collection(
 
         "schema": {
             "target": OBJECT,
-            "index": 4,
+            "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -5255,19 +5496,10 @@ CREATE_DIMENSION_INPUT = Schema.collection(
 
         "value_validation_function_name": {
             "target": STRING,
-            "index": 5,
+            "index": 6,
         },
 
         "description": {
-            "target": STRING,
-            "index": 6,
-            "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
-
-            ],
-        },
-
-        "change_reason": {
             "target": STRING,
             "index": 7,
             "traits": [
@@ -5276,14 +5508,23 @@ CREATE_DIMENSION_INPUT = Schema.collection(
             ],
         },
 
+        "change_reason": {
+            "target": STRING,
+            "index": 8,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
         "dimension_type": {
             "target": DIMENSION_TYPE,
-            "index": 8,
+            "index": 9,
         },
 
         "value_compute_function_name": {
             "target": STRING,
-            "index": 9,
+            "index": 10,
         },
 
     }
@@ -5465,9 +5706,19 @@ CREATE_EXPERIMENT_INPUT = Schema.collection(
             ],
         },
 
-        "name": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "name": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -5476,12 +5727,12 @@ CREATE_EXPERIMENT_INPUT = Schema.collection(
 
         "experiment_type": {
             "target": EXPERIMENT_TYPE,
-            "index": 3,
+            "index": 4,
         },
 
         "context": {
             "target": CONDITION,
-            "index": 4,
+            "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -5490,7 +5741,7 @@ CREATE_EXPERIMENT_INPUT = Schema.collection(
 
         "variants": {
             "target": LIST_VARIANT,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -5499,7 +5750,7 @@ CREATE_EXPERIMENT_INPUT = Schema.collection(
 
         "description": {
             "target": STRING,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -5508,7 +5759,7 @@ CREATE_EXPERIMENT_INPUT = Schema.collection(
 
         "change_reason": {
             "target": STRING,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -5517,17 +5768,17 @@ CREATE_EXPERIMENT_INPUT = Schema.collection(
 
         "metrics": {
             "target": DOCUMENT,
-            "index": 8,
+            "index": 9,
         },
 
         "experiment_group_id": {
             "target": STRING,
-            "index": 9,
+            "index": 10,
         },
 
         "idempotency_key": {
             "target": STRING,
-            "index": 10,
+            "index": 11,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="idempotency-key"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -5537,7 +5788,7 @@ CREATE_EXPERIMENT_INPUT = Schema.collection(
 
         "config_tags": {
             "target": STRING,
-            "index": 11,
+            "index": 12,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-config-tags"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -5761,16 +6012,17 @@ CREATE_EXPERIMENT_GROUP_INPUT = Schema.collection(
             ],
         },
 
-        "name": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
             "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
 
             ],
         },
 
-        "description": {
+        "name": {
             "target": STRING,
             "index": 3,
             "traits": [
@@ -5779,7 +6031,7 @@ CREATE_EXPERIMENT_GROUP_INPUT = Schema.collection(
             ],
         },
 
-        "change_reason": {
+        "description": {
             "target": STRING,
             "index": 4,
             "traits": [
@@ -5788,9 +6040,18 @@ CREATE_EXPERIMENT_GROUP_INPUT = Schema.collection(
             ],
         },
 
+        "change_reason": {
+            "target": STRING,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
         "context": {
             "target": CONDITION,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -5799,7 +6060,7 @@ CREATE_EXPERIMENT_GROUP_INPUT = Schema.collection(
 
         "traffic_percentage": {
             "target": INTEGER,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#range"), value=MappingProxyType({
@@ -5812,7 +6073,7 @@ CREATE_EXPERIMENT_GROUP_INPUT = Schema.collection(
 
         "member_experiment_ids": {
             "target": STRING_LIST,
-            "index": 7,
+            "index": 8,
         },
 
     }
@@ -6064,16 +6325,17 @@ CREATE_FUNCTION_INPUT = Schema.collection(
             ],
         },
 
-        "function_name": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
             "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
 
             ],
         },
 
-        "description": {
+        "function_name": {
             "target": STRING,
             "index": 3,
             "traits": [
@@ -6082,7 +6344,7 @@ CREATE_FUNCTION_INPUT = Schema.collection(
             ],
         },
 
-        "change_reason": {
+        "description": {
             "target": STRING,
             "index": 4,
             "traits": [
@@ -6091,9 +6353,18 @@ CREATE_FUNCTION_INPUT = Schema.collection(
             ],
         },
 
-        "function": {
+        "change_reason": {
             "target": STRING,
             "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "function": {
+            "target": STRING,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -6103,7 +6374,7 @@ CREATE_FUNCTION_INPUT = Schema.collection(
 
         "runtime_version": {
             "target": FUNCTION_RUNTIME_VERSION,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -6113,7 +6384,7 @@ CREATE_FUNCTION_INPUT = Schema.collection(
 
         "function_type": {
             "target": FUNCTION_TYPES,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6493,16 +6764,17 @@ CREATE_SECRET_INPUT = Schema.collection(
             ],
         },
 
-        "name": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
             "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
 
             ],
         },
 
-        "value": {
+        "name": {
             "target": STRING,
             "index": 3,
             "traits": [
@@ -6511,7 +6783,7 @@ CREATE_SECRET_INPUT = Schema.collection(
             ],
         },
 
-        "description": {
+        "value": {
             "target": STRING,
             "index": 4,
             "traits": [
@@ -6520,9 +6792,18 @@ CREATE_SECRET_INPUT = Schema.collection(
             ],
         },
 
-        "change_reason": {
+        "description": {
             "target": STRING,
             "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "change_reason": {
+            "target": STRING,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6652,9 +6933,19 @@ CREATE_TYPE_TEMPLATES_INPUT = Schema.collection(
             ],
         },
 
-        "type_name": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "type_name": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6663,7 +6954,7 @@ CREATE_TYPE_TEMPLATES_INPUT = Schema.collection(
 
         "type_schema": {
             "target": OBJECT,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6672,7 +6963,7 @@ CREATE_TYPE_TEMPLATES_INPUT = Schema.collection(
 
         "description": {
             "target": STRING,
-            "index": 4,
+            "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6681,7 +6972,7 @@ CREATE_TYPE_TEMPLATES_INPUT = Schema.collection(
 
         "change_reason": {
             "target": STRING,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -6819,16 +7110,17 @@ CREATE_VARIABLE_INPUT = Schema.collection(
             ],
         },
 
-        "name": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
             "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
 
             ],
         },
 
-        "value": {
+        "name": {
             "target": STRING,
             "index": 3,
             "traits": [
@@ -6837,7 +7129,7 @@ CREATE_VARIABLE_INPUT = Schema.collection(
             ],
         },
 
-        "description": {
+        "value": {
             "target": STRING,
             "index": 4,
             "traits": [
@@ -6846,9 +7138,18 @@ CREATE_VARIABLE_INPUT = Schema.collection(
             ],
         },
 
-        "change_reason": {
+        "description": {
             "target": STRING,
             "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "change_reason": {
+            "target": STRING,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -7075,16 +7376,17 @@ CREATE_WEBHOOK_INPUT = Schema.collection(
             ],
         },
 
-        "name": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
             "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
 
             ],
         },
 
-        "description": {
+        "name": {
             "target": STRING,
             "index": 3,
             "traits": [
@@ -7093,9 +7395,18 @@ CREATE_WEBHOOK_INPUT = Schema.collection(
             ],
         },
 
+        "description": {
+            "target": STRING,
+            "index": 4,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
         "enabled": {
             "target": BOOLEAN,
-            "index": 4,
+            "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -7104,7 +7415,7 @@ CREATE_WEBHOOK_INPUT = Schema.collection(
 
         "url": {
             "target": STRING,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -7113,7 +7424,7 @@ CREATE_WEBHOOK_INPUT = Schema.collection(
 
         "method": {
             "target": HTTP_METHOD,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -7122,17 +7433,17 @@ CREATE_WEBHOOK_INPUT = Schema.collection(
 
         "version": {
             "target": VERSION,
-            "index": 7,
+            "index": 8,
         },
 
         "custom_headers": {
             "target": OBJECT,
-            "index": 8,
+            "index": 9,
         },
 
         "events": {
             "target": EVENTS,
-            "index": 9,
+            "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -7141,7 +7452,7 @@ CREATE_WEBHOOK_INPUT = Schema.collection(
 
         "change_reason": {
             "target": STRING,
-            "index": 10,
+            "index": 11,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -7350,16 +7661,17 @@ CREATE_WORKSPACE_INPUT = Schema.collection(
             ],
         },
 
-        "workspace_admin_email": {
+        "user_agent": {
             "target": STRING,
             "index": 1,
             "traits": [
-                Trait.new(id=ShapeID("smithy.api#required")),
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
 
             ],
         },
 
-        "workspace_name": {
+        "workspace_admin_email": {
             "target": STRING,
             "index": 2,
             "traits": [
@@ -7368,34 +7680,43 @@ CREATE_WORKSPACE_INPUT = Schema.collection(
             ],
         },
 
+        "workspace_name": {
+            "target": STRING,
+            "index": 3,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
         "workspace_status": {
             "target": WORKSPACE_STATUS,
-            "index": 3,
+            "index": 4,
         },
 
         "metrics": {
             "target": DOCUMENT,
-            "index": 4,
+            "index": 5,
         },
 
         "allow_experiment_self_approval": {
             "target": BOOLEAN,
-            "index": 5,
+            "index": 6,
         },
 
         "auto_populate_control": {
             "target": BOOLEAN,
-            "index": 6,
+            "index": 7,
         },
 
         "enable_context_validation": {
             "target": BOOLEAN,
-            "index": 7,
+            "index": 8,
         },
 
         "enable_change_reason_validation": {
             "target": BOOLEAN,
-            "index": 8,
+            "index": 9,
         },
 
     }
@@ -7619,9 +7940,19 @@ DELETE_DEFAULT_CONFIG_INPUT = Schema.collection(
             ],
         },
 
-        "key": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "key": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -7689,9 +8020,19 @@ GET_DEFAULT_CONFIG_INPUT = Schema.collection(
             ],
         },
 
-        "key": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "key": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -7850,9 +8191,18 @@ LIST_DEFAULT_CONFIGS_INPUT = Schema.collection(
             ],
         },
 
+        "user_agent": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+
+            ],
+        },
+
         "count": {
             "target": INTEGER,
-            "index": 2,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="count"),
 
@@ -7861,7 +8211,7 @@ LIST_DEFAULT_CONFIGS_INPUT = Schema.collection(
 
         "page": {
             "target": INTEGER,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="page"),
 
@@ -7870,7 +8220,7 @@ LIST_DEFAULT_CONFIGS_INPUT = Schema.collection(
 
         "all": {
             "target": BOOLEAN,
-            "index": 4,
+            "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="all"),
 
@@ -7879,7 +8229,7 @@ LIST_DEFAULT_CONFIGS_INPUT = Schema.collection(
 
         "name": {
             "target": STRING,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="name"),
@@ -8083,9 +8433,19 @@ UPDATE_DEFAULT_CONFIG_INPUT = Schema.collection(
             ],
         },
 
-        "key": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "key": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -8095,7 +8455,7 @@ UPDATE_DEFAULT_CONFIG_INPUT = Schema.collection(
 
         "change_reason": {
             "target": STRING,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -8104,27 +8464,27 @@ UPDATE_DEFAULT_CONFIG_INPUT = Schema.collection(
 
         "value": {
             "target": DOCUMENT,
-            "index": 4,
+            "index": 5,
         },
 
         "schema": {
             "target": OBJECT,
-            "index": 5,
+            "index": 6,
         },
 
         "value_validation_function_name": {
             "target": STRING,
-            "index": 6,
+            "index": 7,
         },
 
         "description": {
             "target": STRING,
-            "index": 7,
+            "index": 8,
         },
 
         "value_compute_function_name": {
             "target": STRING,
-            "index": 8,
+            "index": 9,
         },
 
     }
@@ -8278,9 +8638,19 @@ DELETE_DIMENSION_INPUT = Schema.collection(
             ],
         },
 
-        "dimension": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "dimension": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -8348,9 +8718,19 @@ DELETE_EXPERIMENT_GROUP_INPUT = Schema.collection(
             ],
         },
 
-        "id": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "id": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -8548,9 +8928,19 @@ DELETE_FUNCTION_INPUT = Schema.collection(
             ],
         },
 
-        "function_name": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "function_name": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -8618,9 +9008,19 @@ DELETE_SECRET_INPUT = Schema.collection(
             ],
         },
 
-        "name": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "name": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -8751,9 +9151,19 @@ DELETE_TYPE_TEMPLATES_INPUT = Schema.collection(
             ],
         },
 
-        "type_name": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "type_name": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -8893,9 +9303,19 @@ DELETE_VARIABLE_INPUT = Schema.collection(
             ],
         },
 
-        "name": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "name": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -9035,9 +9455,19 @@ DELETE_WEBHOOK_INPUT = Schema.collection(
             ],
         },
 
-        "name": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "name": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -9105,9 +9535,19 @@ GET_DIMENSION_INPUT = Schema.collection(
             ],
         },
 
-        "dimension": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "dimension": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -9317,6 +9757,15 @@ LIST_DIMENSIONS_INPUT = Schema.collection(
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),
                 Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "user_agent": {
+            "target": STRING,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
 
             ],
         },
@@ -9545,9 +9994,19 @@ UPDATE_DIMENSION_INPUT = Schema.collection(
             ],
         },
 
-        "dimension": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "dimension": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -9557,27 +10016,27 @@ UPDATE_DIMENSION_INPUT = Schema.collection(
 
         "schema": {
             "target": OBJECT,
-            "index": 3,
+            "index": 4,
         },
 
         "position": {
             "target": INTEGER,
-            "index": 4,
+            "index": 5,
         },
 
         "value_validation_function_name": {
             "target": STRING,
-            "index": 5,
+            "index": 6,
         },
 
         "description": {
             "target": STRING,
-            "index": 6,
+            "index": 7,
         },
 
         "change_reason": {
             "target": STRING,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -9586,7 +10045,7 @@ UPDATE_DIMENSION_INPUT = Schema.collection(
 
         "value_compute_function_name": {
             "target": STRING,
-            "index": 8,
+            "index": 9,
         },
 
     }
@@ -9768,9 +10227,19 @@ DISCARD_EXPERIMENT_INPUT = Schema.collection(
             ],
         },
 
-        "id": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "id": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -9780,7 +10249,7 @@ DISCARD_EXPERIMENT_INPUT = Schema.collection(
 
         "change_reason": {
             "target": STRING,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -9789,7 +10258,7 @@ DISCARD_EXPERIMENT_INPUT = Schema.collection(
 
         "config_tags": {
             "target": STRING,
-            "index": 4,
+            "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-config-tags"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -10337,9 +10806,19 @@ GET_EXPERIMENT_CONFIG_INPUT = Schema.collection(
             ],
         },
 
+        "user_agent": {
+            "target": STRING,
+            "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
         "if_modified_since": {
             "target": DATE_TIME,
-            "index": 2,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="if-modified-since"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -10349,7 +10828,7 @@ GET_EXPERIMENT_CONFIG_INPUT = Schema.collection(
 
         "prefix": {
             "target": STRING_LIST,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="prefix"),
@@ -10359,7 +10838,7 @@ GET_EXPERIMENT_CONFIG_INPUT = Schema.collection(
 
         "exclude_prefix": {
             "target": STRING_LIST,
-            "index": 4,
+            "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="exclude_prefix"),
@@ -10369,7 +10848,7 @@ GET_EXPERIMENT_CONFIG_INPUT = Schema.collection(
 
         "context": {
             "target": CONTEXT_MAP,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 
@@ -10378,7 +10857,7 @@ GET_EXPERIMENT_CONFIG_INPUT = Schema.collection(
 
         "dimension_match_strategy": {
             "target": DIMENSION_MATCH_STRATEGY,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="dimension_match_strategy"),
@@ -10472,9 +10951,19 @@ GET_EXPERIMENT_GROUP_INPUT = Schema.collection(
             ],
         },
 
-        "id": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "id": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -10745,9 +11234,18 @@ LIST_EXPERIMENT_GROUPS_INPUT = Schema.collection(
             ],
         },
 
+        "user_agent": {
+            "target": STRING,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+
+            ],
+        },
+
         "if_modified_since": {
             "target": DATE_TIME,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="if-modified-since"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -10757,7 +11255,7 @@ LIST_EXPERIMENT_GROUPS_INPUT = Schema.collection(
 
         "name": {
             "target": STRING,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="name"),
 
@@ -10766,7 +11264,7 @@ LIST_EXPERIMENT_GROUPS_INPUT = Schema.collection(
 
         "created_by": {
             "target": STRING,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="created_by"),
 
@@ -10775,7 +11273,7 @@ LIST_EXPERIMENT_GROUPS_INPUT = Schema.collection(
 
         "last_modified_by": {
             "target": STRING,
-            "index": 8,
+            "index": 9,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="last_modified_by"),
 
@@ -10784,7 +11282,7 @@ LIST_EXPERIMENT_GROUPS_INPUT = Schema.collection(
 
         "sort_on": {
             "target": EXPERIMENT_GROUP_SORT_ON,
-            "index": 9,
+            "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="sort_on"),
@@ -10794,7 +11292,7 @@ LIST_EXPERIMENT_GROUPS_INPUT = Schema.collection(
 
         "sort_by": {
             "target": SORT_BY,
-            "index": 10,
+            "index": 11,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="sort_by"),
@@ -10804,7 +11302,7 @@ LIST_EXPERIMENT_GROUPS_INPUT = Schema.collection(
 
         "group_type": {
             "target": GROUP_TYPE_LIST,
-            "index": 11,
+            "index": 12,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="group_type"),
 
@@ -10813,7 +11311,7 @@ LIST_EXPERIMENT_GROUPS_INPUT = Schema.collection(
 
         "dimension_match_strategy": {
             "target": DIMENSION_MATCH_STRATEGY,
-            "index": 12,
+            "index": 13,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="dimension_match_strategy"),
@@ -10823,7 +11321,7 @@ LIST_EXPERIMENT_GROUPS_INPUT = Schema.collection(
 
         "dimension_params": {
             "target": DIMENSION_QUERY_PARAMS,
-            "index": 13,
+            "index": 14,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQueryParams")),
@@ -10833,7 +11331,7 @@ LIST_EXPERIMENT_GROUPS_INPUT = Schema.collection(
 
         "context": {
             "target": CONTEXT_MAP,
-            "index": 14,
+            "index": 15,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 
@@ -10936,9 +11434,19 @@ REMOVE_MEMBERS_FROM_GROUP_INPUT = Schema.collection(
             ],
         },
 
-        "id": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "id": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -10948,7 +11456,7 @@ REMOVE_MEMBERS_FROM_GROUP_INPUT = Schema.collection(
 
         "change_reason": {
             "target": STRING,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -10957,7 +11465,7 @@ REMOVE_MEMBERS_FROM_GROUP_INPUT = Schema.collection(
 
         "member_experiment_ids": {
             "target": STRING_LIST,
-            "index": 4,
+            "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -11154,9 +11662,19 @@ UPDATE_EXPERIMENT_GROUP_INPUT = Schema.collection(
             ],
         },
 
-        "id": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "id": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -11166,7 +11684,7 @@ UPDATE_EXPERIMENT_GROUP_INPUT = Schema.collection(
 
         "change_reason": {
             "target": STRING,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -11175,12 +11693,12 @@ UPDATE_EXPERIMENT_GROUP_INPUT = Schema.collection(
 
         "description": {
             "target": STRING,
-            "index": 4,
+            "index": 5,
         },
 
         "traffic_percentage": {
             "target": INTEGER,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#range"), value=MappingProxyType({
                         "min": 0,
@@ -11380,9 +11898,19 @@ GET_EXPERIMENT_INPUT = Schema.collection(
             ],
         },
 
-        "id": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "id": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -11670,9 +12198,18 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
             ],
         },
 
+        "user_agent": {
+            "target": STRING,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+
+            ],
+        },
+
         "if_modified_since": {
             "target": DATE_TIME,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="if-modified-since"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -11682,7 +12219,7 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
 
         "status": {
             "target": EXPERIMENT_STATUS_TYPE_LIST,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="status"),
 
@@ -11691,7 +12228,7 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
 
         "from_date": {
             "target": DATE_TIME,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="from_date"),
@@ -11701,7 +12238,7 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
 
         "to_date": {
             "target": DATE_TIME,
-            "index": 8,
+            "index": 9,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="to_date"),
@@ -11711,7 +12248,7 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
 
         "experiment_name": {
             "target": STRING,
-            "index": 9,
+            "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="experiment_name"),
@@ -11721,7 +12258,7 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
 
         "experiment_ids": {
             "target": STRING_LIST,
-            "index": 10,
+            "index": 11,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="experiment_ids"),
@@ -11731,7 +12268,7 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
 
         "experiment_group_ids": {
             "target": STRING_LIST,
-            "index": 11,
+            "index": 12,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="experiment_group_ids"),
@@ -11741,7 +12278,7 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
 
         "created_by": {
             "target": STRING_LIST,
-            "index": 12,
+            "index": 13,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="created_by"),
@@ -11751,7 +12288,7 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
 
         "sort_on": {
             "target": EXPERIMENT_SORT_ON,
-            "index": 13,
+            "index": 14,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="sort_on"),
@@ -11761,7 +12298,7 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
 
         "sort_by": {
             "target": SORT_BY,
-            "index": 14,
+            "index": 15,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="sort_by"),
@@ -11771,7 +12308,7 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
 
         "global_experiments_only": {
             "target": BOOLEAN,
-            "index": 15,
+            "index": 16,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="global_experiments_only"),
@@ -11781,7 +12318,7 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
 
         "dimension_match_strategy": {
             "target": DIMENSION_MATCH_STRATEGY,
-            "index": 16,
+            "index": 17,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="dimension_match_strategy"),
@@ -11791,7 +12328,7 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
 
         "dimension_params": {
             "target": DIMENSION_QUERY_PARAMS,
-            "index": 17,
+            "index": 18,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQueryParams")),
@@ -11801,7 +12338,7 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
 
         "prefix": {
             "target": STRING_LIST,
-            "index": 18,
+            "index": 19,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="prefix"),
@@ -11811,7 +12348,7 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
 
         "exclude_prefix": {
             "target": STRING_LIST,
-            "index": 19,
+            "index": 20,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="exclude_prefix"),
@@ -11821,7 +12358,7 @@ LIST_EXPERIMENT_INPUT = Schema.collection(
 
         "context": {
             "target": CONTEXT_MAP,
-            "index": 20,
+            "index": 21,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 
@@ -11923,9 +12460,19 @@ PAUSE_EXPERIMENT_INPUT = Schema.collection(
             ],
         },
 
-        "id": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "id": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -11935,7 +12482,7 @@ PAUSE_EXPERIMENT_INPUT = Schema.collection(
 
         "change_reason": {
             "target": STRING,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -12158,9 +12705,19 @@ RAMP_EXPERIMENT_INPUT = Schema.collection(
             ],
         },
 
-        "id": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "id": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -12170,7 +12727,7 @@ RAMP_EXPERIMENT_INPUT = Schema.collection(
 
         "change_reason": {
             "target": STRING,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -12179,7 +12736,7 @@ RAMP_EXPERIMENT_INPUT = Schema.collection(
 
         "traffic_percentage": {
             "target": INTEGER,
-            "index": 4,
+            "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -12402,9 +12959,19 @@ RESUME_EXPERIMENT_INPUT = Schema.collection(
             ],
         },
 
-        "id": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "id": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -12414,7 +12981,7 @@ RESUME_EXPERIMENT_INPUT = Schema.collection(
 
         "change_reason": {
             "target": STRING,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -12675,9 +13242,19 @@ UPDATE_OVERRIDES_EXPERIMENT_INPUT = Schema.collection(
             ],
         },
 
-        "id": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "id": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -12687,7 +13264,7 @@ UPDATE_OVERRIDES_EXPERIMENT_INPUT = Schema.collection(
 
         "variant_list": {
             "target": LIST_VARIANT_UPDATE_REQUEST,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -12697,12 +13274,12 @@ UPDATE_OVERRIDES_EXPERIMENT_INPUT = Schema.collection(
 
         "description": {
             "target": STRING,
-            "index": 4,
+            "index": 5,
         },
 
         "change_reason": {
             "target": STRING,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -12711,17 +13288,17 @@ UPDATE_OVERRIDES_EXPERIMENT_INPUT = Schema.collection(
 
         "metrics": {
             "target": DOCUMENT,
-            "index": 6,
+            "index": 7,
         },
 
         "experiment_group_id": {
             "target": STRING,
-            "index": 7,
+            "index": 8,
         },
 
         "config_tags": {
             "target": STRING,
-            "index": 8,
+            "index": 9,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-config-tags"),
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
@@ -12944,9 +13521,19 @@ GET_FUNCTION_INPUT = Schema.collection(
             ],
         },
 
-        "function_name": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "function_name": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -13163,9 +13750,18 @@ LIST_FUNCTION_INPUT = Schema.collection(
             ],
         },
 
+        "user_agent": {
+            "target": STRING,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+
+            ],
+        },
+
         "function_type": {
             "target": FUNCTION_TYPES_LIST,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="function_type"),
 
@@ -13387,9 +13983,19 @@ PUBLISH_INPUT = Schema.collection(
             ],
         },
 
-        "function_name": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "function_name": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -13399,7 +14005,7 @@ PUBLISH_INPUT = Schema.collection(
 
         "change_reason": {
             "target": STRING,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -13714,9 +14320,19 @@ TEST_INPUT = Schema.collection(
             ],
         },
 
-        "function_name": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "function_name": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -13726,7 +14342,7 @@ TEST_INPUT = Schema.collection(
 
         "stage": {
             "target": STAGE,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -13737,7 +14353,7 @@ TEST_INPUT = Schema.collection(
 
         "request": {
             "target": FUNCTION_EXECUTION_REQUEST,
-            "index": 4,
+            "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -13837,9 +14453,19 @@ UPDATE_FUNCTION_INPUT = Schema.collection(
             ],
         },
 
-        "function_name": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "function_name": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -13849,12 +14475,12 @@ UPDATE_FUNCTION_INPUT = Schema.collection(
 
         "description": {
             "target": STRING,
-            "index": 3,
+            "index": 4,
         },
 
         "change_reason": {
             "target": STRING,
-            "index": 4,
+            "index": 5,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -13863,7 +14489,7 @@ UPDATE_FUNCTION_INPUT = Schema.collection(
 
         "function": {
             "target": STRING,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 
@@ -13872,7 +14498,7 @@ UPDATE_FUNCTION_INPUT = Schema.collection(
 
         "runtime_version": {
             "target": FUNCTION_RUNTIME_VERSION,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
 
@@ -14191,9 +14817,19 @@ GET_SECRET_INPUT = Schema.collection(
             ],
         },
 
-        "name": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "name": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -14324,9 +14960,19 @@ GET_TYPE_TEMPLATE_INPUT = Schema.collection(
             ],
         },
 
-        "type_name": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "type_name": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -14489,6 +15135,15 @@ GET_TYPE_TEMPLATES_LIST_INPUT = Schema.collection(
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),
                 Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "user_agent": {
+            "target": STRING,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
 
             ],
         },
@@ -14670,9 +15325,19 @@ GET_VARIABLE_INPUT = Schema.collection(
             ],
         },
 
-        "name": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "name": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -14812,9 +15477,19 @@ GET_WEBHOOK_INPUT = Schema.collection(
             ],
         },
 
-        "name": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "name": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -15009,9 +15684,18 @@ GET_WEBHOOK_BY_EVENT_INPUT = Schema.collection(
             ],
         },
 
-        "event": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+
+            ],
+        },
+
+        "event": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#required")),
@@ -15196,9 +15880,19 @@ GET_WORKSPACE_INPUT = Schema.collection(
             ],
         },
 
-        "workspace_name": {
+        "user_agent": {
             "target": STRING,
             "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "workspace_name": {
+            "target": STRING,
+            "index": 2,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -15681,9 +16375,18 @@ LIST_SECRETS_INPUT = Schema.collection(
             ],
         },
 
+        "user_agent": {
+            "target": STRING,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+
+            ],
+        },
+
         "name": {
             "target": STRING_LIST,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="name"),
@@ -15693,7 +16396,7 @@ LIST_SECRETS_INPUT = Schema.collection(
 
         "created_by": {
             "target": STRING_LIST,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="created_by"),
 
@@ -15702,7 +16405,7 @@ LIST_SECRETS_INPUT = Schema.collection(
 
         "last_modified_by": {
             "target": STRING_LIST,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="last_modified_by"),
 
@@ -15711,7 +16414,7 @@ LIST_SECRETS_INPUT = Schema.collection(
 
         "sort_on": {
             "target": SECRET_SORT_ON,
-            "index": 8,
+            "index": 9,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="sort_on"),
@@ -15721,7 +16424,7 @@ LIST_SECRETS_INPUT = Schema.collection(
 
         "sort_by": {
             "target": SORT_BY,
-            "index": 9,
+            "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="sort_by"),
@@ -15958,9 +16661,18 @@ LIST_VARIABLES_INPUT = Schema.collection(
             ],
         },
 
+        "user_agent": {
+            "target": STRING,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+
+            ],
+        },
+
         "name": {
             "target": STRING_LIST,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="name"),
@@ -15970,7 +16682,7 @@ LIST_VARIABLES_INPUT = Schema.collection(
 
         "created_by": {
             "target": STRING_LIST,
-            "index": 6,
+            "index": 7,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="created_by"),
 
@@ -15979,7 +16691,7 @@ LIST_VARIABLES_INPUT = Schema.collection(
 
         "last_modified_by": {
             "target": STRING_LIST,
-            "index": 7,
+            "index": 8,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="last_modified_by"),
 
@@ -15988,7 +16700,7 @@ LIST_VARIABLES_INPUT = Schema.collection(
 
         "sort_on": {
             "target": VARIABLE_SORT_ON,
-            "index": 8,
+            "index": 9,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="sort_on"),
@@ -15998,7 +16710,7 @@ LIST_VARIABLES_INPUT = Schema.collection(
 
         "sort_by": {
             "target": SORT_BY,
-            "index": 9,
+            "index": 10,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#notProperty")),
                 Trait.new(id=ShapeID("smithy.api#httpQuery"), value="sort_by"),
@@ -16206,6 +16918,15 @@ LIST_WEBHOOK_INPUT = Schema.collection(
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),
                 Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "user_agent": {
+            "target": STRING,
+            "index": 5,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
 
             ],
         },
@@ -16455,6 +17176,15 @@ LIST_WORKSPACE_INPUT = Schema.collection(
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#httpHeader"), value="x-org-id"),
                 Trait.new(id=ShapeID("smithy.api#required")),
+
+            ],
+        },
+
+        "user_agent": {
+            "target": STRING,
+            "index": 4,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
 
             ],
         },
@@ -16763,9 +17493,19 @@ MIGRATE_WORKSPACE_SCHEMA_INPUT = Schema.collection(
             ],
         },
 
-        "workspace_name": {
+        "user_agent": {
             "target": STRING,
             "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "workspace_name": {
+            "target": STRING,
+            "index": 2,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -17147,9 +17887,19 @@ ROTATE_WORKSPACE_ENCRYPTION_KEY_INPUT = Schema.collection(
             ],
         },
 
-        "workspace_name": {
+        "user_agent": {
             "target": STRING,
             "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "workspace_name": {
+            "target": STRING,
+            "index": 2,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -17226,9 +17976,19 @@ UPDATE_SECRET_INPUT = Schema.collection(
             ],
         },
 
-        "name": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "name": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -17238,17 +17998,17 @@ UPDATE_SECRET_INPUT = Schema.collection(
 
         "value": {
             "target": STRING,
-            "index": 3,
+            "index": 4,
         },
 
         "description": {
             "target": STRING,
-            "index": 4,
+            "index": 5,
         },
 
         "change_reason": {
             "target": STRING,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -17379,9 +18139,19 @@ UPDATE_TYPE_TEMPLATES_INPUT = Schema.collection(
             ],
         },
 
-        "type_name": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "type_name": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -17391,7 +18161,7 @@ UPDATE_TYPE_TEMPLATES_INPUT = Schema.collection(
 
         "type_schema": {
             "target": OBJECT,
-            "index": 3,
+            "index": 4,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -17400,12 +18170,12 @@ UPDATE_TYPE_TEMPLATES_INPUT = Schema.collection(
 
         "description": {
             "target": STRING,
-            "index": 4,
+            "index": 5,
         },
 
         "change_reason": {
             "target": STRING,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -17544,9 +18314,19 @@ UPDATE_VARIABLE_INPUT = Schema.collection(
             ],
         },
 
-        "name": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "name": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -17556,17 +18336,17 @@ UPDATE_VARIABLE_INPUT = Schema.collection(
 
         "value": {
             "target": STRING,
-            "index": 3,
+            "index": 4,
         },
 
         "description": {
             "target": STRING,
-            "index": 4,
+            "index": 5,
         },
 
         "change_reason": {
             "target": STRING,
-            "index": 5,
+            "index": 6,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -17705,9 +18485,19 @@ UPDATE_WEBHOOK_INPUT = Schema.collection(
             ],
         },
 
-        "name": {
+        "user_agent": {
             "target": STRING,
             "index": 2,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "name": {
+            "target": STRING,
+            "index": 3,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -17717,42 +18507,42 @@ UPDATE_WEBHOOK_INPUT = Schema.collection(
 
         "description": {
             "target": STRING,
-            "index": 3,
+            "index": 4,
         },
 
         "enabled": {
             "target": BOOLEAN,
-            "index": 4,
+            "index": 5,
         },
 
         "url": {
             "target": STRING,
-            "index": 5,
+            "index": 6,
         },
 
         "method": {
             "target": HTTP_METHOD,
-            "index": 6,
+            "index": 7,
         },
 
         "version": {
             "target": VERSION,
-            "index": 7,
+            "index": 8,
         },
 
         "custom_headers": {
             "target": OBJECT,
-            "index": 8,
+            "index": 9,
         },
 
         "events": {
             "target": EVENTS,
-            "index": 9,
+            "index": 10,
         },
 
         "change_reason": {
             "target": STRING,
-            "index": 10,
+            "index": 11,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
 
@@ -17937,9 +18727,19 @@ UPDATE_WORKSPACE_INPUT = Schema.collection(
             ],
         },
 
-        "workspace_name": {
+        "user_agent": {
             "target": STRING,
             "index": 1,
+            "traits": [
+                Trait.new(id=ShapeID("smithy.api#httpHeader"), value="user-agent"),
+                Trait.new(id=ShapeID("smithy.api#notProperty")),
+
+            ],
+        },
+
+        "workspace_name": {
+            "target": STRING,
+            "index": 2,
             "traits": [
                 Trait.new(id=ShapeID("smithy.api#required")),
                 Trait.new(id=ShapeID("smithy.api#httpLabel")),
@@ -17949,47 +18749,47 @@ UPDATE_WORKSPACE_INPUT = Schema.collection(
 
         "workspace_admin_email": {
             "target": STRING,
-            "index": 2,
+            "index": 3,
         },
 
         "config_version": {
             "target": STRING,
-            "index": 3,
+            "index": 4,
         },
 
         "mandatory_dimensions": {
             "target": LIST_MANDATORY_DIMENSIONS,
-            "index": 4,
+            "index": 5,
         },
 
         "workspace_status": {
             "target": WORKSPACE_STATUS,
-            "index": 5,
+            "index": 6,
         },
 
         "metrics": {
             "target": DOCUMENT,
-            "index": 6,
+            "index": 7,
         },
 
         "allow_experiment_self_approval": {
             "target": BOOLEAN,
-            "index": 7,
+            "index": 8,
         },
 
         "auto_populate_control": {
             "target": BOOLEAN,
-            "index": 8,
+            "index": 9,
         },
 
         "enable_context_validation": {
             "target": BOOLEAN,
-            "index": 9,
+            "index": 10,
         },
 
         "enable_change_reason_validation": {
             "target": BOOLEAN,
-            "index": 10,
+            "index": 11,
         },
 
     }

@@ -45,6 +45,7 @@ export interface TestCommandOutput extends FunctionExecutionResponse, __Metadata
  * const input = { // TestInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   function_name: "STRING_VALUE", // required
  *   stage: "draft" || "published", // required
  *   request: { // FunctionExecutionRequest Union: only one key present

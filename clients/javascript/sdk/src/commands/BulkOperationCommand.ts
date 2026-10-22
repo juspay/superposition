@@ -45,6 +45,7 @@ export interface BulkOperationCommandOutput extends BulkOperationOutput, __Metad
  * const input = { // BulkOperationInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   config_tags: "STRING_VALUE",
  *   operations: [ // BulkOperationList // required
  *     { // ContextAction Union: only one key present

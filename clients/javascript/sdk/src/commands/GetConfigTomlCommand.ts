@@ -45,6 +45,7 @@ export interface GetConfigTomlCommandOutput extends GetConfigTomlOutput, __Metad
  * const input = { // GetConfigTomlInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   if_modified_since: new Date("TIMESTAMP"),
  * };
  * const command = new GetConfigTomlCommand(input);

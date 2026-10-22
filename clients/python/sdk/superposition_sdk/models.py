@@ -377,6 +377,7 @@ class AddMembersToGroupInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     id: str | None = None
     change_reason: str | None = None
     member_experiment_ids: list[str] | None = None
@@ -408,12 +409,15 @@ class AddMembersToGroupInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_ADD_MEMBERS_TO_GROUP_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["id"] = de.read_string(_SCHEMA_ADD_MEMBERS_TO_GROUP_INPUT.members["id"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_ADD_MEMBERS_TO_GROUP_INPUT.members["user_agent"])
 
                 case 3:
-                    kwargs["change_reason"] = de.read_string(_SCHEMA_ADD_MEMBERS_TO_GROUP_INPUT.members["change_reason"])
+                    kwargs["id"] = de.read_string(_SCHEMA_ADD_MEMBERS_TO_GROUP_INPUT.members["id"])
 
                 case 4:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_ADD_MEMBERS_TO_GROUP_INPUT.members["change_reason"])
+
+                case 5:
                     kwargs["member_experiment_ids"] = _deserialize_string_list(de, _SCHEMA_ADD_MEMBERS_TO_GROUP_INPUT.members["member_experiment_ids"])
 
                 case _:
@@ -710,6 +714,7 @@ class ApplicableVariantsInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     context: dict[str, Document] | None = None
     identifier: str | None = None
     prefix: list[str] | None = None
@@ -739,15 +744,18 @@ class ApplicableVariantsInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_APPLICABLE_VARIANTS_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_APPLICABLE_VARIANTS_INPUT.members["context"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_APPLICABLE_VARIANTS_INPUT.members["user_agent"])
 
                 case 3:
-                    kwargs["identifier"] = de.read_string(_SCHEMA_APPLICABLE_VARIANTS_INPUT.members["identifier"])
+                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_APPLICABLE_VARIANTS_INPUT.members["context"])
 
                 case 4:
-                    kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_APPLICABLE_VARIANTS_INPUT.members["prefix"])
+                    kwargs["identifier"] = de.read_string(_SCHEMA_APPLICABLE_VARIANTS_INPUT.members["identifier"])
 
                 case 5:
+                    kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_APPLICABLE_VARIANTS_INPUT.members["prefix"])
+
+                case 6:
                     kwargs["exclude_prefix"] = _deserialize_string_list(de, _SCHEMA_APPLICABLE_VARIANTS_INPUT.members["exclude_prefix"])
 
                 case _:
@@ -988,6 +996,7 @@ class ListAuditLogsInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     count: int | None = None
     page: int | None = None
     all: bool | None = None
@@ -1022,33 +1031,36 @@ class ListAuditLogsInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["count"] = de.read_integer(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["count"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["user_agent"])
 
                 case 3:
-                    kwargs["page"] = de.read_integer(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["page"])
+                    kwargs["count"] = de.read_integer(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["count"])
 
                 case 4:
-                    kwargs["all"] = de.read_boolean(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["all"])
+                    kwargs["page"] = de.read_integer(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["page"])
 
                 case 5:
-                    kwargs["from_date"] = de.read_timestamp(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["from_date"])
+                    kwargs["all"] = de.read_boolean(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["all"])
 
                 case 6:
-                    kwargs["to_date"] = de.read_timestamp(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["to_date"])
+                    kwargs["from_date"] = de.read_timestamp(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["from_date"])
 
                 case 7:
-                    kwargs["tables"] = _deserialize_string_list(de, _SCHEMA_LIST_AUDIT_LOGS_INPUT.members["tables"])
+                    kwargs["to_date"] = de.read_timestamp(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["to_date"])
 
                 case 8:
-                    kwargs["action"] = _deserialize_audit_action_list(de, _SCHEMA_LIST_AUDIT_LOGS_INPUT.members["action"])
+                    kwargs["tables"] = _deserialize_string_list(de, _SCHEMA_LIST_AUDIT_LOGS_INPUT.members["tables"])
 
                 case 9:
-                    kwargs["username"] = de.read_string(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["username"])
+                    kwargs["action"] = _deserialize_audit_action_list(de, _SCHEMA_LIST_AUDIT_LOGS_INPUT.members["action"])
 
                 case 10:
-                    kwargs["dimension_params"] = _deserialize_dimension_query_params(de, _SCHEMA_LIST_AUDIT_LOGS_INPUT.members["dimension_params"])
+                    kwargs["username"] = de.read_string(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["username"])
 
                 case 11:
+                    kwargs["dimension_params"] = _deserialize_dimension_query_params(de, _SCHEMA_LIST_AUDIT_LOGS_INPUT.members["dimension_params"])
+
+                case 12:
                     kwargs["sort_by"] = de.read_string(_SCHEMA_LIST_AUDIT_LOGS_INPUT.members["sort_by"])
 
                 case _:
@@ -1640,6 +1652,7 @@ class BulkOperationInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     config_tags: str | None = None
     operations: list[ContextAction] | None = None
 
@@ -1667,9 +1680,12 @@ class BulkOperationInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_BULK_OPERATION_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["config_tags"] = de.read_string(_SCHEMA_BULK_OPERATION_INPUT.members["config_tags"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_BULK_OPERATION_INPUT.members["user_agent"])
 
                 case 3:
+                    kwargs["config_tags"] = de.read_string(_SCHEMA_BULK_OPERATION_INPUT.members["config_tags"])
+
+                case 4:
                     kwargs["operations"] = _deserialize_bulk_operation_list(de, _SCHEMA_BULK_OPERATION_INPUT.members["operations"])
 
                 case _:
@@ -2175,6 +2191,7 @@ class ConcludeExperimentInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     id: str | None = None
     chosen_variant: str | None = None
     description: str | None = None
@@ -2211,18 +2228,21 @@ class ConcludeExperimentInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_CONCLUDE_EXPERIMENT_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["id"] = de.read_string(_SCHEMA_CONCLUDE_EXPERIMENT_INPUT.members["id"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_CONCLUDE_EXPERIMENT_INPUT.members["user_agent"])
 
                 case 3:
-                    kwargs["chosen_variant"] = de.read_string(_SCHEMA_CONCLUDE_EXPERIMENT_INPUT.members["chosen_variant"])
+                    kwargs["id"] = de.read_string(_SCHEMA_CONCLUDE_EXPERIMENT_INPUT.members["id"])
 
                 case 4:
-                    kwargs["description"] = de.read_string(_SCHEMA_CONCLUDE_EXPERIMENT_INPUT.members["description"])
+                    kwargs["chosen_variant"] = de.read_string(_SCHEMA_CONCLUDE_EXPERIMENT_INPUT.members["chosen_variant"])
 
                 case 5:
-                    kwargs["change_reason"] = de.read_string(_SCHEMA_CONCLUDE_EXPERIMENT_INPUT.members["change_reason"])
+                    kwargs["description"] = de.read_string(_SCHEMA_CONCLUDE_EXPERIMENT_INPUT.members["description"])
 
                 case 6:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_CONCLUDE_EXPERIMENT_INPUT.members["change_reason"])
+
+                case 7:
                     kwargs["config_tags"] = de.read_string(_SCHEMA_CONCLUDE_EXPERIMENT_INPUT.members["config_tags"])
 
                 case _:
@@ -2813,6 +2833,7 @@ class GetConfigInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     prefix: list[str] | None = None
     exclude_prefix: list[str] | None = None
     version: str | None = None
@@ -2843,18 +2864,21 @@ class GetConfigInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_GET_CONFIG_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_GET_CONFIG_INPUT.members["prefix"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_GET_CONFIG_INPUT.members["user_agent"])
 
                 case 3:
-                    kwargs["exclude_prefix"] = _deserialize_string_list(de, _SCHEMA_GET_CONFIG_INPUT.members["exclude_prefix"])
+                    kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_GET_CONFIG_INPUT.members["prefix"])
 
                 case 4:
-                    kwargs["version"] = de.read_string(_SCHEMA_GET_CONFIG_INPUT.members["version"])
+                    kwargs["exclude_prefix"] = _deserialize_string_list(de, _SCHEMA_GET_CONFIG_INPUT.members["exclude_prefix"])
 
                 case 5:
-                    kwargs["if_modified_since"] = de.read_timestamp(_SCHEMA_GET_CONFIG_INPUT.members["if_modified_since"])
+                    kwargs["version"] = de.read_string(_SCHEMA_GET_CONFIG_INPUT.members["version"])
 
                 case 6:
+                    kwargs["if_modified_since"] = de.read_timestamp(_SCHEMA_GET_CONFIG_INPUT.members["if_modified_since"])
+
+                case 7:
                     kwargs["context"] = _deserialize_context_map(de, _SCHEMA_GET_CONFIG_INPUT.members["context"])
 
                 case _:
@@ -2975,6 +2999,7 @@ class GetConfigJsonInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     if_modified_since: datetime | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -3000,6 +3025,9 @@ class GetConfigJsonInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_GET_CONFIG_JSON_INPUT.members["org_id"])
 
                 case 2:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_GET_CONFIG_JSON_INPUT.members["user_agent"])
+
+                case 3:
                     kwargs["if_modified_since"] = de.read_timestamp(_SCHEMA_GET_CONFIG_JSON_INPUT.members["if_modified_since"])
 
                 case _:
@@ -3072,6 +3100,7 @@ class GetConfigTomlInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     if_modified_since: datetime | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -3097,6 +3126,9 @@ class GetConfigTomlInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_GET_CONFIG_TOML_INPUT.members["org_id"])
 
                 case 2:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_GET_CONFIG_TOML_INPUT.members["user_agent"])
+
+                case 3:
                     kwargs["if_modified_since"] = de.read_timestamp(_SCHEMA_GET_CONFIG_TOML_INPUT.members["if_modified_since"])
 
                 case _:
@@ -3178,6 +3210,7 @@ class GetDetailedResolvedConfigInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     prefix: list[str] | None = None
     exclude_prefix: list[str] | None = None
     version: str | None = None
@@ -3211,27 +3244,30 @@ class GetDetailedResolvedConfigInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["prefix"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["user_agent"])
 
                 case 3:
-                    kwargs["exclude_prefix"] = _deserialize_string_list(de, _SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["exclude_prefix"])
+                    kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["prefix"])
 
                 case 4:
-                    kwargs["version"] = de.read_string(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["version"])
+                    kwargs["exclude_prefix"] = _deserialize_string_list(de, _SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["exclude_prefix"])
 
                 case 5:
-                    kwargs["show_reasoning"] = de.read_boolean(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["show_reasoning"])
+                    kwargs["version"] = de.read_string(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["version"])
 
                 case 6:
-                    kwargs["merge_strategy"] = de.read_string(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["merge_strategy"])
+                    kwargs["show_reasoning"] = de.read_boolean(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["show_reasoning"])
 
                 case 7:
-                    kwargs["context_id"] = de.read_string(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["context_id"])
+                    kwargs["merge_strategy"] = de.read_string(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["merge_strategy"])
 
                 case 8:
-                    kwargs["resolve_remote"] = de.read_boolean(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["resolve_remote"])
+                    kwargs["context_id"] = de.read_string(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["context_id"])
 
                 case 9:
+                    kwargs["resolve_remote"] = de.read_boolean(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["resolve_remote"])
+
+                case 10:
                     kwargs["context"] = _deserialize_context_map(de, _SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["context"])
 
                 case _:
@@ -3319,6 +3355,7 @@ class GetResolvedConfigInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     prefix: list[str] | None = None
     exclude_prefix: list[str] | None = None
     version: str | None = None
@@ -3352,27 +3389,30 @@ class GetResolvedConfigInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["prefix"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["user_agent"])
 
                 case 3:
-                    kwargs["exclude_prefix"] = _deserialize_string_list(de, _SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["exclude_prefix"])
+                    kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["prefix"])
 
                 case 4:
-                    kwargs["version"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["version"])
+                    kwargs["exclude_prefix"] = _deserialize_string_list(de, _SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["exclude_prefix"])
 
                 case 5:
-                    kwargs["show_reasoning"] = de.read_boolean(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["show_reasoning"])
+                    kwargs["version"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["version"])
 
                 case 6:
-                    kwargs["merge_strategy"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["merge_strategy"])
+                    kwargs["show_reasoning"] = de.read_boolean(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["show_reasoning"])
 
                 case 7:
-                    kwargs["context_id"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["context_id"])
+                    kwargs["merge_strategy"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["merge_strategy"])
 
                 case 8:
-                    kwargs["resolve_remote"] = de.read_boolean(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["resolve_remote"])
+                    kwargs["context_id"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["context_id"])
 
                 case 9:
+                    kwargs["resolve_remote"] = de.read_boolean(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["resolve_remote"])
+
+                case 10:
                     kwargs["context"] = _deserialize_context_map(de, _SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["context"])
 
                 case _:
@@ -3456,6 +3496,7 @@ class GetResolvedConfigExplanationInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     key: str | None = None
     version: str | None = None
     merge_strategy: str | None = None
@@ -3487,21 +3528,24 @@ class GetResolvedConfigExplanationInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["key"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION_INPUT.members["key"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION_INPUT.members["user_agent"])
 
                 case 3:
-                    kwargs["version"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION_INPUT.members["version"])
+                    kwargs["key"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION_INPUT.members["key"])
 
                 case 4:
-                    kwargs["merge_strategy"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION_INPUT.members["merge_strategy"])
+                    kwargs["version"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION_INPUT.members["version"])
 
                 case 5:
-                    kwargs["context_id"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION_INPUT.members["context_id"])
+                    kwargs["merge_strategy"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION_INPUT.members["merge_strategy"])
 
                 case 6:
-                    kwargs["resolve_remote"] = de.read_boolean(_SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION_INPUT.members["resolve_remote"])
+                    kwargs["context_id"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION_INPUT.members["context_id"])
 
                 case 7:
+                    kwargs["resolve_remote"] = de.read_boolean(_SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION_INPUT.members["resolve_remote"])
+
+                case 8:
                     kwargs["context"] = _deserialize_context_map(de, _SCHEMA_GET_RESOLVED_CONFIG_EXPLANATION_INPUT.members["context"])
 
                 case _:
@@ -3699,6 +3743,7 @@ class GetResolvedConfigWithIdentifierInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     prefix: list[str] | None = None
     exclude_prefix: list[str] | None = None
     version: str | None = None
@@ -3733,30 +3778,33 @@ class GetResolvedConfigWithIdentifierInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["prefix"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["user_agent"])
 
                 case 3:
-                    kwargs["exclude_prefix"] = _deserialize_string_list(de, _SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["exclude_prefix"])
+                    kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["prefix"])
 
                 case 4:
-                    kwargs["version"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["version"])
+                    kwargs["exclude_prefix"] = _deserialize_string_list(de, _SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["exclude_prefix"])
 
                 case 5:
-                    kwargs["show_reasoning"] = de.read_boolean(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["show_reasoning"])
+                    kwargs["version"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["version"])
 
                 case 6:
-                    kwargs["merge_strategy"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["merge_strategy"])
+                    kwargs["show_reasoning"] = de.read_boolean(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["show_reasoning"])
 
                 case 7:
-                    kwargs["context_id"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["context_id"])
+                    kwargs["merge_strategy"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["merge_strategy"])
 
                 case 8:
-                    kwargs["resolve_remote"] = de.read_boolean(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["resolve_remote"])
+                    kwargs["context_id"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["context_id"])
 
                 case 9:
-                    kwargs["context"] = _deserialize_context_map(de, _SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["context"])
+                    kwargs["resolve_remote"] = de.read_boolean(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["resolve_remote"])
 
                 case 10:
+                    kwargs["context"] = _deserialize_context_map(de, _SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["context"])
+
+                case 11:
                     kwargs["identifier"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["identifier"])
 
                 case _:
@@ -3885,6 +3933,7 @@ class GetVersionInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     id: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -3910,6 +3959,9 @@ class GetVersionInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_GET_VERSION_INPUT.members["org_id"])
 
                 case 2:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_GET_VERSION_INPUT.members["user_agent"])
+
+                case 3:
                     kwargs["id"] = de.read_string(_SCHEMA_GET_VERSION_INPUT.members["id"])
 
                 case _:
@@ -4009,6 +4061,7 @@ class ListVersionsInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     count: int | None = None
     page: int | None = None
 
@@ -4035,9 +4088,12 @@ class ListVersionsInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_LIST_VERSIONS_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["count"] = de.read_integer(_SCHEMA_LIST_VERSIONS_INPUT.members["count"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_LIST_VERSIONS_INPUT.members["user_agent"])
 
                 case 3:
+                    kwargs["count"] = de.read_integer(_SCHEMA_LIST_VERSIONS_INPUT.members["count"])
+
+                case 4:
                     kwargs["page"] = de.read_integer(_SCHEMA_LIST_VERSIONS_INPUT.members["page"])
 
                 case _:
@@ -4180,6 +4236,7 @@ class CreateContextInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     config_tags: str | None = None
     request: ContextPut | None = None
 
@@ -4206,9 +4263,12 @@ class CreateContextInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_CREATE_CONTEXT_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["config_tags"] = de.read_string(_SCHEMA_CREATE_CONTEXT_INPUT.members["config_tags"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_CREATE_CONTEXT_INPUT.members["user_agent"])
 
                 case 3:
+                    kwargs["config_tags"] = de.read_string(_SCHEMA_CREATE_CONTEXT_INPUT.members["config_tags"])
+
+                case 4:
                     kwargs["request"] = ContextPut.deserialize(de)
 
                 case _:
@@ -4346,6 +4406,7 @@ class DeleteContextInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     id: str | None = None
     config_tags: str | None = None
 
@@ -4372,9 +4433,12 @@ class DeleteContextInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_DELETE_CONTEXT_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["id"] = de.read_string(_SCHEMA_DELETE_CONTEXT_INPUT.members["id"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_DELETE_CONTEXT_INPUT.members["user_agent"])
 
                 case 3:
+                    kwargs["id"] = de.read_string(_SCHEMA_DELETE_CONTEXT_INPUT.members["id"])
+
+                case 4:
                     kwargs["config_tags"] = de.read_string(_SCHEMA_DELETE_CONTEXT_INPUT.members["config_tags"])
 
                 case _:
@@ -4432,6 +4496,7 @@ class GetContextInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     id: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -4457,6 +4522,9 @@ class GetContextInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_GET_CONTEXT_INPUT.members["org_id"])
 
                 case 2:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_GET_CONTEXT_INPUT.members["user_agent"])
+
+                case 3:
                     kwargs["id"] = de.read_string(_SCHEMA_GET_CONTEXT_INPUT.members["id"])
 
                 case _:
@@ -4592,6 +4660,7 @@ class GetContextFromConditionInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     context: Document | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -4617,6 +4686,9 @@ class GetContextFromConditionInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_GET_CONTEXT_FROM_CONDITION_INPUT.members["org_id"])
 
                 case 2:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_GET_CONTEXT_FROM_CONDITION_INPUT.members["user_agent"])
+
+                case 3:
                     kwargs["context"] = de.read_document(_SCHEMA_GET_CONTEXT_FROM_CONDITION_INPUT.members["context"])
 
                 case _:
@@ -4806,6 +4878,7 @@ class ListContextsInput:
     all: bool | None = None
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     prefix: list[str] | None = None
     exclude_prefix: list[str] | None = None
     sort_on: str | None = None
@@ -4848,30 +4921,33 @@ class ListContextsInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["org_id"])
 
                 case 5:
-                    kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_LIST_CONTEXTS_INPUT.members["prefix"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["user_agent"])
 
                 case 6:
-                    kwargs["exclude_prefix"] = _deserialize_string_list(de, _SCHEMA_LIST_CONTEXTS_INPUT.members["exclude_prefix"])
+                    kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_LIST_CONTEXTS_INPUT.members["prefix"])
 
                 case 7:
-                    kwargs["sort_on"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["sort_on"])
+                    kwargs["exclude_prefix"] = _deserialize_string_list(de, _SCHEMA_LIST_CONTEXTS_INPUT.members["exclude_prefix"])
 
                 case 8:
-                    kwargs["sort_by"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["sort_by"])
+                    kwargs["sort_on"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["sort_on"])
 
                 case 9:
-                    kwargs["created_by"] = _deserialize_string_list(de, _SCHEMA_LIST_CONTEXTS_INPUT.members["created_by"])
+                    kwargs["sort_by"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["sort_by"])
 
                 case 10:
-                    kwargs["last_modified_by"] = _deserialize_string_list(de, _SCHEMA_LIST_CONTEXTS_INPUT.members["last_modified_by"])
+                    kwargs["created_by"] = _deserialize_string_list(de, _SCHEMA_LIST_CONTEXTS_INPUT.members["created_by"])
 
                 case 11:
-                    kwargs["plaintext"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["plaintext"])
+                    kwargs["last_modified_by"] = _deserialize_string_list(de, _SCHEMA_LIST_CONTEXTS_INPUT.members["last_modified_by"])
 
                 case 12:
-                    kwargs["dimension_match_strategy"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["dimension_match_strategy"])
+                    kwargs["plaintext"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["plaintext"])
 
                 case 13:
+                    kwargs["dimension_match_strategy"] = de.read_string(_SCHEMA_LIST_CONTEXTS_INPUT.members["dimension_match_strategy"])
+
+                case 14:
                     kwargs["dimension_params"] = _deserialize_dimension_query_params(de, _SCHEMA_LIST_CONTEXTS_INPUT.members["dimension_params"])
 
                 case _:
@@ -4959,6 +5035,7 @@ class MoveContextInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     id: str | None = None
     request: ContextMove | None = None
 
@@ -4985,9 +5062,12 @@ class MoveContextInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_MOVE_CONTEXT_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["id"] = de.read_string(_SCHEMA_MOVE_CONTEXT_INPUT.members["id"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_MOVE_CONTEXT_INPUT.members["user_agent"])
 
                 case 3:
+                    kwargs["id"] = de.read_string(_SCHEMA_MOVE_CONTEXT_INPUT.members["id"])
+
+                case 4:
                     kwargs["request"] = ContextMove.deserialize(de)
 
                 case _:
@@ -5125,6 +5205,7 @@ class UpdateOverrideInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     config_tags: str | None = None
     request: UpdateContextOverrideRequest | None = None
 
@@ -5151,9 +5232,12 @@ class UpdateOverrideInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_UPDATE_OVERRIDE_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["config_tags"] = de.read_string(_SCHEMA_UPDATE_OVERRIDE_INPUT.members["config_tags"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_UPDATE_OVERRIDE_INPUT.members["user_agent"])
 
                 case 3:
+                    kwargs["config_tags"] = de.read_string(_SCHEMA_UPDATE_OVERRIDE_INPUT.members["config_tags"])
+
+                case 4:
                     kwargs["request"] = UpdateContextOverrideRequest.deserialize(de)
 
                 case _:
@@ -5298,6 +5382,7 @@ class ValidateContextInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     context: dict[str, Document] | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -5324,6 +5409,9 @@ class ValidateContextInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_VALIDATE_CONTEXT_INPUT.members["org_id"])
 
                 case 2:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_VALIDATE_CONTEXT_INPUT.members["user_agent"])
+
+                case 3:
                     kwargs["context"] = _deserialize_condition(de, _SCHEMA_VALIDATE_CONTEXT_INPUT.members["context"])
 
                 case _:
@@ -5378,6 +5466,7 @@ class WeightRecomputeInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     config_tags: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -5403,6 +5492,9 @@ class WeightRecomputeInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_WEIGHT_RECOMPUTE_INPUT.members["org_id"])
 
                 case 2:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_WEIGHT_RECOMPUTE_INPUT.members["user_agent"])
+
+                case 3:
                     kwargs["config_tags"] = de.read_string(_SCHEMA_WEIGHT_RECOMPUTE_INPUT.members["config_tags"])
 
                 case _:
@@ -5588,6 +5680,7 @@ class CreateDefaultConfigInput:
     value_compute_function_name: str | None = None
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_CREATE_DEFAULT_CONFIG_INPUT, self)
@@ -5650,6 +5743,9 @@ class CreateDefaultConfigInput:
 
                 case 8:
                     kwargs["org_id"] = de.read_string(_SCHEMA_CREATE_DEFAULT_CONFIG_INPUT.members["org_id"])
+
+                case 9:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_CREATE_DEFAULT_CONFIG_INPUT.members["user_agent"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -5786,6 +5882,7 @@ class CreateDimensionInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     dimension: str | None = None
     position: int | None = None
     schema: dict[str, Document] | None = None
@@ -5840,27 +5937,30 @@ class CreateDimensionInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["dimension"] = de.read_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["dimension"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["user_agent"])
 
                 case 3:
-                    kwargs["position"] = de.read_integer(_SCHEMA_CREATE_DIMENSION_INPUT.members["position"])
+                    kwargs["dimension"] = de.read_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["dimension"])
 
                 case 4:
-                    kwargs["schema"] = _deserialize_object(de, _SCHEMA_CREATE_DIMENSION_INPUT.members["schema"])
+                    kwargs["position"] = de.read_integer(_SCHEMA_CREATE_DIMENSION_INPUT.members["position"])
 
                 case 5:
-                    kwargs["value_validation_function_name"] = de.read_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["value_validation_function_name"])
+                    kwargs["schema"] = _deserialize_object(de, _SCHEMA_CREATE_DIMENSION_INPUT.members["schema"])
 
                 case 6:
-                    kwargs["description"] = de.read_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["description"])
+                    kwargs["value_validation_function_name"] = de.read_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["value_validation_function_name"])
 
                 case 7:
-                    kwargs["change_reason"] = de.read_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["change_reason"])
+                    kwargs["description"] = de.read_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["description"])
 
                 case 8:
-                    kwargs["dimension_type"] = _DimensionTypeDeserializer().deserialize(de)
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["change_reason"])
 
                 case 9:
+                    kwargs["dimension_type"] = _DimensionTypeDeserializer().deserialize(de)
+
+                case 10:
                     kwargs["value_compute_function_name"] = de.read_string(_SCHEMA_CREATE_DIMENSION_INPUT.members["value_compute_function_name"])
 
                 case _:
@@ -6023,6 +6123,7 @@ class CreateExperimentInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     name: str | None = None
     experiment_type: str | None = None
     context: dict[str, Document] | None = None
@@ -6079,33 +6180,36 @@ class CreateExperimentInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["name"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["name"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["user_agent"])
 
                 case 3:
-                    kwargs["experiment_type"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["experiment_type"])
+                    kwargs["name"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["name"])
 
                 case 4:
-                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_CREATE_EXPERIMENT_INPUT.members["context"])
+                    kwargs["experiment_type"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["experiment_type"])
 
                 case 5:
-                    kwargs["variants"] = _deserialize_list_variant(de, _SCHEMA_CREATE_EXPERIMENT_INPUT.members["variants"])
+                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_CREATE_EXPERIMENT_INPUT.members["context"])
 
                 case 6:
-                    kwargs["description"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["description"])
+                    kwargs["variants"] = _deserialize_list_variant(de, _SCHEMA_CREATE_EXPERIMENT_INPUT.members["variants"])
 
                 case 7:
-                    kwargs["change_reason"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["change_reason"])
+                    kwargs["description"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["description"])
 
                 case 8:
-                    kwargs["metrics"] = de.read_document(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["metrics"])
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["change_reason"])
 
                 case 9:
-                    kwargs["experiment_group_id"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["experiment_group_id"])
+                    kwargs["metrics"] = de.read_document(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["metrics"])
 
                 case 10:
-                    kwargs["idempotency_key"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["idempotency_key"])
+                    kwargs["experiment_group_id"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["experiment_group_id"])
 
                 case 11:
+                    kwargs["idempotency_key"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["idempotency_key"])
+
+                case 12:
                     kwargs["config_tags"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_INPUT.members["config_tags"])
 
                 case _:
@@ -6312,6 +6416,7 @@ class CreateExperimentGroupInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     name: str | None = None
     description: str | None = None
     change_reason: str | None = None
@@ -6358,21 +6463,24 @@ class CreateExperimentGroupInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_GROUP_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["name"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_GROUP_INPUT.members["name"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_GROUP_INPUT.members["user_agent"])
 
                 case 3:
-                    kwargs["description"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_GROUP_INPUT.members["description"])
+                    kwargs["name"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_GROUP_INPUT.members["name"])
 
                 case 4:
-                    kwargs["change_reason"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_GROUP_INPUT.members["change_reason"])
+                    kwargs["description"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_GROUP_INPUT.members["description"])
 
                 case 5:
-                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_CREATE_EXPERIMENT_GROUP_INPUT.members["context"])
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_CREATE_EXPERIMENT_GROUP_INPUT.members["change_reason"])
 
                 case 6:
-                    kwargs["traffic_percentage"] = de.read_integer(_SCHEMA_CREATE_EXPERIMENT_GROUP_INPUT.members["traffic_percentage"])
+                    kwargs["context"] = _deserialize_condition(de, _SCHEMA_CREATE_EXPERIMENT_GROUP_INPUT.members["context"])
 
                 case 7:
+                    kwargs["traffic_percentage"] = de.read_integer(_SCHEMA_CREATE_EXPERIMENT_GROUP_INPUT.members["traffic_percentage"])
+
+                case 8:
                     kwargs["member_experiment_ids"] = _deserialize_string_list(de, _SCHEMA_CREATE_EXPERIMENT_GROUP_INPUT.members["member_experiment_ids"])
 
                 case _:
@@ -6526,6 +6634,7 @@ class CreateFunctionInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     function_name: str | None = None
     description: str | None = None
     change_reason: str | None = None
@@ -6572,21 +6681,24 @@ class CreateFunctionInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_CREATE_FUNCTION_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["function_name"] = de.read_string(_SCHEMA_CREATE_FUNCTION_INPUT.members["function_name"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_CREATE_FUNCTION_INPUT.members["user_agent"])
 
                 case 3:
-                    kwargs["description"] = de.read_string(_SCHEMA_CREATE_FUNCTION_INPUT.members["description"])
+                    kwargs["function_name"] = de.read_string(_SCHEMA_CREATE_FUNCTION_INPUT.members["function_name"])
 
                 case 4:
-                    kwargs["change_reason"] = de.read_string(_SCHEMA_CREATE_FUNCTION_INPUT.members["change_reason"])
+                    kwargs["description"] = de.read_string(_SCHEMA_CREATE_FUNCTION_INPUT.members["description"])
 
                 case 5:
-                    kwargs["function"] = de.read_string(_SCHEMA_CREATE_FUNCTION_INPUT.members["function"])
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_CREATE_FUNCTION_INPUT.members["change_reason"])
 
                 case 6:
-                    kwargs["runtime_version"] = de.read_string(_SCHEMA_CREATE_FUNCTION_INPUT.members["runtime_version"])
+                    kwargs["function"] = de.read_string(_SCHEMA_CREATE_FUNCTION_INPUT.members["function"])
 
                 case 7:
+                    kwargs["runtime_version"] = de.read_string(_SCHEMA_CREATE_FUNCTION_INPUT.members["runtime_version"])
+
+                case 8:
                     kwargs["function_type"] = de.read_string(_SCHEMA_CREATE_FUNCTION_INPUT.members["function_type"])
 
                 case _:
@@ -6922,6 +7034,7 @@ class CreateSecretInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     name: str | None = None
     value: str | None = None
     description: str | None = None
@@ -6960,15 +7073,18 @@ class CreateSecretInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_CREATE_SECRET_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["name"] = de.read_string(_SCHEMA_CREATE_SECRET_INPUT.members["name"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_CREATE_SECRET_INPUT.members["user_agent"])
 
                 case 3:
-                    kwargs["value"] = de.read_string(_SCHEMA_CREATE_SECRET_INPUT.members["value"])
+                    kwargs["name"] = de.read_string(_SCHEMA_CREATE_SECRET_INPUT.members["name"])
 
                 case 4:
-                    kwargs["description"] = de.read_string(_SCHEMA_CREATE_SECRET_INPUT.members["description"])
+                    kwargs["value"] = de.read_string(_SCHEMA_CREATE_SECRET_INPUT.members["value"])
 
                 case 5:
+                    kwargs["description"] = de.read_string(_SCHEMA_CREATE_SECRET_INPUT.members["description"])
+
+                case 6:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_CREATE_SECRET_INPUT.members["change_reason"])
 
                 case _:
@@ -7076,6 +7192,7 @@ class CreateTypeTemplatesInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     type_name: str | None = None
     type_schema: dict[str, Document] | None = None
     description: str | None = None
@@ -7114,15 +7231,18 @@ class CreateTypeTemplatesInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_CREATE_TYPE_TEMPLATES_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["type_name"] = de.read_string(_SCHEMA_CREATE_TYPE_TEMPLATES_INPUT.members["type_name"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_CREATE_TYPE_TEMPLATES_INPUT.members["user_agent"])
 
                 case 3:
-                    kwargs["type_schema"] = _deserialize_object(de, _SCHEMA_CREATE_TYPE_TEMPLATES_INPUT.members["type_schema"])
+                    kwargs["type_name"] = de.read_string(_SCHEMA_CREATE_TYPE_TEMPLATES_INPUT.members["type_name"])
 
                 case 4:
-                    kwargs["description"] = de.read_string(_SCHEMA_CREATE_TYPE_TEMPLATES_INPUT.members["description"])
+                    kwargs["type_schema"] = _deserialize_object(de, _SCHEMA_CREATE_TYPE_TEMPLATES_INPUT.members["type_schema"])
 
                 case 5:
+                    kwargs["description"] = de.read_string(_SCHEMA_CREATE_TYPE_TEMPLATES_INPUT.members["description"])
+
+                case 6:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_CREATE_TYPE_TEMPLATES_INPUT.members["change_reason"])
 
                 case _:
@@ -7231,6 +7351,7 @@ class CreateVariableInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     name: str | None = None
     value: str | None = None
     description: str | None = None
@@ -7269,15 +7390,18 @@ class CreateVariableInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_CREATE_VARIABLE_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["name"] = de.read_string(_SCHEMA_CREATE_VARIABLE_INPUT.members["name"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_CREATE_VARIABLE_INPUT.members["user_agent"])
 
                 case 3:
-                    kwargs["value"] = de.read_string(_SCHEMA_CREATE_VARIABLE_INPUT.members["value"])
+                    kwargs["name"] = de.read_string(_SCHEMA_CREATE_VARIABLE_INPUT.members["name"])
 
                 case 4:
-                    kwargs["description"] = de.read_string(_SCHEMA_CREATE_VARIABLE_INPUT.members["description"])
+                    kwargs["value"] = de.read_string(_SCHEMA_CREATE_VARIABLE_INPUT.members["value"])
 
                 case 5:
+                    kwargs["description"] = de.read_string(_SCHEMA_CREATE_VARIABLE_INPUT.members["description"])
+
+                case 6:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_CREATE_VARIABLE_INPUT.members["change_reason"])
 
                 case _:
@@ -7415,6 +7539,7 @@ class CreateWebhookInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     name: str | None = None
     description: str | None = None
     enabled: bool | None = None
@@ -7473,30 +7598,33 @@ class CreateWebhookInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_CREATE_WEBHOOK_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["name"] = de.read_string(_SCHEMA_CREATE_WEBHOOK_INPUT.members["name"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_CREATE_WEBHOOK_INPUT.members["user_agent"])
 
                 case 3:
-                    kwargs["description"] = de.read_string(_SCHEMA_CREATE_WEBHOOK_INPUT.members["description"])
+                    kwargs["name"] = de.read_string(_SCHEMA_CREATE_WEBHOOK_INPUT.members["name"])
 
                 case 4:
-                    kwargs["enabled"] = de.read_boolean(_SCHEMA_CREATE_WEBHOOK_INPUT.members["enabled"])
+                    kwargs["description"] = de.read_string(_SCHEMA_CREATE_WEBHOOK_INPUT.members["description"])
 
                 case 5:
-                    kwargs["url"] = de.read_string(_SCHEMA_CREATE_WEBHOOK_INPUT.members["url"])
+                    kwargs["enabled"] = de.read_boolean(_SCHEMA_CREATE_WEBHOOK_INPUT.members["enabled"])
 
                 case 6:
-                    kwargs["method"] = de.read_string(_SCHEMA_CREATE_WEBHOOK_INPUT.members["method"])
+                    kwargs["url"] = de.read_string(_SCHEMA_CREATE_WEBHOOK_INPUT.members["url"])
 
                 case 7:
-                    kwargs["version"] = de.read_string(_SCHEMA_CREATE_WEBHOOK_INPUT.members["version"])
+                    kwargs["method"] = de.read_string(_SCHEMA_CREATE_WEBHOOK_INPUT.members["method"])
 
                 case 8:
-                    kwargs["custom_headers"] = _deserialize_object(de, _SCHEMA_CREATE_WEBHOOK_INPUT.members["custom_headers"])
+                    kwargs["version"] = de.read_string(_SCHEMA_CREATE_WEBHOOK_INPUT.members["version"])
 
                 case 9:
-                    kwargs["events"] = _deserialize_events(de, _SCHEMA_CREATE_WEBHOOK_INPUT.members["events"])
+                    kwargs["custom_headers"] = _deserialize_object(de, _SCHEMA_CREATE_WEBHOOK_INPUT.members["custom_headers"])
 
                 case 10:
+                    kwargs["events"] = _deserialize_events(de, _SCHEMA_CREATE_WEBHOOK_INPUT.members["events"])
+
+                case 11:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_CREATE_WEBHOOK_INPUT.members["change_reason"])
 
                 case _:
@@ -7660,6 +7788,7 @@ class CreateWorkspaceInput:
     """
 
     org_id: str | None = None
+    user_agent: str | None = None
     workspace_admin_email: str | None = None
     workspace_name: str | None = None
     workspace_status: str | None = None
@@ -7711,27 +7840,30 @@ class CreateWorkspaceInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_CREATE_WORKSPACE_INPUT.members["org_id"])
 
                 case 1:
-                    kwargs["workspace_admin_email"] = de.read_string(_SCHEMA_CREATE_WORKSPACE_INPUT.members["workspace_admin_email"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_CREATE_WORKSPACE_INPUT.members["user_agent"])
 
                 case 2:
-                    kwargs["workspace_name"] = de.read_string(_SCHEMA_CREATE_WORKSPACE_INPUT.members["workspace_name"])
+                    kwargs["workspace_admin_email"] = de.read_string(_SCHEMA_CREATE_WORKSPACE_INPUT.members["workspace_admin_email"])
 
                 case 3:
-                    kwargs["workspace_status"] = de.read_string(_SCHEMA_CREATE_WORKSPACE_INPUT.members["workspace_status"])
+                    kwargs["workspace_name"] = de.read_string(_SCHEMA_CREATE_WORKSPACE_INPUT.members["workspace_name"])
 
                 case 4:
-                    kwargs["metrics"] = de.read_document(_SCHEMA_CREATE_WORKSPACE_INPUT.members["metrics"])
+                    kwargs["workspace_status"] = de.read_string(_SCHEMA_CREATE_WORKSPACE_INPUT.members["workspace_status"])
 
                 case 5:
-                    kwargs["allow_experiment_self_approval"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_INPUT.members["allow_experiment_self_approval"])
+                    kwargs["metrics"] = de.read_document(_SCHEMA_CREATE_WORKSPACE_INPUT.members["metrics"])
 
                 case 6:
-                    kwargs["auto_populate_control"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_INPUT.members["auto_populate_control"])
+                    kwargs["allow_experiment_self_approval"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_INPUT.members["allow_experiment_self_approval"])
 
                 case 7:
-                    kwargs["enable_context_validation"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_INPUT.members["enable_context_validation"])
+                    kwargs["auto_populate_control"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_INPUT.members["auto_populate_control"])
 
                 case 8:
+                    kwargs["enable_context_validation"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_INPUT.members["enable_context_validation"])
+
+                case 9:
                     kwargs["enable_change_reason_validation"] = de.read_boolean(_SCHEMA_CREATE_WORKSPACE_INPUT.members["enable_change_reason_validation"])
 
                 case _:
@@ -7924,6 +8056,7 @@ class DeleteDefaultConfigInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     key: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -7949,6 +8082,9 @@ class DeleteDefaultConfigInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_DELETE_DEFAULT_CONFIG_INPUT.members["org_id"])
 
                 case 2:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_DELETE_DEFAULT_CONFIG_INPUT.members["user_agent"])
+
+                case 3:
                     kwargs["key"] = de.read_string(_SCHEMA_DELETE_DEFAULT_CONFIG_INPUT.members["key"])
 
                 case _:
@@ -8006,6 +8142,7 @@ class GetDefaultConfigInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     key: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -8031,6 +8168,9 @@ class GetDefaultConfigInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_GET_DEFAULT_CONFIG_INPUT.members["org_id"])
 
                 case 2:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_GET_DEFAULT_CONFIG_INPUT.members["user_agent"])
+
+                case 3:
                     kwargs["key"] = de.read_string(_SCHEMA_GET_DEFAULT_CONFIG_INPUT.members["key"])
 
                 case _:
@@ -8173,6 +8313,7 @@ class ListDefaultConfigsInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     count: int | None = None
     page: int | None = None
     all: bool | None = None
@@ -8201,15 +8342,18 @@ class ListDefaultConfigsInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_LIST_DEFAULT_CONFIGS_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["count"] = de.read_integer(_SCHEMA_LIST_DEFAULT_CONFIGS_INPUT.members["count"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_LIST_DEFAULT_CONFIGS_INPUT.members["user_agent"])
 
                 case 3:
-                    kwargs["page"] = de.read_integer(_SCHEMA_LIST_DEFAULT_CONFIGS_INPUT.members["page"])
+                    kwargs["count"] = de.read_integer(_SCHEMA_LIST_DEFAULT_CONFIGS_INPUT.members["count"])
 
                 case 4:
-                    kwargs["all"] = de.read_boolean(_SCHEMA_LIST_DEFAULT_CONFIGS_INPUT.members["all"])
+                    kwargs["page"] = de.read_integer(_SCHEMA_LIST_DEFAULT_CONFIGS_INPUT.members["page"])
 
                 case 5:
+                    kwargs["all"] = de.read_boolean(_SCHEMA_LIST_DEFAULT_CONFIGS_INPUT.members["all"])
+
+                case 6:
                     kwargs["name"] = de.read_string(_SCHEMA_LIST_DEFAULT_CONFIGS_INPUT.members["name"])
 
                 case _:
@@ -8410,6 +8554,7 @@ class UpdateDefaultConfigInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     key: str | None = None
     change_reason: str | None = None
     value: Document | None = None
@@ -8457,24 +8602,27 @@ class UpdateDefaultConfigInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["key"] = de.read_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT.members["key"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT.members["user_agent"])
 
                 case 3:
-                    kwargs["change_reason"] = de.read_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT.members["change_reason"])
+                    kwargs["key"] = de.read_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT.members["key"])
 
                 case 4:
-                    kwargs["value"] = de.read_document(_SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT.members["value"])
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT.members["change_reason"])
 
                 case 5:
-                    kwargs["schema"] = _deserialize_object(de, _SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT.members["schema"])
+                    kwargs["value"] = de.read_document(_SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT.members["value"])
 
                 case 6:
-                    kwargs["value_validation_function_name"] = de.read_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT.members["value_validation_function_name"])
+                    kwargs["schema"] = _deserialize_object(de, _SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT.members["schema"])
 
                 case 7:
-                    kwargs["description"] = de.read_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT.members["description"])
+                    kwargs["value_validation_function_name"] = de.read_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT.members["value_validation_function_name"])
 
                 case 8:
+                    kwargs["description"] = de.read_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT.members["description"])
+
+                case 9:
                     kwargs["value_compute_function_name"] = de.read_string(_SCHEMA_UPDATE_DEFAULT_CONFIG_INPUT.members["value_compute_function_name"])
 
                 case _:
@@ -8606,6 +8754,7 @@ class DeleteDimensionInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     dimension: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -8631,6 +8780,9 @@ class DeleteDimensionInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_DELETE_DIMENSION_INPUT.members["org_id"])
 
                 case 2:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_DELETE_DIMENSION_INPUT.members["user_agent"])
+
+                case 3:
                     kwargs["dimension"] = de.read_string(_SCHEMA_DELETE_DIMENSION_INPUT.members["dimension"])
 
                 case _:
@@ -8688,6 +8840,7 @@ class DeleteExperimentGroupInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     id: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -8713,6 +8866,9 @@ class DeleteExperimentGroupInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_DELETE_EXPERIMENT_GROUP_INPUT.members["org_id"])
 
                 case 2:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_DELETE_EXPERIMENT_GROUP_INPUT.members["user_agent"])
+
+                case 3:
                     kwargs["id"] = de.read_string(_SCHEMA_DELETE_EXPERIMENT_GROUP_INPUT.members["id"])
 
                 case _:
@@ -8858,6 +9014,7 @@ class DeleteFunctionInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     function_name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -8883,6 +9040,9 @@ class DeleteFunctionInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_DELETE_FUNCTION_INPUT.members["org_id"])
 
                 case 2:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_DELETE_FUNCTION_INPUT.members["user_agent"])
+
+                case 3:
                     kwargs["function_name"] = de.read_string(_SCHEMA_DELETE_FUNCTION_INPUT.members["function_name"])
 
                 case _:
@@ -8939,6 +9099,7 @@ class DeleteSecretInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -8964,6 +9125,9 @@ class DeleteSecretInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_DELETE_SECRET_INPUT.members["org_id"])
 
                 case 2:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_DELETE_SECRET_INPUT.members["user_agent"])
+
+                case 3:
                     kwargs["name"] = de.read_string(_SCHEMA_DELETE_SECRET_INPUT.members["name"])
 
                 case _:
@@ -9065,6 +9229,7 @@ class DeleteTypeTemplatesInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     type_name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -9090,6 +9255,9 @@ class DeleteTypeTemplatesInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_DELETE_TYPE_TEMPLATES_INPUT.members["org_id"])
 
                 case 2:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_DELETE_TYPE_TEMPLATES_INPUT.members["user_agent"])
+
+                case 3:
                     kwargs["type_name"] = de.read_string(_SCHEMA_DELETE_TYPE_TEMPLATES_INPUT.members["type_name"])
 
                 case _:
@@ -9199,6 +9367,7 @@ class DeleteVariableInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -9224,6 +9393,9 @@ class DeleteVariableInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_DELETE_VARIABLE_INPUT.members["org_id"])
 
                 case 2:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_DELETE_VARIABLE_INPUT.members["user_agent"])
+
+                case 3:
                     kwargs["name"] = de.read_string(_SCHEMA_DELETE_VARIABLE_INPUT.members["name"])
 
                 case _:
@@ -9326,6 +9498,7 @@ class DeleteWebhookInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -9351,6 +9524,9 @@ class DeleteWebhookInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_DELETE_WEBHOOK_INPUT.members["org_id"])
 
                 case 2:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_DELETE_WEBHOOK_INPUT.members["user_agent"])
+
+                case 3:
                     kwargs["name"] = de.read_string(_SCHEMA_DELETE_WEBHOOK_INPUT.members["name"])
 
                 case _:
@@ -9407,6 +9583,7 @@ class GetDimensionInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     dimension: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -9432,6 +9609,9 @@ class GetDimensionInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_GET_DIMENSION_INPUT.members["org_id"])
 
                 case 2:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_GET_DIMENSION_INPUT.members["user_agent"])
+
+                case 3:
                     kwargs["dimension"] = de.read_string(_SCHEMA_GET_DIMENSION_INPUT.members["dimension"])
 
                 case _:
@@ -9595,6 +9775,7 @@ class ListDimensionsInput:
     all: bool | None = None
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_DIMENSIONS_INPUT, self)
@@ -9626,6 +9807,9 @@ class ListDimensionsInput:
 
                 case 4:
                     kwargs["org_id"] = de.read_string(_SCHEMA_LIST_DIMENSIONS_INPUT.members["org_id"])
+
+                case 5:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_LIST_DIMENSIONS_INPUT.members["user_agent"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -9843,6 +10027,7 @@ class UpdateDimensionInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     dimension: str | None = None
     schema: dict[str, Document] | None = None
     position: int | None = None
@@ -9890,24 +10075,27 @@ class UpdateDimensionInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["dimension"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_INPUT.members["dimension"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_INPUT.members["user_agent"])
 
                 case 3:
-                    kwargs["schema"] = _deserialize_object(de, _SCHEMA_UPDATE_DIMENSION_INPUT.members["schema"])
+                    kwargs["dimension"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_INPUT.members["dimension"])
 
                 case 4:
-                    kwargs["position"] = de.read_integer(_SCHEMA_UPDATE_DIMENSION_INPUT.members["position"])
+                    kwargs["schema"] = _deserialize_object(de, _SCHEMA_UPDATE_DIMENSION_INPUT.members["schema"])
 
                 case 5:
-                    kwargs["value_validation_function_name"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_INPUT.members["value_validation_function_name"])
+                    kwargs["position"] = de.read_integer(_SCHEMA_UPDATE_DIMENSION_INPUT.members["position"])
 
                 case 6:
-                    kwargs["description"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_INPUT.members["description"])
+                    kwargs["value_validation_function_name"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_INPUT.members["value_validation_function_name"])
 
                 case 7:
-                    kwargs["change_reason"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_INPUT.members["change_reason"])
+                    kwargs["description"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_INPUT.members["description"])
 
                 case 8:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_INPUT.members["change_reason"])
+
+                case 9:
                     kwargs["value_compute_function_name"] = de.read_string(_SCHEMA_UPDATE_DIMENSION_INPUT.members["value_compute_function_name"])
 
                 case _:
@@ -10057,6 +10245,7 @@ class DiscardExperimentInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     id: str | None = None
     change_reason: str | None = None
     config_tags: str | None = None
@@ -10085,12 +10274,15 @@ class DiscardExperimentInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_DISCARD_EXPERIMENT_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["id"] = de.read_string(_SCHEMA_DISCARD_EXPERIMENT_INPUT.members["id"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_DISCARD_EXPERIMENT_INPUT.members["user_agent"])
 
                 case 3:
-                    kwargs["change_reason"] = de.read_string(_SCHEMA_DISCARD_EXPERIMENT_INPUT.members["change_reason"])
+                    kwargs["id"] = de.read_string(_SCHEMA_DISCARD_EXPERIMENT_INPUT.members["id"])
 
                 case 4:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_DISCARD_EXPERIMENT_INPUT.members["change_reason"])
+
+                case 5:
                     kwargs["config_tags"] = de.read_string(_SCHEMA_DISCARD_EXPERIMENT_INPUT.members["config_tags"])
 
                 case _:
@@ -10612,6 +10804,7 @@ class GetExperimentConfigInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     if_modified_since: datetime | None = None
     prefix: list[str] | None = None
     exclude_prefix: list[str] | None = None
@@ -10642,18 +10835,21 @@ class GetExperimentConfigInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_GET_EXPERIMENT_CONFIG_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["if_modified_since"] = de.read_timestamp(_SCHEMA_GET_EXPERIMENT_CONFIG_INPUT.members["if_modified_since"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_GET_EXPERIMENT_CONFIG_INPUT.members["user_agent"])
 
                 case 3:
-                    kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_GET_EXPERIMENT_CONFIG_INPUT.members["prefix"])
+                    kwargs["if_modified_since"] = de.read_timestamp(_SCHEMA_GET_EXPERIMENT_CONFIG_INPUT.members["if_modified_since"])
 
                 case 4:
-                    kwargs["exclude_prefix"] = _deserialize_string_list(de, _SCHEMA_GET_EXPERIMENT_CONFIG_INPUT.members["exclude_prefix"])
+                    kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_GET_EXPERIMENT_CONFIG_INPUT.members["prefix"])
 
                 case 5:
-                    kwargs["context"] = _deserialize_context_map(de, _SCHEMA_GET_EXPERIMENT_CONFIG_INPUT.members["context"])
+                    kwargs["exclude_prefix"] = _deserialize_string_list(de, _SCHEMA_GET_EXPERIMENT_CONFIG_INPUT.members["exclude_prefix"])
 
                 case 6:
+                    kwargs["context"] = _deserialize_context_map(de, _SCHEMA_GET_EXPERIMENT_CONFIG_INPUT.members["context"])
+
+                case 7:
                     kwargs["dimension_match_strategy"] = de.read_string(_SCHEMA_GET_EXPERIMENT_CONFIG_INPUT.members["dimension_match_strategy"])
 
                 case _:
@@ -10729,6 +10925,7 @@ class GetExperimentGroupInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     id: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -10754,6 +10951,9 @@ class GetExperimentGroupInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_GET_EXPERIMENT_GROUP_INPUT.members["org_id"])
 
                 case 2:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_GET_EXPERIMENT_GROUP_INPUT.members["user_agent"])
+
+                case 3:
                     kwargs["id"] = de.read_string(_SCHEMA_GET_EXPERIMENT_GROUP_INPUT.members["id"])
 
                 case _:
@@ -10986,6 +11186,7 @@ class ListExperimentGroupsInput:
     all: bool | None = None
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     if_modified_since: datetime | None = None
     name: str | None = None
     created_by: str | None = None
@@ -11030,33 +11231,36 @@ class ListExperimentGroupsInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["org_id"])
 
                 case 5:
-                    kwargs["if_modified_since"] = de.read_timestamp(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["if_modified_since"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["user_agent"])
 
                 case 6:
-                    kwargs["name"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["name"])
+                    kwargs["if_modified_since"] = de.read_timestamp(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["if_modified_since"])
 
                 case 7:
-                    kwargs["created_by"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["created_by"])
+                    kwargs["name"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["name"])
 
                 case 8:
-                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["last_modified_by"])
+                    kwargs["created_by"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["created_by"])
 
                 case 9:
-                    kwargs["sort_on"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["sort_on"])
+                    kwargs["last_modified_by"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["last_modified_by"])
 
                 case 10:
-                    kwargs["sort_by"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["sort_by"])
+                    kwargs["sort_on"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["sort_on"])
 
                 case 11:
-                    kwargs["group_type"] = _deserialize_group_type_list(de, _SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["group_type"])
+                    kwargs["sort_by"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["sort_by"])
 
                 case 12:
-                    kwargs["dimension_match_strategy"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["dimension_match_strategy"])
+                    kwargs["group_type"] = _deserialize_group_type_list(de, _SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["group_type"])
 
                 case 13:
-                    kwargs["dimension_params"] = _deserialize_dimension_query_params(de, _SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["dimension_params"])
+                    kwargs["dimension_match_strategy"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["dimension_match_strategy"])
 
                 case 14:
+                    kwargs["dimension_params"] = _deserialize_dimension_query_params(de, _SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["dimension_params"])
+
+                case 15:
                     kwargs["context"] = _deserialize_context_map(de, _SCHEMA_LIST_EXPERIMENT_GROUPS_INPUT.members["context"])
 
                 case _:
@@ -11148,6 +11352,7 @@ class RemoveMembersFromGroupInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     id: str | None = None
     change_reason: str | None = None
     member_experiment_ids: list[str] | None = None
@@ -11179,12 +11384,15 @@ class RemoveMembersFromGroupInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_REMOVE_MEMBERS_FROM_GROUP_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["id"] = de.read_string(_SCHEMA_REMOVE_MEMBERS_FROM_GROUP_INPUT.members["id"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_REMOVE_MEMBERS_FROM_GROUP_INPUT.members["user_agent"])
 
                 case 3:
-                    kwargs["change_reason"] = de.read_string(_SCHEMA_REMOVE_MEMBERS_FROM_GROUP_INPUT.members["change_reason"])
+                    kwargs["id"] = de.read_string(_SCHEMA_REMOVE_MEMBERS_FROM_GROUP_INPUT.members["id"])
 
                 case 4:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_REMOVE_MEMBERS_FROM_GROUP_INPUT.members["change_reason"])
+
+                case 5:
                     kwargs["member_experiment_ids"] = _deserialize_string_list(de, _SCHEMA_REMOVE_MEMBERS_FROM_GROUP_INPUT.members["member_experiment_ids"])
 
                 case _:
@@ -11343,6 +11551,7 @@ class UpdateExperimentGroupInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     id: str | None = None
     change_reason: str | None = None
     description: str | None = None
@@ -11378,15 +11587,18 @@ class UpdateExperimentGroupInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_UPDATE_EXPERIMENT_GROUP_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["id"] = de.read_string(_SCHEMA_UPDATE_EXPERIMENT_GROUP_INPUT.members["id"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_UPDATE_EXPERIMENT_GROUP_INPUT.members["user_agent"])
 
                 case 3:
-                    kwargs["change_reason"] = de.read_string(_SCHEMA_UPDATE_EXPERIMENT_GROUP_INPUT.members["change_reason"])
+                    kwargs["id"] = de.read_string(_SCHEMA_UPDATE_EXPERIMENT_GROUP_INPUT.members["id"])
 
                 case 4:
-                    kwargs["description"] = de.read_string(_SCHEMA_UPDATE_EXPERIMENT_GROUP_INPUT.members["description"])
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_UPDATE_EXPERIMENT_GROUP_INPUT.members["change_reason"])
 
                 case 5:
+                    kwargs["description"] = de.read_string(_SCHEMA_UPDATE_EXPERIMENT_GROUP_INPUT.members["description"])
+
+                case 6:
                     kwargs["traffic_percentage"] = de.read_integer(_SCHEMA_UPDATE_EXPERIMENT_GROUP_INPUT.members["traffic_percentage"])
 
                 case _:
@@ -11532,6 +11744,7 @@ class GetExperimentInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     id: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -11557,6 +11770,9 @@ class GetExperimentInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_GET_EXPERIMENT_INPUT.members["org_id"])
 
                 case 2:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_GET_EXPERIMENT_INPUT.members["user_agent"])
+
+                case 3:
                     kwargs["id"] = de.read_string(_SCHEMA_GET_EXPERIMENT_INPUT.members["id"])
 
                 case _:
@@ -11807,6 +12023,7 @@ class ListExperimentInput:
     all: bool | None = None
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     if_modified_since: datetime | None = None
     status: list[str] | None = None
     from_date: datetime | None = None
@@ -11857,51 +12074,54 @@ class ListExperimentInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["org_id"])
 
                 case 5:
-                    kwargs["if_modified_since"] = de.read_timestamp(_SCHEMA_LIST_EXPERIMENT_INPUT.members["if_modified_since"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["user_agent"])
 
                 case 6:
-                    kwargs["status"] = _deserialize_experiment_status_type_list(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["status"])
+                    kwargs["if_modified_since"] = de.read_timestamp(_SCHEMA_LIST_EXPERIMENT_INPUT.members["if_modified_since"])
 
                 case 7:
-                    kwargs["from_date"] = de.read_timestamp(_SCHEMA_LIST_EXPERIMENT_INPUT.members["from_date"])
+                    kwargs["status"] = _deserialize_experiment_status_type_list(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["status"])
 
                 case 8:
-                    kwargs["to_date"] = de.read_timestamp(_SCHEMA_LIST_EXPERIMENT_INPUT.members["to_date"])
+                    kwargs["from_date"] = de.read_timestamp(_SCHEMA_LIST_EXPERIMENT_INPUT.members["from_date"])
 
                 case 9:
-                    kwargs["experiment_name"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["experiment_name"])
+                    kwargs["to_date"] = de.read_timestamp(_SCHEMA_LIST_EXPERIMENT_INPUT.members["to_date"])
 
                 case 10:
-                    kwargs["experiment_ids"] = _deserialize_string_list(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["experiment_ids"])
+                    kwargs["experiment_name"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["experiment_name"])
 
                 case 11:
-                    kwargs["experiment_group_ids"] = _deserialize_string_list(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["experiment_group_ids"])
+                    kwargs["experiment_ids"] = _deserialize_string_list(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["experiment_ids"])
 
                 case 12:
-                    kwargs["created_by"] = _deserialize_string_list(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["created_by"])
+                    kwargs["experiment_group_ids"] = _deserialize_string_list(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["experiment_group_ids"])
 
                 case 13:
-                    kwargs["sort_on"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["sort_on"])
+                    kwargs["created_by"] = _deserialize_string_list(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["created_by"])
 
                 case 14:
-                    kwargs["sort_by"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["sort_by"])
+                    kwargs["sort_on"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["sort_on"])
 
                 case 15:
-                    kwargs["global_experiments_only"] = de.read_boolean(_SCHEMA_LIST_EXPERIMENT_INPUT.members["global_experiments_only"])
+                    kwargs["sort_by"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["sort_by"])
 
                 case 16:
-                    kwargs["dimension_match_strategy"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["dimension_match_strategy"])
+                    kwargs["global_experiments_only"] = de.read_boolean(_SCHEMA_LIST_EXPERIMENT_INPUT.members["global_experiments_only"])
 
                 case 17:
-                    kwargs["dimension_params"] = _deserialize_dimension_query_params(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["dimension_params"])
+                    kwargs["dimension_match_strategy"] = de.read_string(_SCHEMA_LIST_EXPERIMENT_INPUT.members["dimension_match_strategy"])
 
                 case 18:
-                    kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["prefix"])
+                    kwargs["dimension_params"] = _deserialize_dimension_query_params(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["dimension_params"])
 
                 case 19:
-                    kwargs["exclude_prefix"] = _deserialize_string_list(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["exclude_prefix"])
+                    kwargs["prefix"] = _deserialize_string_list(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["prefix"])
 
                 case 20:
+                    kwargs["exclude_prefix"] = _deserialize_string_list(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["exclude_prefix"])
+
+                case 21:
                     kwargs["context"] = _deserialize_context_map(de, _SCHEMA_LIST_EXPERIMENT_INPUT.members["context"])
 
                 case _:
@@ -11977,6 +12197,7 @@ class PauseExperimentInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     id: str | None = None
     change_reason: str | None = None
 
@@ -12004,9 +12225,12 @@ class PauseExperimentInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_PAUSE_EXPERIMENT_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["id"] = de.read_string(_SCHEMA_PAUSE_EXPERIMENT_INPUT.members["id"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_PAUSE_EXPERIMENT_INPUT.members["user_agent"])
 
                 case 3:
+                    kwargs["id"] = de.read_string(_SCHEMA_PAUSE_EXPERIMENT_INPUT.members["id"])
+
+                case 4:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_PAUSE_EXPERIMENT_INPUT.members["change_reason"])
 
                 case _:
@@ -12200,6 +12424,7 @@ class RampExperimentInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     id: str | None = None
     change_reason: str | None = None
     traffic_percentage: int | None = None
@@ -12231,12 +12456,15 @@ class RampExperimentInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_RAMP_EXPERIMENT_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["id"] = de.read_string(_SCHEMA_RAMP_EXPERIMENT_INPUT.members["id"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_RAMP_EXPERIMENT_INPUT.members["user_agent"])
 
                 case 3:
-                    kwargs["change_reason"] = de.read_string(_SCHEMA_RAMP_EXPERIMENT_INPUT.members["change_reason"])
+                    kwargs["id"] = de.read_string(_SCHEMA_RAMP_EXPERIMENT_INPUT.members["id"])
 
                 case 4:
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_RAMP_EXPERIMENT_INPUT.members["change_reason"])
+
+                case 5:
                     kwargs["traffic_percentage"] = de.read_integer(_SCHEMA_RAMP_EXPERIMENT_INPUT.members["traffic_percentage"])
 
                 case _:
@@ -12430,6 +12658,7 @@ class ResumeExperimentInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     id: str | None = None
     change_reason: str | None = None
 
@@ -12457,9 +12686,12 @@ class ResumeExperimentInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_RESUME_EXPERIMENT_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["id"] = de.read_string(_SCHEMA_RESUME_EXPERIMENT_INPUT.members["id"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_RESUME_EXPERIMENT_INPUT.members["user_agent"])
 
                 case 3:
+                    kwargs["id"] = de.read_string(_SCHEMA_RESUME_EXPERIMENT_INPUT.members["id"])
+
+                case 4:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_RESUME_EXPERIMENT_INPUT.members["change_reason"])
 
                 case _:
@@ -12726,6 +12958,7 @@ class UpdateOverridesExperimentInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     id: str | None = None
     variant_list: list[VariantUpdateRequest] | None = None
     description: str | None = None
@@ -12770,24 +13003,27 @@ class UpdateOverridesExperimentInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["id"] = de.read_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_INPUT.members["id"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_INPUT.members["user_agent"])
 
                 case 3:
-                    kwargs["variant_list"] = _deserialize_list_variant_update_request(de, _SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_INPUT.members["variant_list"])
+                    kwargs["id"] = de.read_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_INPUT.members["id"])
 
                 case 4:
-                    kwargs["description"] = de.read_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_INPUT.members["description"])
+                    kwargs["variant_list"] = _deserialize_list_variant_update_request(de, _SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_INPUT.members["variant_list"])
 
                 case 5:
-                    kwargs["change_reason"] = de.read_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_INPUT.members["change_reason"])
+                    kwargs["description"] = de.read_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_INPUT.members["description"])
 
                 case 6:
-                    kwargs["metrics"] = de.read_document(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_INPUT.members["metrics"])
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_INPUT.members["change_reason"])
 
                 case 7:
-                    kwargs["experiment_group_id"] = de.read_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_INPUT.members["experiment_group_id"])
+                    kwargs["metrics"] = de.read_document(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_INPUT.members["metrics"])
 
                 case 8:
+                    kwargs["experiment_group_id"] = de.read_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_INPUT.members["experiment_group_id"])
+
+                case 9:
                     kwargs["config_tags"] = de.read_string(_SCHEMA_UPDATE_OVERRIDES_EXPERIMENT_INPUT.members["config_tags"])
 
                 case _:
@@ -12981,6 +13217,7 @@ class GetFunctionInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     function_name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -13006,6 +13243,9 @@ class GetFunctionInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_GET_FUNCTION_INPUT.members["org_id"])
 
                 case 2:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_GET_FUNCTION_INPUT.members["user_agent"])
+
+                case 3:
                     kwargs["function_name"] = de.read_string(_SCHEMA_GET_FUNCTION_INPUT.members["function_name"])
 
                 case _:
@@ -13182,6 +13422,7 @@ class ListFunctionInput:
     all: bool | None = None
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     function_type: list[str] | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -13216,6 +13457,9 @@ class ListFunctionInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_LIST_FUNCTION_INPUT.members["org_id"])
 
                 case 5:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_LIST_FUNCTION_INPUT.members["user_agent"])
+
+                case 6:
                     kwargs["function_type"] = _deserialize_function_types_list(de, _SCHEMA_LIST_FUNCTION_INPUT.members["function_type"])
 
                 case _:
@@ -13416,6 +13660,7 @@ class PublishInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     function_name: str | None = None
     change_reason: str | None = None
 
@@ -13443,9 +13688,12 @@ class PublishInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_PUBLISH_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["function_name"] = de.read_string(_SCHEMA_PUBLISH_INPUT.members["function_name"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_PUBLISH_INPUT.members["user_agent"])
 
                 case 3:
+                    kwargs["function_name"] = de.read_string(_SCHEMA_PUBLISH_INPUT.members["function_name"])
+
+                case 4:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_PUBLISH_INPUT.members["change_reason"])
 
                 case _:
@@ -13807,6 +14055,7 @@ class TestInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     function_name: str | None = None
     stage: str | None = None
     request: FunctionExecutionRequest | None = None
@@ -13834,12 +14083,15 @@ class TestInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_TEST_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["function_name"] = de.read_string(_SCHEMA_TEST_INPUT.members["function_name"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_TEST_INPUT.members["user_agent"])
 
                 case 3:
-                    kwargs["stage"] = de.read_string(_SCHEMA_TEST_INPUT.members["stage"])
+                    kwargs["function_name"] = de.read_string(_SCHEMA_TEST_INPUT.members["function_name"])
 
                 case 4:
+                    kwargs["stage"] = de.read_string(_SCHEMA_TEST_INPUT.members["stage"])
+
+                case 5:
                     kwargs["request"] = _FunctionExecutionRequestDeserializer().deserialize(de)
 
                 case _:
@@ -13911,6 +14163,7 @@ class UpdateFunctionInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     function_name: str | None = None
     description: str | None = None
     change_reason: str | None = None
@@ -13950,18 +14203,21 @@ class UpdateFunctionInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_UPDATE_FUNCTION_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["function_name"] = de.read_string(_SCHEMA_UPDATE_FUNCTION_INPUT.members["function_name"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_UPDATE_FUNCTION_INPUT.members["user_agent"])
 
                 case 3:
-                    kwargs["description"] = de.read_string(_SCHEMA_UPDATE_FUNCTION_INPUT.members["description"])
+                    kwargs["function_name"] = de.read_string(_SCHEMA_UPDATE_FUNCTION_INPUT.members["function_name"])
 
                 case 4:
-                    kwargs["change_reason"] = de.read_string(_SCHEMA_UPDATE_FUNCTION_INPUT.members["change_reason"])
+                    kwargs["description"] = de.read_string(_SCHEMA_UPDATE_FUNCTION_INPUT.members["description"])
 
                 case 5:
-                    kwargs["function"] = de.read_string(_SCHEMA_UPDATE_FUNCTION_INPUT.members["function"])
+                    kwargs["change_reason"] = de.read_string(_SCHEMA_UPDATE_FUNCTION_INPUT.members["change_reason"])
 
                 case 6:
+                    kwargs["function"] = de.read_string(_SCHEMA_UPDATE_FUNCTION_INPUT.members["function"])
+
+                case 7:
                     kwargs["runtime_version"] = de.read_string(_SCHEMA_UPDATE_FUNCTION_INPUT.members["runtime_version"])
 
                 case _:
@@ -14252,6 +14508,7 @@ class GetSecretInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -14277,6 +14534,9 @@ class GetSecretInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_GET_SECRET_INPUT.members["org_id"])
 
                 case 2:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_GET_SECRET_INPUT.members["user_agent"])
+
+                case 3:
                     kwargs["name"] = de.read_string(_SCHEMA_GET_SECRET_INPUT.members["name"])
 
                 case _:
@@ -14377,6 +14637,7 @@ class GetTypeTemplateInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     type_name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -14402,6 +14663,9 @@ class GetTypeTemplateInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_GET_TYPE_TEMPLATE_INPUT.members["org_id"])
 
                 case 2:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_GET_TYPE_TEMPLATE_INPUT.members["user_agent"])
+
+                case 3:
                     kwargs["type_name"] = de.read_string(_SCHEMA_GET_TYPE_TEMPLATE_INPUT.members["type_name"])
 
                 case _:
@@ -14526,6 +14790,7 @@ class GetTypeTemplatesListInput:
     all: bool | None = None
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_GET_TYPE_TEMPLATES_LIST_INPUT, self)
@@ -14557,6 +14822,9 @@ class GetTypeTemplatesListInput:
 
                 case 4:
                     kwargs["org_id"] = de.read_string(_SCHEMA_GET_TYPE_TEMPLATES_LIST_INPUT.members["org_id"])
+
+                case 5:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_GET_TYPE_TEMPLATES_LIST_INPUT.members["user_agent"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -14722,6 +14990,7 @@ class GetVariableInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -14747,6 +15016,9 @@ class GetVariableInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_GET_VARIABLE_INPUT.members["org_id"])
 
                 case 2:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_GET_VARIABLE_INPUT.members["user_agent"])
+
+                case 3:
                     kwargs["name"] = de.read_string(_SCHEMA_GET_VARIABLE_INPUT.members["name"])
 
                 case _:
@@ -14848,6 +15120,7 @@ class GetWebhookInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -14873,6 +15146,9 @@ class GetWebhookInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_GET_WEBHOOK_INPUT.members["org_id"])
 
                 case 2:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_GET_WEBHOOK_INPUT.members["user_agent"])
+
+                case 3:
                     kwargs["name"] = de.read_string(_SCHEMA_GET_WEBHOOK_INPUT.members["name"])
 
                 case _:
@@ -15026,6 +15302,7 @@ class GetWebhookByEventInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     event: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -15051,6 +15328,9 @@ class GetWebhookByEventInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_GET_WEBHOOK_BY_EVENT_INPUT.members["org_id"])
 
                 case 2:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_GET_WEBHOOK_BY_EVENT_INPUT.members["user_agent"])
+
+                case 3:
                     kwargs["event"] = de.read_string(_SCHEMA_GET_WEBHOOK_BY_EVENT_INPUT.members["event"])
 
                 case _:
@@ -15203,6 +15483,7 @@ ShapeID("smithy.api#httpBearerAuth")
 class GetWorkspaceInput:
 
     org_id: str | None = None
+    user_agent: str | None = None
     workspace_name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -15225,6 +15506,9 @@ class GetWorkspaceInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_GET_WORKSPACE_INPUT.members["org_id"])
 
                 case 1:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_GET_WORKSPACE_INPUT.members["user_agent"])
+
+                case 2:
                     kwargs["workspace_name"] = de.read_string(_SCHEMA_GET_WORKSPACE_INPUT.members["workspace_name"])
 
                 case _:
@@ -15662,6 +15946,7 @@ class ListSecretsInput:
     all: bool | None = None
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     name: list[str] | None = None
     created_by: list[str] | None = None
     last_modified_by: list[str] | None = None
@@ -15700,18 +15985,21 @@ class ListSecretsInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_LIST_SECRETS_INPUT.members["org_id"])
 
                 case 5:
-                    kwargs["name"] = _deserialize_string_list(de, _SCHEMA_LIST_SECRETS_INPUT.members["name"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_LIST_SECRETS_INPUT.members["user_agent"])
 
                 case 6:
-                    kwargs["created_by"] = _deserialize_string_list(de, _SCHEMA_LIST_SECRETS_INPUT.members["created_by"])
+                    kwargs["name"] = _deserialize_string_list(de, _SCHEMA_LIST_SECRETS_INPUT.members["name"])
 
                 case 7:
-                    kwargs["last_modified_by"] = _deserialize_string_list(de, _SCHEMA_LIST_SECRETS_INPUT.members["last_modified_by"])
+                    kwargs["created_by"] = _deserialize_string_list(de, _SCHEMA_LIST_SECRETS_INPUT.members["created_by"])
 
                 case 8:
-                    kwargs["sort_on"] = de.read_string(_SCHEMA_LIST_SECRETS_INPUT.members["sort_on"])
+                    kwargs["last_modified_by"] = _deserialize_string_list(de, _SCHEMA_LIST_SECRETS_INPUT.members["last_modified_by"])
 
                 case 9:
+                    kwargs["sort_on"] = de.read_string(_SCHEMA_LIST_SECRETS_INPUT.members["sort_on"])
+
+                case 10:
                     kwargs["sort_by"] = de.read_string(_SCHEMA_LIST_SECRETS_INPUT.members["sort_by"])
 
                 case _:
@@ -15907,6 +16195,7 @@ class ListVariablesInput:
     all: bool | None = None
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     name: list[str] | None = None
     created_by: list[str] | None = None
     last_modified_by: list[str] | None = None
@@ -15945,18 +16234,21 @@ class ListVariablesInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_LIST_VARIABLES_INPUT.members["org_id"])
 
                 case 5:
-                    kwargs["name"] = _deserialize_string_list(de, _SCHEMA_LIST_VARIABLES_INPUT.members["name"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_LIST_VARIABLES_INPUT.members["user_agent"])
 
                 case 6:
-                    kwargs["created_by"] = _deserialize_string_list(de, _SCHEMA_LIST_VARIABLES_INPUT.members["created_by"])
+                    kwargs["name"] = _deserialize_string_list(de, _SCHEMA_LIST_VARIABLES_INPUT.members["name"])
 
                 case 7:
-                    kwargs["last_modified_by"] = _deserialize_string_list(de, _SCHEMA_LIST_VARIABLES_INPUT.members["last_modified_by"])
+                    kwargs["created_by"] = _deserialize_string_list(de, _SCHEMA_LIST_VARIABLES_INPUT.members["created_by"])
 
                 case 8:
-                    kwargs["sort_on"] = de.read_string(_SCHEMA_LIST_VARIABLES_INPUT.members["sort_on"])
+                    kwargs["last_modified_by"] = _deserialize_string_list(de, _SCHEMA_LIST_VARIABLES_INPUT.members["last_modified_by"])
 
                 case 9:
+                    kwargs["sort_on"] = de.read_string(_SCHEMA_LIST_VARIABLES_INPUT.members["sort_on"])
+
+                case 10:
                     kwargs["sort_by"] = de.read_string(_SCHEMA_LIST_VARIABLES_INPUT.members["sort_by"])
 
                 case _:
@@ -16132,6 +16424,7 @@ class ListWebhookInput:
     all: bool | None = None
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_WEBHOOK_INPUT, self)
@@ -16163,6 +16456,9 @@ class ListWebhookInput:
 
                 case 4:
                     kwargs["org_id"] = de.read_string(_SCHEMA_LIST_WEBHOOK_INPUT.members["org_id"])
+
+                case 5:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_LIST_WEBHOOK_INPUT.members["user_agent"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -16388,6 +16684,7 @@ class ListWorkspaceInput:
     page: int | None = None
     all: bool | None = None
     org_id: str | None = None
+    user_agent: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
         serializer.write_struct(_SCHEMA_LIST_WORKSPACE_INPUT, self)
@@ -16416,6 +16713,9 @@ class ListWorkspaceInput:
 
                 case 3:
                     kwargs["org_id"] = de.read_string(_SCHEMA_LIST_WORKSPACE_INPUT.members["org_id"])
+
+                case 4:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_LIST_WORKSPACE_INPUT.members["user_agent"])
 
                 case _:
                     logger.debug("Unexpected member schema: %s", schema)
@@ -16724,6 +17024,7 @@ ShapeID("smithy.api#httpBearerAuth")
 class MigrateWorkspaceSchemaInput:
 
     org_id: str | None = None
+    user_agent: str | None = None
     workspace_name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -16746,6 +17047,9 @@ class MigrateWorkspaceSchemaInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_INPUT.members["org_id"])
 
                 case 1:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_INPUT.members["user_agent"])
+
+                case 2:
                     kwargs["workspace_name"] = de.read_string(_SCHEMA_MIGRATE_WORKSPACE_SCHEMA_INPUT.members["workspace_name"])
 
                 case _:
@@ -17107,6 +17411,7 @@ ShapeID("smithy.api#httpBearerAuth")
 class RotateWorkspaceEncryptionKeyInput:
 
     org_id: str | None = None
+    user_agent: str | None = None
     workspace_name: str | None = None
 
     def serialize(self, serializer: ShapeSerializer):
@@ -17129,6 +17434,9 @@ class RotateWorkspaceEncryptionKeyInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_ROTATE_WORKSPACE_ENCRYPTION_KEY_INPUT.members["org_id"])
 
                 case 1:
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_ROTATE_WORKSPACE_ENCRYPTION_KEY_INPUT.members["user_agent"])
+
+                case 2:
                     kwargs["workspace_name"] = de.read_string(_SCHEMA_ROTATE_WORKSPACE_ENCRYPTION_KEY_INPUT.members["workspace_name"])
 
                 case _:
@@ -17200,6 +17508,7 @@ class UpdateSecretInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     name: str | None = None
     value: str | None = None
     description: str | None = None
@@ -17235,15 +17544,18 @@ class UpdateSecretInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_UPDATE_SECRET_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["name"] = de.read_string(_SCHEMA_UPDATE_SECRET_INPUT.members["name"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_UPDATE_SECRET_INPUT.members["user_agent"])
 
                 case 3:
-                    kwargs["value"] = de.read_string(_SCHEMA_UPDATE_SECRET_INPUT.members["value"])
+                    kwargs["name"] = de.read_string(_SCHEMA_UPDATE_SECRET_INPUT.members["name"])
 
                 case 4:
-                    kwargs["description"] = de.read_string(_SCHEMA_UPDATE_SECRET_INPUT.members["description"])
+                    kwargs["value"] = de.read_string(_SCHEMA_UPDATE_SECRET_INPUT.members["value"])
 
                 case 5:
+                    kwargs["description"] = de.read_string(_SCHEMA_UPDATE_SECRET_INPUT.members["description"])
+
+                case 6:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_UPDATE_SECRET_INPUT.members["change_reason"])
 
                 case _:
@@ -17352,6 +17664,7 @@ class UpdateTypeTemplatesInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     type_name: str | None = None
     type_schema: dict[str, Document] | None = None
     description: str | None = None
@@ -17387,15 +17700,18 @@ class UpdateTypeTemplatesInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_UPDATE_TYPE_TEMPLATES_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["type_name"] = de.read_string(_SCHEMA_UPDATE_TYPE_TEMPLATES_INPUT.members["type_name"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_UPDATE_TYPE_TEMPLATES_INPUT.members["user_agent"])
 
                 case 3:
-                    kwargs["type_schema"] = _deserialize_object(de, _SCHEMA_UPDATE_TYPE_TEMPLATES_INPUT.members["type_schema"])
+                    kwargs["type_name"] = de.read_string(_SCHEMA_UPDATE_TYPE_TEMPLATES_INPUT.members["type_name"])
 
                 case 4:
-                    kwargs["description"] = de.read_string(_SCHEMA_UPDATE_TYPE_TEMPLATES_INPUT.members["description"])
+                    kwargs["type_schema"] = _deserialize_object(de, _SCHEMA_UPDATE_TYPE_TEMPLATES_INPUT.members["type_schema"])
 
                 case 5:
+                    kwargs["description"] = de.read_string(_SCHEMA_UPDATE_TYPE_TEMPLATES_INPUT.members["description"])
+
+                case 6:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_UPDATE_TYPE_TEMPLATES_INPUT.members["change_reason"])
 
                 case _:
@@ -17505,6 +17821,7 @@ class UpdateVariableInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     name: str | None = None
     value: str | None = None
     description: str | None = None
@@ -17540,15 +17857,18 @@ class UpdateVariableInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_UPDATE_VARIABLE_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["name"] = de.read_string(_SCHEMA_UPDATE_VARIABLE_INPUT.members["name"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_UPDATE_VARIABLE_INPUT.members["user_agent"])
 
                 case 3:
-                    kwargs["value"] = de.read_string(_SCHEMA_UPDATE_VARIABLE_INPUT.members["value"])
+                    kwargs["name"] = de.read_string(_SCHEMA_UPDATE_VARIABLE_INPUT.members["name"])
 
                 case 4:
-                    kwargs["description"] = de.read_string(_SCHEMA_UPDATE_VARIABLE_INPUT.members["description"])
+                    kwargs["value"] = de.read_string(_SCHEMA_UPDATE_VARIABLE_INPUT.members["value"])
 
                 case 5:
+                    kwargs["description"] = de.read_string(_SCHEMA_UPDATE_VARIABLE_INPUT.members["description"])
+
+                case 6:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_UPDATE_VARIABLE_INPUT.members["change_reason"])
 
                 case _:
@@ -17658,6 +17978,7 @@ class UpdateWebhookInput:
 
     workspace_id: str | None = None
     org_id: str | None = None
+    user_agent: str | None = None
     name: str | None = None
     description: str | None = None
     enabled: bool | None = None
@@ -17713,30 +18034,33 @@ class UpdateWebhookInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_UPDATE_WEBHOOK_INPUT.members["org_id"])
 
                 case 2:
-                    kwargs["name"] = de.read_string(_SCHEMA_UPDATE_WEBHOOK_INPUT.members["name"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_UPDATE_WEBHOOK_INPUT.members["user_agent"])
 
                 case 3:
-                    kwargs["description"] = de.read_string(_SCHEMA_UPDATE_WEBHOOK_INPUT.members["description"])
+                    kwargs["name"] = de.read_string(_SCHEMA_UPDATE_WEBHOOK_INPUT.members["name"])
 
                 case 4:
-                    kwargs["enabled"] = de.read_boolean(_SCHEMA_UPDATE_WEBHOOK_INPUT.members["enabled"])
+                    kwargs["description"] = de.read_string(_SCHEMA_UPDATE_WEBHOOK_INPUT.members["description"])
 
                 case 5:
-                    kwargs["url"] = de.read_string(_SCHEMA_UPDATE_WEBHOOK_INPUT.members["url"])
+                    kwargs["enabled"] = de.read_boolean(_SCHEMA_UPDATE_WEBHOOK_INPUT.members["enabled"])
 
                 case 6:
-                    kwargs["method"] = de.read_string(_SCHEMA_UPDATE_WEBHOOK_INPUT.members["method"])
+                    kwargs["url"] = de.read_string(_SCHEMA_UPDATE_WEBHOOK_INPUT.members["url"])
 
                 case 7:
-                    kwargs["version"] = de.read_string(_SCHEMA_UPDATE_WEBHOOK_INPUT.members["version"])
+                    kwargs["method"] = de.read_string(_SCHEMA_UPDATE_WEBHOOK_INPUT.members["method"])
 
                 case 8:
-                    kwargs["custom_headers"] = _deserialize_object(de, _SCHEMA_UPDATE_WEBHOOK_INPUT.members["custom_headers"])
+                    kwargs["version"] = de.read_string(_SCHEMA_UPDATE_WEBHOOK_INPUT.members["version"])
 
                 case 9:
-                    kwargs["events"] = _deserialize_events(de, _SCHEMA_UPDATE_WEBHOOK_INPUT.members["events"])
+                    kwargs["custom_headers"] = _deserialize_object(de, _SCHEMA_UPDATE_WEBHOOK_INPUT.members["custom_headers"])
 
                 case 10:
+                    kwargs["events"] = _deserialize_events(de, _SCHEMA_UPDATE_WEBHOOK_INPUT.members["events"])
+
+                case 11:
                     kwargs["change_reason"] = de.read_string(_SCHEMA_UPDATE_WEBHOOK_INPUT.members["change_reason"])
 
                 case _:
@@ -17900,6 +18224,7 @@ class UpdateWorkspaceInput:
     """
 
     org_id: str | None = None
+    user_agent: str | None = None
     workspace_name: str | None = None
     workspace_admin_email: str | None = None
     config_version: str | None = None
@@ -17956,33 +18281,36 @@ class UpdateWorkspaceInput:
                     kwargs["org_id"] = de.read_string(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["org_id"])
 
                 case 1:
-                    kwargs["workspace_name"] = de.read_string(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["workspace_name"])
+                    kwargs["user_agent"] = de.read_string(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["user_agent"])
 
                 case 2:
-                    kwargs["workspace_admin_email"] = de.read_string(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["workspace_admin_email"])
+                    kwargs["workspace_name"] = de.read_string(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["workspace_name"])
 
                 case 3:
-                    kwargs["config_version"] = de.read_string(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["config_version"])
+                    kwargs["workspace_admin_email"] = de.read_string(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["workspace_admin_email"])
 
                 case 4:
-                    kwargs["mandatory_dimensions"] = _deserialize_list_mandatory_dimensions(de, _SCHEMA_UPDATE_WORKSPACE_INPUT.members["mandatory_dimensions"])
+                    kwargs["config_version"] = de.read_string(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["config_version"])
 
                 case 5:
-                    kwargs["workspace_status"] = de.read_string(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["workspace_status"])
+                    kwargs["mandatory_dimensions"] = _deserialize_list_mandatory_dimensions(de, _SCHEMA_UPDATE_WORKSPACE_INPUT.members["mandatory_dimensions"])
 
                 case 6:
-                    kwargs["metrics"] = de.read_document(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["metrics"])
+                    kwargs["workspace_status"] = de.read_string(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["workspace_status"])
 
                 case 7:
-                    kwargs["allow_experiment_self_approval"] = de.read_boolean(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["allow_experiment_self_approval"])
+                    kwargs["metrics"] = de.read_document(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["metrics"])
 
                 case 8:
-                    kwargs["auto_populate_control"] = de.read_boolean(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["auto_populate_control"])
+                    kwargs["allow_experiment_self_approval"] = de.read_boolean(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["allow_experiment_self_approval"])
 
                 case 9:
-                    kwargs["enable_context_validation"] = de.read_boolean(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["enable_context_validation"])
+                    kwargs["auto_populate_control"] = de.read_boolean(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["auto_populate_control"])
 
                 case 10:
+                    kwargs["enable_context_validation"] = de.read_boolean(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["enable_context_validation"])
+
+                case 11:
                     kwargs["enable_change_reason_validation"] = de.read_boolean(_SCHEMA_UPDATE_WORKSPACE_INPUT.members["enable_change_reason_validation"])
 
                 case _:

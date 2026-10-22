@@ -45,6 +45,7 @@ export interface PauseExperimentCommandOutput extends ExperimentResponse, __Meta
  * const input = { // PauseExperimentInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   id: "STRING_VALUE", // required
  *   change_reason: "STRING_VALUE", // required
  * };

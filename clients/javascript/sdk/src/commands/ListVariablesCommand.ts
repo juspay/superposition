@@ -48,6 +48,7 @@ export interface ListVariablesCommandOutput extends ListVariablesOutput, __Metad
  *   all: true || false,
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   name: [ // StringList
  *     "STRING_VALUE",
  *   ],

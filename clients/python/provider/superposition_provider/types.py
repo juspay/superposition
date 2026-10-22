@@ -18,6 +18,8 @@ class SuperpositionOptions:
     token: str
     org_id: str
     workspace_id: str
+    """Sent as the `user-agent` header on every API call; identifies the caller."""
+    user_agent: Optional[str] = None
 
 
 # ============================================================================
@@ -129,6 +131,8 @@ class SuperpositionProviderOptions:
     org_id: str
     workspace_id: str
 
+    """Sent as the `user-agent` header on every API call; identifies the caller."""
+    user_agent: Optional[str] = None
     fallback_config: Optional[Dict[str, Any]] = None
     evaluation_cache_options: Optional[EvaluationCacheOptions] = None
     experimentation_options: Optional[ExperimentationOptions] = None

@@ -44,6 +44,7 @@ export interface RotateWorkspaceEncryptionKeyCommandOutput extends RotateWorkspa
  * const client = new SuperpositionClient(config);
  * const input = { // WorkspaceSelectorRequest
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   workspace_name: "STRING_VALUE", // required
  * };
  * const command = new RotateWorkspaceEncryptionKeyCommand(input);

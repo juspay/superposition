@@ -45,6 +45,7 @@ export interface UpdateDefaultConfigCommandOutput extends DefaultConfigResponse,
  * const input = { // UpdateDefaultConfigInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   key: "STRING_VALUE", // required
  *   change_reason: "STRING_VALUE", // required
  *   value: "DOCUMENT_VALUE",

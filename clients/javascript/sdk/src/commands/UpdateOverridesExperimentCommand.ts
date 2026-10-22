@@ -45,6 +45,7 @@ export interface UpdateOverridesExperimentCommandOutput extends ExperimentRespon
  * const input = { // UpdateOverrideRequest
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   id: "STRING_VALUE", // required
  *   variant_list: [ // ListVariantUpdateRequest // required
  *     { // VariantUpdateRequest

@@ -442,6 +442,7 @@ export const se_AddMembersToGroupCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/experiment-groups/{id}/add-members");
   b.p('id', () => input.id!, '{id}', false)
@@ -468,6 +469,7 @@ export const se_ApplicableVariantsCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/experiments/applicable-variants");
   const query: any = map({
@@ -498,6 +500,7 @@ export const se_BulkOperationCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
     [_xct]: input[_ct]!,
   });
   b.bp("/context/bulk-operations");
@@ -523,6 +526,7 @@ export const se_ConcludeExperimentCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
     [_xct]: input[_ct]!,
   });
   b.bp("/experiments/{id}/conclude");
@@ -551,6 +555,7 @@ export const se_CreateContextCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
     [_xct]: input[_ct]!,
   });
   b.bp("/context");
@@ -580,6 +585,7 @@ export const se_CreateDefaultConfigCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/default-config");
   let body: any;
@@ -613,6 +619,7 @@ export const se_CreateDimensionCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/dimension");
   let body: any;
@@ -644,6 +651,7 @@ export const se_CreateExperimentCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
     [_ik_]: input[_ik]!,
     [_xct]: input[_ct]!,
   });
@@ -677,6 +685,7 @@ export const se_CreateExperimentGroupCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/experiment-groups");
   let body: any;
@@ -706,6 +715,7 @@ export const se_CreateFunctionCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/function");
   let body: any;
@@ -762,6 +772,7 @@ export const se_CreateSecretCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/secrets");
   let body: any;
@@ -789,6 +800,7 @@ export const se_CreateTypeTemplatesCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/types");
   let body: any;
@@ -816,6 +828,7 @@ export const se_CreateVariableCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/variables");
   let body: any;
@@ -843,6 +856,7 @@ export const se_CreateWebhookCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/webhook");
   let body: any;
@@ -874,6 +888,7 @@ export const se_CreateWorkspaceCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     'content-type': 'application/json',
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/workspaces");
   let body: any;
@@ -904,6 +919,7 @@ export const se_DeleteContextCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
     [_xct]: input[_ct]!,
   });
   b.bp("/context/{id}");
@@ -926,6 +942,7 @@ export const se_DeleteDefaultConfigCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/default-config/{key}");
   b.p('key', () => input.key!, '{key}', false)
@@ -947,6 +964,7 @@ export const se_DeleteDimensionCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/dimension/{dimension}");
   b.p('dimension', () => input.dimension!, '{dimension}', false)
@@ -968,6 +986,7 @@ export const se_DeleteExperimentGroupCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/experiment-groups/{id}");
   b.p('id', () => input.id!, '{id}', false)
@@ -989,6 +1008,7 @@ export const se_DeleteFunctionCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/function/{function_name}");
   b.p('function_name', () => input.function_name!, '{function_name}', false)
@@ -1010,6 +1030,7 @@ export const se_DeleteSecretCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/secrets/{name}");
   b.p('name', () => input.name!, '{name}', false)
@@ -1031,6 +1052,7 @@ export const se_DeleteTypeTemplatesCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/types/{type_name}");
   b.p('type_name', () => input.type_name!, '{type_name}', false)
@@ -1052,6 +1074,7 @@ export const se_DeleteVariableCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/variables/{name}");
   b.p('name', () => input.name!, '{name}', false)
@@ -1073,6 +1096,7 @@ export const se_DeleteWebhookCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/webhook/{name}");
   b.p('name', () => input.name!, '{name}', false)
@@ -1095,6 +1119,7 @@ export const se_DiscardExperimentCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
     [_xct]: input[_ct]!,
   });
   b.bp("/experiments/{id}/discard");
@@ -1121,6 +1146,7 @@ export const se_GetConfigCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
     [_ims_]: [() => isSerializableHeaderValue(input[_ims]), () => __serializeDateTime(input[_ims]!).toString()],
   });
   b.bp("/config");
@@ -1151,6 +1177,7 @@ export const se_GetConfigJsonCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
     [_ims_]: [() => isSerializableHeaderValue(input[_ims]), () => __serializeDateTime(input[_ims]!).toString()],
   });
   b.bp("/config/json");
@@ -1172,6 +1199,7 @@ export const se_GetConfigTomlCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
     [_ims_]: [() => isSerializableHeaderValue(input[_ims]), () => __serializeDateTime(input[_ims]!).toString()],
   });
   b.bp("/config/toml");
@@ -1193,6 +1221,7 @@ export const se_GetContextCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/context/{id}");
   b.p('id', () => input.id!, '{id}', false)
@@ -1215,6 +1244,7 @@ export const se_GetContextFromConditionCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/context/get");
   let body: any;
@@ -1243,6 +1273,7 @@ export const se_GetDefaultConfigCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/default-config/{key}");
   b.p('key', () => input.key!, '{key}', false)
@@ -1265,6 +1296,7 @@ export const se_GetDetailedResolvedConfigCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
     [_xms]: input[_ms]!,
   });
   b.bp("/config/resolve/detailed");
@@ -1298,6 +1330,7 @@ export const se_GetDimensionCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/dimension/{dimension}");
   b.p('dimension', () => input.dimension!, '{dimension}', false)
@@ -1319,6 +1352,7 @@ export const se_GetExperimentCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/experiments/{id}");
   b.p('id', () => input.id!, '{id}', false)
@@ -1341,6 +1375,7 @@ export const se_GetExperimentConfigCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
     [_ims_]: [() => isSerializableHeaderValue(input[_ims]), () => __serializeDateTime(input[_ims]!).toString()],
   });
   b.bp("/experiment-config");
@@ -1371,6 +1406,7 @@ export const se_GetExperimentGroupCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/experiment-groups/{id}");
   b.p('id', () => input.id!, '{id}', false)
@@ -1392,6 +1428,7 @@ export const se_GetFunctionCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/function/{function_name}");
   b.p('function_name', () => input.function_name!, '{function_name}', false)
@@ -1433,6 +1470,7 @@ export const se_GetResolvedConfigCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
     [_xms]: input[_ms]!,
   });
   b.bp("/config/resolve");
@@ -1467,6 +1505,7 @@ export const se_GetResolvedConfigExplanationCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
     [_xms]: input[_ms]!,
   });
   b.bp("/config/resolve/explain/{key}");
@@ -1499,6 +1538,7 @@ export const se_GetResolvedConfigWithIdentifierCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
     [_xms]: input[_ms]!,
   });
   b.bp("/resolve");
@@ -1533,6 +1573,7 @@ export const se_GetSecretCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/secrets/{name}");
   b.p('name', () => input.name!, '{name}', false)
@@ -1554,6 +1595,7 @@ export const se_GetTypeTemplateCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/types/{type_name}");
   b.p('type_name', () => input.type_name!, '{type_name}', false)
@@ -1575,6 +1617,7 @@ export const se_GetTypeTemplatesListCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/types");
   const query: any = map({
@@ -1601,6 +1644,7 @@ export const se_GetVariableCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/variables/{name}");
   b.p('name', () => input.name!, '{name}', false)
@@ -1622,6 +1666,7 @@ export const se_GetVersionCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/version/{id}");
   b.p('id', () => input.id!, '{id}', false)
@@ -1643,6 +1688,7 @@ export const se_GetWebhookCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/webhook/{name}");
   b.p('name', () => input.name!, '{name}', false)
@@ -1664,6 +1710,7 @@ export const se_GetWebhookByEventCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/webhook/event/{event}");
   b.p('event', () => input.event!, '{event}', false)
@@ -1684,6 +1731,7 @@ export const se_GetWorkspaceCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/workspaces/{workspace_name}");
   b.p('workspace_name', () => input.workspace_name!, '{workspace_name}', false)
@@ -1705,6 +1753,7 @@ export const se_ListAuditLogsCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/audit");
   const query: any = map({
@@ -1738,6 +1787,7 @@ export const se_ListContextsCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/context");
   const query: any = map({
@@ -1773,6 +1823,7 @@ export const se_ListDefaultConfigsCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/default-config");
   const query: any = map({
@@ -1800,6 +1851,7 @@ export const se_ListDimensionsCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/dimension");
   const query: any = map({
@@ -1827,6 +1879,7 @@ export const se_ListExperimentCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
     [_ims_]: [() => isSerializableHeaderValue(input[_ims]), () => __serializeDateTime(input[_ims]!).toString()],
   });
   b.bp("/experiments/list");
@@ -1872,6 +1925,7 @@ export const se_ListExperimentGroupsCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
     [_ims_]: [() => isSerializableHeaderValue(input[_ims]), () => __serializeDateTime(input[_ims]!).toString()],
   });
   b.bp("/experiment-groups/list");
@@ -1910,6 +1964,7 @@ export const se_ListFunctionCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/function");
   const query: any = map({
@@ -1961,6 +2016,7 @@ export const se_ListSecretsCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/secrets");
   const query: any = map({
@@ -1992,6 +2048,7 @@ export const se_ListVariablesCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/variables");
   const query: any = map({
@@ -2023,6 +2080,7 @@ export const se_ListVersionsCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/config/versions");
   const query: any = map({
@@ -2048,6 +2106,7 @@ export const se_ListWebhookCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/webhook");
   const query: any = map({
@@ -2073,6 +2132,7 @@ export const se_ListWorkspaceCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/workspaces");
   const query: any = map({
@@ -2098,6 +2158,7 @@ export const se_MigrateWorkspaceSchemaCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/workspaces/{workspace_name}/db/migrate");
   b.p('workspace_name', () => input.workspace_name!, '{workspace_name}', false)
@@ -2120,6 +2181,7 @@ export const se_MoveContextCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/context/move/{id}");
   b.p('id', () => input.id!, '{id}', false)
@@ -2149,6 +2211,7 @@ export const se_PauseExperimentCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/experiments/{id}/pause");
   b.p('id', () => input.id!, '{id}', false)
@@ -2174,6 +2237,7 @@ export const se_PublishCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/function/{function_name}/publish");
   b.p('function_name', () => input.function_name!, '{function_name}', false)
@@ -2199,6 +2263,7 @@ export const se_RampExperimentCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/experiments/{id}/ramp");
   b.p('id', () => input.id!, '{id}', false)
@@ -2225,6 +2290,7 @@ export const se_RemoveMembersFromGroupCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/experiment-groups/{id}/remove-members");
   b.p('id', () => input.id!, '{id}', false)
@@ -2251,6 +2317,7 @@ export const se_ResumeExperimentCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/experiments/{id}/resume");
   b.p('id', () => input.id!, '{id}', false)
@@ -2292,6 +2359,7 @@ export const se_RotateWorkspaceEncryptionKeyCommand = async(
   const b = rb(input, context);
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/workspaces/{workspace_name}/rotate-encryption-key");
   b.p('workspace_name', () => input.workspace_name!, '{workspace_name}', false)
@@ -2314,6 +2382,7 @@ export const se_TestCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/function/{function_name}/{stage}/test");
   b.p('function_name', () => input.function_name!, '{function_name}', false)
@@ -2344,6 +2413,7 @@ export const se_UpdateDefaultConfigCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/default-config/{key}");
   b.p('key', () => input.key!, '{key}', false)
@@ -2377,6 +2447,7 @@ export const se_UpdateDimensionCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/dimension/{dimension}");
   b.p('dimension', () => input.dimension!, '{dimension}', false)
@@ -2407,6 +2478,7 @@ export const se_UpdateExperimentGroupCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/experiment-groups/{id}");
   b.p('id', () => input.id!, '{id}', false)
@@ -2434,6 +2506,7 @@ export const se_UpdateFunctionCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/function/{function_name}");
   b.p('function_name', () => input.function_name!, '{function_name}', false)
@@ -2490,6 +2563,7 @@ export const se_UpdateOverrideCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
     [_xct]: input[_ct]!,
   });
   b.bp("/context/overrides");
@@ -2519,6 +2593,7 @@ export const se_UpdateOverridesExperimentCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
     [_xct]: input[_ct]!,
   });
   b.bp("/experiments/{id}/overrides");
@@ -2549,6 +2624,7 @@ export const se_UpdateSecretCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/secrets/{name}");
   b.p('name', () => input.name!, '{name}', false)
@@ -2576,6 +2652,7 @@ export const se_UpdateTypeTemplatesCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/types/{type_name}");
   b.p('type_name', () => input.type_name!, '{type_name}', false)
@@ -2603,6 +2680,7 @@ export const se_UpdateVariableCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/variables/{name}");
   b.p('name', () => input.name!, '{name}', false)
@@ -2630,6 +2708,7 @@ export const se_UpdateWebhookCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/webhook/{name}");
   b.p('name', () => input.name!, '{name}', false)
@@ -2661,6 +2740,7 @@ export const se_UpdateWorkspaceCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     'content-type': 'application/json',
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/workspaces/{workspace_name}");
   b.p('workspace_name', () => input.workspace_name!, '{workspace_name}', false)
@@ -2694,6 +2774,7 @@ export const se_ValidateContextCommand = async(
     'content-type': 'application/json',
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
   });
   b.bp("/context/validate");
   let body: any;
@@ -2717,6 +2798,7 @@ export const se_WeightRecomputeCommand = async(
   const headers: any = map({}, isSerializableHeaderValue, {
     [_xw]: input[_wi]!,
     [_xoi]: input[_oi]!,
+    [_ua_]: input[_ua]!,
     [_xct]: input[_ct]!,
   });
   b.bp("/context/weight/recompute");
@@ -6497,6 +6579,8 @@ const de_CommandError = async(
   const _ta = "table";
   const _td = "to_date";
   const _u = "username";
+  const _ua = "user_agent";
+  const _ua_ = "user-agent";
   const _v = "version";
   const _wi = "workspace_id";
   const _xai = "x-audit-id";

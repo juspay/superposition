@@ -32,6 +32,8 @@ public final class GetResolvedConfigInput implements SerializableStruct {
         .putMember("org_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-org-id"),
                 new RequiredTrait())
+        .putMember("user_agent", PreludeSchemas.STRING,
+                new HttpHeaderTrait("user-agent"))
         .putMember("prefix", SharedSchemas.STRING_LIST,
                 new HttpQueryTrait("prefix"))
         .putMember("exclude_prefix", SharedSchemas.STRING_LIST,
@@ -51,6 +53,7 @@ public final class GetResolvedConfigInput implements SerializableStruct {
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
+    private static final Schema $SCHEMA_USER_AGENT = $SCHEMA.member("user_agent");
     private static final Schema $SCHEMA_PREFIX = $SCHEMA.member("prefix");
     private static final Schema $SCHEMA_EXCLUDE_PREFIX = $SCHEMA.member("exclude_prefix");
     private static final Schema $SCHEMA_VERSION = $SCHEMA.member("version");
@@ -62,6 +65,7 @@ public final class GetResolvedConfigInput implements SerializableStruct {
 
     private final transient String workspaceId;
     private final transient String orgId;
+    private final transient String userAgent;
     private final transient List<String> prefix;
     private final transient List<String> excludePrefix;
     private final transient String version;
@@ -74,6 +78,7 @@ public final class GetResolvedConfigInput implements SerializableStruct {
     private GetResolvedConfigInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
+        this.userAgent = builder.userAgent;
         this.prefix = builder.prefix == null ? null : Collections.unmodifiableList(builder.prefix);
         this.excludePrefix = builder.excludePrefix == null ? null : Collections.unmodifiableList(builder.excludePrefix);
         this.version = builder.version;
@@ -90,6 +95,10 @@ public final class GetResolvedConfigInput implements SerializableStruct {
 
     public String orgId() {
         return orgId;
+    }
+
+    public String userAgent() {
+        return userAgent;
     }
 
     public List<String> prefix() {
@@ -169,6 +178,7 @@ public final class GetResolvedConfigInput implements SerializableStruct {
         GetResolvedConfigInput that = (GetResolvedConfigInput) other;
         return Objects.equals(this.workspaceId, that.workspaceId)
                && Objects.equals(this.orgId, that.orgId)
+               && Objects.equals(this.userAgent, that.userAgent)
                && Objects.equals(this.prefix, that.prefix)
                && Objects.equals(this.excludePrefix, that.excludePrefix)
                && Objects.equals(this.version, that.version)
@@ -181,7 +191,7 @@ public final class GetResolvedConfigInput implements SerializableStruct {
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, prefix, excludePrefix, version, showReasoning, mergeStrategy, contextId, resolveRemote, context);
+        return Objects.hash(workspaceId, orgId, userAgent, prefix, excludePrefix, version, showReasoning, mergeStrategy, contextId, resolveRemote, context);
     }
 
     @Override
@@ -193,6 +203,9 @@ public final class GetResolvedConfigInput implements SerializableStruct {
     public void serializeMembers(ShapeSerializer serializer) {
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
+        if (userAgent != null) {
+            serializer.writeString($SCHEMA_USER_AGENT, userAgent);
+        }
         if (prefix != null) {
             serializer.writeList($SCHEMA_PREFIX, prefix, prefix.size(), SharedSerde.StringListSerializer.INSTANCE);
         }
@@ -225,14 +238,15 @@ public final class GetResolvedConfigInput implements SerializableStruct {
         return switch (member.memberIndex()) {
             case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, workspaceId);
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
-            case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, prefix);
-            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_EXCLUDE_PREFIX, member, excludePrefix);
-            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, version);
-            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_SHOW_REASONING, member, showReasoning);
-            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_MERGE_STRATEGY, member, mergeStrategy);
-            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT_ID, member, contextId);
-            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_RESOLVE_REMOTE, member, resolveRemote);
-            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
+            case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, userAgent);
+            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, prefix);
+            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_EXCLUDE_PREFIX, member, excludePrefix);
+            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, version);
+            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_SHOW_REASONING, member, showReasoning);
+            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_MERGE_STRATEGY, member, mergeStrategy);
+            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT_ID, member, contextId);
+            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_RESOLVE_REMOTE, member, resolveRemote);
+            case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -248,6 +262,7 @@ public final class GetResolvedConfigInput implements SerializableStruct {
         var builder = new Builder();
         builder.workspaceId(this.workspaceId);
         builder.orgId(this.orgId);
+        builder.userAgent(this.userAgent);
         builder.prefix(this.prefix);
         builder.excludePrefix(this.excludePrefix);
         builder.version(this.version);
@@ -273,6 +288,7 @@ public final class GetResolvedConfigInput implements SerializableStruct {
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private String workspaceId;
         private String orgId;
+        private String userAgent;
         private List<String> prefix;
         private List<String> excludePrefix;
         private String version;
@@ -306,6 +322,14 @@ public final class GetResolvedConfigInput implements SerializableStruct {
         public Builder orgId(String orgId) {
             this.orgId = Objects.requireNonNull(orgId, "orgId cannot be null");
             tracker.setMember($SCHEMA_ORG_ID);
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
+        public Builder userAgent(String userAgent) {
+            this.userAgent = userAgent;
             return this;
         }
 
@@ -391,14 +415,15 @@ public final class GetResolvedConfigInput implements SerializableStruct {
             switch (member.memberIndex()) {
                 case 0 -> workspaceId((String) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, value));
                 case 1 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
-                case 2 -> prefix((List<String>) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, value));
-                case 3 -> excludePrefix((List<String>) SchemaUtils.validateSameMember($SCHEMA_EXCLUDE_PREFIX, member, value));
-                case 4 -> version((String) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, value));
-                case 5 -> showReasoning((boolean) SchemaUtils.validateSameMember($SCHEMA_SHOW_REASONING, member, value));
-                case 6 -> mergeStrategy((MergeStrategy) SchemaUtils.validateSameMember($SCHEMA_MERGE_STRATEGY, member, value));
-                case 7 -> contextId((String) SchemaUtils.validateSameMember($SCHEMA_CONTEXT_ID, member, value));
-                case 8 -> resolveRemote((boolean) SchemaUtils.validateSameMember($SCHEMA_RESOLVE_REMOTE, member, value));
-                case 9 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
+                case 2 -> userAgent((String) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, value));
+                case 3 -> prefix((List<String>) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, value));
+                case 4 -> excludePrefix((List<String>) SchemaUtils.validateSameMember($SCHEMA_EXCLUDE_PREFIX, member, value));
+                case 5 -> version((String) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, value));
+                case 6 -> showReasoning((boolean) SchemaUtils.validateSameMember($SCHEMA_SHOW_REASONING, member, value));
+                case 7 -> mergeStrategy((MergeStrategy) SchemaUtils.validateSameMember($SCHEMA_MERGE_STRATEGY, member, value));
+                case 8 -> contextId((String) SchemaUtils.validateSameMember($SCHEMA_CONTEXT_ID, member, value));
+                case 9 -> resolveRemote((boolean) SchemaUtils.validateSameMember($SCHEMA_RESOLVE_REMOTE, member, value));
+                case 10 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -437,14 +462,15 @@ public final class GetResolvedConfigInput implements SerializableStruct {
                 switch (member.memberIndex()) {
                     case 0 -> builder.workspaceId(de.readString(member));
                     case 1 -> builder.orgId(de.readString(member));
-                    case 2 -> builder.prefix(SharedSerde.deserializeStringList(member, de));
-                    case 3 -> builder.excludePrefix(SharedSerde.deserializeStringList(member, de));
-                    case 4 -> builder.version(de.readString(member));
-                    case 5 -> builder.showReasoning(de.readBoolean(member));
-                    case 6 -> builder.mergeStrategy(MergeStrategy.builder().deserializeMember(de, member).build());
-                    case 7 -> builder.contextId(de.readString(member));
-                    case 8 -> builder.resolveRemote(de.readBoolean(member));
-                    case 9 -> builder.context(SharedSerde.deserializeContextMap(member, de));
+                    case 2 -> builder.userAgent(de.readString(member));
+                    case 3 -> builder.prefix(SharedSerde.deserializeStringList(member, de));
+                    case 4 -> builder.excludePrefix(SharedSerde.deserializeStringList(member, de));
+                    case 5 -> builder.version(de.readString(member));
+                    case 6 -> builder.showReasoning(de.readBoolean(member));
+                    case 7 -> builder.mergeStrategy(MergeStrategy.builder().deserializeMember(de, member).build());
+                    case 8 -> builder.contextId(de.readString(member));
+                    case 9 -> builder.resolveRemote(de.readBoolean(member));
+                    case 10 -> builder.context(SharedSerde.deserializeContextMap(member, de));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

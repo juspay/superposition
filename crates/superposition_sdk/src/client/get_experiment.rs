@@ -5,6 +5,7 @@ impl super::Client {
                             /// - The fluent builder is configurable:
     ///   - [`workspace_id(impl Into<String>)`](crate::operation::get_experiment::builders::GetExperimentFluentBuilder::workspace_id) / [`set_workspace_id(Option<String>)`](crate::operation::get_experiment::builders::GetExperimentFluentBuilder::set_workspace_id):<br>required: **true**<br>(undocumented)<br>
     ///   - [`org_id(impl Into<String>)`](crate::operation::get_experiment::builders::GetExperimentFluentBuilder::org_id) / [`set_org_id(Option<String>)`](crate::operation::get_experiment::builders::GetExperimentFluentBuilder::set_org_id):<br>required: **true**<br>(undocumented)<br>
+    ///   - [`user_agent(impl Into<String>)`](crate::operation::get_experiment::builders::GetExperimentFluentBuilder::user_agent) / [`set_user_agent(Option<String>)`](crate::operation::get_experiment::builders::GetExperimentFluentBuilder::set_user_agent):<br>required: **false**<br>(undocumented)<br>
     ///   - [`id(impl Into<String>)`](crate::operation::get_experiment::builders::GetExperimentFluentBuilder::id) / [`set_id(Option<String>)`](crate::operation::get_experiment::builders::GetExperimentFluentBuilder::set_id):<br>required: **true**<br>(undocumented)<br>
                             /// - On success, responds with [`GetExperimentOutput`](crate::operation::get_experiment::GetExperimentOutput) with field(s):
     ///   - [`id(String)`](crate::operation::get_experiment::GetExperimentOutput::id): (undocumented)

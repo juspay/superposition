@@ -33,6 +33,8 @@ public final class GetExperimentConfigInput implements SerializableStruct {
         .putMember("org_id", PreludeSchemas.STRING,
                 new HttpHeaderTrait("x-org-id"),
                 new RequiredTrait())
+        .putMember("user_agent", PreludeSchemas.STRING,
+                new HttpHeaderTrait("user-agent"))
         .putMember("if_modified_since", SharedSchemas.DATE_TIME,
                 new HttpHeaderTrait("if-modified-since"))
         .putMember("prefix", SharedSchemas.STRING_LIST,
@@ -46,6 +48,7 @@ public final class GetExperimentConfigInput implements SerializableStruct {
 
     private static final Schema $SCHEMA_WORKSPACE_ID = $SCHEMA.member("workspace_id");
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
+    private static final Schema $SCHEMA_USER_AGENT = $SCHEMA.member("user_agent");
     private static final Schema $SCHEMA_IF_MODIFIED_SINCE = $SCHEMA.member("if_modified_since");
     private static final Schema $SCHEMA_PREFIX = $SCHEMA.member("prefix");
     private static final Schema $SCHEMA_EXCLUDE_PREFIX = $SCHEMA.member("exclude_prefix");
@@ -54,6 +57,7 @@ public final class GetExperimentConfigInput implements SerializableStruct {
 
     private final transient String workspaceId;
     private final transient String orgId;
+    private final transient String userAgent;
     private final transient Instant ifModifiedSince;
     private final transient List<String> prefix;
     private final transient List<String> excludePrefix;
@@ -63,6 +67,7 @@ public final class GetExperimentConfigInput implements SerializableStruct {
     private GetExperimentConfigInput(Builder builder) {
         this.workspaceId = builder.workspaceId;
         this.orgId = builder.orgId;
+        this.userAgent = builder.userAgent;
         this.ifModifiedSince = builder.ifModifiedSince;
         this.prefix = builder.prefix == null ? null : Collections.unmodifiableList(builder.prefix);
         this.excludePrefix = builder.excludePrefix == null ? null : Collections.unmodifiableList(builder.excludePrefix);
@@ -76,6 +81,10 @@ public final class GetExperimentConfigInput implements SerializableStruct {
 
     public String orgId() {
         return orgId;
+    }
+
+    public String userAgent() {
+        return userAgent;
     }
 
     /**
@@ -140,6 +149,7 @@ public final class GetExperimentConfigInput implements SerializableStruct {
         GetExperimentConfigInput that = (GetExperimentConfigInput) other;
         return Objects.equals(this.workspaceId, that.workspaceId)
                && Objects.equals(this.orgId, that.orgId)
+               && Objects.equals(this.userAgent, that.userAgent)
                && Objects.equals(this.ifModifiedSince, that.ifModifiedSince)
                && Objects.equals(this.prefix, that.prefix)
                && Objects.equals(this.excludePrefix, that.excludePrefix)
@@ -149,7 +159,7 @@ public final class GetExperimentConfigInput implements SerializableStruct {
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, ifModifiedSince, prefix, excludePrefix, context, dimensionMatchStrategy);
+        return Objects.hash(workspaceId, orgId, userAgent, ifModifiedSince, prefix, excludePrefix, context, dimensionMatchStrategy);
     }
 
     @Override
@@ -161,6 +171,9 @@ public final class GetExperimentConfigInput implements SerializableStruct {
     public void serializeMembers(ShapeSerializer serializer) {
         serializer.writeString($SCHEMA_WORKSPACE_ID, workspaceId);
         serializer.writeString($SCHEMA_ORG_ID, orgId);
+        if (userAgent != null) {
+            serializer.writeString($SCHEMA_USER_AGENT, userAgent);
+        }
         if (ifModifiedSince != null) {
             serializer.writeTimestamp($SCHEMA_IF_MODIFIED_SINCE, ifModifiedSince);
         }
@@ -184,11 +197,12 @@ public final class GetExperimentConfigInput implements SerializableStruct {
         return switch (member.memberIndex()) {
             case 0 -> (T) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, workspaceId);
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
-            case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_IF_MODIFIED_SINCE, member, ifModifiedSince);
-            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, prefix);
-            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_EXCLUDE_PREFIX, member, excludePrefix);
-            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
-            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, dimensionMatchStrategy);
+            case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, userAgent);
+            case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_IF_MODIFIED_SINCE, member, ifModifiedSince);
+            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, prefix);
+            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_EXCLUDE_PREFIX, member, excludePrefix);
+            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
+            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, dimensionMatchStrategy);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -204,6 +218,7 @@ public final class GetExperimentConfigInput implements SerializableStruct {
         var builder = new Builder();
         builder.workspaceId(this.workspaceId);
         builder.orgId(this.orgId);
+        builder.userAgent(this.userAgent);
         builder.ifModifiedSince(this.ifModifiedSince);
         builder.prefix(this.prefix);
         builder.excludePrefix(this.excludePrefix);
@@ -226,6 +241,7 @@ public final class GetExperimentConfigInput implements SerializableStruct {
         private final PresenceTracker tracker = PresenceTracker.of($SCHEMA);
         private String workspaceId;
         private String orgId;
+        private String userAgent;
         private Instant ifModifiedSince;
         private List<String> prefix;
         private List<String> excludePrefix;
@@ -256,6 +272,14 @@ public final class GetExperimentConfigInput implements SerializableStruct {
         public Builder orgId(String orgId) {
             this.orgId = Objects.requireNonNull(orgId, "orgId cannot be null");
             tracker.setMember($SCHEMA_ORG_ID);
+            return this;
+        }
+
+        /**
+         * @return this builder.
+         */
+        public Builder userAgent(String userAgent) {
+            this.userAgent = userAgent;
             return this;
         }
 
@@ -315,11 +339,12 @@ public final class GetExperimentConfigInput implements SerializableStruct {
             switch (member.memberIndex()) {
                 case 0 -> workspaceId((String) SchemaUtils.validateSameMember($SCHEMA_WORKSPACE_ID, member, value));
                 case 1 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
-                case 2 -> ifModifiedSince((Instant) SchemaUtils.validateSameMember($SCHEMA_IF_MODIFIED_SINCE, member, value));
-                case 3 -> prefix((List<String>) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, value));
-                case 4 -> excludePrefix((List<String>) SchemaUtils.validateSameMember($SCHEMA_EXCLUDE_PREFIX, member, value));
-                case 5 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
-                case 6 -> dimensionMatchStrategy((DimensionMatchStrategy) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, value));
+                case 2 -> userAgent((String) SchemaUtils.validateSameMember($SCHEMA_USER_AGENT, member, value));
+                case 3 -> ifModifiedSince((Instant) SchemaUtils.validateSameMember($SCHEMA_IF_MODIFIED_SINCE, member, value));
+                case 4 -> prefix((List<String>) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, value));
+                case 5 -> excludePrefix((List<String>) SchemaUtils.validateSameMember($SCHEMA_EXCLUDE_PREFIX, member, value));
+                case 6 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
+                case 7 -> dimensionMatchStrategy((DimensionMatchStrategy) SchemaUtils.validateSameMember($SCHEMA_DIMENSION_MATCH_STRATEGY, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -358,11 +383,12 @@ public final class GetExperimentConfigInput implements SerializableStruct {
                 switch (member.memberIndex()) {
                     case 0 -> builder.workspaceId(de.readString(member));
                     case 1 -> builder.orgId(de.readString(member));
-                    case 2 -> builder.ifModifiedSince(de.readTimestamp(member));
-                    case 3 -> builder.prefix(SharedSerde.deserializeStringList(member, de));
-                    case 4 -> builder.excludePrefix(SharedSerde.deserializeStringList(member, de));
-                    case 5 -> builder.context(SharedSerde.deserializeContextMap(member, de));
-                    case 6 -> builder.dimensionMatchStrategy(DimensionMatchStrategy.builder().deserializeMember(de, member).build());
+                    case 2 -> builder.userAgent(de.readString(member));
+                    case 3 -> builder.ifModifiedSince(de.readTimestamp(member));
+                    case 4 -> builder.prefix(SharedSerde.deserializeStringList(member, de));
+                    case 5 -> builder.excludePrefix(SharedSerde.deserializeStringList(member, de));
+                    case 6 -> builder.context(SharedSerde.deserializeContextMap(member, de));
+                    case 7 -> builder.dimensionMatchStrategy(DimensionMatchStrategy.builder().deserializeMember(de, member).build());
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

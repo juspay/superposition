@@ -45,6 +45,7 @@ export interface UpdateDimensionCommandOutput extends DimensionResponse, __Metad
  * const input = { // UpdateDimensionInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   dimension: "STRING_VALUE", // required
  *   schema: { // Object
  *     "<keys>": "DOCUMENT_VALUE",

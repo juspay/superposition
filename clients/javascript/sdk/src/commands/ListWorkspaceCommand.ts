@@ -47,6 +47,7 @@ export interface ListWorkspaceCommandOutput extends ListWorkspaceOutput, __Metad
  *   page: Number("int"),
  *   all: true || false,
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  * };
  * const command = new ListWorkspaceCommand(input);
  * const response = await client.send(command);

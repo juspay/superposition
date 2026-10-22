@@ -1,6 +1,7 @@
 module Io.Superposition.Model.PauseExperimentInput (
     setWorkspaceId,
     setOrgId,
+    setUserAgent,
     setId',
     setChangeReason,
     build,
@@ -8,6 +9,7 @@ module Io.Superposition.Model.PauseExperimentInput (
     PauseExperimentInput,
     workspace_id,
     org_id,
+    user_agent,
     id',
     change_reason
 ) where
@@ -27,6 +29,7 @@ import qualified Network.HTTP.Types.Method
 data PauseExperimentInput = PauseExperimentInput {
     workspace_id :: Data.Text.Text,
     org_id :: Data.Text.Text,
+    user_agent :: Data.Maybe.Maybe Data.Text.Text,
     id' :: Data.Text.Text,
     change_reason :: Data.Text.Text
 } deriving (
@@ -39,6 +42,7 @@ instance Data.Aeson.ToJSON PauseExperimentInput where
     toJSON a = Data.Aeson.object [
         "workspace_id" Data.Aeson..= workspace_id a,
         "org_id" Data.Aeson..= org_id a,
+        "user_agent" Data.Aeson..= user_agent a,
         "id" Data.Aeson..= id' a,
         "change_reason" Data.Aeson..= change_reason a
         ]
@@ -50,6 +54,7 @@ instance Data.Aeson.FromJSON PauseExperimentInput where
     parseJSON = Data.Aeson.withObject "PauseExperimentInput" $ \v -> PauseExperimentInput
         Data.Functor.<$> (v Data.Aeson..: "workspace_id")
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
+        Control.Applicative.<*> (v Data.Aeson..:? "user_agent")
         Control.Applicative.<*> (v Data.Aeson..: "id")
         Control.Applicative.<*> (v Data.Aeson..: "change_reason")
     
@@ -59,6 +64,7 @@ instance Data.Aeson.FromJSON PauseExperimentInput where
 data PauseExperimentInputBuilderState = PauseExperimentInputBuilderState {
     workspace_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
+    user_agentBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     id'BuilderState :: Data.Maybe.Maybe Data.Text.Text,
     change_reasonBuilderState :: Data.Maybe.Maybe Data.Text.Text
 } deriving (
@@ -69,6 +75,7 @@ defaultBuilderState :: PauseExperimentInputBuilderState
 defaultBuilderState = PauseExperimentInputBuilderState {
     workspace_idBuilderState = Data.Maybe.Nothing,
     org_idBuilderState = Data.Maybe.Nothing,
+    user_agentBuilderState = Data.Maybe.Nothing,
     id'BuilderState = Data.Maybe.Nothing,
     change_reasonBuilderState = Data.Maybe.Nothing
 }
@@ -83,6 +90,10 @@ setOrgId :: Data.Text.Text -> PauseExperimentInputBuilder ()
 setOrgId value =
    Control.Monad.State.Strict.modify (\s -> (s { org_idBuilderState = Data.Maybe.Just value }))
 
+setUserAgent :: Data.Maybe.Maybe Data.Text.Text -> PauseExperimentInputBuilder ()
+setUserAgent value =
+   Control.Monad.State.Strict.modify (\s -> (s { user_agentBuilderState = value }))
+
 setId' :: Data.Text.Text -> PauseExperimentInputBuilder ()
 setId' value =
    Control.Monad.State.Strict.modify (\s -> (s { id'BuilderState = Data.Maybe.Just value }))
@@ -96,11 +107,13 @@ build builder = do
     let (_, st) = Control.Monad.State.Strict.runState builder defaultBuilderState
     workspace_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.PauseExperimentInput.PauseExperimentInput.workspace_id is a required property.") Data.Either.Right (workspace_idBuilderState st)
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.PauseExperimentInput.PauseExperimentInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
+    user_agent' <- Data.Either.Right (user_agentBuilderState st)
     id'' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.PauseExperimentInput.PauseExperimentInput.id' is a required property.") Data.Either.Right (id'BuilderState st)
     change_reason' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.PauseExperimentInput.PauseExperimentInput.change_reason is a required property.") Data.Either.Right (change_reasonBuilderState st)
     Data.Either.Right (PauseExperimentInput { 
         workspace_id = workspace_id',
         org_id = org_id',
+        user_agent = user_agent',
         id' = id'',
         change_reason = change_reason'
     })
@@ -117,5 +130,6 @@ instance Io.Superposition.Utility.IntoRequestBuilder PauseExperimentInput where
         
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)
+        Io.Superposition.Utility.serHeader "user-agent" (user_agent self)
         Io.Superposition.Utility.serField "change_reason" (change_reason self)
 

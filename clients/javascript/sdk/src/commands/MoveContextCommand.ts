@@ -45,6 +45,7 @@ export interface MoveContextCommandOutput extends ContextResponse, __MetadataBea
  * const input = { // MoveContextInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   id: "STRING_VALUE", // required
  *   request: { // ContextMove
  *     context: { // Condition // required

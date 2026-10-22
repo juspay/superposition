@@ -45,6 +45,7 @@ export interface ListDefaultConfigsCommandOutput extends ListDefaultConfigsOutpu
  * const input = { // ListDefaultConfigsInput
  *   workspace_id: "STRING_VALUE", // required
  *   org_id: "STRING_VALUE", // required
+ *   user_agent: "STRING_VALUE",
  *   count: Number("int"),
  *   page: Number("int"),
  *   all: true || false,
