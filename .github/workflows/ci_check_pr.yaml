@@ -256,6 +256,8 @@ jobs:
     provider-tests:
         name: Provider Tests
         runs-on: anton1
+        env:
+            HEADLESS_SUPERPOSITION: "true"
         strategy:
             matrix:
                 provider:
@@ -311,7 +313,6 @@ jobs:
               uses: dtolnay/rust-toolchain@master
               with:
                   toolchain: 1.90.0
-                  targets: wasm32-unknown-unknown
                   components: rustfmt, clippy
 
             - name: Set up JDK 17 (for Kotlin tests)
