@@ -2,10 +2,10 @@ module Data.OpenFeature.SuperpositionProvider.PollingRefresh (PollingRefresh (..
 
 import Control.Concurrent (threadDelay, forkIO)
 import Control.Monad (void)
-import Data.IORef (IORef)
+import Data.IORef (IORef, mkWeakIORef)
 import Data.OpenFeature.SuperpositionProvider.RefreshTask
 import GHC.Conc.Sync as Sync
-import System.Mem.Weak (mkWeak, deRefWeak)
+import System.Mem.Weak (deRefWeak)
 
 data PollingRefresh a = PollingRefresh
   { interval :: Int,
@@ -18,7 +18,9 @@ data PollingRefresh a = PollingRefresh
 instance RefreshTask PollingRefresh a where
   isRunning _ = pure True
   startRefresh r = do
-    weak <- mkWeak (anchor r) () Nothing
+    -- Keyed on the IORef's MutVar# rather than its box: GHC may rebox an IORef, and a weak pointer on a box that is
+    -- no longer referenced dies at the next GC, which silently ended polling after the first refresh.
+    weak <- mkWeakIORef (anchor r) (pure ())
     let poll = do
           alive <- deRefWeak weak
           case alive of

@@ -32,6 +32,7 @@ import           Data.Aeson.Types                                       (Object,
                                                                          parseEither)
 import           Data.Functor
 import           Data.IORef                                             (IORef,
+                                                                         mkWeakIORef,
                                                                          newIORef,
                                                                          readIORef,
                                                                          writeIORef)
@@ -71,7 +72,6 @@ import qualified Io.Superposition.Model.ListExperimentInput             as Exp
 import qualified Io.Superposition.Model.ListExperimentOutput            as Exp
 import qualified Io.Superposition.SuperpositionClient                   as Client
 import qualified Network.HTTP.Client.TLS                                as Net
-import           System.Mem.Weak                                        (addFinalizer)
 
 data DynRefreshTask a = forall r. (RefreshTask r a) => DynRefreshTask (r a)
 
@@ -388,8 +388,9 @@ newSuperpositionProvider options@(SuperpositionProviderOptions {..}) = do
               cacheFreed
               logger
               fallbackConfig
-      -- Register finalizer to free cache when anchor IORef is GC'd (idempotent)
-      addFinalizer anchor $ do
+      -- Register finalizer to free cache when anchor IORef is GC'd (idempotent). Keyed on the MutVar# via
+      -- mkWeakIORef: a finalizer on the IORef box could run while the provider is still in use and free its cache.
+      _ <- mkWeakIORef anchor $ do
         alreadyFreed <- readIORef cacheFreed
         when (not alreadyFreed) $ do
           writeIORef cacheFreed True
