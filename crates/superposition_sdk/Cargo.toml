@@ -42,6 +42,6 @@ behavior-version-latest = []
 rustls = ["aws-smithy-runtime/tls-rustls"]
 default-https-client = ["aws-smithy-runtime/default-https-client"]
 gated-tests = []
-default = ["rt-tokio", "rustls", "default-https-client"]
+default = ["rt-tokio", "default-https-client"]
 
 
