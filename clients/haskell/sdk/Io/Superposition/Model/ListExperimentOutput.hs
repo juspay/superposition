@@ -31,7 +31,9 @@ data ListExperimentOutput = ListExperimentOutput {
     total_pages :: Data.Int.Int32,
     total_items :: Data.Int.Int32,
     data' :: [] Io.Superposition.Model.ExperimentResponse.ExperimentResponse,
-    last_modified :: Data.Time.UTCTime
+    -- Optional: the server only sends last-modified once the workspace has a relevant event, so a
+    -- workspace with none answers without it.
+    last_modified :: Data.Maybe.Maybe Data.Time.UTCTime
 } deriving (
   GHC.Show.Show,
   Data.Eq.Eq,
@@ -54,7 +56,7 @@ instance Data.Aeson.FromJSON ListExperimentOutput where
         Data.Functor.<$> (v Data.Aeson..: "total_pages")
         Control.Applicative.<*> (v Data.Aeson..: "total_items")
         Control.Applicative.<*> (v Data.Aeson..: "data")
-        Control.Applicative.<*> (v Data.Aeson..: "last_modified")
+        Control.Applicative.<*> (v Data.Aeson..:? "last_modified")
     
 
 
@@ -100,7 +102,7 @@ build builder = do
     total_pages' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListExperimentOutput.ListExperimentOutput.total_pages is a required property.") Data.Either.Right (total_pagesBuilderState st)
     total_items' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListExperimentOutput.ListExperimentOutput.total_items is a required property.") Data.Either.Right (total_itemsBuilderState st)
     data'' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListExperimentOutput.ListExperimentOutput.data' is a required property.") Data.Either.Right (data'BuilderState st)
-    last_modified' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.ListExperimentOutput.ListExperimentOutput.last_modified is a required property.") Data.Either.Right (last_modifiedBuilderState st)
+    let last_modified' = last_modifiedBuilderState st
     Data.Either.Right (ListExperimentOutput { 
         total_pages = total_pages',
         total_items = total_items',

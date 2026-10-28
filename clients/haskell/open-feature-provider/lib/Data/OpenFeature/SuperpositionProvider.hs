@@ -121,7 +121,7 @@ reinitCache cache logger lastModifiedRef configVar = do
               logger $ Log.logDebug "ProviderCache config reinitialised."
             Just err -> logger $ Log.logError $ fromString $ "ProviderCache initConfig error: " <> err
 
-reinitExperimentsCache :: FFI.ProviderCacheHandle -> Logger -> IORef (Maybe (UTCTime, UTCTime)) -> TVar (Maybe Exp.ListExperimentOutput) -> TVar (Maybe ExpGrp.ListExperimentGroupsOutput) -> IO ()
+reinitExperimentsCache :: FFI.ProviderCacheHandle -> Logger -> IORef (Maybe (Maybe UTCTime, Maybe UTCTime)) -> TVar (Maybe Exp.ListExperimentOutput) -> TVar (Maybe ExpGrp.ListExperimentGroupsOutput) -> IO ()
 reinitExperimentsCache cache logger lastModifiedRef expVar expGrpVar = do
   exps <- readTVarIO expVar
   expGrps <- readTVarIO expGrpVar
