@@ -15,28 +15,28 @@
       };
       v8Target = if isDarwin then "aarch64-apple-darwin" else "x86_64-unknown-linux-gnu";
       v8_lib = pkgs.fetchurl {
-        url = "https://github.com/denoland/rusty_v8/releases/download/v137.3.0/librusty_v8_release_${v8Target}.a.gz";
+        url = "https://github.com/denoland/rusty_v8/releases/download/v142.2.0/librusty_v8_release_${v8Target}.a.gz";
         sha256 =
           if isDarwin then
-            "0w70ykqip4a84z3cb5vibdqw91lywwahl9pc05mw8lp54ikksl30"
+            "11d3nhqvq9mjx5yby7hzac7h7wcspyf3x9zzpsg3jfzijlrppwjy"
           else
-            "0rv5nl4gcbvdpk3mdwbqvw180nfx2wk173q1cqrvv2h1agg1ys52";
+            "1vd3p5g4srr0pl9cm7a7id2w7qfqaxm0pvplycydhk1hixzahyf4";
       };
       v8_binding = pkgs.fetchurl {
-        url = "https://github.com/denoland/rusty_v8/releases/download/v137.3.0/src_binding_release_${v8Target}.rs";
+        url = "https://github.com/denoland/rusty_v8/releases/download/v142.2.0/src_binding_release_${v8Target}.rs";
         sha256 =
           if isDarwin then
-            "14mb5dly52wjnbzv5arv0mhkqm4162ah2wln5dzrz2w6diyryy26"
+            "1k2bscx0rhqaahvyvm2l58d2iy2phd9zfpic2p6fxnpx8i7qri94"
           else
-            "1gjqymsz7zc4d61cb6h02l90z1hpff4haagc81ixlk9ipg7p73ng";
+            "0s883snlshbbkjcgjchckfny709czbjacyfqpcv2zbnnfi25haz4";
       };
       v8_mirror = pkgs.linkFarm "v8-mirror" [
         {
-          name = "v137.3.0/librusty_v8_release_${v8Target}.a.gz";
+          name = "v142.2.0/librusty_v8_release_${v8Target}.a.gz";
           path = v8_lib;
         }
         {
-          name = "v137.3.0/src_binding_release_${v8Target}.rs";
+          name = "v142.2.0/src_binding_release_${v8Target}.rs";
           path = v8_binding;
         }
       ];
@@ -107,7 +107,7 @@
             crane = {
               args = {
                 RUSTY_V8_MIRROR = v8_mirror;
-                RUSTY_V8_SRC_BINDING_PATH = "${v8_mirror}/v137.3.0/src_binding_release_${v8Target}.rs";
+                RUSTY_V8_SRC_BINDING_PATH = "${v8_mirror}/v142.2.0/src_binding_release_${v8Target}.rs";
                 buildInputs =
                   lib.optionals isDarwin [
                     pkgs.fixDarwinDylibNames
@@ -336,7 +336,7 @@
             crane = {
               args = {
                 RUSTY_V8_MIRROR = v8_mirror;
-                RUSTY_V8_SRC_BINDING_PATH = "${v8_mirror}/v137.3.0/src_binding_release_${v8Target}.rs";
+                RUSTY_V8_SRC_BINDING_PATH = "${v8_mirror}/v142.2.0/src_binding_release_${v8Target}.rs";
                 buildInputs =
                   lib.optionals isDarwin [
                     pkgs.fixDarwinDylibNames

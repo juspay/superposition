@@ -173,14 +173,15 @@ fn with_otlp_reader(
     // Warn if the operator requested a protocol we do not support (gRPC).
     // This binary is compiled with `http-proto` only; `grpc` silently falls
     // back to HTTP, which can mask misconfiguration.
-    if let Ok(protocol) = std::env::var("OTEL_EXPORTER_OTLP_PROTOCOL") {
-        if !protocol.is_empty() && protocol != "http/protobuf" {
-            tracing::warn!(
-                requested_protocol = %protocol,
-                "OTEL_EXPORTER_OTLP_PROTOCOL set to '{}'; only 'http/protobuf' is supported in v1, using HTTP",
-                protocol
-            );
-        }
+    if let Ok(protocol) = std::env::var("OTEL_EXPORTER_OTLP_PROTOCOL")
+        && !protocol.is_empty()
+        && protocol != "http/protobuf"
+    {
+        tracing::warn!(
+            requested_protocol = %protocol,
+            "OTEL_EXPORTER_OTLP_PROTOCOL set to '{}'; only 'http/protobuf' is supported in v1, using HTTP",
+            protocol
+        );
     }
 
     // Headers: the opentelemetry-otlp HTTP exporter reads

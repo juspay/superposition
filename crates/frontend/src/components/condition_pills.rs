@@ -44,10 +44,10 @@ pub fn ConditionExpression(
     );
 
     create_effect(move |_| {
-        if let ConditionId(Some(c_id)) = condition_id_rs.get() {
-            if !c_id.contains(&list_id) {
-                expand_ws.set(false);
-            }
+        if let ConditionId(Some(c_id)) = condition_id_rs.get()
+            && !c_id.contains(&list_id)
+        {
+            expand_ws.set(false);
         }
     });
 

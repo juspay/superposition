@@ -112,15 +112,15 @@ fn metrics_attrs_from_req(
     ));
     attrs.push(KeyValue::new("http.route", http_route));
 
-    if lc.with_org_label {
-        if let Some(org) = req.extensions().get::<OrganisationId>() {
-            attrs.push(KeyValue::new("sp.org_id", org.0.clone()));
-        }
+    if lc.with_org_label
+        && let Some(org) = req.extensions().get::<OrganisationId>()
+    {
+        attrs.push(KeyValue::new("sp.org_id", org.0.clone()));
     }
-    if lc.with_workspace_label {
-        if let Some(ws) = req.extensions().get::<WorkspaceId>() {
-            attrs.push(KeyValue::new("sp.workspace_id", ws.0.clone()));
-        }
+    if lc.with_workspace_label
+        && let Some(ws) = req.extensions().get::<WorkspaceId>()
+    {
+        attrs.push(KeyValue::new("sp.workspace_id", ws.0.clone()));
     }
 
     attrs

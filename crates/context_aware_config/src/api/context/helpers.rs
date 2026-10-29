@@ -131,29 +131,29 @@ pub async fn validate_condition_with_functions(
     };
 
     // workspace_setting check
-    if is_context_validation_enabled {
-        if let (Some(function_code), Some(published_runtime_version)) = (
+    if is_context_validation_enabled
+        && let (Some(function_code), Some(published_runtime_version)) = (
             context_validation_function.published_code,
             context_validation_function.published_runtime_version,
-        ) {
-            validation_function_executor(
-                workspace_context,
-                CONTEXT_VALIDATION_FN_NAME,
-                &function_code,
-                &FunctionExecutionRequest::ContextValidationFunctionRequest {
-                    environment: environment.clone(),
-                    trigger_reason: if **internal_user {
-                        ContextValidationTrigger::Experiment
-                    } else {
-                        ContextValidationTrigger::Context
-                    },
+        )
+    {
+        validation_function_executor(
+            workspace_context,
+            CONTEXT_VALIDATION_FN_NAME,
+            &function_code,
+            &FunctionExecutionRequest::ContextValidationFunctionRequest {
+                environment: environment.clone(),
+                trigger_reason: if **internal_user {
+                    ContextValidationTrigger::Experiment
+                } else {
+                    ContextValidationTrigger::Context
                 },
-                published_runtime_version,
-                conn,
-                master_encryption_key,
-            )
-            .await?;
-        }
+            },
+            published_runtime_version,
+            conn,
+            master_encryption_key,
+        )
+        .await?;
     }
 
     let dimension_functions_map = get_functions_map(
@@ -163,28 +163,28 @@ pub async fn validate_condition_with_functions(
         &workspace_context.schema_name,
     )?;
     for (key, value) in context_map.iter() {
-        if let Some(functions_map) = dimension_functions_map.get(key) {
-            if let (function_name, Some(function_code), Some(published_runtime_version)) = (
+        if let Some(functions_map) = dimension_functions_map.get(key)
+            && let (function_name, Some(function_code), Some(published_runtime_version)) = (
                 functions_map.function_name.clone(),
                 functions_map.published_code.clone(),
                 functions_map.published_runtime_version,
-            ) {
-                validation_function_executor(
-                    workspace_context,
-                    &function_name,
-                    &function_code,
-                    &FunctionExecutionRequest::ValueValidationFunctionRequest {
-                        key: key.clone(),
-                        value: value.to_owned(),
-                        r#type: KeyType::Dimension,
-                        environment: environment.clone(),
-                    },
-                    published_runtime_version,
-                    conn,
-                    master_encryption_key,
-                )
-                .await?;
-            }
+            )
+        {
+            validation_function_executor(
+                workspace_context,
+                &function_name,
+                &function_code,
+                &FunctionExecutionRequest::ValueValidationFunctionRequest {
+                    key: key.clone(),
+                    value: value.to_owned(),
+                    r#type: KeyType::Dimension,
+                    environment: environment.clone(),
+                },
+                published_runtime_version,
+                conn,
+                master_encryption_key,
+            )
+            .await?;
         }
     }
     Ok(())
@@ -215,31 +215,31 @@ pub async fn validate_override_with_functions(
         &workspace_context.schema_name,
     )?;
     for (key, value) in override_.iter() {
-        if let Some(functions_map) = default_config_functions_map.get(key) {
-            if let (function_name, Some(function_code), Some(published_runtime_version)) = (
+        if let Some(functions_map) = default_config_functions_map.get(key)
+            && let (function_name, Some(function_code), Some(published_runtime_version)) = (
                 functions_map.function_name.clone(),
                 functions_map.published_code.clone(),
                 functions_map.published_runtime_version,
-            ) {
-                validation_function_executor(
-                    workspace_context,
-                    &function_name,
-                    &function_code,
-                    &FunctionExecutionRequest::ValueValidationFunctionRequest {
-                        key: key.clone(),
-                        value: value.to_owned(),
-                        r#type: KeyType::ConfigKey,
-                        environment: FunctionEnvironment {
-                            context: context.clone(),
-                            overrides: override_.clone(),
-                        },
+            )
+        {
+            validation_function_executor(
+                workspace_context,
+                &function_name,
+                &function_code,
+                &FunctionExecutionRequest::ValueValidationFunctionRequest {
+                    key: key.clone(),
+                    value: value.to_owned(),
+                    r#type: KeyType::ConfigKey,
+                    environment: FunctionEnvironment {
+                        context: context.clone(),
+                        overrides: override_.clone(),
                     },
-                    published_runtime_version,
-                    conn,
-                    master_encryption_key,
-                )
-                .await?;
-            }
+                },
+                published_runtime_version,
+                conn,
+                master_encryption_key,
+            )
+            .await?;
         }
     }
     Ok(())

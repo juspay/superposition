@@ -160,20 +160,19 @@ pub fn derive_is_empty(input: TokenStream) -> TokenStream {
         let field_name = field.ident.unwrap();
         let ty = field.ty;
 
-        if let Type::Path(type_path) = &ty {
-            if type_path
+        if let Type::Path(type_path) = &ty
+            && type_path
                 .path
                 .segments
                 .first()
                 .is_some_and(|seg| seg.ident == "Option")
-            {
-                checks.push(quote! {
-                    if self.#field_name.is_some() {
-                        return false;
-                    }
-                });
-                continue;
-            }
+        {
+            checks.push(quote! {
+                if self.#field_name.is_some() {
+                    return false;
+                }
+            });
+            continue;
         }
 
         has_mandatory = true;

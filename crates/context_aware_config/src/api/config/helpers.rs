@@ -6,7 +6,7 @@ use actix_web::{
 };
 use cac_client::eval_cac;
 use chrono::{DateTime, Utc};
-use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, dsl::max};
+use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use serde_json::{Map, Value};
 use service_utils::{
     helpers::is_not_modified,
@@ -100,7 +100,7 @@ pub fn get_max_created_at(
     schema_name: &SchemaName,
 ) -> Result<DateTime<Utc>, diesel::result::Error> {
     config_versions::config_versions
-        .select(max(config_versions::created_at))
+        .select(diesel::dsl::max(config_versions::created_at))
         .schema_name(schema_name)
         .first::<Option<DateTime<Utc>>>(conn)
         .and_then(|res| res.ok_or(diesel::result::Error::NotFound))
