@@ -586,14 +586,14 @@ pub fn validate_and_add_experiment_group_id(
     for experiment in member_experiments {
         let experiment_id = experiment.id;
 
-        if let Some(existing_group_id) = experiment.experiment_group_id {
-            if existing_group_id != *new_experiment_group_id {
-                return Err(bad_argument!(
-                    "Experiment {} is already a part of a different experiment group {}",
-                    experiment_id,
-                    existing_group_id
-                ));
-            }
+        if let Some(existing_group_id) = experiment.experiment_group_id
+            && existing_group_id != *new_experiment_group_id
+        {
+            return Err(bad_argument!(
+                "Experiment {} is already a part of a different experiment group {}",
+                experiment_id,
+                existing_group_id
+            ));
         }
 
         let change_reason = ChangeReason::try_from(format!(

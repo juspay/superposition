@@ -85,10 +85,8 @@ pub fn StepIndicator<'a>(
                                         class:transition-all=true
                                         on:click=move |_| {
                                             let cs = current_step.get_untracked();
-                                            if let Some(callback) = on_step_click {
-                                                if step_type <= cs {
-                                                    callback.call(idx);
-                                                }
+                                            if let Some(callback) = on_step_click && step_type <= cs {
+                                                callback.call(idx);
                                             }
                                         }
                                     >

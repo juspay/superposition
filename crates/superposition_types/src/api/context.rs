@@ -14,7 +14,9 @@ use crate::{
 )]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
+#[derive(Default)]
 pub enum SortOn {
+    #[default]
     Weight,
     CreatedAt,
     LastModifiedAt,
@@ -27,12 +29,6 @@ impl SortOn {
             Self::LastModifiedAt => "Last Modified At".to_string(),
             Self::Weight => "Weight".to_string(),
         }
-    }
-}
-
-impl Default for SortOn {
-    fn default() -> Self {
-        Self::Weight
     }
 }
 

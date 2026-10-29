@@ -67,7 +67,7 @@ jobs:
             - name: Install Rust
               uses: dtolnay/rust-toolchain@master
               with:
-                  toolchain: 1.90.0
+                  toolchain: 1.94.1
                   targets: wasm32-unknown-unknown
                   components: rustfmt, clippy
 
@@ -145,7 +145,7 @@ jobs:
             - name: Install Rust
               uses: dtolnay/rust-toolchain@master
               with:
-                  toolchain: 1.90.0
+                  toolchain: 1.94.1
                   targets: wasm32-unknown-unknown
                   components: rustfmt, clippy
 
@@ -310,7 +310,7 @@ jobs:
             - name: Install Rust
               uses: dtolnay/rust-toolchain@master
               with:
-                  toolchain: 1.90.0
+                  toolchain: 1.94.1
                   targets: wasm32-unknown-unknown
                   components: rustfmt, clippy
 
@@ -376,7 +376,7 @@ jobs:
             - name: Install Rust
               uses: dtolnay/rust-toolchain@master
               with:
-                  toolchain: 1.90.0
+                  toolchain: 1.94.1
                   targets: wasm32-unknown-unknown
                   components: rustfmt, clippy
 

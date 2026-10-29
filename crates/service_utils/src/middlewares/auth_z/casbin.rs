@@ -246,10 +246,8 @@ impl Authorizer for CasbinPolicyEngine {
             };
 
             // Refresh policies if needed
-            if needs_refresh {
-                if let Err(e) = self.refresh_policies().await {
-                    log::warn!("Failed to refresh Casbin policies: {}", e);
-                }
+            if needs_refresh && let Err(e) = self.refresh_policies().await {
+                log::warn!("Failed to refresh Casbin policies: {}", e);
             }
 
             let enforcer = self.enforcer.read().await;

@@ -221,13 +221,13 @@ pub fn DefaultConfigForm(
 
     // Helper to scroll the div to center
     Effect::new(move |_| {
-        if let Some(elem) = scroll_ref.get() {
-            if let Some(elem) = elem.dyn_ref::<web_sys::HtmlDivElement>() {
-                let scroll_width = elem.scroll_width();
-                let client_width = elem.client_width();
-                let center = (scroll_width - client_width) / 2;
-                elem.set_scroll_left(center);
-            }
+        if let Some(elem) = scroll_ref.get()
+            && let Some(elem) = elem.dyn_ref::<web_sys::HtmlDivElement>()
+        {
+            let scroll_width = elem.scroll_width();
+            let client_width = elem.client_width();
+            let center = (scroll_width - client_width) / 2;
+            elem.set_scroll_left(center);
         }
     });
 
@@ -390,12 +390,11 @@ pub fn DefaultConfigForm(
                                                 if let (Ok(schema_type), Ok(enum_variants)) = (
                                                     parsed_schema_type,
                                                     parsed_enum_variants,
-                                                ) {
-                                                    if InputType::from((schema_type, enum_variants))
+                                                )
+                                                    && InputType::from((schema_type, enum_variants))
                                                         == InputType::Toggle
-                                                    {
-                                                        config_value_ws.set(Value::Bool(false));
-                                                    }
+                                                {
+                                                    config_value_ws.set(Value::Bool(false));
                                                 }
                                             })
                                         />

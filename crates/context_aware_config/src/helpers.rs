@@ -448,22 +448,22 @@ pub fn evaluate_remote_cohorts(
 
     // First, evaluate all remote cohort dimensions and their dependencies
     for dimension_key in dimensions_to_start_from(dimensions, query_data) {
-        if let Some(value) = query_data.get(&dimension_key) {
-            if let Some(data) = dimensions.get(&dimension_key) {
-                match data.dimension_type {
-                    DimensionType::LocalCohort(_) => continue,
-                    DimensionType::Regular {} | DimensionType::RemoteCohort(_) => {
-                        modified_context.insert(dimension_key.to_string(), value.clone());
-                        evaluate_remote_cohorts_dependency(
-                            &dimension_key,
-                            &data.dependency_graph,
-                            dimensions,
-                            &mut modified_context,
-                            conn,
-                            workspace_context,
-                            master_encryption_key,
-                        )?;
-                    }
+        if let Some(value) = query_data.get(&dimension_key)
+            && let Some(data) = dimensions.get(&dimension_key)
+        {
+            match data.dimension_type {
+                DimensionType::LocalCohort(_) => continue,
+                DimensionType::Regular {} | DimensionType::RemoteCohort(_) => {
+                    modified_context.insert(dimension_key.to_string(), value.clone());
+                    evaluate_remote_cohorts_dependency(
+                        &dimension_key,
+                        &data.dependency_graph,
+                        dimensions,
+                        &mut modified_context,
+                        conn,
+                        workspace_context,
+                        master_encryption_key,
+                    )?;
                 }
             }
         }
@@ -471,10 +471,10 @@ pub fn evaluate_remote_cohorts(
 
     // Next, insert local cohort dimensions from query_data into modified_context
     for (dimension_key, value) in query_data {
-        if let Some(data) = dimensions.get(dimension_key) {
-            if matches!(data.dimension_type, DimensionType::LocalCohort(_)) {
-                modified_context.insert(dimension_key.to_string(), value.clone());
-            }
+        if let Some(data) = dimensions.get(dimension_key)
+            && matches!(data.dimension_type, DimensionType::LocalCohort(_))
+        {
+            modified_context.insert(dimension_key.to_string(), value.clone());
         }
     }
 

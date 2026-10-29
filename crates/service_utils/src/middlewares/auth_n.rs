@@ -67,14 +67,14 @@ fn process_bearer_token<'a>(
     // When the optional RFC 7662 API-token flow is configured and the token
     // carries its prefix, strip the prefix and validate via introspection.
     // Otherwise treat the token as a standard OIDC id-token.
-    if let Some(prefix) = auth_n_handler.0.api_token_prefix() {
-        if let Some(api_key) = token.strip_prefix(prefix.as_str()) {
-            return Some(
-                auth_n_handler
-                    .0
-                    .authenticate_with_api_token(login_type, api_key),
-            );
-        }
+    if let Some(prefix) = auth_n_handler.0.api_token_prefix()
+        && let Some(api_key) = token.strip_prefix(prefix.as_str())
+    {
+        return Some(
+            auth_n_handler
+                .0
+                .authenticate_with_api_token(login_type, api_key),
+        );
     }
 
     let resp = auth_n_handler

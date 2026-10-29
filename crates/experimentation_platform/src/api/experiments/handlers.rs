@@ -187,10 +187,10 @@ async fn create_handler(
     )
     .await?;
 
-    if let Some(ref experiment_metrics) = req.metrics {
-        if let Some(selection) = experiment_metrics.selection() {
-            validate_metric_selection(selection, &workspace_context.settings.metrics)?;
-        }
+    if let Some(ref experiment_metrics) = req.metrics
+        && let Some(selection) = experiment_metrics.selection()
+    {
+        validate_metric_selection(selection, &workspace_context.settings.metrics)?;
     }
 
     // Checking if experiment has exactly 1 control variant, and
@@ -1623,10 +1623,10 @@ async fn update_handler(
         ));
     }
 
-    if let Some(ref experiment_metrics) = payload.metrics {
-        if let Some(selection) = experiment_metrics.selection() {
-            validate_metric_selection(selection, &workspace_context.settings.metrics)?;
-        }
+    if let Some(ref experiment_metrics) = payload.metrics
+        && let Some(selection) = experiment_metrics.selection()
+    {
+        validate_metric_selection(selection, &workspace_context.settings.metrics)?;
     }
 
     let id_to_existing_variant: HashMap<String, &Variant> = HashMap::from_iter(

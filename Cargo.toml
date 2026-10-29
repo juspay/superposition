@@ -6,7 +6,7 @@ package.repository = "https://github.com/juspay/superposition"
 package.readme = "README.md"
 package.authors = ["superposition@juspay.in"]
 package.version = "0.118.2"
-package.rust-version = "1.85.0"
+package.rust-version = "1.94.1"
 package.edition = "2024"
 
 members = [
@@ -84,8 +84,8 @@ regex = "1.9.1"
 reqwest = { version = "0.11.18", features = ["json"] }
 rs-snowflake = "0.6.0"
 rustls = "0.23"
-rustyscript = { version = "0.12.3", default-features = false, features = ["safe_extensions", "web", "worker"] }
-serde = { version = "=1.0.221", features = ["derive"] }
+rustyscript = { git = "https://github.com/rscarson/rustyscript", rev = "ef6ccee0eb45378dba540ebe78005f05ed3aa81b", default-features = false, features = ["safe_extensions", "web", "worker"] }
+serde = { version = "1.0.228", features = ["derive"] }
 serde_json = { version = "1.0.140" }
 secrecy = "0.10"
 strum = "0.25"

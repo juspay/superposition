@@ -726,13 +726,12 @@ where
             if let Some(idx) = curr_variants
                 .iter()
                 .position(|(_, v)| v.variant_type == VariantType::CONTROL)
+                && let Some((_, control_variant)) = curr_variants.get_mut(idx)
             {
-                if let Some((_, control_variant)) = curr_variants.get_mut(idx) {
-                    control_variant.overrides = control_keys
-                        .iter()
-                        .filter_map(|k| overrides.get(k).map(|v| (k.clone(), v.clone())))
-                        .collect();
-                }
+                control_variant.overrides = control_keys
+                    .iter()
+                    .filter_map(|k| overrides.get(k).map(|v| (k.clone(), v.clone())))
+                    .collect();
             }
         };
 
