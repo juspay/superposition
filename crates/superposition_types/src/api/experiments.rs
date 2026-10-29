@@ -208,15 +208,11 @@ where
 #[derive(Copy, Display, Deserialize, Serialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
+#[derive(Default)]
 pub enum ExperimentSortOn {
+    #[default]
     LastModifiedAt,
     CreatedAt,
-}
-
-impl Default for ExperimentSortOn {
-    fn default() -> Self {
-        Self::LastModifiedAt
-    }
 }
 
 #[derive(Deserialize)]

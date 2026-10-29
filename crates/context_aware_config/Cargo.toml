@@ -23,6 +23,7 @@ jsonlogic = { workspace = true }
 jsonschema = { workspace = true }
 log = { workspace = true }
 rustyscript = { workspace = true }
+icu_calendar = "~2.1"
 serde = { workspace = true }
 serde_json = { workspace = true }
 secrecy = { workspace = true }
