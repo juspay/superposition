@@ -1,7 +1,7 @@
 use serde_json::Value;
 use thiserror::Error;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, Clone)]
 pub enum SuperpositionError {
     #[error("Configuration error: {0}")]
     ConfigError(String),
@@ -39,13 +39,49 @@ impl SuperpositionOptions {
         auth: AuthMethod,
         org_id: String,
         workspace_id: String,
-    ) -> Self {
-        Self {
+    ) -> Result<Self> {
+        if endpoint.trim().is_empty() {
+            return Err(SuperpositionError::ConfigError(
+                "endpoint is required".to_string(),
+            ));
+        }
+        match &auth {
+            AuthMethod::Token(token) => {
+                if token.trim().is_empty() {
+                    return Err(SuperpositionError::ConfigError(
+                        "token is required".to_string(),
+                    ));
+                }
+            }
+            AuthMethod::Basic { username, password } => {
+                if username.trim().is_empty() {
+                    return Err(SuperpositionError::ConfigError(
+                        "username is required".to_string(),
+                    ));
+                }
+                if password.trim().is_empty() {
+                    return Err(SuperpositionError::ConfigError(
+                        "password is required".to_string(),
+                    ));
+                }
+            }
+        }
+        if org_id.trim().is_empty() {
+            return Err(SuperpositionError::ConfigError(
+                "org_id is required".to_string(),
+            ));
+        }
+        if workspace_id.trim().is_empty() {
+            return Err(SuperpositionError::ConfigError(
+                "workspace_id is required".to_string(),
+            ));
+        }
+        Ok(Self {
             endpoint,
             auth,
             org_id,
             workspace_id,
-        }
+        })
     }
 }
 
@@ -69,35 +105,21 @@ impl From<&SuperpositionOptions> for superposition_sdk::Config {
 
 /// Polling strategy configuration.
 ///
-/// Durations are milliseconds. The seconds-based `interval` and `timeout` fields still work and are
-/// deprecated: a `_milliseconds` field wins when set, otherwise the old field is read as seconds.
-///
-/// `Default` deliberately leaves the `_milliseconds` fields as `None`, so that the common
-/// `PollingStrategy { interval: 30, ..Default::default() }` still means 30 seconds. Defaulting them
-/// to `Some(..)` would let the default silently override the caller's seconds value.
+/// Polling strategy configuration. All durations are milliseconds.
 #[derive(Debug, Clone)]
 pub struct PollingStrategy {
-    #[deprecated(note = "seconds-based; use `interval_milliseconds`")]
-    pub interval: u64,
-    /// How often to refresh, in milliseconds. Wins over `interval` when set.
-    pub interval_milliseconds: Option<u64>,
-    #[deprecated(note = "seconds-based; use `timeout_milliseconds`")]
-    pub timeout: Option<u64>,
+    /// How often to refresh, in milliseconds.
+    pub interval_milliseconds: u64,
     /// How long a single refresh may take before it is abandoned, in milliseconds.
-    /// Wins over `timeout` when set.
+    /// `None` means unbounded.
     pub timeout_milliseconds: Option<u64>,
 }
 
 impl PollingStrategy {
     /// Build a polling strategy from millisecond durations.
     pub fn new(interval_milliseconds: u64) -> Self {
-        #[allow(deprecated)]
         Self {
-            // Left unset: the accessors read the millisecond fields. Mirroring a value back would
-            // round 5_500ms down to 5s.
-            interval: 0,
-            timeout: None,
-            interval_milliseconds: Some(interval_milliseconds),
+            interval_milliseconds,
             timeout_milliseconds: None,
         }
     }
@@ -107,46 +129,33 @@ impl PollingStrategy {
         self
     }
 
-    /// The refresh interval in milliseconds, falling back to the deprecated seconds field.
+    /// The refresh interval in milliseconds.
     pub fn interval_ms(&self) -> u64 {
-        #[allow(deprecated)]
         self.interval_milliseconds
-            .unwrap_or_else(|| self.interval.saturating_mul(1000))
     }
 
-    /// The refresh timeout in milliseconds, falling back to the deprecated seconds field.
+    /// The refresh timeout in milliseconds, if one is set.
     pub fn timeout_ms(&self) -> Option<u64> {
-        #[allow(deprecated)]
         self.timeout_milliseconds
-            .or_else(|| self.timeout.map(|secs| secs.saturating_mul(1000)))
     }
 }
 
 impl Default for PollingStrategy {
     fn default() -> Self {
-        // Expressed in the deprecated fields on purpose — see the note on the struct.
-        #[allow(deprecated)]
         Self {
-            interval: 60, // 1 minute
-            timeout: Some(30),
-            interval_milliseconds: None,
-            timeout_milliseconds: None,
+            interval_milliseconds: 60_000,      // 1 minute
+            timeout_milliseconds: Some(30_000), // 30 seconds
         }
     }
 }
 
-/// On-demand strategy configuration. Durations are milliseconds; the seconds-based `ttl` and
-/// `timeout` fields still work and are deprecated. See [`PollingStrategy`] for how the two interact.
+/// On-demand strategy configuration. All durations are milliseconds.
 #[derive(Debug, Clone)]
 pub struct OnDemandStrategy {
-    #[deprecated(note = "seconds-based; use `ttl_milliseconds`")]
-    pub ttl: u64,
-    /// How long cached data stays fresh, in milliseconds. Wins over `ttl` when set.
-    pub ttl_milliseconds: Option<u64>,
-    #[deprecated(note = "seconds-based; use `timeout_milliseconds`")]
-    pub timeout: Option<u64>,
+    /// How long cached data stays fresh, in milliseconds.
+    pub ttl_milliseconds: u64,
     /// How long a single refresh may take before it is abandoned, in milliseconds.
-    /// Wins over `timeout` when set.
+    /// `None` means unbounded.
     pub timeout_milliseconds: Option<u64>,
     pub use_stale_on_error: Option<bool>,
 }
@@ -154,13 +163,8 @@ pub struct OnDemandStrategy {
 impl OnDemandStrategy {
     /// Build an on-demand strategy from millisecond durations.
     pub fn new(ttl_milliseconds: u64) -> Self {
-        #[allow(deprecated)]
         Self {
-            // Left unset: the accessors read the millisecond fields. Mirroring a value back would
-            // round 5_500ms down to 5s.
-            ttl: 0,
-            timeout: None,
-            ttl_milliseconds: Some(ttl_milliseconds),
+            ttl_milliseconds,
             timeout_milliseconds: None,
             use_stale_on_error: None,
         }
@@ -176,25 +180,20 @@ impl OnDemandStrategy {
         self
     }
 
-    /// The cache TTL in milliseconds, falling back to the deprecated seconds field.
+    /// The cache TTL in milliseconds.
     pub fn ttl_ms(&self) -> u64 {
-        #[allow(deprecated)]
         self.ttl_milliseconds
-            .unwrap_or_else(|| self.ttl.saturating_mul(1000))
     }
 
-    /// The refresh timeout in milliseconds, falling back to the deprecated seconds field.
+    /// The refresh timeout in milliseconds, if one is set.
     pub fn timeout_ms(&self) -> Option<u64> {
-        #[allow(deprecated)]
         self.timeout_milliseconds
-            .or_else(|| self.timeout.map(|secs| secs.saturating_mul(1000)))
     }
 
     /// Whether to serve stale data when a refresh fails.
     ///
     /// Read through this rather than off the field: unset means "unspecified", not "off". A call
-    /// site reaching for `unwrap_or_default()` reads it as `false`, which contradicts both
-    /// [`Default`] and the Java and Python clients.
+    /// site reaching for `unwrap_or_default()` reads it as `false`, which contradicts [`Default`].
     pub fn use_stale_on_error(&self) -> bool {
         self.use_stale_on_error
             .unwrap_or(DEFAULT_USE_STALE_ON_ERROR)
@@ -207,13 +206,9 @@ const DEFAULT_USE_STALE_ON_ERROR: bool = true;
 
 impl Default for OnDemandStrategy {
     fn default() -> Self {
-        // Expressed in the deprecated fields on purpose — see the note on PollingStrategy.
-        #[allow(deprecated)]
         Self {
-            ttl: 300, // 5 minutes
-            timeout: Some(30),
-            ttl_milliseconds: None,
-            timeout_milliseconds: None,
+            ttl_milliseconds: 300_000,          // 5 minutes
+            timeout_milliseconds: Some(30_000), // 30 seconds
             use_stale_on_error: Some(DEFAULT_USE_STALE_ON_ERROR),
         }
     }
@@ -321,43 +316,15 @@ impl SuperpositionProviderOptions {
 mod tests {
     use super::*;
 
-    /// The regression this guards: `Default` must not fill in the millisecond fields, or it would
-    /// silently override a caller who set only the deprecated seconds field.
     #[test]
-    #[allow(deprecated)]
-    fn a_seconds_field_with_default_still_means_seconds() {
-        let polling = PollingStrategy {
-            interval: 30, // 30 seconds
-            ..Default::default()
-        };
-        assert_eq!(polling.interval_ms(), 30_000);
-        assert_eq!(polling.timeout_ms(), Some(30_000)); // default 30s
+    fn accessors_return_the_millisecond_fields() {
+        let polling = PollingStrategy::new(5_500).with_timeout(2_500);
+        assert_eq!(polling.interval_ms(), 5_500);
+        assert_eq!(polling.timeout_ms(), Some(2_500));
 
-        let on_demand = OnDemandStrategy {
-            ttl: 60, // 60 seconds
-            ..Default::default()
-        };
+        let on_demand = OnDemandStrategy::new(60_000);
         assert_eq!(on_demand.ttl_ms(), 60_000);
-    }
-
-    #[test]
-    fn millisecond_fields_win_over_the_deprecated_ones() {
-        let polling = PollingStrategy {
-            interval_milliseconds: Some(1_500),
-            ..Default::default()
-        };
-        assert_eq!(polling.interval_ms(), 1_500);
-
-        assert_eq!(
-            PollingStrategy::new(5_500)
-                .with_timeout(2_500)
-                .interval_ms(),
-            5_500
-        );
-        assert_eq!(
-            PollingStrategy::new(5_500).with_timeout(2_500).timeout_ms(),
-            Some(2_500)
-        );
+        assert_eq!(on_demand.timeout_ms(), None);
     }
 
     #[test]
@@ -366,5 +333,6 @@ mod tests {
         assert_eq!(PollingStrategy::default().timeout_ms(), Some(30_000));
         assert_eq!(OnDemandStrategy::default().ttl_ms(), 300_000);
         assert_eq!(OnDemandStrategy::default().timeout_ms(), Some(30_000));
+        assert!(OnDemandStrategy::default().use_stale_on_error());
     }
 }
