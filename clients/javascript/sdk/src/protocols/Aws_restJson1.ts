@@ -1127,6 +1127,7 @@ export const se_GetConfigCommand = async(
   const query: any = map({
     [_p]: [() => input.prefix !== void 0, () => ((input[_p]! || []))],
     [_ep]: [() => input.exclude_prefix !== void 0, () => ((input[_ep]! || []))],
+    [_s]: [() => input.substring !== void 0, () => ((input[_s]! || []))],
     [_v]: [,input[_v]!],
   });
   let body: any;
@@ -1271,6 +1272,7 @@ export const se_GetDetailedResolvedConfigCommand = async(
   const query: any = map({
     [_p]: [() => input.prefix !== void 0, () => ((input[_p]! || []))],
     [_ep]: [() => input.exclude_prefix !== void 0, () => ((input[_ep]! || []))],
+    [_s]: [() => input.substring !== void 0, () => ((input[_s]! || []))],
     [_v]: [,input[_v]!],
     [_sr]: [() => input.show_reasoning !== void 0, () => (input[_sr]!.toString())],
     [_ci]: [,input[_ci]!],
@@ -1439,6 +1441,7 @@ export const se_GetResolvedConfigCommand = async(
   const query: any = map({
     [_p]: [() => input.prefix !== void 0, () => ((input[_p]! || []))],
     [_ep]: [() => input.exclude_prefix !== void 0, () => ((input[_ep]! || []))],
+    [_s]: [() => input.substring !== void 0, () => ((input[_s]! || []))],
     [_v]: [,input[_v]!],
     [_sr]: [() => input.show_reasoning !== void 0, () => (input[_sr]!.toString())],
     [_ci]: [,input[_ci]!],
@@ -1505,6 +1508,7 @@ export const se_GetResolvedConfigWithIdentifierCommand = async(
   const query: any = map({
     [_p]: [() => input.prefix !== void 0, () => ((input[_p]! || []))],
     [_ep]: [() => input.exclude_prefix !== void 0, () => ((input[_ep]! || []))],
+    [_s]: [() => input.substring !== void 0, () => ((input[_s]! || []))],
     [_v]: [,input[_v]!],
     [_sr]: [() => input.show_reasoning !== void 0, () => (input[_sr]!.toString())],
     [_ci]: [,input[_ci]!],
@@ -1835,7 +1839,7 @@ export const se_ListExperimentCommand = async(
     [_c]: [() => input.count !== void 0, () => (input[_c]!.toString())],
     [_pa]: [() => input.page !== void 0, () => (input[_pa]!.toString())],
     [_a]: [() => input.all !== void 0, () => (input[_a]!.toString())],
-    [_s]: [() => input.status !== void 0, () => ((input[_s]! || []))],
+    [_st]: [() => input.status !== void 0, () => ((input[_st]! || []))],
     [_fd]: [() => input.from_date !== void 0, () => (__serializeDateTime(input[_fd]!).toString())],
     [_td]: [() => input.to_date !== void 0, () => (__serializeDateTime(input[_td]!).toString())],
     [_en]: [,input[_en]!],
@@ -6489,10 +6493,11 @@ const de_CommandError = async(
   const _pa = "page";
   const _pl = "plaintext";
   const _rr = "resolve_remote";
-  const _s = "status";
+  const _s = "substring";
   const _sb = "sort_by";
   const _so = "sort_on";
   const _sr = "show_reasoning";
+  const _st = "status";
   const _t = "tables";
   const _ta = "table";
   const _td = "to_date";

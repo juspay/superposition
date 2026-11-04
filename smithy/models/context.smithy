@@ -212,6 +212,11 @@ operation ListContexts {
         @notProperty
         exclude_prefix: StringList
 
+        @documentation("Keeps only override keys that contain any of the supplied substrings anywhere in the key, e.g. `.external.` matches `payments.external.requires_cvv`. Contexts left with no overrides are dropped. When combined with prefix filters, both must match.")
+        @httpQuery("substring")
+        @notProperty
+        substring: StringList
+
         @httpQuery("sort_on")
         @notProperty
         sort_on: ContextFilterSortOn

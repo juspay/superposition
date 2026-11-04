@@ -429,6 +429,7 @@ pub async fn fetch_cac_config(
         version: Some("latest".to_string()),
         prefix: None,
         exclude_prefix: None,
+        substring: None,
     };
     let url = format!(
         "{}/config?{}",

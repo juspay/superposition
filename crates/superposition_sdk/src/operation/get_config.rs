@@ -150,9 +150,16 @@ fn uri_query(_input: &crate::operation::get_config::GetConfigInput, mut output: 
             }
         }
     }
-    if let ::std::option::Option::Some(inner_5) = &_input.version {
+    if let ::std::option::Option::Some(inner_5) = &_input.substring {
          {
-            query.push_kv("version", &::aws_smithy_http::query::fmt_string(inner_5));
+            for inner_6 in inner_5 {
+                query.push_kv("substring", &::aws_smithy_http::query::fmt_string(inner_6));
+            }
+        }
+    }
+    if let ::std::option::Option::Some(inner_7) = &_input.version {
+         {
+            query.push_kv("version", &::aws_smithy_http::query::fmt_string(inner_7));
         }
     }
     ::std::result::Result::Ok(())

@@ -37,6 +37,8 @@ public final class GetConfigInput implements SerializableStruct {
                 new HttpQueryTrait("prefix"))
         .putMember("exclude_prefix", SharedSchemas.STRING_LIST,
                 new HttpQueryTrait("exclude_prefix"))
+        .putMember("substring", SharedSchemas.STRING_LIST,
+                new HttpQueryTrait("substring"))
         .putMember("version", PreludeSchemas.STRING,
                 new HttpQueryTrait("version"))
         .putMember("if_modified_since", SharedSchemas.DATE_TIME,
@@ -48,6 +50,7 @@ public final class GetConfigInput implements SerializableStruct {
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
     private static final Schema $SCHEMA_PREFIX = $SCHEMA.member("prefix");
     private static final Schema $SCHEMA_EXCLUDE_PREFIX = $SCHEMA.member("exclude_prefix");
+    private static final Schema $SCHEMA_SUBSTRING = $SCHEMA.member("substring");
     private static final Schema $SCHEMA_VERSION = $SCHEMA.member("version");
     private static final Schema $SCHEMA_IF_MODIFIED_SINCE = $SCHEMA.member("if_modified_since");
     private static final Schema $SCHEMA_CONTEXT = $SCHEMA.member("context");
@@ -56,6 +59,7 @@ public final class GetConfigInput implements SerializableStruct {
     private final transient String orgId;
     private final transient List<String> prefix;
     private final transient List<String> excludePrefix;
+    private final transient List<String> substring;
     private final transient String version;
     private final transient Instant ifModifiedSince;
     private final transient Map<String, Document> context;
@@ -65,6 +69,7 @@ public final class GetConfigInput implements SerializableStruct {
         this.orgId = builder.orgId;
         this.prefix = builder.prefix == null ? null : Collections.unmodifiableList(builder.prefix);
         this.excludePrefix = builder.excludePrefix == null ? null : Collections.unmodifiableList(builder.excludePrefix);
+        this.substring = builder.substring == null ? null : Collections.unmodifiableList(builder.substring);
         this.version = builder.version;
         this.ifModifiedSince = builder.ifModifiedSince;
         this.context = builder.context == null ? null : Collections.unmodifiableMap(builder.context);
@@ -98,6 +103,22 @@ public final class GetConfigInput implements SerializableStruct {
 
     public boolean hasExcludePrefix() {
         return excludePrefix != null;
+    }
+
+    /**
+     * Keeps only configuration keys that contain any of the supplied substrings anywhere in the key, e.g.
+     * `.external.` matches `payments.external.requires_cvv`. When combined with prefix filters, both must
+     * match.
+     */
+    public List<String> substring() {
+        if (substring == null) {
+            return Collections.emptyList();
+        }
+        return substring;
+    }
+
+    public boolean hasSubstring() {
+        return substring != null;
     }
 
     public String version() {
@@ -142,6 +163,7 @@ public final class GetConfigInput implements SerializableStruct {
                && Objects.equals(this.orgId, that.orgId)
                && Objects.equals(this.prefix, that.prefix)
                && Objects.equals(this.excludePrefix, that.excludePrefix)
+               && Objects.equals(this.substring, that.substring)
                && Objects.equals(this.version, that.version)
                && Objects.equals(this.ifModifiedSince, that.ifModifiedSince)
                && Objects.equals(this.context, that.context);
@@ -149,7 +171,7 @@ public final class GetConfigInput implements SerializableStruct {
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, prefix, excludePrefix, version, ifModifiedSince, context);
+        return Objects.hash(workspaceId, orgId, prefix, excludePrefix, substring, version, ifModifiedSince, context);
     }
 
     @Override
@@ -166,6 +188,9 @@ public final class GetConfigInput implements SerializableStruct {
         }
         if (excludePrefix != null) {
             serializer.writeList($SCHEMA_EXCLUDE_PREFIX, excludePrefix, excludePrefix.size(), SharedSerde.StringListSerializer.INSTANCE);
+        }
+        if (substring != null) {
+            serializer.writeList($SCHEMA_SUBSTRING, substring, substring.size(), SharedSerde.StringListSerializer.INSTANCE);
         }
         if (version != null) {
             serializer.writeString($SCHEMA_VERSION, version);
@@ -186,9 +211,10 @@ public final class GetConfigInput implements SerializableStruct {
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
             case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, prefix);
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_EXCLUDE_PREFIX, member, excludePrefix);
-            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, version);
-            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_IF_MODIFIED_SINCE, member, ifModifiedSince);
-            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
+            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_SUBSTRING, member, substring);
+            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, version);
+            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_IF_MODIFIED_SINCE, member, ifModifiedSince);
+            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -206,6 +232,7 @@ public final class GetConfigInput implements SerializableStruct {
         builder.orgId(this.orgId);
         builder.prefix(this.prefix);
         builder.excludePrefix(this.excludePrefix);
+        builder.substring(this.substring);
         builder.version(this.version);
         builder.ifModifiedSince(this.ifModifiedSince);
         builder.context(this.context);
@@ -228,6 +255,7 @@ public final class GetConfigInput implements SerializableStruct {
         private String orgId;
         private List<String> prefix;
         private List<String> excludePrefix;
+        private List<String> substring;
         private String version;
         private Instant ifModifiedSince;
         private Map<String, Document> context;
@@ -276,6 +304,18 @@ public final class GetConfigInput implements SerializableStruct {
         }
 
         /**
+         * Keeps only configuration keys that contain any of the supplied substrings anywhere in the key, e.g.
+         * `.external.` matches `payments.external.requires_cvv`. When combined with prefix filters, both must
+         * match.
+         *
+         * @return this builder.
+         */
+        public Builder substring(List<String> substring) {
+            this.substring = substring;
+            return this;
+        }
+
+        /**
          * @return this builder.
          */
         public Builder version(String version) {
@@ -317,9 +357,10 @@ public final class GetConfigInput implements SerializableStruct {
                 case 1 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
                 case 2 -> prefix((List<String>) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, value));
                 case 3 -> excludePrefix((List<String>) SchemaUtils.validateSameMember($SCHEMA_EXCLUDE_PREFIX, member, value));
-                case 4 -> version((String) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, value));
-                case 5 -> ifModifiedSince((Instant) SchemaUtils.validateSameMember($SCHEMA_IF_MODIFIED_SINCE, member, value));
-                case 6 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
+                case 4 -> substring((List<String>) SchemaUtils.validateSameMember($SCHEMA_SUBSTRING, member, value));
+                case 5 -> version((String) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, value));
+                case 6 -> ifModifiedSince((Instant) SchemaUtils.validateSameMember($SCHEMA_IF_MODIFIED_SINCE, member, value));
+                case 7 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -360,9 +401,10 @@ public final class GetConfigInput implements SerializableStruct {
                     case 1 -> builder.orgId(de.readString(member));
                     case 2 -> builder.prefix(SharedSerde.deserializeStringList(member, de));
                     case 3 -> builder.excludePrefix(SharedSerde.deserializeStringList(member, de));
-                    case 4 -> builder.version(de.readString(member));
-                    case 5 -> builder.ifModifiedSince(de.readTimestamp(member));
-                    case 6 -> builder.context(SharedSerde.deserializeContextMap(member, de));
+                    case 4 -> builder.substring(SharedSerde.deserializeStringList(member, de));
+                    case 5 -> builder.version(de.readString(member));
+                    case 6 -> builder.ifModifiedSince(de.readTimestamp(member));
+                    case 7 -> builder.context(SharedSerde.deserializeContextMap(member, de));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

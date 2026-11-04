@@ -1052,6 +1052,8 @@ async def _serialize_get_config(input: GetConfigInput, config: Config) -> HTTPRe
         query_params.extend(("prefix", e) for e in input.prefix)
     if input.exclude_prefix is not None:
         query_params.extend(("exclude_prefix", e) for e in input.exclude_prefix)
+    if input.substring is not None:
+        query_params.extend(("substring", e) for e in input.substring)
     if input.version is not None:
         query_params.append(("version", input.version))
 
@@ -1258,6 +1260,8 @@ async def _serialize_get_detailed_resolved_config(input: GetDetailedResolvedConf
         query_params.extend(("prefix", e) for e in input.prefix)
     if input.exclude_prefix is not None:
         query_params.extend(("exclude_prefix", e) for e in input.exclude_prefix)
+    if input.substring is not None:
+        query_params.extend(("substring", e) for e in input.substring)
     if input.version is not None:
         query_params.append(("version", input.version))
     if input.show_reasoning is not None:
@@ -1516,6 +1520,8 @@ async def _serialize_get_resolved_config(input: GetResolvedConfigInput, config: 
         query_params.extend(("prefix", e) for e in input.prefix)
     if input.exclude_prefix is not None:
         query_params.extend(("exclude_prefix", e) for e in input.exclude_prefix)
+    if input.substring is not None:
+        query_params.extend(("substring", e) for e in input.substring)
     if input.version is not None:
         query_params.append(("version", input.version))
     if input.show_reasoning is not None:
@@ -1623,6 +1629,8 @@ async def _serialize_get_resolved_config_with_identifier(input: GetResolvedConfi
         query_params.extend(("prefix", e) for e in input.prefix)
     if input.exclude_prefix is not None:
         query_params.extend(("exclude_prefix", e) for e in input.exclude_prefix)
+    if input.substring is not None:
+        query_params.extend(("substring", e) for e in input.substring)
     if input.version is not None:
         query_params.append(("version", input.version))
     if input.show_reasoning is not None:

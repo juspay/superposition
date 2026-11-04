@@ -51,6 +51,9 @@ export interface GetConfigCommandOutput extends GetConfigOutput, __MetadataBeare
  *   exclude_prefix: [
  *     "STRING_VALUE",
  *   ],
+ *   substring: [
+ *     "STRING_VALUE",
+ *   ],
  *   version: "STRING_VALUE",
  *   if_modified_since: new Date("TIMESTAMP"),
  *   context: { // ContextMap

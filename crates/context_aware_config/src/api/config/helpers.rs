@@ -18,7 +18,7 @@ use service_utils::{
 };
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
-    Condition, Config, ConfigFilter, DBConnection, PrefixList,
+    Condition, Config, ConfigFilter, DBConnection, PrefixList, SubstringList,
     api::config::{
         ContextPayload, DetailedResolvedConfigValue, DetailedResolvedConfiguration,
         ExplainKeyQuery, ExplainResolveQuery, Explanation, ExplanationTimelineItem,
@@ -47,12 +47,18 @@ pub fn apply_prefix_filter_to_config(
     mut config: Config,
     prefix: Option<CommaSeparatedStringQParams>,
     exclude_prefix: Option<CommaSeparatedStringQParams>,
+    substring: Option<CommaSeparatedStringQParams>,
 ) -> superposition::Result<Config> {
     let prefix = PrefixList::from(prefix);
     let exclude_prefix = PrefixList::from(exclude_prefix);
+    let substring = SubstringList::from(substring);
 
     if !prefix.is_empty() || !exclude_prefix.is_empty() {
         config = config.filter_by_prefix(&prefix, &exclude_prefix);
+    }
+
+    if !substring.is_empty() {
+        config = config.filter_by_substring(&substring);
     }
 
     Ok(config)
@@ -262,6 +268,7 @@ fn apply_resolution_filters(
         config,
         query_filters.prefix,
         query_filters.exclude_prefix,
+        query_filters.substring,
     )?;
 
     apply_context_id_filter(&mut config, &query_filters.context_id)?;
@@ -593,5 +600,21 @@ mod tests {
 
         assert!(config.default_configs.contains_key("foo.enabled"));
         assert!(config.default_configs.contains_key("bar.enabled"));
+    }
+
+    #[test]
+    fn substring_filter_keeps_keys_containing_substring() {
+        let mut config = config_with_keys();
+        let query_filters = ResolveConfigQuery {
+            substring: Some(CommaSeparatedQParams(vec![".enabled".to_string()])),
+            prefix: Some(CommaSeparatedQParams(vec!["foo.".to_string()])),
+            ..Default::default()
+        };
+
+        config = apply_resolution_filters(config, query_filters)
+            .expect("resolution filters should be applied");
+
+        assert!(config.default_configs.contains_key("foo.enabled"));
+        assert!(!config.default_configs.contains_key("bar.enabled"));
     }
 }

@@ -184,6 +184,20 @@
                         "explode": true
                     },
                     {
+                        "name": "substring",
+                        "in": "query",
+                        "description": "Keeps only configuration keys that contain any of the supplied substrings anywhere in the key, e.g. `.external.` matches `payments.external.requires_cvv`. When combined with prefix filters, both must match.",
+                        "style": "form",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "Keeps only configuration keys that contain any of the supplied substrings anywhere in the key, e.g. `.external.` matches `payments.external.requires_cvv`. When combined with prefix filters, both must match."
+                        },
+                        "explode": true
+                    },
+                    {
                         "name": "version",
                         "in": "query",
                         "schema": {
@@ -363,6 +377,20 @@
                         "explode": true
                     },
                     {
+                        "name": "substring",
+                        "in": "query",
+                        "description": "Keeps only configuration keys that contain any of the supplied substrings anywhere in the key, e.g. `.external.` matches `payments.external.requires_cvv`. When combined with prefix filters, both must match.",
+                        "style": "form",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "Keeps only configuration keys that contain any of the supplied substrings anywhere in the key, e.g. `.external.` matches `payments.external.requires_cvv`. When combined with prefix filters, both must match."
+                        },
+                        "explode": true
+                    },
+                    {
                         "name": "version",
                         "in": "query",
                         "schema": {
@@ -499,6 +527,20 @@
                                 "type": "string"
                             },
                             "description": "Excludes configuration keys that start with any of the supplied prefixes. When combined with prefix, exclusion is applied to the allow-listed keys."
+                        },
+                        "explode": true
+                    },
+                    {
+                        "name": "substring",
+                        "in": "query",
+                        "description": "Keeps only configuration keys that contain any of the supplied substrings anywhere in the key, e.g. `.external.` matches `payments.external.requires_cvv`. When combined with prefix filters, both must match.",
+                        "style": "form",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "Keeps only configuration keys that contain any of the supplied substrings anywhere in the key, e.g. `.external.` matches `payments.external.requires_cvv`. When combined with prefix filters, both must match."
                         },
                         "explode": true
                     },
@@ -4656,6 +4698,20 @@
                             "items": {
                                 "type": "string"
                             }
+                        },
+                        "explode": true
+                    },
+                    {
+                        "name": "substring",
+                        "in": "query",
+                        "description": "Keeps only configuration keys that contain any of the supplied substrings anywhere in the key, e.g. `.external.` matches `payments.external.requires_cvv`. When combined with prefix filters, both must match.",
+                        "style": "form",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "Keeps only configuration keys that contain any of the supplied substrings anywhere in the key, e.g. `.external.` matches `payments.external.requires_cvv`. When combined with prefix filters, both must match."
                         },
                         "explode": true
                     },

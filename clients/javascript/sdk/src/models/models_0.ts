@@ -862,6 +862,12 @@ export interface GetConfigInput {
   org_id: string | undefined;
   prefix?: (string)[] | undefined;
   exclude_prefix?: (string)[] | undefined;
+  /**
+   * Keeps only configuration keys that contain any of the supplied substrings anywhere in the key, e.g. `.external.` matches `payments.external.requires_cvv`. When combined with prefix filters, both must match.
+   * @public
+   */
+  substring?: (string)[] | undefined;
+
   version?: string | undefined;
   /**
    * While using this, 304 response is treated as error, which needs to be handled separately by checking the response code of the http response. This is required to make sure that clients can cache the response and avoid unnecessary calls when there are no updates.
@@ -962,6 +968,12 @@ export interface GetDetailedResolvedConfigInput {
    */
   exclude_prefix?: (string)[] | undefined;
 
+  /**
+   * Keeps only configuration keys that contain any of the supplied substrings anywhere in the key, e.g. `.external.` matches `payments.external.requires_cvv`. When combined with prefix filters, both must match.
+   * @public
+   */
+  substring?: (string)[] | undefined;
+
   version?: string | undefined;
   show_reasoning?: boolean | undefined;
   merge_strategy?: MergeStrategy | undefined;
@@ -1002,6 +1014,12 @@ export interface GetResolvedConfigInput {
    * @public
    */
   exclude_prefix?: (string)[] | undefined;
+
+  /**
+   * Keeps only configuration keys that contain any of the supplied substrings anywhere in the key, e.g. `.external.` matches `payments.external.requires_cvv`. When combined with prefix filters, both must match.
+   * @public
+   */
+  substring?: (string)[] | undefined;
 
   version?: string | undefined;
   show_reasoning?: boolean | undefined;
@@ -1097,6 +1115,12 @@ export interface GetResolvedConfigWithIdentifierInput {
   org_id: string | undefined;
   prefix?: (string)[] | undefined;
   exclude_prefix?: (string)[] | undefined;
+  /**
+   * Keeps only configuration keys that contain any of the supplied substrings anywhere in the key, e.g. `.external.` matches `payments.external.requires_cvv`. When combined with prefix filters, both must match.
+   * @public
+   */
+  substring?: (string)[] | undefined;
+
   version?: string | undefined;
   show_reasoning?: boolean | undefined;
   merge_strategy?: MergeStrategy | undefined;

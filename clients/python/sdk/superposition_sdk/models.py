@@ -2800,6 +2800,12 @@ def _deserialize_context_map(deserializer: ShapeDeserializer, schema: Schema) ->
 class GetConfigInput:
     """
 
+    :param substring:
+         Keeps only configuration keys that contain any of the supplied substrings
+         anywhere in the key, e.g.
+    ``.external.`` matches ``payments.external.requires_cvv``. When combined with
+    prefix filters, both must match.
+
     :param if_modified_since:
          While using this, 304 response is treated as error, which needs to be handled
          separately by checking the response code of the http response. This is required
@@ -2815,6 +2821,7 @@ class GetConfigInput:
     org_id: str | None = None
     prefix: list[str] | None = None
     exclude_prefix: list[str] | None = None
+    substring: list[str] | None = None
     version: str | None = None
     if_modified_since: datetime | None = None
     context: dict[str, Document] | None = None
@@ -2849,12 +2856,15 @@ class GetConfigInput:
                     kwargs["exclude_prefix"] = _deserialize_string_list(de, _SCHEMA_GET_CONFIG_INPUT.members["exclude_prefix"])
 
                 case 4:
-                    kwargs["version"] = de.read_string(_SCHEMA_GET_CONFIG_INPUT.members["version"])
+                    kwargs["substring"] = _deserialize_string_list(de, _SCHEMA_GET_CONFIG_INPUT.members["substring"])
 
                 case 5:
-                    kwargs["if_modified_since"] = de.read_timestamp(_SCHEMA_GET_CONFIG_INPUT.members["if_modified_since"])
+                    kwargs["version"] = de.read_string(_SCHEMA_GET_CONFIG_INPUT.members["version"])
 
                 case 6:
+                    kwargs["if_modified_since"] = de.read_timestamp(_SCHEMA_GET_CONFIG_INPUT.members["if_modified_since"])
+
+                case 7:
                     kwargs["context"] = _deserialize_context_map(de, _SCHEMA_GET_CONFIG_INPUT.members["context"])
 
                 case _:
@@ -3167,6 +3177,12 @@ class GetDetailedResolvedConfigInput:
          Excludes configuration keys that start with any of the supplied prefixes. When
          combined with prefix, exclusion is applied to the allow-listed keys.
 
+    :param substring:
+         Keeps only configuration keys that contain any of the supplied substrings
+         anywhere in the key, e.g.
+    ``.external.`` matches ``payments.external.requires_cvv``. When combined with
+    prefix filters, both must match.
+
     :param resolve_remote:
          Intended for control resolution. If true, evaluates and includes remote
          cohort-based contexts during config resolution.
@@ -3180,6 +3196,7 @@ class GetDetailedResolvedConfigInput:
     org_id: str | None = None
     prefix: list[str] | None = None
     exclude_prefix: list[str] | None = None
+    substring: list[str] | None = None
     version: str | None = None
     show_reasoning: bool | None = None
     merge_strategy: str | None = None
@@ -3217,21 +3234,24 @@ class GetDetailedResolvedConfigInput:
                     kwargs["exclude_prefix"] = _deserialize_string_list(de, _SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["exclude_prefix"])
 
                 case 4:
-                    kwargs["version"] = de.read_string(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["version"])
+                    kwargs["substring"] = _deserialize_string_list(de, _SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["substring"])
 
                 case 5:
-                    kwargs["show_reasoning"] = de.read_boolean(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["show_reasoning"])
+                    kwargs["version"] = de.read_string(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["version"])
 
                 case 6:
-                    kwargs["merge_strategy"] = de.read_string(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["merge_strategy"])
+                    kwargs["show_reasoning"] = de.read_boolean(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["show_reasoning"])
 
                 case 7:
-                    kwargs["context_id"] = de.read_string(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["context_id"])
+                    kwargs["merge_strategy"] = de.read_string(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["merge_strategy"])
 
                 case 8:
-                    kwargs["resolve_remote"] = de.read_boolean(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["resolve_remote"])
+                    kwargs["context_id"] = de.read_string(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["context_id"])
 
                 case 9:
+                    kwargs["resolve_remote"] = de.read_boolean(_SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["resolve_remote"])
+
+                case 10:
                     kwargs["context"] = _deserialize_context_map(de, _SCHEMA_GET_DETAILED_RESOLVED_CONFIG_INPUT.members["context"])
 
                 case _:
@@ -3308,6 +3328,12 @@ class GetResolvedConfigInput:
          Excludes configuration keys that start with any of the supplied prefixes. When
          combined with prefix, exclusion is applied to the allow-listed keys.
 
+    :param substring:
+         Keeps only configuration keys that contain any of the supplied substrings
+         anywhere in the key, e.g.
+    ``.external.`` matches ``payments.external.requires_cvv``. When combined with
+    prefix filters, both must match.
+
     :param resolve_remote:
          Intended for control resolution. If true, evaluates and includes remote
          cohort-based contexts during config resolution.
@@ -3321,6 +3347,7 @@ class GetResolvedConfigInput:
     org_id: str | None = None
     prefix: list[str] | None = None
     exclude_prefix: list[str] | None = None
+    substring: list[str] | None = None
     version: str | None = None
     show_reasoning: bool | None = None
     merge_strategy: str | None = None
@@ -3358,21 +3385,24 @@ class GetResolvedConfigInput:
                     kwargs["exclude_prefix"] = _deserialize_string_list(de, _SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["exclude_prefix"])
 
                 case 4:
-                    kwargs["version"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["version"])
+                    kwargs["substring"] = _deserialize_string_list(de, _SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["substring"])
 
                 case 5:
-                    kwargs["show_reasoning"] = de.read_boolean(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["show_reasoning"])
+                    kwargs["version"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["version"])
 
                 case 6:
-                    kwargs["merge_strategy"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["merge_strategy"])
+                    kwargs["show_reasoning"] = de.read_boolean(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["show_reasoning"])
 
                 case 7:
-                    kwargs["context_id"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["context_id"])
+                    kwargs["merge_strategy"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["merge_strategy"])
 
                 case 8:
-                    kwargs["resolve_remote"] = de.read_boolean(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["resolve_remote"])
+                    kwargs["context_id"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["context_id"])
 
                 case 9:
+                    kwargs["resolve_remote"] = de.read_boolean(_SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["resolve_remote"])
+
+                case 10:
                     kwargs["context"] = _deserialize_context_map(de, _SCHEMA_GET_RESOLVED_CONFIG_INPUT.members["context"])
 
                 case _:
@@ -3688,6 +3718,12 @@ ShapeID("smithy.api#httpBearerAuth")
 class GetResolvedConfigWithIdentifierInput:
     """
 
+    :param substring:
+         Keeps only configuration keys that contain any of the supplied substrings
+         anywhere in the key, e.g.
+    ``.external.`` matches ``payments.external.requires_cvv``. When combined with
+    prefix filters, both must match.
+
     :param resolve_remote:
          Intended for control resolution. If true, evaluates and includes remote
          cohort-based contexts during config resolution.
@@ -3701,6 +3737,7 @@ class GetResolvedConfigWithIdentifierInput:
     org_id: str | None = None
     prefix: list[str] | None = None
     exclude_prefix: list[str] | None = None
+    substring: list[str] | None = None
     version: str | None = None
     show_reasoning: bool | None = None
     merge_strategy: str | None = None
@@ -3739,24 +3776,27 @@ class GetResolvedConfigWithIdentifierInput:
                     kwargs["exclude_prefix"] = _deserialize_string_list(de, _SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["exclude_prefix"])
 
                 case 4:
-                    kwargs["version"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["version"])
+                    kwargs["substring"] = _deserialize_string_list(de, _SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["substring"])
 
                 case 5:
-                    kwargs["show_reasoning"] = de.read_boolean(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["show_reasoning"])
+                    kwargs["version"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["version"])
 
                 case 6:
-                    kwargs["merge_strategy"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["merge_strategy"])
+                    kwargs["show_reasoning"] = de.read_boolean(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["show_reasoning"])
 
                 case 7:
-                    kwargs["context_id"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["context_id"])
+                    kwargs["merge_strategy"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["merge_strategy"])
 
                 case 8:
-                    kwargs["resolve_remote"] = de.read_boolean(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["resolve_remote"])
+                    kwargs["context_id"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["context_id"])
 
                 case 9:
-                    kwargs["context"] = _deserialize_context_map(de, _SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["context"])
+                    kwargs["resolve_remote"] = de.read_boolean(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["resolve_remote"])
 
                 case 10:
+                    kwargs["context"] = _deserialize_context_map(de, _SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["context"])
+
+                case 11:
                     kwargs["identifier"] = de.read_string(_SCHEMA_GET_RESOLVED_CONFIG_WITH_IDENTIFIER_INPUT.members["identifier"])
 
                 case _:

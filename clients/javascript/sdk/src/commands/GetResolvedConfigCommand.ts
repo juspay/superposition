@@ -51,6 +51,9 @@ export interface GetResolvedConfigCommandOutput extends GetResolvedConfigOutput,
  *   exclude_prefix: [
  *     "STRING_VALUE",
  *   ],
+ *   substring: [
+ *     "STRING_VALUE",
+ *   ],
  *   version: "STRING_VALUE",
  *   show_reasoning: true || false,
  *   merge_strategy: "MERGE" || "REPLACE",

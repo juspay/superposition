@@ -28,7 +28,8 @@ use superposition_derives::{authorized, declare_resource};
 use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
     Contextual, DBConnection, DimensionInfo, InternalUserContext, ListResponse,
-    Overridden, Overrides, PaginatedResponse, PrefixList, Resource, SortBy, User,
+    Overridden, Overrides, PaginatedResponse, PrefixList, Resource, SortBy, SubstringList,
+    User,
     api::{
         DimensionMatchStrategy,
         context::{
@@ -597,7 +598,8 @@ async fn list_handler(
 
     let perform_in_memory_filter = !dimension_params.is_empty()
         || filter_params.prefix.is_some()
-        || filter_params.exclude_prefix.is_some();
+        || filter_params.exclude_prefix.is_some()
+        || filter_params.substring.is_some();
 
     let paginated_response = if perform_in_memory_filter {
         let mut all_contexts: Vec<Context> = base_query.load(&mut conn)?;
@@ -612,6 +614,12 @@ async fn list_handler(
                     &exclude_prefix_list,
                 )
                 .is_ok()
+            })
+        }
+        let substring_list = SubstringList::from(filter_params.substring);
+        if !substring_list.is_empty() {
+            all_contexts.retain_mut(|context| {
+                Context::filter_keys_by_substring(context, &substring_list).is_ok()
             })
         }
         let eval_filter_contexts = if dimension_params.is_empty() {

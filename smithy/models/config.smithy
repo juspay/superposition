@@ -105,6 +105,11 @@ operation GetConfig {
         @notProperty
         exclude_prefix: StringList
 
+        @documentation("Keeps only configuration keys that contain any of the supplied substrings anywhere in the key, e.g. `.external.` matches `payments.external.requires_cvv`. When combined with prefix filters, both must match.")
+        @httpQuery("substring")
+        @notProperty
+        substring: StringList
+
         @httpQuery("version")
         @notProperty
         version: String
@@ -250,6 +255,11 @@ operation GetResolvedConfig {
         @notProperty
         exclude_prefix: StringList
 
+        @documentation("Keeps only configuration keys that contain any of the supplied substrings anywhere in the key, e.g. `.external.` matches `payments.external.requires_cvv`. When combined with prefix filters, both must match.")
+        @httpQuery("substring")
+        @notProperty
+        substring: StringList
+
         @httpQuery("version")
         @notProperty
         version: String
@@ -308,6 +318,11 @@ operation GetDetailedResolvedConfig {
         @httpQuery("exclude_prefix")
         @notProperty
         exclude_prefix: StringList
+
+        @documentation("Keeps only configuration keys that contain any of the supplied substrings anywhere in the key, e.g. `.external.` matches `payments.external.requires_cvv`. When combined with prefix filters, both must match.")
+        @httpQuery("substring")
+        @notProperty
+        substring: StringList
 
         @httpQuery("version")
         @notProperty
@@ -511,6 +526,11 @@ operation GetResolvedConfigWithIdentifier {
         @httpQuery("exclude_prefix")
         @notProperty
         exclude_prefix: StringList
+
+        @documentation("Keeps only configuration keys that contain any of the supplied substrings anywhere in the key, e.g. `.external.` matches `payments.external.requires_cvv`. When combined with prefix filters, both must match.")
+        @httpQuery("substring")
+        @notProperty
+        substring: StringList
 
         @httpQuery("version")
         @notProperty
