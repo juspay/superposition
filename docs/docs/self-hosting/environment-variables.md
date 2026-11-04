@@ -22,7 +22,7 @@ deployment.
 | `RUST_LOG` | `info,superposition=info` | Logging filter for JSON logs. |
 | `ACTIX_WORKER_COUNT` | `5` | Number of Actix workers. |
 | `ACTIX_KEEP_ALIVE` | `120` | Keep-alive timeout in seconds. |
-| `SUPERPOSITION_TOKEN` | secret value | Internal service token. In `DEV`, `TEST`, and `SANDBOX`, it defaults to `123456` if unset. In `PROD`, provide a KMS ciphertext. |
+| `SUPERPOSITION_TOKEN` | secret value | Internal service token. In `DEV` and `TEST`, it defaults to `123456` if unset. In `PROD` and `SANDBOX`, provide a KMS ciphertext. |
 | `KMS_PROVIDER` | `AWS`, `GCP`, or `OPENBAO` | Optional, defaults to `AWS`. Selects the backend used to resolve secrets in `PROD`/`SANDBOX`. See Secret Loading Modes below. |
 | `GCP_KMS_KEY_NAME` | `projects/<project>/locations/<location>/keyRings/<ring>/cryptoKeys/<key>` | Required when `KMS_PROVIDER=GCP`. Full resource name of the symmetric key used to decrypt secrets. |
 | `OPENBAO_ADDR` | `https://openbao.example.com:8200` | Required when `KMS_PROVIDER=OPENBAO`. Address of the OpenBao (or HashiCorp Vault) server. |
