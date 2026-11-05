@@ -8,7 +8,7 @@ edition = "2021"
 license = { workspace = true }
 homepage = { workspace = true }
 repository = "https://github.com/juspay/superposition"
-rust-version = "1.82.0"
+rust-version = "1.91.1"
 readme = "README.md"
 
 [package.metadata.smithy]
@@ -18,7 +18,7 @@ version = "1.2.5"
 [dependencies.aws-smithy-http]
 version = "0.62.1"
 [dependencies.aws-smithy-json]
-version = "0.61.3"
+version = "0.62.7"
 [dependencies.aws-smithy-runtime]
 version = "1.8.2"
 features = ["client", "http-auth"]
@@ -39,7 +39,7 @@ version = "0.1"
 rt-tokio = ["aws-smithy-async/rt-tokio", "aws-smithy-types/rt-tokio"]
 test-util = ["aws-smithy-runtime/test-util"]
 behavior-version-latest = []
-rustls = ["aws-smithy-runtime/tls-rustls"]
+rustls = ["default-https-client"]
 default-https-client = ["aws-smithy-runtime/default-https-client"]
 gated-tests = []
 default = ["rt-tokio", "rustls", "default-https-client"]
