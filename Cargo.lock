@@ -8401,7 +8401,7 @@ checksum = "4f3208ce4d8448b3f3e7d168a73f5e0c43a61e32930de3bceeccedb388b6bf06"
 [[package]]
 name = "rustyscript"
 version = "0.12.3"
-source = "git+https://github.com/juspay/rustyscript?branch=update-deno#19c73ec730cdda74276dc8d6e9eb490a273e33e1"
+source = "git+https://github.com/juspay/rustyscript?rev=4ab510966eb95200cb527d0f83f4beff24a7c99a#4ab510966eb95200cb527d0f83f4beff24a7c99a"
 dependencies = [
  "async-trait",
  "base64-simd",

@@ -22,7 +22,11 @@ itertools = { workspace = true }
 jsonlogic = { workspace = true }
 jsonschema = { workspace = true }
 log = { workspace = true }
-rustyscript = { workspace = true }
+rustyscript = { git = "https://github.com/juspay/rustyscript", rev = "4ab510966eb95200cb527d0f83f4beff24a7c99a", default-features = false, features = [
+    "safe_extensions",
+    "web",
+    "worker",
+] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 secrecy = { workspace = true }

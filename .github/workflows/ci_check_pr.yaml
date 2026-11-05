@@ -408,15 +408,11 @@ jobs:
 
             - name: Install Smithy CLI
               run: |
-                  mkdir -p smithy-install/smithy && \
-                    curl -L https://github.com/smithy-lang/smithy/releases/download/1.69.0/smithy-cli-linux-x86_64.zip -o smithy-install/smithy-cli-linux-x86_64.zip && \
-                    unzip -qo smithy-install/smithy-cli-linux-x86_64.zip -d smithy-install && \
-                    mv smithy-install/smithy-cli-linux-x86_64/* smithy-install/smithy/ && \
-                    rm -rf smithy-install/smithy-cli-linux-x86_64.zip
-                  echo 'export PATH="$HOME/.smithy/bin:$PATH"' >> ~/.bashrc
-                  source ~/.bashrc
-                  smithy-install/smithy/install
-                  rm -rf smithy-install
+                  curl -sSL https://github.com/smithy-lang/smithy/releases/download/1.69.0/smithy-cli-linux-x86_64.zip -o "$RUNNER_TEMP/smithy.zip"
+                  echo "45db1e239c0aa5fce6706676701c9e4ed09e67cd231222762207dcf384c9ea4e  $RUNNER_TEMP/smithy.zip" | sha256sum -c -
+                  unzip -qo "$RUNNER_TEMP/smithy.zip" -d "$RUNNER_TEMP"
+                  "$RUNNER_TEMP/smithy-cli-linux-x86_64/install" -i "$RUNNER_TEMP/smithy" -b "$RUNNER_TEMP/smithy/bin"
+                  echo "$RUNNER_TEMP/smithy/bin" >> "$GITHUB_PATH"
 
             - name: Generate SDKs
               run: |

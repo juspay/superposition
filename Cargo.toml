@@ -95,11 +95,6 @@ regex = "1.9.1"
 reqwest = { version = "0.11.18", features = ["json"] }
 rs-snowflake = "0.6.0"
 rustls = "0.23"
-rustyscript = { git = "https://github.com/juspay/rustyscript", branch = "update-deno", default-features = false, features = [
-    "safe_extensions",
-    "web",
-    "worker",
-] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = { version = "1.0.140" }
 secrecy = "0.10"
