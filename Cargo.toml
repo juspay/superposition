@@ -74,17 +74,32 @@ jsonschema = "~0.17"
 leptos = { version = "0.6.11" }
 log = { version = "0.4.20", features = ["kv_unstable_serde"] }
 once_cell = { version = "1.18.0" }
-opentelemetry = { version = "0.32", default-features = false, features = ["metrics"] }
-opentelemetry_sdk = { version = "0.32", default-features = false, features = ["metrics", "rt-tokio"] }
+opentelemetry = { version = "0.32", default-features = false, features = [
+    "metrics",
+] }
+opentelemetry_sdk = { version = "0.32", default-features = false, features = [
+    "metrics",
+    "rt-tokio",
+] }
 opentelemetry-prometheus = { version = "0.32", default-features = false }
-opentelemetry-otlp = { version = "0.32", default-features = false, features = ["metrics", "http-proto", "reqwest-client"] }
-opentelemetry-instrumentation-actix-web = { version = "0.24", default-features = false, features = ["metrics"] }
+opentelemetry-otlp = { version = "0.32", default-features = false, features = [
+    "metrics",
+    "http-proto",
+    "reqwest-client",
+] }
+opentelemetry-instrumentation-actix-web = { version = "0.24", default-features = false, features = [
+    "metrics",
+] }
 prometheus = { version = "0.14", default-features = false }
 regex = "1.9.1"
 reqwest = { version = "0.11.18", features = ["json"] }
 rs-snowflake = "0.6.0"
 rustls = "0.23"
-rustyscript = { git = "https://github.com/rscarson/rustyscript", rev = "ef6ccee0eb45378dba540ebe78005f05ed3aa81b", default-features = false, features = ["safe_extensions", "web", "worker"] }
+rustyscript = { git = "https://github.com/juspay/rustyscript", branch = "update-deno", default-features = false, features = [
+    "safe_extensions",
+    "web",
+    "worker",
+] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = { version = "1.0.140" }
 secrecy = "0.10"
@@ -103,7 +118,9 @@ tracing-actix-web = "0.7.21"
 url = "2.5.0"
 uuid = { version = "1.20.0", features = ["v4", "serde", "js"] }
 uniffi = { version = "0.29.3", features = ["cli"] }
-vaultrs = { version = "0.8.0", default-features = false, features = ["native-tls"] }
+vaultrs = { version = "0.8.0", default-features = false, features = [
+    "native-tls",
+] }
 kronos-worker = { git = "https://github.com/juspay/kronos.git", tag = "v0.1.0" }
 kronos-common = { git = "https://github.com/juspay/kronos.git", tag = "v0.1.0" }
 superposition = { path = "crates/superposition", version = "0.118.2" }

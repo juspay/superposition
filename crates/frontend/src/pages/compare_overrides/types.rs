@@ -63,7 +63,7 @@ impl From<HashMap<String, Map<String, Value>>> for ContextListInner {
 
 impl From<HashMap<String, String>> for ContextListInner {
     fn from(value: HashMap<String, String>) -> Self {
-        let value = HashMap::from_iter(value.into_iter().filter_map(|(_, value)| {
+        let value = HashMap::from_iter(value.into_values().filter_map(|value| {
             value.parse().ok().and_then(|v: Value| {
                 v.as_object()
                     .map(|m| (Value::Object(m.clone()).to_string(), m.clone()))

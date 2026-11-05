@@ -67,7 +67,7 @@ jobs:
             - name: Install Rust
               uses: dtolnay/rust-toolchain@master
               with:
-                  toolchain: 1.91.1
+                  toolchain: 1.95.0
                   targets: wasm32-unknown-unknown
                   components: rustfmt, clippy
 
@@ -145,7 +145,7 @@ jobs:
             - name: Install Rust
               uses: dtolnay/rust-toolchain@master
               with:
-                  toolchain: 1.91.1
+                  toolchain: 1.95.0
                   targets: wasm32-unknown-unknown
                   components: rustfmt, clippy
 
@@ -310,7 +310,7 @@ jobs:
             - name: Install Rust
               uses: dtolnay/rust-toolchain@master
               with:
-                  toolchain: 1.91.1
+                  toolchain: 1.95.0
                   targets: wasm32-unknown-unknown
                   components: rustfmt, clippy
 
@@ -365,8 +365,8 @@ jobs:
 
     binding-generation-check:
         name: Check generation of uniffi bindings
-        runs-on: codebuild-superposition-${{ github.run_id }}-${{ github.run_attempt }}
-        # runs-on: ubuntu-latest
+        # runs-on: codebuild-superposition-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: ubuntu-latest
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
@@ -376,7 +376,7 @@ jobs:
             - name: Install Rust
               uses: dtolnay/rust-toolchain@master
               with:
-                  toolchain: 1.91.1
+                  toolchain: 1.95.0
                   targets: wasm32-unknown-unknown
                   components: rustfmt, clippy
 
@@ -398,8 +398,8 @@ jobs:
 
     smithy-sdk-generation-check:
         name: Check generation of sdk from smithy models
-        runs-on: codebuild-superposition-${{ github.run_id }}-${{ github.run_attempt }}
-        # runs-on: ubuntu-latest
+        # runs-on: codebuild-superposition-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: ubuntu-latest
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
