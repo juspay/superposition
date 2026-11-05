@@ -23,7 +23,7 @@ impl ListWebhook {
                         let output = context.finalize().map_err(map_err)?;
                         ::std::result::Result::Ok(output.downcast::<crate::operation::list_webhook::ListWebhookOutput>().expect("correct output type"))
                     }
-    
+
                     pub(crate) async fn orchestrate_with_stop_point(
                         runtime_plugins: &::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugins,
                         input: crate::operation::list_webhook::ListWebhookInput,
@@ -45,20 +45,18 @@ impl ListWebhook {
                                 "rpc.service" = "Superposition",
                                 "rpc.method" = "ListWebhook",
                                 "sdk_invocation_id" = ::fastrand::u32(1_000_000..10_000_000),
-                                
+
                             ))
                         .await
                     }
-    
+
                     pub(crate) fn operation_runtime_plugins(
                         client_runtime_plugins: ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugins,
                         client_config: &crate::config::Config,
                         config_override: ::std::option::Option<crate::config::Builder>,
                     ) -> ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugins {
                         let mut runtime_plugins = client_runtime_plugins.with_operation_plugin(Self::new());
-                        runtime_plugins = runtime_plugins
-                                        .with_client_plugin(crate::auth_plugin::DefaultAuthOptionsPlugin::new(vec![::aws_smithy_runtime_api::client::auth::http::HTTP_BASIC_AUTH_SCHEME_ID
-    , ::aws_smithy_runtime_api::client::auth::http::HTTP_BEARER_AUTH_SCHEME_ID]));
+
                         if let ::std::option::Option::Some(config_override) = config_override {
                             for plugin in config_override.runtime_plugins.iter().cloned() {
                                 runtime_plugins = runtime_plugins.with_operation_plugin(plugin);
@@ -77,8 +75,12 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for ListWeb
                     cfg.store_put(::aws_smithy_runtime_api::client::ser_de::SharedRequestSerializer::new(ListWebhookRequestSerializer));
                     cfg.store_put(::aws_smithy_runtime_api::client::ser_de::SharedResponseDeserializer::new(ListWebhookResponseDeserializer));
 
-                    
-                    cfg.store_put(::aws_smithy_runtime_api::client::auth::AuthSchemeOptionResolverParams::new(::aws_smithy_runtime_api::client::auth::static_resolver::StaticAuthSchemeOptionResolverParams::new()));
+                    cfg.store_put(::aws_smithy_runtime_api::client::auth::AuthSchemeOptionResolverParams::new(
+                        crate::config::auth::Params::builder()
+                            .operation_name("ListWebhook")
+                            .build()
+                            .expect("required fields set")
+                    ));
 
                     cfg.store_put(::aws_smithy_runtime_api::client::orchestrator::Metadata::new(
                             "ListWebhook",
@@ -91,8 +93,8 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for ListWeb
                 fn runtime_components(&self, _: &::aws_smithy_runtime_api::client::runtime_components::RuntimeComponentsBuilder) -> ::std::borrow::Cow<'_, ::aws_smithy_runtime_api::client::runtime_components::RuntimeComponentsBuilder> {
                     #[allow(unused_mut)]
                     let mut rcb = ::aws_smithy_runtime_api::client::runtime_components::RuntimeComponentsBuilder::new("ListWebhook")
-                            .with_interceptor(::aws_smithy_runtime::client::stalled_stream_protection::StalledStreamProtectionInterceptor::default())
-.with_interceptor(ListWebhookEndpointParamsInterceptor)
+                            .with_interceptor(::aws_smithy_runtime_api::client::interceptors::SharedInterceptor::permanent(::aws_smithy_runtime::client::stalled_stream_protection::StalledStreamProtectionInterceptor::default()))
+.with_interceptor(::aws_smithy_runtime_api::client::interceptors::SharedInterceptor::permanent(ListWebhookEndpointParamsInterceptor))
                             .with_retry_classifier(::aws_smithy_runtime::client::retries::classifiers::TransientErrorClassifier::<crate::operation::list_webhook::ListWebhookError>::new())
 .with_retry_classifier(::aws_smithy_runtime::client::retries::classifiers::ModeledAsRetryableClassifier::<crate::operation::list_webhook::ListWebhookError>::new());
 
@@ -100,19 +102,19 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for ListWeb
                 }
             }
 
-            
+
 #[derive(Debug)]
             struct ListWebhookResponseDeserializer;
             impl ::aws_smithy_runtime_api::client::ser_de::DeserializeResponse for ListWebhookResponseDeserializer {
-                
 
-                fn deserialize_nonstreaming(&self, response: &::aws_smithy_runtime_api::client::orchestrator::HttpResponse) -> ::aws_smithy_runtime_api::client::interceptors::context::OutputOrError {
+
+                fn deserialize_nonstreaming_with_config(&self, response: &::aws_smithy_runtime_api::client::orchestrator::HttpResponse, _cfg: &::aws_smithy_types::config_bag::ConfigBag) -> ::aws_smithy_runtime_api::client::interceptors::context::OutputOrError {
                     let (success, status) = (response.status().is_success(), response.status().as_u16());
             let headers = response.headers();
             let body = response.body().bytes().expect("body loaded");
             #[allow(unused_mut)]
             let mut force_error = false;
-            
+
             let parse_result = if !success && status != 200 || force_error {
                 crate::protocol_serde::shape_list_webhook::de_list_webhook_http_error(status, headers, body)
             } else {
@@ -129,7 +131,8 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for ListWeb
                     let input = input.downcast::<crate::operation::list_webhook::ListWebhookInput>().expect("correct type");
                     let _header_serialization_settings = _cfg.load::<crate::serialization_settings::HeaderSerializationSettings>().cloned().unwrap_or_default();
                     let mut request_builder = {
-                        fn uri_base(_input: &crate::operation::list_webhook::ListWebhookInput, output: &mut ::std::string::String) -> ::std::result::Result<(), ::aws_smithy_types::error::operation::BuildError> {
+                        #[allow(clippy::uninlined_format_args)]
+fn uri_base(_input: &crate::operation::list_webhook::ListWebhookInput, output: &mut ::std::string::String) -> ::std::result::Result<(), ::aws_smithy_types::error::operation::BuildError> {
     use ::std::fmt::Write as _;
     ::std::write!(output, "/webhook").expect("formatting should succeed");
     ::std::result::Result::Ok(())
@@ -156,25 +159,26 @@ fn uri_query(_input: &crate::operation::list_webhook::ListWebhookInput, mut outp
 #[allow(clippy::unnecessary_wraps)]
 fn update_http_builder(
                 input: &crate::operation::list_webhook::ListWebhookInput,
-                builder: ::http::request::Builder
-            ) -> ::std::result::Result<::http::request::Builder, ::aws_smithy_types::error::operation::BuildError> {
+                builder: ::http_1x::request::Builder
+            ) -> ::std::result::Result<::http_1x::request::Builder, ::aws_smithy_types::error::operation::BuildError> {
     let mut uri = ::std::string::String::new();
     uri_base(input, &mut uri)?;
     uri_query(input, &mut uri)?;
     let builder = crate::protocol_serde::shape_list_webhook::ser_list_webhook_headers(input, builder)?;
     ::std::result::Result::Ok(builder.method("GET").uri(uri))
 }
-let mut builder = update_http_builder(&input, ::http::request::Builder::new())?;
+let mut builder = update_http_builder(&input, ::http_1x::request::Builder::new())?;
 builder
                     };
                     let body = ::aws_smithy_types::body::SdkBody::from("");
-                    
+
                     ::std::result::Result::Ok(request_builder.body(body).expect("valid request").try_into().unwrap())
                 }
             }
 #[derive(Debug)]
             struct ListWebhookEndpointParamsInterceptor;
 
+            #[::aws_smithy_runtime_api::client::interceptors::dyn_dispatch_hint]
             impl ::aws_smithy_runtime_api::client::interceptors::Intercept for ListWebhookEndpointParamsInterceptor {
                 fn name(&self) -> &'static str {
                     "ListWebhookEndpointParamsInterceptor"
@@ -189,10 +193,10 @@ builder
                         .downcast_ref::<ListWebhookInput>()
                         .ok_or("failed to downcast to ListWebhookInput")?;
 
-                    
+
 
                     let params = crate::config::endpoint::Params::builder()
-                        
+
                         .build()
                         .map_err(|err| ::aws_smithy_runtime_api::client::interceptors::error::ContextAttachedError::new("endpoint params could not be built", err))?;
                     cfg.interceptor_state().store_put(::aws_smithy_runtime_api::client::endpoint::EndpointResolverParams::new(params));
@@ -203,7 +207,7 @@ builder
             // The get_* functions below are generated from JMESPath expressions in the
             // operationContextParams trait. They target the operation's input shape.
 
-            
+
 
 /// Error type for the `ListWebhookError` operation.
 #[non_exhaustive]
@@ -225,15 +229,15 @@ impl ListWebhookError {
                     pub fn unhandled(err: impl ::std::convert::Into<::std::boxed::Box<dyn ::std::error::Error + ::std::marker::Send + ::std::marker::Sync + 'static>>) -> Self {
                         Self::Unhandled(crate::error::sealed_unhandled::Unhandled { source: err.into(), meta: ::std::default::Default::default() })
                     }
-    
+
                     /// Creates the `ListWebhookError::Unhandled` variant from an [`ErrorMetadata`](::aws_smithy_types::error::ErrorMetadata).
                     pub fn generic(err: ::aws_smithy_types::error::ErrorMetadata) -> Self {
                         Self::Unhandled(crate::error::sealed_unhandled::Unhandled { source: err.clone().into(), meta: err })
                     }
-    /// 
+    ///
     /// Returns error metadata, which includes the error code, message,
     /// request ID, and potentially additional information.
-    /// 
+    ///
     pub fn meta(&self) -> &::aws_smithy_types::error::ErrorMetadata {
         match self {
             Self::InternalServerError(e) => ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(e),
@@ -302,9 +306,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for ListWebh
     }
 }
 
-pub use crate::operation::list_webhook::_list_webhook_output::ListWebhookOutput;
-
 pub use crate::operation::list_webhook::_list_webhook_input::ListWebhookInput;
+
+pub use crate::operation::list_webhook::_list_webhook_output::ListWebhookOutput;
 
 mod _list_webhook_input;
 

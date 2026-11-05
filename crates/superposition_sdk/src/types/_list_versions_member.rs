@@ -32,7 +32,7 @@ impl  ListVersionsMember  {
         use std::ops::Deref; self.description.deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.tags.is_none()`.
     pub fn tags(&self) -> &[::std::string::String] {
         self.tags.as_deref()

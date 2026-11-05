@@ -23,7 +23,7 @@ impl ListExperimentGroups {
                         let output = context.finalize().map_err(map_err)?;
                         ::std::result::Result::Ok(output.downcast::<crate::operation::list_experiment_groups::ListExperimentGroupsOutput>().expect("correct output type"))
                     }
-    
+
                     pub(crate) async fn orchestrate_with_stop_point(
                         runtime_plugins: &::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugins,
                         input: crate::operation::list_experiment_groups::ListExperimentGroupsInput,
@@ -45,20 +45,18 @@ impl ListExperimentGroups {
                                 "rpc.service" = "Superposition",
                                 "rpc.method" = "ListExperimentGroups",
                                 "sdk_invocation_id" = ::fastrand::u32(1_000_000..10_000_000),
-                                
+
                             ))
                         .await
                     }
-    
+
                     pub(crate) fn operation_runtime_plugins(
                         client_runtime_plugins: ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugins,
                         client_config: &crate::config::Config,
                         config_override: ::std::option::Option<crate::config::Builder>,
                     ) -> ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugins {
                         let mut runtime_plugins = client_runtime_plugins.with_operation_plugin(Self::new());
-                        runtime_plugins = runtime_plugins
-                                        .with_client_plugin(crate::auth_plugin::DefaultAuthOptionsPlugin::new(vec![::aws_smithy_runtime_api::client::auth::http::HTTP_BASIC_AUTH_SCHEME_ID
-    , ::aws_smithy_runtime_api::client::auth::http::HTTP_BEARER_AUTH_SCHEME_ID]));
+
                         if let ::std::option::Option::Some(config_override) = config_override {
                             for plugin in config_override.runtime_plugins.iter().cloned() {
                                 runtime_plugins = runtime_plugins.with_operation_plugin(plugin);
@@ -77,8 +75,12 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for ListExp
                     cfg.store_put(::aws_smithy_runtime_api::client::ser_de::SharedRequestSerializer::new(ListExperimentGroupsRequestSerializer));
                     cfg.store_put(::aws_smithy_runtime_api::client::ser_de::SharedResponseDeserializer::new(ListExperimentGroupsResponseDeserializer));
 
-                    
-                    cfg.store_put(::aws_smithy_runtime_api::client::auth::AuthSchemeOptionResolverParams::new(::aws_smithy_runtime_api::client::auth::static_resolver::StaticAuthSchemeOptionResolverParams::new()));
+                    cfg.store_put(::aws_smithy_runtime_api::client::auth::AuthSchemeOptionResolverParams::new(
+                        crate::config::auth::Params::builder()
+                            .operation_name("ListExperimentGroups")
+                            .build()
+                            .expect("required fields set")
+                    ));
 
                     cfg.store_put(::aws_smithy_runtime_api::client::orchestrator::Metadata::new(
                             "ListExperimentGroups",
@@ -91,8 +93,8 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for ListExp
                 fn runtime_components(&self, _: &::aws_smithy_runtime_api::client::runtime_components::RuntimeComponentsBuilder) -> ::std::borrow::Cow<'_, ::aws_smithy_runtime_api::client::runtime_components::RuntimeComponentsBuilder> {
                     #[allow(unused_mut)]
                     let mut rcb = ::aws_smithy_runtime_api::client::runtime_components::RuntimeComponentsBuilder::new("ListExperimentGroups")
-                            .with_interceptor(::aws_smithy_runtime::client::stalled_stream_protection::StalledStreamProtectionInterceptor::default())
-.with_interceptor(ListExperimentGroupsEndpointParamsInterceptor)
+                            .with_interceptor(::aws_smithy_runtime_api::client::interceptors::SharedInterceptor::permanent(::aws_smithy_runtime::client::stalled_stream_protection::StalledStreamProtectionInterceptor::default()))
+.with_interceptor(::aws_smithy_runtime_api::client::interceptors::SharedInterceptor::permanent(ListExperimentGroupsEndpointParamsInterceptor))
                             .with_retry_classifier(::aws_smithy_runtime::client::retries::classifiers::TransientErrorClassifier::<crate::operation::list_experiment_groups::ListExperimentGroupsError>::new())
 .with_retry_classifier(::aws_smithy_runtime::client::retries::classifiers::ModeledAsRetryableClassifier::<crate::operation::list_experiment_groups::ListExperimentGroupsError>::new());
 
@@ -100,19 +102,19 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for ListExp
                 }
             }
 
-            
+
 #[derive(Debug)]
             struct ListExperimentGroupsResponseDeserializer;
             impl ::aws_smithy_runtime_api::client::ser_de::DeserializeResponse for ListExperimentGroupsResponseDeserializer {
-                
 
-                fn deserialize_nonstreaming(&self, response: &::aws_smithy_runtime_api::client::orchestrator::HttpResponse) -> ::aws_smithy_runtime_api::client::interceptors::context::OutputOrError {
+
+                fn deserialize_nonstreaming_with_config(&self, response: &::aws_smithy_runtime_api::client::orchestrator::HttpResponse, _cfg: &::aws_smithy_types::config_bag::ConfigBag) -> ::aws_smithy_runtime_api::client::interceptors::context::OutputOrError {
                     let (success, status) = (response.status().is_success(), response.status().as_u16());
             let headers = response.headers();
             let body = response.body().bytes().expect("body loaded");
             #[allow(unused_mut)]
             let mut force_error = false;
-            
+
             let parse_result = if !success && status != 200 || force_error {
                 crate::protocol_serde::shape_list_experiment_groups::de_list_experiment_groups_http_error(status, headers, body)
             } else {
@@ -129,7 +131,8 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for ListExp
                     let input = input.downcast::<crate::operation::list_experiment_groups::ListExperimentGroupsInput>().expect("correct type");
                     let _header_serialization_settings = _cfg.load::<crate::serialization_settings::HeaderSerializationSettings>().cloned().unwrap_or_default();
                     let mut request_builder = {
-                        fn uri_base(_input: &crate::operation::list_experiment_groups::ListExperimentGroupsInput, output: &mut ::std::string::String) -> ::std::result::Result<(), ::aws_smithy_types::error::operation::BuildError> {
+                        #[allow(clippy::uninlined_format_args)]
+fn uri_base(_input: &crate::operation::list_experiment_groups::ListExperimentGroupsInput, output: &mut ::std::string::String) -> ::std::result::Result<(), ::aws_smithy_types::error::operation::BuildError> {
     use ::std::fmt::Write as _;
     ::std::write!(output, "/experiment-groups/list").expect("formatting should succeed");
     ::std::result::Result::Ok(())
@@ -178,24 +181,24 @@ fn uri_query(_input: &crate::operation::list_experiment_groups::ListExperimentGr
     }
     if let ::std::option::Option::Some(inner_8) = &_input.sort_on {
          {
-            query.push_kv("sort_on", &::aws_smithy_http::query::fmt_string(inner_8));
+            query.push_kv("sort_on", &::aws_smithy_http::query::fmt_string(inner_8.as_str()));
         }
     }
     if let ::std::option::Option::Some(inner_9) = &_input.sort_by {
          {
-            query.push_kv("sort_by", &::aws_smithy_http::query::fmt_string(inner_9));
+            query.push_kv("sort_by", &::aws_smithy_http::query::fmt_string(inner_9.as_str()));
         }
     }
     if let ::std::option::Option::Some(inner_10) = &_input.group_type {
          {
             for inner_11 in inner_10 {
-                query.push_kv("group_type", &::aws_smithy_http::query::fmt_string(inner_11));
+                query.push_kv("group_type", &::aws_smithy_http::query::fmt_string(inner_11.as_str()));
             }
         }
     }
     if let ::std::option::Option::Some(inner_12) = &_input.dimension_match_strategy {
          {
-            query.push_kv("dimension_match_strategy", &::aws_smithy_http::query::fmt_string(inner_12));
+            query.push_kv("dimension_match_strategy", &::aws_smithy_http::query::fmt_string(inner_12.as_str()));
         }
     }
     ::std::result::Result::Ok(())
@@ -203,22 +206,22 @@ fn uri_query(_input: &crate::operation::list_experiment_groups::ListExperimentGr
 #[allow(clippy::unnecessary_wraps)]
 fn update_http_builder(
                 input: &crate::operation::list_experiment_groups::ListExperimentGroupsInput,
-                builder: ::http::request::Builder
-            ) -> ::std::result::Result<::http::request::Builder, ::aws_smithy_types::error::operation::BuildError> {
+                builder: ::http_1x::request::Builder
+            ) -> ::std::result::Result<::http_1x::request::Builder, ::aws_smithy_types::error::operation::BuildError> {
     let mut uri = ::std::string::String::new();
     uri_base(input, &mut uri)?;
     uri_query(input, &mut uri)?;
     let builder = crate::protocol_serde::shape_list_experiment_groups::ser_list_experiment_groups_headers(input, builder)?;
     ::std::result::Result::Ok(builder.method("POST").uri(uri))
 }
-let mut builder = update_http_builder(&input, ::http::request::Builder::new())?;
-builder = _header_serialization_settings.set_default_header(builder, ::http::header::CONTENT_TYPE, "application/json");
+let mut builder = update_http_builder(&input, ::http_1x::request::Builder::new())?;
+builder = _header_serialization_settings.set_default_header(builder, ::http_1x::header::CONTENT_TYPE, "application/json");
 builder
                     };
                     let body = ::aws_smithy_types::body::SdkBody::from(crate::protocol_serde::shape_list_experiment_groups::ser_list_experiment_groups_input(&input)?);
                     if let Some(content_length) = body.content_length() {
                                 let content_length = content_length.to_string();
-                                request_builder = _header_serialization_settings.set_default_header(request_builder, ::http::header::CONTENT_LENGTH, &content_length);
+                                request_builder = _header_serialization_settings.set_default_header(request_builder, ::http_1x::header::CONTENT_LENGTH, &content_length);
                             }
                     ::std::result::Result::Ok(request_builder.body(body).expect("valid request").try_into().unwrap())
                 }
@@ -226,6 +229,7 @@ builder
 #[derive(Debug)]
             struct ListExperimentGroupsEndpointParamsInterceptor;
 
+            #[::aws_smithy_runtime_api::client::interceptors::dyn_dispatch_hint]
             impl ::aws_smithy_runtime_api::client::interceptors::Intercept for ListExperimentGroupsEndpointParamsInterceptor {
                 fn name(&self) -> &'static str {
                     "ListExperimentGroupsEndpointParamsInterceptor"
@@ -240,10 +244,10 @@ builder
                         .downcast_ref::<ListExperimentGroupsInput>()
                         .ok_or("failed to downcast to ListExperimentGroupsInput")?;
 
-                    
+
 
                     let params = crate::config::endpoint::Params::builder()
-                        
+
                         .build()
                         .map_err(|err| ::aws_smithy_runtime_api::client::interceptors::error::ContextAttachedError::new("endpoint params could not be built", err))?;
                     cfg.interceptor_state().store_put(::aws_smithy_runtime_api::client::endpoint::EndpointResolverParams::new(params));
@@ -254,7 +258,7 @@ builder
             // The get_* functions below are generated from JMESPath expressions in the
             // operationContextParams trait. They target the operation's input shape.
 
-            
+
 
 /// Error type for the `ListExperimentGroupsError` operation.
 #[non_exhaustive]
@@ -276,15 +280,15 @@ impl ListExperimentGroupsError {
                     pub fn unhandled(err: impl ::std::convert::Into<::std::boxed::Box<dyn ::std::error::Error + ::std::marker::Send + ::std::marker::Sync + 'static>>) -> Self {
                         Self::Unhandled(crate::error::sealed_unhandled::Unhandled { source: err.into(), meta: ::std::default::Default::default() })
                     }
-    
+
                     /// Creates the `ListExperimentGroupsError::Unhandled` variant from an [`ErrorMetadata`](::aws_smithy_types::error::ErrorMetadata).
                     pub fn generic(err: ::aws_smithy_types::error::ErrorMetadata) -> Self {
                         Self::Unhandled(crate::error::sealed_unhandled::Unhandled { source: err.clone().into(), meta: err })
                     }
-    /// 
+    ///
     /// Returns error metadata, which includes the error code, message,
     /// request ID, and potentially additional information.
-    /// 
+    ///
     pub fn meta(&self) -> &::aws_smithy_types::error::ErrorMetadata {
         match self {
             Self::InternalServerError(e) => ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(e),
@@ -353,9 +357,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for ListExpe
     }
 }
 
-pub use crate::operation::list_experiment_groups::_list_experiment_groups_output::ListExperimentGroupsOutput;
-
 pub use crate::operation::list_experiment_groups::_list_experiment_groups_input::ListExperimentGroupsInput;
+
+pub use crate::operation::list_experiment_groups::_list_experiment_groups_output::ListExperimentGroupsOutput;
 
 mod _list_experiment_groups_input;
 

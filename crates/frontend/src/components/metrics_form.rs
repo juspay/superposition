@@ -280,7 +280,10 @@ fn MetricDefinitions(metrics_rws: RwSignal<Metrics>) -> impl IntoView {
 }
 
 #[component]
-fn MetricsBody(metrics_rws: RwSignal<Metrics>, on_change: Callback<Metrics>) -> impl IntoView {
+fn MetricsBody(
+    metrics_rws: RwSignal<Metrics>,
+    on_change: Callback<Metrics>,
+) -> impl IntoView {
     view! {
         <div class="max-w-md w-full pl-2.5 flex flex-col gap-2">
             <Show when=move || metrics_rws.with(|m| m.enabled)>

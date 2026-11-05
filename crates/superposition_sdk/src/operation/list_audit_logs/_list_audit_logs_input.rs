@@ -58,14 +58,14 @@ impl  ListAuditLogsInput  {
         self.to_date.as_ref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.tables.is_none()`.
     pub fn tables(&self) -> &[::std::string::String] {
         self.tables.as_deref()
         .unwrap_or_default()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.action.is_none()`.
     pub fn action(&self) -> &[crate::types::AuditAction] {
         self.action.as_deref()

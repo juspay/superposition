@@ -392,6 +392,8 @@ describe("Experiment Groups API Integration Tests", () => {
             }
         }
 
+        // Mandatory dimensions cannot be deleted
+        await removeMandatoryDimension(superpositionClient);
         for (const dimName of createdDimensionNames) {
             try {
                 await superpositionClient.send(

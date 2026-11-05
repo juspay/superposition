@@ -2129,10 +2129,10 @@ BULK_OPERATION = APIOperation(
         input_schema = _SCHEMA_BULK_OPERATION_INPUT,
         output_schema = _SCHEMA_BULK_OPERATION_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
+            ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
-ShapeID("io.superposition#ResourceNotFound"): ResourceNotFound,
 ShapeID("io.superposition#WorkspaceLockConflict"): WorkspaceLockConflict,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
            ShapeID("smithy.api#httpBasicAuth"),
@@ -5529,9 +5529,9 @@ WEIGHT_RECOMPUTE = APIOperation(
         input_schema = _SCHEMA_WEIGHT_RECOMPUTE_INPUT,
         output_schema = _SCHEMA_WEIGHT_RECOMPUTE_OUTPUT,
         error_registry = TypeRegistry({
-            ShapeID("io.superposition#InternalServerError"): InternalServerError,
-ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
+            ShapeID("io.superposition#WebhookFailed"): WebhookFailed,
 ShapeID("io.superposition#WorkspaceLockConflict"): WorkspaceLockConflict,
+ShapeID("io.superposition#InternalServerError"): InternalServerError,
         }),
         effective_auth_schemes = [
            ShapeID("smithy.api#httpBasicAuth"),

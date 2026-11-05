@@ -8,7 +8,7 @@ pub fn de_create_experiment_group_http_error(_response_status: u16, _response_he
                                 Some(code) => code,
                                 None => return Err(crate::operation::create_experiment_group::CreateExperimentGroupError::unhandled(generic))
                             };
-    
+
                             let _error_message = generic.message().map(|msg|msg.to_owned());
     Err(match error_code {
         "InternalServerError" => crate::operation::create_experiment_group::CreateExperimentGroupError::InternalServerError({
@@ -43,12 +43,12 @@ pub fn de_create_experiment_group_http_response(_response_status: u16, _response
 
 pub fn ser_create_experiment_group_headers(
                     input: &crate::operation::create_experiment_group::CreateExperimentGroupInput,
-                    mut builder: ::http::request::Builder
-                ) -> std::result::Result<::http::request::Builder, ::aws_smithy_types::error::operation::BuildError> {
+                    mut builder: ::http_1x::request::Builder
+                ) -> std::result::Result<::http_1x::request::Builder, ::aws_smithy_types::error::operation::BuildError> {
     if let ::std::option::Option::Some(inner_1) = &input.workspace_id {
         let formatted_2 = inner_1.as_str();
         let header_value = formatted_2;
-                            let header_value: ::http::HeaderValue = header_value.parse().map_err(|err| {
+                            let header_value: ::http_1x::HeaderValue = header_value.parse().map_err(|err| {
                                 ::aws_smithy_types::error::operation::BuildError::invalid_field("workspace_id", format!(
                                 "`{}` cannot be used as a header value: {}",
                                 &header_value,
@@ -60,7 +60,7 @@ pub fn ser_create_experiment_group_headers(
     if let ::std::option::Option::Some(inner_3) = &input.org_id {
         let formatted_4 = inner_3.as_str();
         let header_value = formatted_4;
-                            let header_value: ::http::HeaderValue = header_value.parse().map_err(|err| {
+                            let header_value: ::http_1x::HeaderValue = header_value.parse().map_err(|err| {
                                 ::aws_smithy_types::error::operation::BuildError::invalid_field("org_id", format!(
                                 "`{}` cannot be used as a header value: {}",
                                 &header_value,
@@ -80,9 +80,11 @@ pub fn ser_create_experiment_group_input(input: &crate::operation::create_experi
     Ok(::aws_smithy_types::body::SdkBody::from(out))
 }
 
-pub(crate) fn de_create_experiment_group(value: &[u8], mut builder: crate::operation::create_experiment_group::builders::CreateExperimentGroupOutputBuilder) -> ::std::result::Result<crate::operation::create_experiment_group::builders::CreateExperimentGroupOutputBuilder, ::aws_smithy_json::deserialize::error::DeserializeError> {
-    let mut tokens_owned = ::aws_smithy_json::deserialize::json_token_iter(crate::protocol_serde::or_empty_doc(value)).peekable();
+pub(crate) fn de_create_experiment_group(_value: &[u8], mut builder: crate::operation::create_experiment_group::builders::CreateExperimentGroupOutputBuilder) -> ::std::result::Result<crate::operation::create_experiment_group::builders::CreateExperimentGroupOutputBuilder, ::aws_smithy_json::deserialize::error::DeserializeError> {
+    let mut tokens_owned = ::aws_smithy_json::deserialize::json_token_iter(crate::protocol_serde::or_empty_doc(_value)).peekable();
                         let tokens = &mut tokens_owned;
+                        #[allow(unused_variables)]
+                        let depth = 0u32;
                         ::aws_smithy_json::deserialize::token::expect_start_object(tokens.next())?;
     loop {
         match tokens.next().transpose()? {
@@ -91,7 +93,7 @@ pub(crate) fn de_create_experiment_group(value: &[u8], mut builder: crate::opera
                 match key.to_unescaped()?.as_ref() {
                     "buckets" => {
                         builder = builder.set_buckets(
-                            crate::protocol_serde::shape_buckets::de_buckets(tokens)?
+                            crate::protocol_serde::shape_buckets::de_buckets(tokens, _value, depth + 1)?
                         );
                     }
                     "change_reason" => {
@@ -105,7 +107,7 @@ pub(crate) fn de_create_experiment_group(value: &[u8], mut builder: crate::opera
                     }
                     "context" => {
                         builder = builder.set_context(
-                            crate::protocol_serde::shape_condition::de_condition(tokens)?
+                            crate::protocol_serde::shape_condition::de_condition(tokens, _value, depth + 1)?
                         );
                     }
                     "context_hash" => {
@@ -174,7 +176,7 @@ pub(crate) fn de_create_experiment_group(value: &[u8], mut builder: crate::opera
                     }
                     "member_experiment_ids" => {
                         builder = builder.set_member_experiment_ids(
-                            crate::protocol_serde::shape_string_list::de_string_list(tokens)?
+                            crate::protocol_serde::shape_string_list::de_string_list(tokens, _value, depth + 1)?
                         );
                     }
                     "name" => {
@@ -196,7 +198,7 @@ pub(crate) fn de_create_experiment_group(value: &[u8], mut builder: crate::opera
                     _ => ::aws_smithy_json::deserialize::token::skip_value(tokens)?
                 }
             }
-            other => return Err(::aws_smithy_json::deserialize::error::DeserializeError::custom(format!("expected object key or end object, found: {:?}", other)))
+            other => return Err(::aws_smithy_json::deserialize::error::DeserializeError::custom(format!("expected object key or end object, found: {other:?}")))
         }
     }
     if tokens.next().is_some() {

@@ -1052,8 +1052,8 @@ async fn get_applicable_variants_handler(
     )
     .await?;
     let variants = exps
-        .into_iter()
-        .filter_map(|(_, experiment)| {
+        .into_values()
+        .filter_map(|experiment| {
             experiment
                 .variants
                 .into_iter()

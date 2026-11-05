@@ -64,7 +64,7 @@ impl  UpdateWebhookInput  {
         self.custom_headers.as_ref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.events.is_none()`.
     pub fn events(&self) -> &[::std::string::String] {
         self.events.as_deref()

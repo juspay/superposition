@@ -6,9 +6,9 @@
 /// variant in a current version of SDK, your code should continue to work when you
 /// upgrade SDK to a future version in which the enum does include a variant for that
 /// feature.
-/// 
+///
 /// Here is an example of how you can make a match expression forward-compatible:
-/// 
+///
 /// ```text
 /// # let dimensionmatchstrategy = unimplemented!();
 /// match dimensionmatchstrategy {
@@ -31,12 +31,12 @@
 /// Specifically, when `dimensionmatchstrategy` represents `NewFeature`,
 /// the execution path will hit the second last match arm as before by virtue of
 /// calling `as_str` on `DimensionMatchStrategy::NewFeature` also yielding `"NewFeature"`.
-/// 
+///
 /// Explicitly matching on the `Unknown` variant should
 /// be avoided for two reasons:
 /// - The inner data `UnknownVariantValue` is opaque, and no further information can be extracted.
 /// - It might inadvertently shadow other intended match arms.
-/// 
+///
 /// Strategy to follow while filter items based on the context
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::Eq, ::std::cmp::Ord, ::std::cmp::PartialEq, ::std::cmp::PartialOrd, ::std::fmt::Debug, ::std::hash::Hash)]
@@ -106,7 +106,7 @@ impl ::std::fmt::Display for DimensionMatchStrategy {
                                 DimensionMatchStrategy::Exact => write!(f, "exact"),
 DimensionMatchStrategy::NonConflicting => write!(f, "non_conflicting"),
 DimensionMatchStrategy::Subset => write!(f, "subset"),
-DimensionMatchStrategy::Unknown(value) => write!(f, "{}", value)
+DimensionMatchStrategy::Unknown(value) => write!(f, "{value}")
                             }
                         }
                     }

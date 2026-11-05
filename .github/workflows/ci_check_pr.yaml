@@ -44,7 +44,7 @@ env:
 jobs:
     formatting:
         name: Check formatting
-        runs-on: anton1
+        runs-on: ubuntu-latest
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
@@ -67,7 +67,7 @@ jobs:
             - name: Install Rust
               uses: dtolnay/rust-toolchain@master
               with:
-                  toolchain: 1.90.0
+                  toolchain: 1.95.0
                   targets: wasm32-unknown-unknown
                   components: rustfmt, clippy
 
@@ -101,7 +101,7 @@ jobs:
 
     test:
         name: Testing
-        runs-on: anton1
+        runs-on: ubuntu-latest
         services:
             postgres:
                 image: public.ecr.aws/docker/library/postgres:15-alpine3.21
@@ -145,7 +145,7 @@ jobs:
             - name: Install Rust
               uses: dtolnay/rust-toolchain@master
               with:
-                  toolchain: 1.90.0
+                  toolchain: 1.95.0
                   targets: wasm32-unknown-unknown
                   components: rustfmt, clippy
 
@@ -198,7 +198,7 @@ jobs:
 
     java-build:
         name: Java build
-        runs-on: anton1
+        runs-on: ubuntu-latest
         defaults:
             run:
                 working-directory: clients/java
@@ -255,7 +255,7 @@ jobs:
 
     provider-tests:
         name: Provider Tests
-        runs-on: anton1
+        runs-on: ubuntu-latest
         strategy:
             matrix:
                 provider:
@@ -310,7 +310,7 @@ jobs:
             - name: Install Rust
               uses: dtolnay/rust-toolchain@master
               with:
-                  toolchain: 1.90.0
+                  toolchain: 1.95.0
                   targets: wasm32-unknown-unknown
                   components: rustfmt, clippy
 
@@ -365,8 +365,8 @@ jobs:
 
     binding-generation-check:
         name: Check generation of uniffi bindings
-        runs-on: codebuild-superposition-${{ github.run_id }}-${{ github.run_attempt }}
-        # runs-on: anton1
+        # runs-on: codebuild-superposition-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: ubuntu-latest
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
@@ -376,7 +376,7 @@ jobs:
             - name: Install Rust
               uses: dtolnay/rust-toolchain@master
               with:
-                  toolchain: 1.90.0
+                  toolchain: 1.95.0
                   targets: wasm32-unknown-unknown
                   components: rustfmt, clippy
 
@@ -398,8 +398,8 @@ jobs:
 
     smithy-sdk-generation-check:
         name: Check generation of sdk from smithy models
-        runs-on: codebuild-superposition-${{ github.run_id }}-${{ github.run_attempt }}
-        # runs-on: anton1
+        # runs-on: codebuild-superposition-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: ubuntu-latest
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
@@ -408,15 +408,11 @@ jobs:
 
             - name: Install Smithy CLI
               run: |
-                  mkdir -p smithy-install/smithy && \
-                    curl -L https://github.com/smithy-lang/smithy/releases/download/1.55.0/smithy-cli-linux-x86_64.zip -o smithy-install/smithy-cli-linux-x86_64.zip && \
-                    unzip -qo smithy-install/smithy-cli-linux-x86_64.zip -d smithy-install && \
-                    mv smithy-install/smithy-cli-linux-x86_64/* smithy-install/smithy/ && \
-                    rm -rf smithy-install/smithy-cli-linux-x86_64.zip
-                  echo 'export PATH="$HOME/.smithy/bin:$PATH"' >> ~/.bashrc
-                  source ~/.bashrc
-                  smithy-install/smithy/install
-                  rm -rf smithy-install
+                  curl -sSL https://github.com/smithy-lang/smithy/releases/download/1.69.0/smithy-cli-linux-x86_64.zip -o "$RUNNER_TEMP/smithy.zip"
+                  echo "45db1e239c0aa5fce6706676701c9e4ed09e67cd231222762207dcf384c9ea4e  $RUNNER_TEMP/smithy.zip" | sha256sum -c -
+                  unzip -qo "$RUNNER_TEMP/smithy.zip" -d "$RUNNER_TEMP"
+                  "$RUNNER_TEMP/smithy-cli-linux-x86_64/install" -i "$RUNNER_TEMP/smithy" -b "$RUNNER_TEMP/smithy/bin"
+                  echo "$RUNNER_TEMP/smithy/bin" >> "$GITHUB_PATH"
 
             - name: Generate SDKs
               run: |

@@ -8,7 +8,7 @@ pub struct WeightRecomputeOutput  {
 }
 impl  WeightRecomputeOutput  {
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.data.is_none()`.
     pub fn data(&self) -> &[crate::types::WeightRecomputeResponse] {
         self.data.as_deref()
