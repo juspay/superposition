@@ -36,6 +36,8 @@ public final class GetResolvedConfigWithIdentifierInput implements SerializableS
                 new HttpQueryTrait("prefix"))
         .putMember("exclude_prefix", SharedSchemas.STRING_LIST,
                 new HttpQueryTrait("exclude_prefix"))
+        .putMember("substring", SharedSchemas.STRING_LIST,
+                new HttpQueryTrait("substring"))
         .putMember("version", PreludeSchemas.STRING,
                 new HttpQueryTrait("version"))
         .putMember("show_reasoning", PreludeSchemas.BOOLEAN,
@@ -55,6 +57,7 @@ public final class GetResolvedConfigWithIdentifierInput implements SerializableS
     private static final Schema $SCHEMA_ORG_ID = $SCHEMA.member("org_id");
     private static final Schema $SCHEMA_PREFIX = $SCHEMA.member("prefix");
     private static final Schema $SCHEMA_EXCLUDE_PREFIX = $SCHEMA.member("exclude_prefix");
+    private static final Schema $SCHEMA_SUBSTRING = $SCHEMA.member("substring");
     private static final Schema $SCHEMA_VERSION = $SCHEMA.member("version");
     private static final Schema $SCHEMA_SHOW_REASONING = $SCHEMA.member("show_reasoning");
     private static final Schema $SCHEMA_MERGE_STRATEGY = $SCHEMA.member("merge_strategy");
@@ -67,6 +70,7 @@ public final class GetResolvedConfigWithIdentifierInput implements SerializableS
     private final transient String orgId;
     private final transient List<String> prefix;
     private final transient List<String> excludePrefix;
+    private final transient List<String> substring;
     private final transient String version;
     private final transient Boolean showReasoning;
     private final transient MergeStrategy mergeStrategy;
@@ -80,6 +84,7 @@ public final class GetResolvedConfigWithIdentifierInput implements SerializableS
         this.orgId = builder.orgId;
         this.prefix = builder.prefix == null ? null : Collections.unmodifiableList(builder.prefix);
         this.excludePrefix = builder.excludePrefix == null ? null : Collections.unmodifiableList(builder.excludePrefix);
+        this.substring = builder.substring == null ? null : Collections.unmodifiableList(builder.substring);
         this.version = builder.version;
         this.showReasoning = builder.showReasoning;
         this.mergeStrategy = builder.mergeStrategy;
@@ -117,6 +122,22 @@ public final class GetResolvedConfigWithIdentifierInput implements SerializableS
 
     public boolean hasExcludePrefix() {
         return excludePrefix != null;
+    }
+
+    /**
+     * Keeps only configuration keys that contain any of the supplied substrings anywhere in the key, e.g.
+     * `.external.` matches `payments.external.requires_cvv`. When combined with prefix filters, both must
+     * match.
+     */
+    public List<String> substring() {
+        if (substring == null) {
+            return Collections.emptyList();
+        }
+        return substring;
+    }
+
+    public boolean hasSubstring() {
+        return substring != null;
     }
 
     public String version() {
@@ -176,6 +197,7 @@ public final class GetResolvedConfigWithIdentifierInput implements SerializableS
                && Objects.equals(this.orgId, that.orgId)
                && Objects.equals(this.prefix, that.prefix)
                && Objects.equals(this.excludePrefix, that.excludePrefix)
+               && Objects.equals(this.substring, that.substring)
                && Objects.equals(this.version, that.version)
                && Objects.equals(this.showReasoning, that.showReasoning)
                && Objects.equals(this.mergeStrategy, that.mergeStrategy)
@@ -187,7 +209,7 @@ public final class GetResolvedConfigWithIdentifierInput implements SerializableS
 
     @Override
     public int hashCode() {
-        return Objects.hash(workspaceId, orgId, prefix, excludePrefix, version, showReasoning, mergeStrategy, contextId, resolveRemote, context, identifier);
+        return Objects.hash(workspaceId, orgId, prefix, excludePrefix, substring, version, showReasoning, mergeStrategy, contextId, resolveRemote, context, identifier);
     }
 
     @Override
@@ -204,6 +226,9 @@ public final class GetResolvedConfigWithIdentifierInput implements SerializableS
         }
         if (excludePrefix != null) {
             serializer.writeList($SCHEMA_EXCLUDE_PREFIX, excludePrefix, excludePrefix.size(), SharedSerde.StringListSerializer.INSTANCE);
+        }
+        if (substring != null) {
+            serializer.writeList($SCHEMA_SUBSTRING, substring, substring.size(), SharedSerde.StringListSerializer.INSTANCE);
         }
         if (version != null) {
             serializer.writeString($SCHEMA_VERSION, version);
@@ -236,13 +261,14 @@ public final class GetResolvedConfigWithIdentifierInput implements SerializableS
             case 1 -> (T) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, orgId);
             case 2 -> (T) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, prefix);
             case 3 -> (T) SchemaUtils.validateSameMember($SCHEMA_EXCLUDE_PREFIX, member, excludePrefix);
-            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, version);
-            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_SHOW_REASONING, member, showReasoning);
-            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_MERGE_STRATEGY, member, mergeStrategy);
-            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT_ID, member, contextId);
-            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_RESOLVE_REMOTE, member, resolveRemote);
-            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
-            case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_IDENTIFIER, member, identifier);
+            case 4 -> (T) SchemaUtils.validateSameMember($SCHEMA_SUBSTRING, member, substring);
+            case 5 -> (T) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, version);
+            case 6 -> (T) SchemaUtils.validateSameMember($SCHEMA_SHOW_REASONING, member, showReasoning);
+            case 7 -> (T) SchemaUtils.validateSameMember($SCHEMA_MERGE_STRATEGY, member, mergeStrategy);
+            case 8 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT_ID, member, contextId);
+            case 9 -> (T) SchemaUtils.validateSameMember($SCHEMA_RESOLVE_REMOTE, member, resolveRemote);
+            case 10 -> (T) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, context);
+            case 11 -> (T) SchemaUtils.validateSameMember($SCHEMA_IDENTIFIER, member, identifier);
             default -> throw new IllegalArgumentException("Attempted to get non-existent member: " + member.id());
         };
     }
@@ -260,6 +286,7 @@ public final class GetResolvedConfigWithIdentifierInput implements SerializableS
         builder.orgId(this.orgId);
         builder.prefix(this.prefix);
         builder.excludePrefix(this.excludePrefix);
+        builder.substring(this.substring);
         builder.version(this.version);
         builder.showReasoning(this.showReasoning);
         builder.mergeStrategy(this.mergeStrategy);
@@ -286,6 +313,7 @@ public final class GetResolvedConfigWithIdentifierInput implements SerializableS
         private String orgId;
         private List<String> prefix;
         private List<String> excludePrefix;
+        private List<String> substring;
         private String version;
         private Boolean showReasoning;
         private MergeStrategy mergeStrategy;
@@ -334,6 +362,18 @@ public final class GetResolvedConfigWithIdentifierInput implements SerializableS
          */
         public Builder excludePrefix(List<String> excludePrefix) {
             this.excludePrefix = excludePrefix;
+            return this;
+        }
+
+        /**
+         * Keeps only configuration keys that contain any of the supplied substrings anywhere in the key, e.g.
+         * `.external.` matches `payments.external.requires_cvv`. When combined with prefix filters, both must
+         * match.
+         *
+         * @return this builder.
+         */
+        public Builder substring(List<String> substring) {
+            this.substring = substring;
             return this;
         }
 
@@ -410,13 +450,14 @@ public final class GetResolvedConfigWithIdentifierInput implements SerializableS
                 case 1 -> orgId((String) SchemaUtils.validateSameMember($SCHEMA_ORG_ID, member, value));
                 case 2 -> prefix((List<String>) SchemaUtils.validateSameMember($SCHEMA_PREFIX, member, value));
                 case 3 -> excludePrefix((List<String>) SchemaUtils.validateSameMember($SCHEMA_EXCLUDE_PREFIX, member, value));
-                case 4 -> version((String) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, value));
-                case 5 -> showReasoning((boolean) SchemaUtils.validateSameMember($SCHEMA_SHOW_REASONING, member, value));
-                case 6 -> mergeStrategy((MergeStrategy) SchemaUtils.validateSameMember($SCHEMA_MERGE_STRATEGY, member, value));
-                case 7 -> contextId((String) SchemaUtils.validateSameMember($SCHEMA_CONTEXT_ID, member, value));
-                case 8 -> resolveRemote((boolean) SchemaUtils.validateSameMember($SCHEMA_RESOLVE_REMOTE, member, value));
-                case 9 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
-                case 10 -> identifier((String) SchemaUtils.validateSameMember($SCHEMA_IDENTIFIER, member, value));
+                case 4 -> substring((List<String>) SchemaUtils.validateSameMember($SCHEMA_SUBSTRING, member, value));
+                case 5 -> version((String) SchemaUtils.validateSameMember($SCHEMA_VERSION, member, value));
+                case 6 -> showReasoning((boolean) SchemaUtils.validateSameMember($SCHEMA_SHOW_REASONING, member, value));
+                case 7 -> mergeStrategy((MergeStrategy) SchemaUtils.validateSameMember($SCHEMA_MERGE_STRATEGY, member, value));
+                case 8 -> contextId((String) SchemaUtils.validateSameMember($SCHEMA_CONTEXT_ID, member, value));
+                case 9 -> resolveRemote((boolean) SchemaUtils.validateSameMember($SCHEMA_RESOLVE_REMOTE, member, value));
+                case 10 -> context((Map<String, Document>) SchemaUtils.validateSameMember($SCHEMA_CONTEXT, member, value));
+                case 11 -> identifier((String) SchemaUtils.validateSameMember($SCHEMA_IDENTIFIER, member, value));
                 default -> ShapeBuilder.super.setMemberValue(member, value);
             }
         }
@@ -457,13 +498,14 @@ public final class GetResolvedConfigWithIdentifierInput implements SerializableS
                     case 1 -> builder.orgId(de.readString(member));
                     case 2 -> builder.prefix(SharedSerde.deserializeStringList(member, de));
                     case 3 -> builder.excludePrefix(SharedSerde.deserializeStringList(member, de));
-                    case 4 -> builder.version(de.readString(member));
-                    case 5 -> builder.showReasoning(de.readBoolean(member));
-                    case 6 -> builder.mergeStrategy(MergeStrategy.builder().deserializeMember(de, member).build());
-                    case 7 -> builder.contextId(de.readString(member));
-                    case 8 -> builder.resolveRemote(de.readBoolean(member));
-                    case 9 -> builder.context(SharedSerde.deserializeContextMap(member, de));
-                    case 10 -> builder.identifier(de.readString(member));
+                    case 4 -> builder.substring(SharedSerde.deserializeStringList(member, de));
+                    case 5 -> builder.version(de.readString(member));
+                    case 6 -> builder.showReasoning(de.readBoolean(member));
+                    case 7 -> builder.mergeStrategy(MergeStrategy.builder().deserializeMember(de, member).build());
+                    case 8 -> builder.contextId(de.readString(member));
+                    case 9 -> builder.resolveRemote(de.readBoolean(member));
+                    case 10 -> builder.context(SharedSerde.deserializeContextMap(member, de));
+                    case 11 -> builder.identifier(de.readString(member));
                     default -> throw new IllegalArgumentException("Unexpected member: " + member.memberName());
                 }
             }

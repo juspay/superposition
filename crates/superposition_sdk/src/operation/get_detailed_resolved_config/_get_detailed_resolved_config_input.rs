@@ -11,6 +11,8 @@ pub struct GetDetailedResolvedConfigInput  {
     pub prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     /// Excludes configuration keys that start with any of the supplied prefixes. When combined with prefix, exclusion is applied to the allow-listed keys.
     pub exclude_prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    /// Keeps only configuration keys that contain any of the supplied substrings anywhere in the key, e.g. `.external.` matches `payments.external.requires_cvv`. When combined with prefix filters, both must match.
+    pub substring: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     #[allow(missing_docs)] // documentation missing in model
     pub version: ::std::option::Option<::std::string::String>,
     #[allow(missing_docs)] // documentation missing in model
@@ -45,6 +47,13 @@ impl  GetDetailedResolvedConfigInput  {
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.exclude_prefix.is_none()`.
     pub fn exclude_prefix(&self) -> &[::std::string::String] {
         self.exclude_prefix.as_deref()
+        .unwrap_or_default()
+    }
+    /// Keeps only configuration keys that contain any of the supplied substrings anywhere in the key, e.g. `.external.` matches `payments.external.requires_cvv`. When combined with prefix filters, both must match.
+    /// 
+    /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.substring.is_none()`.
+    pub fn substring(&self) -> &[::std::string::String] {
+        self.substring.as_deref()
         .unwrap_or_default()
     }
     #[allow(missing_docs)] // documentation missing in model
@@ -87,6 +96,7 @@ pub struct GetDetailedResolvedConfigInputBuilder {
     pub(crate) org_id: ::std::option::Option<::std::string::String>,
     pub(crate) prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     pub(crate) exclude_prefix: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
+    pub(crate) substring: ::std::option::Option<::std::vec::Vec::<::std::string::String>>,
     pub(crate) version: ::std::option::Option<::std::string::String>,
     pub(crate) show_reasoning: ::std::option::Option<bool>,
     pub(crate) merge_strategy: ::std::option::Option<crate::types::MergeStrategy>,
@@ -159,6 +169,25 @@ impl GetDetailedResolvedConfigInputBuilder {
     /// Excludes configuration keys that start with any of the supplied prefixes. When combined with prefix, exclusion is applied to the allow-listed keys.
     pub fn get_exclude_prefix(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
         &self.exclude_prefix
+    }
+    /// Appends an item to `substring`.
+    ///
+    /// To override the contents of this collection use [`set_substring`](Self::set_substring).
+    ///
+    /// Keeps only configuration keys that contain any of the supplied substrings anywhere in the key, e.g. `.external.` matches `payments.external.requires_cvv`. When combined with prefix filters, both must match.
+    pub fn substring(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+        let mut v = self.substring.unwrap_or_default();
+                        v.push(input.into());
+                        self.substring = ::std::option::Option::Some(v);
+                        self
+    }
+    /// Keeps only configuration keys that contain any of the supplied substrings anywhere in the key, e.g. `.external.` matches `payments.external.requires_cvv`. When combined with prefix filters, both must match.
+    pub fn set_substring(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
+        self.substring = input; self
+    }
+    /// Keeps only configuration keys that contain any of the supplied substrings anywhere in the key, e.g. `.external.` matches `payments.external.requires_cvv`. When combined with prefix filters, both must match.
+    pub fn get_substring(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
+        &self.substring
     }
     #[allow(missing_docs)] // documentation missing in model
     pub fn version(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
@@ -255,6 +284,8 @@ impl GetDetailedResolvedConfigInputBuilder {
                 prefix: self.prefix
                 ,
                 exclude_prefix: self.exclude_prefix
+                ,
+                substring: self.substring
                 ,
                 version: self.version
                 ,

@@ -3,6 +3,7 @@ module Io.Superposition.Model.GetResolvedConfigWithIdentifierInput (
     setOrgId,
     setPrefix,
     setExcludePrefix,
+    setSubstring,
     setVersion,
     setShowReasoning,
     setMergeStrategy,
@@ -17,6 +18,7 @@ module Io.Superposition.Model.GetResolvedConfigWithIdentifierInput (
     org_id,
     prefix,
     exclude_prefix,
+    substring,
     version,
     show_reasoning,
     merge_strategy,
@@ -45,6 +47,7 @@ data GetResolvedConfigWithIdentifierInput = GetResolvedConfigWithIdentifierInput
     org_id :: Data.Text.Text,
     prefix :: Data.Maybe.Maybe ([] Data.Text.Text),
     exclude_prefix :: Data.Maybe.Maybe ([] Data.Text.Text),
+    substring :: Data.Maybe.Maybe ([] Data.Text.Text),
     version :: Data.Maybe.Maybe Data.Text.Text,
     show_reasoning :: Data.Maybe.Maybe Bool,
     merge_strategy :: Data.Maybe.Maybe Io.Superposition.Model.MergeStrategy.MergeStrategy,
@@ -64,6 +67,7 @@ instance Data.Aeson.ToJSON GetResolvedConfigWithIdentifierInput where
         "org_id" Data.Aeson..= org_id a,
         "prefix" Data.Aeson..= prefix a,
         "exclude_prefix" Data.Aeson..= exclude_prefix a,
+        "substring" Data.Aeson..= substring a,
         "version" Data.Aeson..= version a,
         "show_reasoning" Data.Aeson..= show_reasoning a,
         "merge_strategy" Data.Aeson..= merge_strategy a,
@@ -82,6 +86,7 @@ instance Data.Aeson.FromJSON GetResolvedConfigWithIdentifierInput where
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
         Control.Applicative.<*> (v Data.Aeson..:? "prefix")
         Control.Applicative.<*> (v Data.Aeson..:? "exclude_prefix")
+        Control.Applicative.<*> (v Data.Aeson..:? "substring")
         Control.Applicative.<*> (v Data.Aeson..:? "version")
         Control.Applicative.<*> (v Data.Aeson..:? "show_reasoning")
         Control.Applicative.<*> (v Data.Aeson..:? "merge_strategy")
@@ -98,6 +103,7 @@ data GetResolvedConfigWithIdentifierInputBuilderState = GetResolvedConfigWithIde
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     prefixBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     exclude_prefixBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
+    substringBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     versionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     show_reasoningBuilderState :: Data.Maybe.Maybe Bool,
     merge_strategyBuilderState :: Data.Maybe.Maybe Io.Superposition.Model.MergeStrategy.MergeStrategy,
@@ -115,6 +121,7 @@ defaultBuilderState = GetResolvedConfigWithIdentifierInputBuilderState {
     org_idBuilderState = Data.Maybe.Nothing,
     prefixBuilderState = Data.Maybe.Nothing,
     exclude_prefixBuilderState = Data.Maybe.Nothing,
+    substringBuilderState = Data.Maybe.Nothing,
     versionBuilderState = Data.Maybe.Nothing,
     show_reasoningBuilderState = Data.Maybe.Nothing,
     merge_strategyBuilderState = Data.Maybe.Nothing,
@@ -141,6 +148,10 @@ setPrefix value =
 setExcludePrefix :: Data.Maybe.Maybe ([] Data.Text.Text) -> GetResolvedConfigWithIdentifierInputBuilder ()
 setExcludePrefix value =
    Control.Monad.State.Strict.modify (\s -> (s { exclude_prefixBuilderState = value }))
+
+setSubstring :: Data.Maybe.Maybe ([] Data.Text.Text) -> GetResolvedConfigWithIdentifierInputBuilder ()
+setSubstring value =
+   Control.Monad.State.Strict.modify (\s -> (s { substringBuilderState = value }))
 
 setVersion :: Data.Maybe.Maybe Data.Text.Text -> GetResolvedConfigWithIdentifierInputBuilder ()
 setVersion value =
@@ -177,6 +188,7 @@ build builder = do
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetResolvedConfigWithIdentifierInput.GetResolvedConfigWithIdentifierInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
     prefix' <- Data.Either.Right (prefixBuilderState st)
     exclude_prefix' <- Data.Either.Right (exclude_prefixBuilderState st)
+    substring' <- Data.Either.Right (substringBuilderState st)
     version' <- Data.Either.Right (versionBuilderState st)
     show_reasoning' <- Data.Either.Right (show_reasoningBuilderState st)
     merge_strategy' <- Data.Either.Right (merge_strategyBuilderState st)
@@ -189,6 +201,7 @@ build builder = do
         org_id = org_id',
         prefix = prefix',
         exclude_prefix = exclude_prefix',
+        substring = substring',
         version = version',
         show_reasoning = show_reasoning',
         merge_strategy = merge_strategy',
@@ -212,6 +225,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder GetResolvedConfigWithIdenti
         Io.Superposition.Utility.serQuery "context_id" (context_id self)
         Io.Superposition.Utility.serQuery "version" (version self)
         Io.Superposition.Utility.serQuery "resolve_remote" (resolve_remote self)
+        Io.Superposition.Utility.serQuery "substring" (substring self)
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "x-merge-strategy" (merge_strategy self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)

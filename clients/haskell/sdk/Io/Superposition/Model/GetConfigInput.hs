@@ -3,6 +3,7 @@ module Io.Superposition.Model.GetConfigInput (
     setOrgId,
     setPrefix,
     setExcludePrefix,
+    setSubstring,
     setVersion,
     setIfModifiedSince,
     setContext,
@@ -13,6 +14,7 @@ module Io.Superposition.Model.GetConfigInput (
     org_id,
     prefix,
     exclude_prefix,
+    substring,
     version,
     if_modified_since,
     context
@@ -37,6 +39,7 @@ data GetConfigInput = GetConfigInput {
     org_id :: Data.Text.Text,
     prefix :: Data.Maybe.Maybe ([] Data.Text.Text),
     exclude_prefix :: Data.Maybe.Maybe ([] Data.Text.Text),
+    substring :: Data.Maybe.Maybe ([] Data.Text.Text),
     version :: Data.Maybe.Maybe Data.Text.Text,
     if_modified_since :: Data.Maybe.Maybe Data.Time.UTCTime,
     context :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value)
@@ -52,6 +55,7 @@ instance Data.Aeson.ToJSON GetConfigInput where
         "org_id" Data.Aeson..= org_id a,
         "prefix" Data.Aeson..= prefix a,
         "exclude_prefix" Data.Aeson..= exclude_prefix a,
+        "substring" Data.Aeson..= substring a,
         "version" Data.Aeson..= version a,
         "if_modified_since" Data.Aeson..= if_modified_since a,
         "context" Data.Aeson..= context a
@@ -66,6 +70,7 @@ instance Data.Aeson.FromJSON GetConfigInput where
         Control.Applicative.<*> (v Data.Aeson..: "org_id")
         Control.Applicative.<*> (v Data.Aeson..:? "prefix")
         Control.Applicative.<*> (v Data.Aeson..:? "exclude_prefix")
+        Control.Applicative.<*> (v Data.Aeson..:? "substring")
         Control.Applicative.<*> (v Data.Aeson..:? "version")
         Control.Applicative.<*> (v Data.Aeson..:? "if_modified_since")
         Control.Applicative.<*> (v Data.Aeson..:? "context")
@@ -78,6 +83,7 @@ data GetConfigInputBuilderState = GetConfigInputBuilderState {
     org_idBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     prefixBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     exclude_prefixBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
+    substringBuilderState :: Data.Maybe.Maybe ([] Data.Text.Text),
     versionBuilderState :: Data.Maybe.Maybe Data.Text.Text,
     if_modified_sinceBuilderState :: Data.Maybe.Maybe Data.Time.UTCTime,
     contextBuilderState :: Data.Maybe.Maybe (Data.Map.Map Data.Text.Text Data.Aeson.Value)
@@ -91,6 +97,7 @@ defaultBuilderState = GetConfigInputBuilderState {
     org_idBuilderState = Data.Maybe.Nothing,
     prefixBuilderState = Data.Maybe.Nothing,
     exclude_prefixBuilderState = Data.Maybe.Nothing,
+    substringBuilderState = Data.Maybe.Nothing,
     versionBuilderState = Data.Maybe.Nothing,
     if_modified_sinceBuilderState = Data.Maybe.Nothing,
     contextBuilderState = Data.Maybe.Nothing
@@ -114,6 +121,10 @@ setExcludePrefix :: Data.Maybe.Maybe ([] Data.Text.Text) -> GetConfigInputBuilde
 setExcludePrefix value =
    Control.Monad.State.Strict.modify (\s -> (s { exclude_prefixBuilderState = value }))
 
+setSubstring :: Data.Maybe.Maybe ([] Data.Text.Text) -> GetConfigInputBuilder ()
+setSubstring value =
+   Control.Monad.State.Strict.modify (\s -> (s { substringBuilderState = value }))
+
 setVersion :: Data.Maybe.Maybe Data.Text.Text -> GetConfigInputBuilder ()
 setVersion value =
    Control.Monad.State.Strict.modify (\s -> (s { versionBuilderState = value }))
@@ -133,6 +144,7 @@ build builder = do
     org_id' <- Data.Maybe.maybe (Data.Either.Left "Io.Superposition.Model.GetConfigInput.GetConfigInput.org_id is a required property.") Data.Either.Right (org_idBuilderState st)
     prefix' <- Data.Either.Right (prefixBuilderState st)
     exclude_prefix' <- Data.Either.Right (exclude_prefixBuilderState st)
+    substring' <- Data.Either.Right (substringBuilderState st)
     version' <- Data.Either.Right (versionBuilderState st)
     if_modified_since' <- Data.Either.Right (if_modified_sinceBuilderState st)
     context' <- Data.Either.Right (contextBuilderState st)
@@ -141,6 +153,7 @@ build builder = do
         org_id = org_id',
         prefix = prefix',
         exclude_prefix = exclude_prefix',
+        substring = substring',
         version = version',
         if_modified_since = if_modified_since',
         context = context'
@@ -156,6 +169,7 @@ instance Io.Superposition.Utility.IntoRequestBuilder GetConfigInput where
         Io.Superposition.Utility.serQuery "prefix" (prefix self)
         Io.Superposition.Utility.serQuery "exclude_prefix" (exclude_prefix self)
         Io.Superposition.Utility.serQuery "version" (version self)
+        Io.Superposition.Utility.serQuery "substring" (substring self)
         Io.Superposition.Utility.serHeader "x-workspace" (workspace_id self)
         Io.Superposition.Utility.serHeader "if-modified-since" (if_modified_since self)
         Io.Superposition.Utility.serHeader "x-org-id" (org_id self)

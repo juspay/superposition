@@ -162,6 +162,25 @@ impl GetConfigFluentBuilder {
     pub fn get_exclude_prefix(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
                     self.inner.get_exclude_prefix()
                 }
+    /// 
+    /// Appends an item to `substring`.
+    /// 
+    /// To override the contents of this collection use [`set_substring`](Self::set_substring).
+    /// 
+    /// Keeps only configuration keys that contain any of the supplied substrings anywhere in the key, e.g. `.external.` matches `payments.external.requires_cvv`. When combined with prefix filters, both must match.
+    pub fn substring(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
+                        self.inner = self.inner.substring(input.into());
+                        self
+                    }
+    /// Keeps only configuration keys that contain any of the supplied substrings anywhere in the key, e.g. `.external.` matches `payments.external.requires_cvv`. When combined with prefix filters, both must match.
+    pub fn set_substring(mut self, input: ::std::option::Option<::std::vec::Vec::<::std::string::String>>) -> Self {
+                    self.inner = self.inner.set_substring(input);
+                    self
+                }
+    /// Keeps only configuration keys that contain any of the supplied substrings anywhere in the key, e.g. `.external.` matches `payments.external.requires_cvv`. When combined with prefix filters, both must match.
+    pub fn get_substring(&self) -> &::std::option::Option<::std::vec::Vec::<::std::string::String>> {
+                    self.inner.get_substring()
+                }
     #[allow(missing_docs)] // documentation missing in model
     pub fn version(mut self, input: impl ::std::convert::Into<::std::string::String>) -> Self {
                     self.inner = self.inner.version(input.into());

@@ -557,6 +557,7 @@ async fn get_handler(
         config,
         query_filters.prefix,
         query_filters.exclude_prefix,
+        query_filters.substring,
     )?;
     let context = if req.method() == actix_web::http::Method::GET {
         dimension_params.into_inner()

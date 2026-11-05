@@ -26,6 +26,8 @@ pub struct ConfigQuery {
     pub prefix: Option<CommaSeparatedStringQParams>,
     #[query_param(skip_if_empty, iterable)]
     pub exclude_prefix: Option<CommaSeparatedStringQParams>,
+    #[query_param(skip_if_empty, iterable)]
+    pub substring: Option<CommaSeparatedStringQParams>,
 }
 
 #[derive(Deserialize)]
@@ -55,6 +57,8 @@ pub struct ResolveConfigQuery {
     pub prefix: Option<CommaSeparatedStringQParams>,
     #[query_param(skip_if_empty, iterable)]
     pub exclude_prefix: Option<CommaSeparatedStringQParams>,
+    #[query_param(skip_if_empty, iterable)]
+    pub substring: Option<CommaSeparatedStringQParams>,
 }
 
 #[derive(Serialize)]

@@ -24,7 +24,7 @@ use crate::{
     database::models::cac::{DependencyGraph, DimensionType},
     logic::evaluate_local_cohorts_skip_unresolved,
     overridden::{
-        filter_config_keys_by_prefix, filter_into_config_keys_by_prefix, PrefixList,
+        filter_config_keys_by_prefix, key_is_retained, PrefixList, SubstringList,
     },
     Cac, Contextual, Exp, ExtendedMap,
 };
@@ -417,23 +417,27 @@ pub trait ConfigFilter<'a>: Sized {
         prefix_list: &PrefixList,
         exclude_prefix_list: &PrefixList,
     ) -> Self {
+        self.retain_keys(|key| key_is_retained(key, prefix_list, exclude_prefix_list))
+    }
+
+    fn filter_by_substring(self, substring_list: &SubstringList) -> Self {
+        self.retain_keys(|key| substring_list.matches_any(key))
+    }
+
+    /// Drops config keys for which `keep` is false, along with contexts left
+    /// with no overrides.
+    fn retain_keys(self, keep: impl Fn(&str) -> bool) -> Self {
         let (contexts, overrides, defaults, dims) = self.into_parts();
-        let filtered_default_config: ExtendedMap = filter_into_config_keys_by_prefix(
-            defaults.into_inner(),
-            prefix_list,
-            exclude_prefix_list,
-        )
-        .into();
+        let mut filtered_default_config = defaults.into_inner();
+        filtered_default_config.retain(|key, _| keep(key));
+        let filtered_default_config: ExtendedMap = filtered_default_config.into();
 
         let filtered_overrides = overrides
             .into_owned()
             .into_iter()
             .filter_map(|(key, overrides)| {
-                let filtered_overrides_map = filter_into_config_keys_by_prefix(
-                    overrides.into_inner(),
-                    prefix_list,
-                    exclude_prefix_list,
-                );
+                let mut filtered_overrides_map = overrides.into_inner();
+                filtered_overrides_map.retain(|key, _| keep(key));
                 Cac::<Overrides>::try_from(filtered_overrides_map).ok().map(
                     |filtered_overrides_map| (key, filtered_overrides_map.into_inner()),
                 )
