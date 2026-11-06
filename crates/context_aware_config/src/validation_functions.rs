@@ -18,7 +18,12 @@ use superposition_types::{
     result as superposition,
 };
 
-use crate::api::functions::helpers::inject_secrets_and_variables_into_code;
+use crate::{
+    api::functions::helpers::{
+        InjectedFunctionCode, inject_secrets_and_variables_into_code,
+    },
+    redaction::SecretRedactor,
+};
 
 #[derive(Serialize)]
 struct FunctionPayload {
@@ -29,7 +34,6 @@ struct FunctionPayload {
 
 const FUNCTION_WRAPPER: &str = r#"
 let logBuffer = [];
-const originalConsole = console;
 const customConsole = {
     log: (...args) => {
         logBuffer.push("[log] " + args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '));
@@ -78,7 +82,9 @@ pub fn run_js_function(
     code: FunctionCode,
     args: FunctionExecutionRequest,
     runtime_version: FunctionRuntimeVersion,
+    secret_values: Vec<String>,
 ) -> Result<FunctionExecutionResponse, (String, Option<String>)> {
+    let redactor = SecretRedactor::new(secret_values);
     let wrapped_code = generate_wrapped_code(&code);
     let module = Module::new("function.js", &wrapped_code);
 
@@ -90,7 +96,10 @@ pub fn run_js_function(
 
     let mut runtime = Runtime::new(runtime_options).map_err(|e| {
         let err_str = e.to_string();
-        (format!("Failed to create runtime: {}", err_str), None)
+        (
+            redactor.redact(&format!("Failed to create runtime: {}", err_str)),
+            None,
+        )
     })?;
 
     let payload = FunctionPayload {
@@ -99,7 +108,7 @@ pub fn run_js_function(
     };
     let module_handle = runtime
         .load_module(&module)
-        .map_err(|err| (err.to_string(), None))?;
+        .map_err(|err| (redactor.redact(&err.to_string()), None))?;
 
     let tokio_runtime = runtime.tokio_runtime();
 
@@ -113,15 +122,17 @@ pub fn run_js_function(
                 )
                 .await
         })
-        .map_err(|err| (err.to_string(), None))?;
+        .map_err(|err| (redactor.redact(&err.to_string()), None))?;
+    let fn_output = redactor.redact_value(&fn_output);
 
     let stdout = runtime
         .call_function::<Vec<String>>(Some(&module_handle), "getLogBuffer", json_args!())
-        .map_err(|err| (err.to_string(), None))?
+        .map_err(|err| (redactor.redact(&err.to_string()), None))?
         .join("\n");
+    let stdout = redactor.redact(&stdout);
     runtime
         .call_function::<()>(Some(&module_handle), "clearLogBuffer", json_args!())
-        .map_err(|err| (err.to_string(), None))?;
+        .map_err(|err| (redactor.redact(&err.to_string()), None))?;
     let function_type = FunctionType::from(&args);
     log::trace!("Function output: {:?}", fn_output);
     log::trace!("Function logs: {}", stdout);
@@ -140,7 +151,10 @@ pub fn execute_fn(
     conn: &mut DBConnection,
     master_encryption_key: &Option<EncryptionKey>,
 ) -> Result<FunctionExecutionResponse, (String, Option<String>)> {
-    let code = inject_secrets_and_variables_into_code(
+    let InjectedFunctionCode {
+        code,
+        secret_values,
+    } = inject_secrets_and_variables_into_code(
         code_str,
         conn,
         workspace_context,
@@ -151,7 +165,7 @@ pub fn execute_fn(
         (err.to_string(), None)
     })?;
 
-    run_js_function(code, args.clone(), runtime_version)
+    run_js_function(code, args.clone(), runtime_version, secret_values)
 }
 
 pub fn compile_fn(

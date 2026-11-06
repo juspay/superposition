@@ -31,7 +31,8 @@ use superposition_types::{
 };
 
 use crate::api::functions::helpers::{
-    get_first_function_by_type, inject_secrets_and_variables_into_code,
+    InjectedFunctionCode, get_first_function_by_type,
+    inject_secrets_and_variables_into_code,
 };
 use crate::{
     api::functions::{helpers::get_published_functions_by_names, types::FunctionInfo},
@@ -287,7 +288,10 @@ pub async fn validation_function_executor(
     conn: &mut DBConnection,
     master_encryption_key: &Option<EncryptionKey>,
 ) -> superposition::Result<()> {
-    let code = inject_secrets_and_variables_into_code(
+    let InjectedFunctionCode {
+        code,
+        secret_values,
+    } = inject_secrets_and_variables_into_code(
         function,
         conn,
         workspace_context,
@@ -297,7 +301,9 @@ pub async fn validation_function_executor(
     let args_owned = args.clone();
     let handle = rustyscript::tokio::runtime::Handle::current();
     let result = handle
-        .spawn_blocking(move || run_js_function(code, args_owned, runtime_version))
+        .spawn_blocking(move || {
+            run_js_function(code, args_owned, runtime_version, secret_values)
+        })
         .await
         .map_err(|e| {
             log::error!("spawn_blocking join error: {:?}", e);
