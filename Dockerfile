@@ -37,7 +37,7 @@ RUN cargo build --release --features=ssr
 RUN pwd
 RUN ls -l target
 
-FROM ubuntu:25.10 as runtime
+FROM ubuntu:26.04 as runtime
 
 
 RUN mkdir -p /app/crates/superposition
@@ -49,12 +49,17 @@ ARG SUPERPOSITION_VERSION
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+    apt \
+    libapt-pkg7.0 \
     libpq5 \
     ca-certificates \
     curl \
     postgresql-common && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+# The ubuntu base image ships /usr/bin/pebble (an unused service manager)
+# with unpatched golang stdlib CVEs; superposition does not use it.
+RUN rm -rf /usr/bin/pebble /var/lib/pebble
     
 COPY --from=builder /build/target/release/superposition /app/superposition
 COPY --from=builder /build/Cargo.toml /app/Cargo.toml
