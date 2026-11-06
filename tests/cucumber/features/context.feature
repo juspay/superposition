@@ -73,3 +73,9 @@ Feature: Context Management
   Scenario: Validate a context with invalid dimension
     When I validate a context with "nonexistent" equals "value"
     Then the operation should fail
+
+  # ── Error Cases ────────────────────────────────────────────────────
+
+  Scenario: Fail to create a context with an empty condition
+    When I create a context with an empty condition and override "ctx-config-key" to "empty-ctx-value"
+    Then the operation should fail with error matching "should not be empty"

@@ -55,6 +55,56 @@ Feature: Function Management
     When I publish function "non-existent-function"
     Then the operation should fail with error matching "No records found"
 
+  # ── Test (draft / published stages) ───────────────────────────────
+
+  Scenario: Test a draft value_validation function with valid and invalid input
+    Given a value_validation function "test-run-val" exists
+    When I test the validation function in "draft" stage with key "test-dimension" and value "valid"
+    Then the operation should succeed
+    And the function output should be true
+    And the response should have function type "VALUE_VALIDATION"
+    When I test the validation function in "draft" stage with key "test-dimension" and value "invalid"
+    Then the function output should be false
+
+  Scenario: Test a draft value_compute function
+    Given a value_compute function "test-run-comp" exists
+    When I test the compute function in "draft" stage with name "test-dimension" and prefix "t"
+    Then the operation should succeed
+    And the function output should be the list "test1,test2,test3"
+    And the response should have function type "VALUE_COMPUTE"
+
+  Scenario: Fail to test the published stage of an unpublished function
+    Given a value_validation function "test-unpub" exists
+    When I test the validation function in "published" stage with key "test-dimension" and value "valid"
+    Then the operation should fail with error matching "function not published yet"
+
+  Scenario: Fail to test a non-existent function
+    When I test function "non-existent-function" in "draft" stage with key "test-dimension" and value "valid"
+    Then the operation should fail
+
+  Scenario: Testing a function captures stdout and surfaces thrown errors
+    Given a value_validation function "test-stdout" exists that logs its input and throws on "boom"
+    When I test the validation function in "draft" stage with key "test-dimension" and value "hello"
+    Then the function output should be true
+    And the function stdout should contain "validating value: hello"
+    When I test the validation function in "draft" stage with key "test-dimension" and value "boom"
+    Then the operation should fail with error matching "intentional failure"
+
+  Scenario: Test the published stage after publishing
+    Given a value_validation function "test-pub-run" exists
+    When I publish function "test-pub-run"
+    And I test the validation function in "published" stage with key "test-dimension" and value "valid"
+    Then the operation should succeed
+    And the function output should be true
+
+  Scenario: Updated draft code is reflected when testing the draft stage
+    Given a value_validation function "test-upd-run" exists
+    When I update function "test-upd-run" with new validation code
+    And I test the validation function in "draft" stage with key "test-dimension" and value "updated-valid"
+    Then the function output should be true
+    When I test the validation function in "draft" stage with key "test-dimension" and value "valid"
+    Then the function output should be false
+
   # ── Delete ─────────────────────────────────────────────────────────
 
   Scenario: Delete a function

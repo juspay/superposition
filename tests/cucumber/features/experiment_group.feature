@@ -32,7 +32,7 @@ Feature: Experiment Group Management
 
   Scenario: Fail to create group with traffic percentage over 100
     When I create an experiment group with traffic percentage 101
-    Then the operation should fail
+    Then the operation should fail with error matching "Traffic percentage must be a number between 0 and 100"
 
   # ── Get ────────────────────────────────────────────────────────────
 

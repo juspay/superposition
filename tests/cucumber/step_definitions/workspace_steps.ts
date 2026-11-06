@@ -162,7 +162,104 @@ When(
   }
 );
 
+// ── When: Metrics ─────────────────────────────────────────────────
+
+When(
+  "I create a workspace {string} with metric definitions {string}",
+  async function (this: SuperpositionWorld, name: string, spec: string) {
+    const uniqueName = this.uniqueName(name);
+    try {
+      this.lastResponse = await this.client.send(
+        new CreateWorkspaceCommand({
+          org_id: this.orgId,
+          workspace_admin_email: "admin@example.com",
+          workspace_name: uniqueName,
+          workspace_status: WorkspaceStatus.ENABLED,
+          metrics: { enabled: true, definitions: this.parseMetricDefinitions(spec) },
+        })
+      );
+      this.workspaceName = uniqueName;
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
+
+When(
+  "I create a workspace {string} with metrics enabled and no definitions",
+  async function (this: SuperpositionWorld, name: string) {
+    const uniqueName = this.uniqueName(name);
+    try {
+      this.lastResponse = await this.client.send(
+        new CreateWorkspaceCommand({
+          org_id: this.orgId,
+          workspace_admin_email: "admin@example.com",
+          workspace_name: uniqueName,
+          workspace_status: WorkspaceStatus.ENABLED,
+          metrics: { enabled: true },
+        })
+      );
+      this.workspaceName = uniqueName;
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
+
+When(
+  "I update workspace {string} metric definitions to {string}",
+  async function (this: SuperpositionWorld, name: string, spec: string) {
+    const uniqueName = this.workspaceName || this.uniqueName(name);
+    try {
+      this.lastResponse = await this.client.send(
+        new UpdateWorkspaceCommand({
+          org_id: this.orgId,
+          workspace_name: uniqueName,
+          metrics: { enabled: true, definitions: this.parseMetricDefinitions(spec) },
+        })
+      );
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
+
 // ── Then ────────────────────────────────────────────────────────────
+
+Then(
+  "the workspace metrics should be enabled",
+  function (this: SuperpositionWorld) {
+    assert.ok(this.lastResponse, "No response");
+    assert.strictEqual(this.lastResponse.metrics?.enabled, true, "Workspace metrics are not enabled");
+  }
+);
+
+Then(
+  "the workspace metric definitions should include {string} with direction {string}",
+  function (this: SuperpositionWorld, name: string, direction: string) {
+    assert.ok(this.lastResponse, "No response");
+    const definitions = this.lastResponse.metrics?.definitions;
+    assert.ok(Array.isArray(definitions), "No metric definitions in response");
+    const found = definitions.find((d: any) => d.name === name);
+    assert.ok(found, `Metric "${name}" not found in ${JSON.stringify(definitions)}`);
+    assert.strictEqual(found.direction, direction);
+  }
+);
+
+Then(
+  "the workspace should have {int} metric definition(s)",
+  function (this: SuperpositionWorld, count: number) {
+    assert.ok(this.lastResponse, "No response");
+    const definitions = this.lastResponse.metrics?.definitions ?? [];
+    assert.strictEqual(definitions.length, count);
+  }
+);
 
 Then(
   "the response should contain a workspace list",

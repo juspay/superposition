@@ -79,7 +79,7 @@ Feature: Default Configuration Management
     Given a default config exists with key "test-key-list" and value "List User" age 25
     When I list default configs with count 10 and page 1
     Then the operation should succeed
-    And the response should contain a list with at least 1 item(s)
+    And the response should contain a list with at least 1 item
 
   # ── Get ────────────────────────────────────────────────────────────
 

@@ -5,6 +5,7 @@ import {
   GetDetailedResolvedConfigCommand,
   CreateDimensionCommand,
   CreateDefaultConfigCommand,
+  CreateContextCommand,
   CreateExperimentCommand,
   RampExperimentCommand,
   DiscardExperimentCommand,
@@ -164,6 +165,66 @@ When(
       this.lastError = e;
       this.lastResponse = undefined;
     }
+  }
+);
+
+// ── Detailed resolve: context attribution ─────────────────────────
+
+const CONTEXT_OVERRIDE_VALUE = "context-override-value";
+
+Given(
+  "a context overrides the test config key for client {string}",
+  async function (this: PlaywrightWorld, clientId: string) {
+    const response = await this.client.send(
+      new CreateContextCommand({
+        workspace_id: this.workspaceId,
+        org_id: this.orgId,
+        request: {
+          context: { [BUCKETING_DIM]: clientId },
+          override: { [this.configKey]: CONTEXT_OVERRIDE_VALUE },
+          description: "Detailed resolve attribution test context",
+          change_reason: "Cucumber setup",
+        },
+      })
+    );
+    this.contextId = response.id ?? "";
+    this.createdContextIds.push(this.contextId);
+  }
+);
+
+When(
+  "I get the detailed resolved config for client {string}",
+  async function (this: PlaywrightWorld, clientId: string) {
+    try {
+      this.lastResponse = await this.client.send(
+        new GetDetailedResolvedConfigCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          prefix: [this.configKey],
+          context: { [BUCKETING_DIM]: clientId },
+        })
+      );
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
+
+Then(
+  "the detailed config should attribute the test key to that context",
+  function (this: PlaywrightWorld) {
+    assert.ok(this.lastResponse, "No response");
+    const entry = (this.lastResponse.config as any)?.[this.configKey];
+    assert.ok(entry, `Key "${this.configKey}" missing from detailed config`);
+    assert.strictEqual(entry.value, CONTEXT_OVERRIDE_VALUE);
+    assert.strictEqual(
+      entry.context_id,
+      this.contextId,
+      `Expected context_id "${this.contextId}", got "${entry.context_id}"`
+    );
+    assert.ok(entry.context, "Detailed config entry is missing the overriding context");
   }
 );
 

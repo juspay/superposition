@@ -45,6 +45,36 @@ Feature: Workspace Management
     When I update workspace "cucumbertestws" admin email to "updated-admin@example.com"
     Then the response should have workspace admin email "updated-admin@example.com"
 
+  # ── Metrics ────────────────────────────────────────────────────────
+
+  Scenario: Create a workspace with metric definitions
+    When I create a workspace "metricsws" with metric definitions "conversion:maximize,latency:minimize"
+    Then the operation should succeed
+    And the workspace metrics should be enabled
+    And the workspace metric definitions should include "conversion" with direction "maximize"
+    And the workspace metric definitions should include "latency" with direction "minimize"
+    And the workspace should have 2 metric definitions
+
+  Scenario: Update a workspace's metric definitions
+    Given a workspace exists with name "metricsupd"
+    When I update workspace "metricsupd" metric definitions to "retention:maximize"
+    Then the operation should succeed
+    And the workspace metrics should be enabled
+    And the workspace metric definitions should include "retention" with direction "maximize"
+    And the workspace should have 1 metric definition
+
+  Scenario: Fail to create a workspace with duplicate metric names
+    When I create a workspace "metricsdup" with metric definitions "conversion:maximize,conversion:minimize"
+    Then the operation should fail with error matching "duplicate metric name"
+
+  Scenario: Fail to create a workspace with metrics enabled but no source or definitions
+    When I create a workspace "metricsempty" with metrics enabled and no definitions
+    Then the operation should fail with error matching "must be provided when metrics is enabled"
+
+  Scenario: Fail to create a workspace with an empty metric name
+    When I create a workspace "metricsblank" with metric definitions ":maximize"
+    Then the operation should fail with error matching "Empty value not allowed"
+
   # ── Filters ────────────────────────────────────────────────────────
 
   Scenario: List workspaces filtered by ENABLED status

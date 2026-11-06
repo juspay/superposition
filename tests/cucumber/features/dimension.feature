@@ -56,3 +56,7 @@ Feature: Dimension Management
   Scenario: Fail to create a dimension with invalid schema
     When I create a dimension with name "test-dim-invalid" and schema type "invalid-type"
     Then the operation should fail
+
+  Scenario: Fail to create a dimension with an invalid name
+    When I create a dimension with name "invalid dimension name!" and schema type "string"
+    Then the operation should fail with error matching "it should obey the regex"

@@ -314,6 +314,32 @@ When(
   }
 );
 
+When(
+  "I create a context with an empty condition and override {string} to {string}",
+  async function (this: SuperpositionWorld, configKey: string, configValue: string) {
+    try {
+      this.lastResponse = await this.client.send(
+        new CreateContextCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          request: {
+            context: {},
+            override: { [configKey]: configValue },
+            description: "Empty context",
+            change_reason: "Testing empty context validation",
+          },
+        })
+      );
+      this.contextId = this.lastResponse.id ?? "";
+      this.createdContextIds.push(this.contextId);
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
+
 // ── Then ────────────────────────────────────────────────────────────
 
 Then(

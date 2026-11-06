@@ -11,6 +11,7 @@ import {
   UpdateOverridesExperimentCommand,
   CreateDimensionCommand,
   CreateDefaultConfigCommand,
+  UpdateWorkspaceCommand,
   VariantType,
   ExperimentStatusType,
 } from "@juspay/superposition-sdk";
@@ -155,6 +156,37 @@ Given(
         org_id: this.orgId,
         id: this.experimentId,
         change_reason: "Cucumber pause setup",
+      })
+    );
+  }
+);
+
+// ── Given: Metrics ────────────────────────────────────────────────
+
+Given(
+  "the workspace has metric definitions {string}",
+  async function (this: SuperpositionWorld, spec: string) {
+    const definitions = this.parseMetricDefinitions(spec);
+    this.metricDefinitions = definitions;
+    await this.client.send(
+      new UpdateWorkspaceCommand({
+        org_id: this.orgId,
+        workspace_name: this.workspaceId,
+        metrics: { enabled: true, definitions },
+      })
+    );
+  }
+);
+
+Given(
+  "the workspace has no metric definitions",
+  async function (this: SuperpositionWorld) {
+    this.metricDefinitions = [];
+    await this.client.send(
+      new UpdateWorkspaceCommand({
+        org_id: this.orgId,
+        workspace_name: this.workspaceId,
+        metrics: { enabled: false },
       })
     );
   }
@@ -378,7 +410,188 @@ When("I discard the experiment", async function (this: SuperpositionWorld) {
   }
 });
 
+// ── When: Metrics ─────────────────────────────────────────────────
+
+/** Build a metric selection, taking each metric's direction from the workspace definitions. */
+function buildMetricSelection(
+  world: SuperpositionWorld,
+  primary: string,
+  secondary: string | undefined,
+  guardrail: string
+): Record<string, any> {
+  const directionOf = (name: string) =>
+    world.metricDefinitions.find((d) => d.name === name)?.direction ?? "maximize";
+  return {
+    primary: { name: primary, direction: directionOf(primary) },
+    ...(secondary
+      ? { secondary: { name: secondary, direction: directionOf(secondary) } }
+      : {}),
+    guardrail,
+  };
+}
+
+async function createExperimentWithMetrics(
+  world: SuperpositionWorld,
+  name: string,
+  selection: Record<string, any>
+): Promise<void> {
+  const uniqueName = world.uniqueName(name);
+  try {
+    world.lastResponse = await world.client.send(
+      new CreateExperimentCommand({
+        workspace_id: world.workspaceId,
+        org_id: world.orgId,
+        name: uniqueName,
+        context: { os: "android" },
+        variants: [
+          {
+            variant_type: VariantType.CONTROL,
+            id: "control",
+            overrides: { "exp-config-key": "control-val" },
+          },
+          {
+            variant_type: VariantType.EXPERIMENTAL,
+            id: "experimental",
+            overrides: { "exp-config-key": "experimental-val" },
+          },
+        ],
+        description: `Metrics experiment ${uniqueName}`,
+        change_reason: "Cucumber metrics test",
+        metrics: { enabled: true, selection },
+      })
+    );
+    world.experimentId = world.lastResponse.id ?? "";
+    world.experimentVariants = world.lastResponse.variants ?? [];
+    world.createdExperimentIds.push(world.experimentId);
+    world.lastError = undefined;
+  } catch (e: any) {
+    world.lastError = e;
+    world.lastResponse = undefined;
+  }
+}
+
+When(
+  "I create an experiment {string} with primary metric {string}, secondary metric {string} and guardrail {string}",
+  async function (
+    this: SuperpositionWorld,
+    name: string,
+    primary: string,
+    secondary: string,
+    guardrail: string
+  ) {
+    await createExperimentWithMetrics(
+      this,
+      name,
+      buildMetricSelection(this, primary, secondary, guardrail)
+    );
+  }
+);
+
+When(
+  "I create an experiment {string} with primary metric {string} and guardrail {string}",
+  async function (this: SuperpositionWorld, name: string, primary: string, guardrail: string) {
+    await createExperimentWithMetrics(
+      this,
+      name,
+      buildMetricSelection(this, primary, undefined, guardrail)
+    );
+  }
+);
+
+When(
+  "I update the experiment metric selection to primary {string} and guardrail {string}",
+  async function (this: SuperpositionWorld, primary: string, guardrail: string) {
+    // Server requires all variants in the update request
+    const variantList = this.experimentVariants.map((v: any) => ({
+      id: v.id ?? v.variant_type,
+      overrides: v.overrides ?? {},
+    }));
+    try {
+      this.lastResponse = await this.client.send(
+        new UpdateOverridesExperimentCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          id: this.experimentId,
+          variant_list: variantList,
+          change_reason: "Cucumber metric selection update",
+          metrics: {
+            enabled: true,
+            selection: buildMetricSelection(this, primary, undefined, guardrail),
+          },
+        })
+      );
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
+
 // ── Then ────────────────────────────────────────────────────────────
+
+Then(
+  "the experiment metrics should be enabled",
+  function (this: SuperpositionWorld) {
+    assert.ok(this.lastResponse, "No response");
+    assert.strictEqual(this.lastResponse.metrics?.enabled, true, "Experiment metrics are not enabled");
+  }
+);
+
+Then(
+  "the experiment metrics should be disabled",
+  function (this: SuperpositionWorld) {
+    assert.ok(this.lastResponse, "No response");
+    assert.ok(
+      this.lastResponse.metrics?.enabled !== true,
+      `Expected disabled metrics, got ${JSON.stringify(this.lastResponse.metrics)}`
+    );
+  }
+);
+
+Then(
+  "the experiment primary metric should be {string} with direction {string}",
+  function (this: SuperpositionWorld, name: string, direction: string) {
+    assert.ok(this.lastResponse, "No response");
+    const selection = this.lastResponse.metrics?.selection;
+    assert.ok(selection, "No metric selection in response");
+    assert.strictEqual(selection.primary?.name, name);
+    assert.strictEqual(selection.primary?.direction, direction);
+  }
+);
+
+Then(
+  "the experiment secondary metric should be {string}",
+  function (this: SuperpositionWorld, name: string) {
+    assert.ok(this.lastResponse, "No response");
+    const selection = this.lastResponse.metrics?.selection;
+    assert.ok(selection, "No metric selection in response");
+    assert.strictEqual(selection.secondary?.name, name);
+  }
+);
+
+Then(
+  "the experiment should have no secondary metric",
+  function (this: SuperpositionWorld) {
+    assert.ok(this.lastResponse, "No response");
+    const selection = this.lastResponse.metrics?.selection;
+    assert.ok(selection, "No metric selection in response");
+    assert.ok(
+      selection.secondary === undefined || selection.secondary === null,
+      `Expected no secondary metric, got ${JSON.stringify(selection.secondary)}`
+    );
+  }
+);
+
+Then(
+  "the experiment guardrail metric should be {string}",
+  function (this: SuperpositionWorld, name: string) {
+    assert.ok(this.lastResponse, "No response");
+    const selection = this.lastResponse.metrics?.selection;
+    assert.ok(selection, "No metric selection in response");
+    assert.strictEqual(selection.guardrail, name);
+  }
+);
 
 Then(
   "the response should have experiment status {string}",

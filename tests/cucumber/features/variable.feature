@@ -49,7 +49,7 @@ Feature: Variable Management
     Given a variable "LIST_TEST_VAR" exists with value "list-test-value"
     When I list variables with count 10 and page 1
     Then the operation should succeed
-    And the response should contain a list with at least 1 item(s)
+    And the response should contain a list with at least 1 item
 
   # ── Error Cases ────────────────────────────────────────────────────
 
@@ -72,11 +72,11 @@ Feature: Variable Management
 
   Scenario: Fail to create variable with empty name
     When I create a variable named "" with value "test-value"
-    Then the operation should fail with error matching "Json deserialize error"
+    Then the operation should fail with error matching "it should obey the regex"
 
   Scenario Outline: Fail to create variable with invalid name pattern
     When I create a variable named "<invalid_name>" with value "test-value"
-    Then the operation should fail with error matching "Json deserialize error"
+    Then the operation should fail with error matching "it should obey the regex"
 
     Examples:
       | invalid_name               |

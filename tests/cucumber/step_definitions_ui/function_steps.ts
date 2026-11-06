@@ -6,11 +6,46 @@ import {
   UpdateFunctionCommand,
   DeleteFunctionCommand,
   PublishCommand,
+  TestCommand,
   FunctionTypes,
   FunctionRuntimeVersion,
+  Stage,
 } from "@juspay/superposition-sdk";
 import { PlaywrightWorld } from "../support_ui/world.ts";
 import * as assert from "node:assert";
+
+/** Run the function Test endpoint for a value_validation function and record the outcome.
+ *  SDK-driven: the Monaco-based test drawer in the UI is too fragile to automate reliably. */
+async function runValidationTest(
+  world: PlaywrightWorld,
+  functionName: string,
+  stage: string,
+  key: string,
+  value: string
+): Promise<void> {
+  try {
+    world.lastResponse = await world.client.send(
+      new TestCommand({
+        workspace_id: world.workspaceId,
+        org_id: world.orgId,
+        function_name: functionName,
+        stage: stage as Stage,
+        request: {
+          value_validate: {
+            key,
+            value,
+            type: "Dimension",
+            environment: { context: {}, overrides: {} },
+          },
+        },
+      })
+    );
+    world.lastError = undefined;
+  } catch (e: any) {
+    world.lastError = e;
+    world.lastResponse = undefined;
+  }
+}
 
 // ── Given ───────────────────────────────────────────────────────────
 
@@ -35,6 +70,71 @@ Given(
           function_name: uniqueName,
           function: code,
           description: "Test value_validation function",
+          change_reason: "Cucumber setup",
+          runtime_version: FunctionRuntimeVersion.V1,
+          function_type: FunctionTypes.VALUE_VALIDATION,
+        })
+      );
+      this.createdFunctions.push(uniqueName);
+    } catch {
+      // Already exists
+    }
+  }
+);
+
+Given(
+  "a value_compute function {string} exists",
+  async function (this: PlaywrightWorld, name: string) {
+    const uniqueName = this.uniqueName(name);
+    this.functionName = uniqueName;
+    const code = `
+      async function execute(payload) {
+        return ["test1", "test2", "test3"];
+      }
+    `;
+    try {
+      await this.client.send(
+        new CreateFunctionCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          function_name: uniqueName,
+          function: code,
+          description: "Test value_compute function",
+          change_reason: "Cucumber setup",
+          runtime_version: FunctionRuntimeVersion.V1,
+          function_type: FunctionTypes.VALUE_COMPUTE,
+        })
+      );
+      this.createdFunctions.push(uniqueName);
+    } catch {
+      // Already exists
+    }
+  }
+);
+
+Given(
+  "a value_validation function {string} exists that logs its input and throws on {string}",
+  async function (this: PlaywrightWorld, name: string, trigger: string) {
+    const uniqueName = this.uniqueName(name);
+    this.functionName = uniqueName;
+    const code = `
+      async function execute(payload) {
+        let value = payload.value_validate.value;
+        console.log("validating value:", value);
+        if (value === "${trigger}") {
+          throw new Error("intentional failure");
+        }
+        return true;
+      }
+    `;
+    try {
+      await this.client.send(
+        new CreateFunctionCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          function_name: uniqueName,
+          function: code,
+          description: "Function for test endpoint stdout and errors",
           change_reason: "Cucumber setup",
           runtime_version: FunctionRuntimeVersion.V1,
           function_type: FunctionTypes.VALUE_VALIDATION,
@@ -368,7 +468,87 @@ When(
   }
 );
 
+// ── When: Test endpoint ────────────────────────────────────────────
+
+When(
+  "I test the validation function in {string} stage with key {string} and value {string}",
+  async function (this: PlaywrightWorld, stage: string, key: string, value: string) {
+    // Navigate to the function detail page for UI context (best-effort)
+    try {
+      await this.goToDetailPage("function", this.functionName);
+      await this.page.waitForTimeout(300);
+    } catch {
+      // Best-effort UI navigation
+    }
+    await runValidationTest(this, this.functionName, stage, key, value);
+  }
+);
+
+When(
+  "I test function {string} in {string} stage with key {string} and value {string}",
+  async function (
+    this: PlaywrightWorld,
+    name: string,
+    stage: string,
+    key: string,
+    value: string
+  ) {
+    await runValidationTest(this, name, stage, key, value);
+  }
+);
+
+When(
+  "I test the compute function in {string} stage with name {string} and prefix {string}",
+  async function (this: PlaywrightWorld, stage: string, name: string, prefix: string) {
+    try {
+      await this.goToDetailPage("function", this.functionName);
+      await this.page.waitForTimeout(300);
+    } catch {
+      // Best-effort UI navigation
+    }
+    try {
+      this.lastResponse = await this.client.send(
+        new TestCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          function_name: this.functionName,
+          stage: stage as Stage,
+          request: {
+            value_compute: {
+              name,
+              prefix,
+              type: "Dimension",
+              environment: { context: {}, overrides: {} },
+            },
+          },
+        })
+      );
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
+
 // ── Then ────────────────────────────────────────────────────────────
+
+Then(
+  "the function output should be false",
+  function (this: PlaywrightWorld) {
+    assert.ok(this.lastResponse, "No response");
+    assert.strictEqual(this.lastResponse.fn_output, false);
+  }
+);
+
+Then(
+  "the function output should be the list {string}",
+  function (this: PlaywrightWorld, csv: string) {
+    assert.ok(this.lastResponse, "No response");
+    const expected = csv.split(",").map((s) => s.trim());
+    assert.deepStrictEqual(this.lastResponse.fn_output, expected);
+  }
+);
 
 Then(
   "getting function {string} should fail",

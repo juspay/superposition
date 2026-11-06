@@ -22,3 +22,9 @@ Feature: Config Resolution with Identifier Bucketing
   Scenario: Get detailed resolved config
     When I get the detailed resolved config with matching context
     Then the operation should succeed
+
+  Scenario: Detailed resolved config reports which context set each key
+    Given a context overrides the test config key for client "detailed-resolve-client"
+    When I get the detailed resolved config for client "detailed-resolve-client"
+    Then the operation should succeed
+    And the detailed config should attribute the test key to that context

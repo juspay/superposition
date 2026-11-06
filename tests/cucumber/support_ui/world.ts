@@ -60,6 +60,9 @@ export class PlaywrightWorld extends World {
   public _pendingExpContext: Record<string, any> = {};
   public _pendingExpVariants: any[] = [];
 
+  // ── Workspace metric definitions currently configured ─────────────
+  public metricDefinitions: { name: string; direction: string }[] = [];
+
   // ── Experiment group state ────────────────────────────────────────
   public experimentGroupId: string = "";
   public groupExpIds: { valid: string; valid2: string; inProgress: string; conflicting: string } = {
@@ -107,6 +110,23 @@ export class PlaywrightWorld extends World {
 
   uniqueName(prefix: string): string {
     return `${prefix}${this.testRunId}`;
+  }
+
+  /** Parse "name:direction,name:direction" into workspace metric definitions.
+   *  Direction defaults to "maximize"; an empty name is passed through so the
+   *  server's validation can be exercised. */
+  parseMetricDefinitions(spec: string): { name: string; direction: string }[] {
+    return spec
+      .split(",")
+      .map((entry) => entry.trim())
+      .filter((entry) => entry.length > 0)
+      .map((entry) => {
+        const [name, direction] = entry.split(":");
+        return {
+          name: (name ?? "").trim(),
+          direction: (direction ?? "maximize").trim() || "maximize",
+        };
+      });
   }
 
   // ── Navigation helpers ────────────────────────────────────────────

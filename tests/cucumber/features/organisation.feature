@@ -13,7 +13,7 @@ Feature: Organisation Management
 
   Scenario: Fail to create organisation with invalid input
     When I create an organisation with name "" and admin email "invalid-email"
-    Then the operation should fail with error matching "Json"
+    Then the operation should fail with error matching "Empty value not allowed"
 
   # ── Get ────────────────────────────────────────────────────────────
 

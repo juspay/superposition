@@ -47,7 +47,7 @@ Feature: Secret Management
     Given a secret "LIST_TEST_SECRET" exists with value "list-test-value"
     When I list secrets with count 10 and page 1
     Then the operation should succeed
-    And the response should contain a list with at least 1 item(s)
+    And the response should contain a list with at least 1 item
 
   # ── Error Cases ────────────────────────────────────────────────────
 
@@ -70,11 +70,11 @@ Feature: Secret Management
 
   Scenario: Fail to create secret with empty name
     When I create a secret named "" with value "test-value"
-    Then the operation should fail with error matching "Json deserialize error"
+    Then the operation should fail with error matching "it should obey the regex"
 
   Scenario Outline: Fail to create secret with invalid name pattern
     When I create a secret named "<invalid_name>" with value "test-value"
-    Then the operation should fail with error matching "Json deserialize error"
+    Then the operation should fail with error matching "it should obey the regex"
 
     Examples:
       | invalid_name               |
