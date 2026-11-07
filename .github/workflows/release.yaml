@@ -9,6 +9,9 @@ concurrency:
 jobs:
     tag-release:
         runs-on: ubuntu-latest
+        # The app's credentials live in the
+        # production environment, so only this job on main can use them.
+        environment: production
         permissions:
             contents: write
             id-token: write
@@ -17,11 +20,21 @@ jobs:
             version: ${{ steps.git_tag.outputs.version }}
             updated_ref: ${{ steps.push_main.outputs.updated_ref }}
         steps:
+            # main is protected by a ruleset that requires PRs. This app is on
+            # the ruleset's bypass list, so its token can push the version bump.
+            - name: Generate GitHub app token
+              id: app-token
+              uses: actions/create-github-app-token@v3
+              with:
+                  client-id: ${{ vars.HYPER_SDK_APP_CLIENT_ID }}
+                  private-key: ${{ secrets.HYPER_SDK_APP_PRIVATE_KEY }}
+                  permission-contents: write
+
             - name: Checkout repository
               uses: actions/checkout@v4
               with:
                   fetch-depth: 0
-                  token: ${{ secrets.SUPERPOSITION_TOKEN }}
+                  token: ${{ steps.app-token.outputs.token }}
 
             - name: Install Rust
               uses: dtolnay/rust-toolchain@master
@@ -48,6 +61,8 @@ jobs:
                   git config user.email "super_bot@juspay.in"
                   git config user.name "Superposition Bot"
                   cog bump --auto --skip-ci-override "[skip ci]"
+                  # Save the tagged commit; "Push code to main" moves its tags after the amends.
+                  echo "BUMP_COMMIT=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
 
             - name: Set latest tag
               id: git_tag
@@ -89,6 +104,13 @@ jobs:
               shell: bash
               run: |
                   git pull --rebase origin main
+                  # cog tagged the commit before it was amended and rebased.
+                  # Move those tags to the commit that actually lands on main.
+                  # Without this, vX points to a commit that isn't on main
+                  # (as happened with v0.118.2).
+                  for t in $(git tag --points-at "$BUMP_COMMIT"); do
+                      git tag -f "$t" HEAD
+                  done
                   git push origin main
                   git push origin --tags
                   echo "updated_ref=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
@@ -115,7 +137,6 @@ jobs:
               uses: actions/checkout@v4
               with:
                   fetch-depth: 0
-                  token: ${{ secrets.SUPERPOSITION_TOKEN }}
 
             - name: Set up Docker Buildx
               uses: docker/setup-buildx-action@v3
@@ -146,7 +167,6 @@ jobs:
               uses: actions/checkout@v4
               with:
                   fetch-depth: 0
-                  token: ${{ secrets.SUPERPOSITION_TOKEN }}
                   ref: ${{ needs.tag-release.outputs.updated_ref }}
 
             - name: Log in to GitHub Container Registry
@@ -193,7 +213,6 @@ jobs:
               uses: actions/checkout@v4
               with:
                   fetch-depth: 0
-                  token: ${{ secrets.SUPERPOSITION_TOKEN }}
 
             - name: Set up Docker Buildx
               uses: docker/setup-buildx-action@v3
@@ -225,7 +244,6 @@ jobs:
               uses: actions/checkout@v4
               with:
                   fetch-depth: 0
-                  token: ${{ secrets.SUPERPOSITION_TOKEN }}
 
             - name: Log in to GitHub Container Registry
               uses: docker/login-action@v3
@@ -651,6 +669,7 @@ jobs:
               name: Create GitHub Release
               # if: startsWith(github.ref, 'refs/tags/')
               with:
+                  tag_name: v${{ needs.tag-release.outputs.version }}
                   draft: true
                   files: |
                       artifacts_dir/superposition_core-x86_64-unknown-linux-gnu.zip/superposition_core-x86_64-unknown-linux-gnu.zip
