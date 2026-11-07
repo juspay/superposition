@@ -13,8 +13,21 @@ jobs:
   generate-skills:
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    # The app's credentials live in the production environment (see release.yaml).
+    environment: production
     steps:
+      # main requires PRs; this app is on the ruleset's bypass list, so it can push here.
+      - name: Generate GitHub app token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.HYPER_SDK_APP_CLIENT_ID }}
+          private-key: ${{ secrets.HYPER_SDK_APP_PRIVATE_KEY }}
+          permission-contents: write
+
       - uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Install uv
         uses: astral-sh/setup-uv@v4
