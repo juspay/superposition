@@ -1,15 +1,23 @@
 {
-  "total_files": 25,
+  "total_files": 34,
   "categories": {
     "other": [
       "applications/cac-redis-module.md",
       "applications/k8s-staggered-releaser.md",
-      "basic-concepts/context-aware-config.md",
-      "basic-concepts/experimentation.md",
-      "experimental/cac-toml.md",
+      "basic-concepts/administration/organisations.md",
+      "basic-concepts/administration/workspaces.md",
+      "basic-concepts/experimentation/experiment-groups.md",
+      "basic-concepts/safety/secrets.md",
+      "basic-concepts/safety/type-templates.md",
+      "basic-concepts/safety/variables.md",
       "providers/legacy/client_context_aware_configuration.md",
       "providers/legacy/client_experimentation.md",
       "providers/legacy/creating_client.md",
+      "self-hosting/authentication.md",
+      "self-hosting/environment-variables.md",
+      "self-hosting/kronos.md",
+      "self-hosting/kubernetes.md",
+      "self-hosting/production.md",
       "superposition-config-file/cascading-model.md",
       "superposition-config-file/config-file-compatibility.md",
       "superposition-config-file/context-expressions.md",
@@ -22,10 +30,11 @@
       "superposition-config-file/type-safety.md"
     ],
     "overview": [
-      "intro.md",
+      "deployment.md",
       "setup.md"
     ],
     "features": [
+      "providers/openfeature/haskell.md",
       "providers/openfeature/java.md",
       "providers/openfeature/javascript.md",
       "providers/openfeature/overview.md",
@@ -684,491 +693,621 @@
       }
     },
     {
-      "path": "basic-concepts/context-aware-config.md",
-      "filename": "context-aware-config.md",
+      "path": "basic-concepts/administration/organisations.md",
+      "filename": "organisations.md",
       "category": "other",
-      "size_bytes": 16160,
-      "title": "Context Aware Config",
+      "size_bytes": 2067,
+      "title": "Organisations",
       "structure": {
-        "title": "Context Aware Config",
+        "title": "Organisations",
         "headers": [
           {
-            "level": 1,
-            "text": "Context Aware Config",
-            "line": 8
+            "level": 2,
+            "text": "Organisation Properties",
+            "line": 9
           },
           {
             "level": 2,
-            "text": "Concepts",
-            "line": 22
-          },
-          {
-            "level": 3,
-            "text": "Default Configs",
-            "line": 28
-          },
-          {
-            "level": 3,
-            "text": "Dimensions",
-            "line": 45
-          },
-          {
-            "level": 4,
-            "text": "Dimension Properties",
-            "line": 68
-          },
-          {
-            "level": 4,
-            "text": "Dimension Hierarchy and Dependencies",
-            "line": 78
-          },
-          {
-            "level": 4,
-            "text": "Built-in Dimensions",
-            "line": 105
-          },
-          {
-            "level": 4,
-            "text": "Dimension Validation",
-            "line": 113
-          },
-          {
-            "level": 4,
-            "text": "Advanced Dimension Features",
-            "line": 132
-          },
-          {
-            "level": 3,
-            "text": "Context",
-            "line": 158
-          },
-          {
-            "level": 3,
-            "text": "Overrides",
-            "line": 188
-          },
-          {
-            "level": 3,
-            "text": "Functions",
-            "line": 213
-          },
-          {
-            "level": 4,
-            "text": "Function Types",
-            "line": 217
-          },
-          {
-            "level": 4,
-            "text": "Validation Functions",
-            "line": 224
-          },
-          {
-            "level": 4,
-            "text": "Autocomplete Functions",
-            "line": 249
-          },
-          {
-            "level": 4,
-            "text": "Function Lifecycle",
-            "line": 275
-          },
-          {
-            "level": 4,
-            "text": "Security and Sandboxing",
-            "line": 284
-          },
-          {
-            "level": 3,
-            "text": "Type Templates",
-            "line": 293
-          },
-          {
-            "level": 4,
-            "text": "Purpose and Benefits",
-            "line": 297
-          },
-          {
-            "level": 4,
-            "text": "Built-in Type Templates",
-            "line": 307
-          },
-          {
-            "level": 4,
-            "text": "Creating Custom Type Templates",
-            "line": 321
-          },
-          {
-            "level": 4,
-            "text": "Usage in Configuration",
-            "line": 372
-          },
-          {
-            "level": 4,
-            "text": "Type Template Management",
-            "line": 387
+            "text": "Hierarchy",
+            "line": 24
           },
           {
             "level": 2,
-            "text": "How CAC Works",
-            "line": 397
-          },
-          {
-            "level": 3,
-            "text": "Analogy with CSS",
-            "line": 419
+            "text": "Creating an Organisation",
+            "line": 39
           },
           {
             "level": 2,
-            "text": "Complete CAC configuration file in TOML format",
-            "line": 441
+            "text": "Authorization",
+            "line": 47
+          },
+          {
+            "level": 2,
+            "text": "Database Schema",
+            "line": 51
           }
         ],
         "code_blocks": [
           {
-            "language": "toml",
-            "code": "[default-config]\nper_km_rate = { \"value\" = 20.0, \"schema\" = { \"type\" = \"number\" } }\nsurge_factor = { \"value\" = 0.0, \"schema\" = { \"type\" = \"number\" } }"
+            "language": "text",
+            "code": "Organisation\n\u2514\u2500\u2500 Workspace(s)\n    \u251c\u2500\u2500 Dimensions\n    \u251c\u2500\u2500 Default Configs\n    \u251c\u2500\u2500 Contexts\n    \u251c\u2500\u2500 Overrides\n    \u251c\u2500\u2500 Experiments\n    \u2514\u2500\u2500 Secrets"
+          }
+        ],
+        "tables": 1,
+        "images": 0,
+        "links": 0,
+        "word_count": 13,
+        "line_count": 53
+      },
+      "summary": "**Organisations**\nSections: Organisation Properties, Hierarchy, Creating an Organisation, Authorization, Database Schema\n--- sidebar_position: 1 title: Organisations description: Top-level entity for multi-tenant configuration management ---\n(13 words, 1 code blocks)",
+      "content": null,
+      "_enhanced": true,
+      "parsed_data": {
+        "tables": 1,
+        "cross_references": 1,
+        "code_blocks": 1,
+        "images": 0,
+        "quality_scores": {
+          "avg_code_quality": 8.5
+        }
+      }
+    },
+    {
+      "path": "basic-concepts/administration/workspaces.md",
+      "filename": "workspaces.md",
+      "category": "other",
+      "size_bytes": 3958,
+      "title": "Workspaces",
+      "structure": {
+        "title": "Workspaces",
+        "headers": [
+          {
+            "level": 2,
+            "text": "Workspace Properties",
+            "line": 9
           },
           {
-            "language": "toml",
-            "code": "[dimensions]\ncity = { schema = { \"type\" = \"string\", \"enum\" = [\"Bangalore\", \"Delhi\"] } }\nvehicle_type = { schema = { \"type\" = \"string\", \"enum\" = [\n    \"auto\",\n    \"cab\",\n    \"bike\",\n] } }\nhour_of_day = { schema = { \"type\" = \"integer\", \"minimum\" = 0, \"maximum\" = 23 }}"
+            "level": 2,
+            "text": "Workspace Status",
+            "line": 26
           },
           {
-            "language": "toml",
-            "code": "[dimensions]\n# Base dimension - no dependencies\nregion = { schema = { \"type\" = \"string\", \"enum\" = [\"north\", \"south\"] } }\n\n# Depends on region\ncity = { \n    schema = { \"type\" = \"string\", \"enum\" = [\"delhi\", \"mumbai\", \"bangalore\", \"hyderabad\"] },\n    dependencies = [\"region\"]\n}\n\n# Depends on city\nzone = { \n    schema = { \"type\" = \"string\" },\n    dependencies = [\"city\"]\n}"
+            "level": 2,
+            "text": "Schema Isolation",
+            "line": 31
           },
           {
-            "language": "pest",
-            "code": "expression = { SOI ~ whitespace* ~ logical ~ whitespace* ~ EOI }\n\nlogical = _{ logical_or }\nlogical_or = { logical_and ~ (whitespace* ~ \"||\" ~ whitespace* ~ logical_and)* }\nlogical_and = { comparison ~ (whitespace* ~ \"&&\" ~ whitespace* ~ comparison)* }\n\ncomparison = { term ~ whitespace* ~ comparison_operator ~ whitespace* ~ term }\ncomparison_operator = { \">=\" | \"<=\" | \"<\" | \">\" | \"==\" | \"!=\" }\nterm = { bool_literal | string_literal | float | integer | dimension }\n\nstring_literal = @{ \"'\" ~ char+ ~ \"'\" }\nbool_literal = @{ \"true\" | \"false\" }\ninteger = @{ ASCII_DIGIT+ }\nfloat = @{ ASCII_DIGIT+ ~ \".\" ~ ASCII_DIGIT+ }\nchar = { ASCII_ALPHANUMERIC | \".\" | \"_\" }\ndimension = @{ \"$\" ~ char+ }\n\nwhitespace = _{ \" \" | \"\\t\" | \"\\n\" }"
+            "level": 2,
+            "text": "Creating a Workspace",
+            "line": 51
           },
           {
-            "language": "toml",
-            "code": "[context.\"$vehicle_type == 'cab'\"]\nper_km_rate = 25.0\n\n[context.\"$vehicle_type == 'bike'\"]\nper_km_rate = 15.0\n\n[context.\"$city == 'Bangalore' && $vehicle_type == 'cab'\"]\nper_km_rate = 22.0\n\n[context.\"$city == 'Delhi' && $vehicle_type == 'cab' && $hour_of_day >= 18\"]\nsurge_factor = 5.0\n\n[context.\"$city == 'Delhi' && $vehicle_type == 'cab' && $hour_of_day <= 6\"]\nsurge_factor = 5.0"
+            "level": 3,
+            "text": "Workspace Naming Rules",
+            "line": 60
+          },
+          {
+            "level": 2,
+            "text": "Metrics Integration",
+            "line": 67
+          },
+          {
+            "level": 2,
+            "text": "Workspace Context",
+            "line": 87
+          },
+          {
+            "level": 2,
+            "text": "Encryption",
+            "line": 96
+          },
+          {
+            "level": 2,
+            "text": "Related Concepts",
+            "line": 100
+          }
+        ],
+        "code_blocks": [
+          {
+            "language": "text",
+            "code": "{org_id}_{workspace_name}/\n\u251c\u2500\u2500 dimensions          \u2014 Dimension definitions\n\u251c\u2500\u2500 default_configs     \u2014 Default configuration values\n\u251c\u2500\u2500 contexts            \u2014 Context rules with conditions\n\u251c\u2500\u2500 overrides           \u2014 Context-specific config overrides\n\u251c\u2500\u2500 experiments         \u2014 A/B experiment definitions\n\u251c\u2500\u2500 event_log           \u2014 Audit trail for all changes\n\u251c\u2500\u2500 functions           \u2014 Validation and compute functions\n\u251c\u2500\u2500 type_templates      \u2014 Reusable type definitions\n\u251c\u2500\u2500 webhooks            \u2014 Webhook configurations\n\u2514\u2500\u2500 secrets             \u2014 Encrypted secret values"
           },
           {
             "language": "json",
-            "code": "{\n  \"Number\": { \"type\": \"integer\" },\n  \"Decimal\": { \"type\": \"number\" },\n  \"Boolean\": { \"type\": \"boolean\" },\n  \"Enum\": { \"type\": \"string\", \"enum\": [\"android\", \"ios\"] },\n  \"Pattern\": { \"type\": \"string\", \"pattern\": \".*\" }\n}"
+            "code": "{\n  \"metrics\": {\n    \"enabled\": true,\n    \"source\": {\n      \"grafana\": {\n        \"base_url\": \"https://grafana.example.com\",\n        \"dashboard_uid\": \"abc123\",\n        \"dashboard_slug\": \"experiments\",\n        \"variant_id_alias\": \"variant_id\"\n      }\n    }\n  }\n}"
+          }
+        ],
+        "tables": 1,
+        "images": 0,
+        "links": 0,
+        "word_count": 25,
+        "line_count": 105
+      },
+      "summary": "**Workspaces**\nSections: Workspace Properties, Workspace Status, Schema Isolation, Creating a Workspace, Workspace Naming Rules\n--- sidebar_position: 2 title: Workspaces description: Isolated configuration environments within an organisation ---\n(25 words, 2 code blocks)",
+      "content": null,
+      "_enhanced": true,
+      "parsed_data": {
+        "tables": 1,
+        "cross_references": 2,
+        "code_blocks": 2,
+        "images": 0,
+        "quality_scores": {
+          "avg_code_quality": 9.0
+        }
+      }
+    },
+    {
+      "path": "basic-concepts/experimentation/experiment-groups.md",
+      "filename": "experiment-groups.md",
+      "category": "other",
+      "size_bytes": 5355,
+      "title": "Experiment Groups",
+      "structure": {
+        "title": "Experiment Groups",
+        "headers": [
+          {
+            "level": 2,
+            "text": "Introduction",
+            "line": 7
           },
           {
-            "language": "json",
-            "code": "    {\n        \"city\": \"Delhi\", \n        \"vehicle_type\": \"cab\", \n        \"hour_of_day\": 19\n    }"
+            "level": 2,
+            "text": "Core Concepts",
+            "line": 17
           },
           {
-            "language": "json",
-            "code": "    {\n        \"per_km_rate\": 25.0,\n        \"surge_factor\": 5.0\n    }"
+            "level": 3,
+            "text": "Experiment Group",
+            "line": 19
           },
           {
-            "language": "toml",
-            "code": "[default-config]\nper_km_rate = { \"value\" = 20.0, \"schema\" = { \"type\" = \"number\" } }\nsurge_factor = { \"value\" = 0.0, \"schema\" = { \"type\" = \"number\" } }\n\n[dimensions]\ncity = { schema = { \"type\" = \"string\", \"enum\" = [\"Bangalore\", \"Delhi\"] } }\nvehicle_type = { schema = { \"type\" = \"string\", \"enum\" = [ \"auto\", \"cab\", \"bike\", ] } }\nhour_of_day = { schema = { \"type\" = \"integer\", \"minimum\" = 0, \"maximum\" = 23 }}\n\n[context.\"$vehicle_type == 'cab'\"]\nper_km_rate = 25.0\n\n[context.\"$vehicle_type == 'bike'\"]\nper_km_rate = 15.0\n\n[context.\"$city == 'Bangalore' && $vehicle_type == 'cab'\"]\nper_km_rate = 22.0\n\n[context.\"$city == 'Delhi' && $vehicle_type == 'cab' && $hour_of_day >= 18\"]\nsurge_factor = 5.0\n\n[context.\"$city == 'Delhi' && $vehicle_type == 'cab' && $hour_of_day <= 6\"]\nsurge_factor = 5.0"
+            "level": 3,
+            "text": "Group Types",
+            "line": 32
+          },
+          {
+            "level": 3,
+            "text": "Context Constraint",
+            "line": 37
+          },
+          {
+            "level": 2,
+            "text": "How It Works: Bucket Mechanism",
+            "line": 46
+          },
+          {
+            "level": 3,
+            "text": "100 Buckets",
+            "line": 50
+          },
+          {
+            "level": 3,
+            "text": "Deterministic Assignment",
+            "line": 56
+          },
+          {
+            "level": 3,
+            "text": "Why This Ensures No Overlap",
+            "line": 76
+          },
+          {
+            "level": 3,
+            "text": "Bucket Allocation Example",
+            "line": 80
+          },
+          {
+            "level": 2,
+            "text": "Use Cases",
+            "line": 92
+          },
+          {
+            "level": 3,
+            "text": "Parallel Feature Tests",
+            "line": 94
+          },
+          {
+            "level": 3,
+            "text": "Isolated Testing Environments",
+            "line": 107
+          },
+          {
+            "level": 2,
+            "text": "Best Practices",
+            "line": 116
+          },
+          {
+            "level": 2,
+            "text": "Related Concepts",
+            "line": 124
+          }
+        ],
+        "code_blocks": [
+          {
+            "language": "text",
+            "code": "User ID: \"user-123\"\nGroup ID: 456\nHash: hash(\"user-123\", 456) % 100 = 42\n\nIf traffic_percentage >= 43 and bucket[42] is assigned:\n    \u2192 User gets the experiment/variant in bucket[42]\nElse:\n    \u2192 User is not part of any experiment in this group"
+          },
+          {
+            "language": "text",
+            "code": "Group: \"Q1-Mobile-Experiments\"\n\u251c\u2500\u2500 Experiment: Button Color Test (10% traffic)\n\u251c\u2500\u2500 Experiment: Checkout Flow Test (5% traffic)\n\u2514\u2500\u2500 Experiment: Payment Options Test (8% traffic)"
+          },
+          {
+            "language": "text",
+            "code": "Group A: context = [environment IS \"staging\"]\nGroup B: context = [environment IS \"production\"]"
           }
         ],
         "tables": 2,
         "images": 0,
-        "links": 3,
-        "word_count": 114,
-        "line_count": 471
+        "links": 0,
+        "word_count": 41,
+        "line_count": 127
       },
-      "summary": "**Context Aware Config**\nSections: Concepts, Default Configs, Dimensions, Context, Overrides\n--- sidebar_position: 3 title: Context Aware Config description: Context Aware Config component of Superposition platform ---\n(114 words, 9 code blocks)",
+      "summary": "**Experiment Groups**\nSections: Introduction, Core Concepts, Experiment Group, Group Types, Context Constraint\n--- sidebar_position: 2 title: Experiment Groups description: Group experiments to prevent overlap and ensure isolated traffic allocation ---\n(41 words, 3 code blocks)",
       "content": null,
       "_enhanced": true,
       "parsed_data": {
         "tables": 2,
         "cross_references": 1,
-        "code_blocks": 9,
+        "code_blocks": 3,
         "images": 0,
         "quality_scores": {
-          "avg_code_quality": 8.833333333333334
+          "avg_code_quality": 8.166666666666666
         }
       }
     },
     {
-      "path": "basic-concepts/experimentation.md",
-      "filename": "experimentation.md",
+      "path": "basic-concepts/safety/secrets.md",
+      "filename": "secrets.md",
       "category": "other",
-      "size_bytes": 10309,
-      "title": "Experimentation",
+      "size_bytes": 4938,
+      "title": "Secrets",
       "structure": {
-        "title": "Experimentation",
+        "title": "Secrets",
         "headers": [
           {
-            "level": 1,
-            "text": "Experimentation",
+            "level": 2,
+            "text": "Encryption Architecture",
+            "line": 7
+          },
+          {
+            "level": 2,
+            "text": "Managing Secrets",
+            "line": 35
+          },
+          {
+            "level": 3,
+            "text": "Create a Secret",
+            "line": 37
+          },
+          {
+            "level": 3,
+            "text": "Update a Secret",
+            "line": 49
+          },
+          {
+            "level": 3,
+            "text": "List Secrets",
+            "line": 59
+          },
+          {
+            "level": 3,
+            "text": "Delete a Secret",
+            "line": 65
+          },
+          {
+            "level": 2,
+            "text": "Using Secrets",
+            "line": 75
+          },
+          {
+            "level": 3,
+            "text": "In Functions",
+            "line": 77
+          },
+          {
+            "level": 3,
+            "text": "In Webhooks",
+            "line": 100
+          },
+          {
+            "level": 2,
+            "text": "Key Rotation",
+            "line": 115
+          },
+          {
+            "level": 3,
+            "text": "Master Key Rotation",
+            "line": 119
+          },
+          {
+            "level": 3,
+            "text": "How Fallback Works",
+            "line": 131
+          },
+          {
+            "level": 2,
+            "text": "Configuration",
+            "line": 139
+          },
+          {
+            "level": 3,
+            "text": "Environment Variables",
+            "line": 141
+          },
+          {
+            "level": 3,
+            "text": "Generating a Key",
+            "line": 150
+          },
+          {
+            "level": 2,
+            "text": "Security Considerations",
+            "line": 157
+          },
+          {
+            "level": 2,
+            "text": "Related Topics",
+            "line": 166
+          }
+        ],
+        "code_blocks": [
+          {
+            "language": "text",
+            "code": "Master Encryption Key (MEK)\n         \u2502\n         \u25bc\n\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n\u2502 Workspace Encryption\u2502  \u2190 One per workspace\n\u2502 Key (WEK)           \u2502    stored encrypted in DB\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n         \u2502\n         \u25bc\n\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n\u2502     Secrets         \u2502  \u2190 Encrypted with WEK\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518"
+          },
+          {
+            "language": "bash",
+            "code": "POST /secrets\n{\n  \"name\": \"API_KEY\",\n  \"value\": \"sk_live_xxxxx\",\n  \"description\": \"Production API key for payment service\",\n  \"change_reason\": \"Initial setup for payment integration\"\n}"
+          },
+          {
+            "language": "bash",
+            "code": "PATCH /secrets/API_KEY\n{\n  \"value\": \"sk_live_yyyyy\",\n  \"change_reason\": \"Rotated expired key\"\n}"
+          },
+          {
+            "language": "bash",
+            "code": "GET /secrets?name=API_KEY,PASSWORD&sort_on=last_modified_at&sort_by=desc"
+          },
+          {
+            "language": "bash",
+            "code": "DELETE /secrets/API_KEY"
+          },
+          {
+            "language": "javascript",
+            "code": "async function execute(payload) {\n    const { value_validate } = payload;\n    \n    // Access secrets directly\n    const apiKey = SECRETS.API_KEY;\n    const dbPassword = SECRETS.DB_PASSWORD;\n    \n    // Use in HTTP calls\n    const response = await axios.get('https://api.example.com/data', {\n        headers: { 'Authorization': `Bearer ${apiKey}` }\n    });\n    \n    return true;\n}"
+          },
+          {
+            "language": "json",
+            "code": "{\n  \"custom_headers\": {\n    \"Authorization\": \"Bearer {{secret:API_KEY}}\",\n    \"X-Api-Secret\": \"{{secret:WEBHOOK_SECRET}}\"\n  }\n}"
+          },
+          {
+            "language": "bash",
+            "code": "POST /secrets/rotate"
+          },
+          {
+            "language": "bash",
+            "code": "# Generate a new 32-byte key (base64 encoded)\nopenssl rand -base64 32"
+          }
+        ],
+        "tables": 1,
+        "images": 0,
+        "links": 0,
+        "word_count": 46,
+        "line_count": 170
+      },
+      "summary": "**Secrets**\nSections: Encryption Architecture, Managing Secrets, Create a Secret, Update a Secret, List Secrets\n--- sidebar_position: 3 title: Secrets --- Secrets are encrypted key-value pairs that store sensitive information (API keys, tokens, passwords) for use in [Functions](./functions.mdx) and Webhooks. Su...\n(46 words, 9 code blocks)",
+      "content": null,
+      "_enhanced": true,
+      "parsed_data": {
+        "tables": 1,
+        "cross_references": 1,
+        "code_blocks": 9,
+        "images": 0,
+        "quality_scores": {
+          "avg_code_quality": 8.11111111111111
+        }
+      }
+    },
+    {
+      "path": "basic-concepts/safety/type-templates.md",
+      "filename": "type-templates.md",
+      "category": "other",
+      "size_bytes": 3030,
+      "title": "Type Templates",
+      "structure": {
+        "title": "Type Templates",
+        "headers": [
+          {
+            "level": 4,
+            "text": "Purpose and Benefits",
+            "line": 8
+          },
+          {
+            "level": 4,
+            "text": "Built-in Type Templates",
+            "line": 18
+          },
+          {
+            "level": 4,
+            "text": "Creating Custom Type Templates",
+            "line": 32
+          },
+          {
+            "level": 4,
+            "text": "Usage in Configuration",
+            "line": 83
+          },
+          {
+            "level": 4,
+            "text": "Type Template Management",
+            "line": 98
+          }
+        ],
+        "code_blocks": [
+          {
+            "language": "json",
+            "code": "{\n  \"Number\": { \"type\": \"integer\" },\n  \"Decimal\": { \"type\": \"number\" },\n  \"Boolean\": { \"type\": \"boolean\" },\n  \"Enum\": { \"type\": \"string\", \"enum\": [\"android\", \"ios\"] },\n  \"Pattern\": { \"type\": \"string\", \"pattern\": \".*\" }\n}"
+          }
+        ],
+        "tables": 0,
+        "images": 0,
+        "links": 0,
+        "word_count": 23,
+        "line_count": 106
+      },
+      "summary": "**Type Templates**\n--- sidebar_position: 2 title: Type Templates ---\n(23 words, 1 code blocks)",
+      "content": null,
+      "_enhanced": true,
+      "parsed_data": {
+        "tables": 0,
+        "cross_references": 0,
+        "code_blocks": 1,
+        "images": 0,
+        "quality_scores": {
+          "avg_code_quality": 9.5
+        }
+      }
+    },
+    {
+      "path": "basic-concepts/safety/variables.md",
+      "filename": "variables.md",
+      "category": "other",
+      "size_bytes": 2206,
+      "title": "Variables",
+      "structure": {
+        "title": "Variables",
+        "headers": [
+          {
+            "level": 2,
+            "text": "When to Use Variables vs Secrets",
             "line": 8
           },
           {
             "level": 2,
-            "text": "Introduction",
-            "line": 10
-          },
-          {
-            "level": 2,
-            "text": "Concepts",
+            "text": "Naming Conventions",
             "line": 18
           },
           {
-            "level": 3,
-            "text": "Experiment",
-            "line": 20
+            "level": 2,
+            "text": "Using Variables in Functions",
+            "line": 28
           },
           {
-            "level": 3,
-            "text": "Variant",
-            "line": 36
+            "level": 2,
+            "text": "Audit Trail",
+            "line": 54
           },
           {
-            "level": 4,
-            "text": "Control Variant",
-            "line": 45
-          },
-          {
-            "level": 4,
-            "text": "Experimental Variant",
-            "line": 58
-          },
-          {
-            "level": 3,
-            "text": "Experiment's Traffic Percentage",
-            "line": 74
-          },
-          {
-            "level": 3,
-            "text": "Webhooks",
-            "line": 80
-          },
-          {
-            "level": 4,
-            "text": "What are Webhooks?",
-            "line": 84
-          },
-          {
-            "level": 4,
-            "text": "Webhook Event Types",
-            "line": 93
-          },
-          {
-            "level": 4,
-            "text": "Webhook Configuration",
-            "line": 107
-          },
-          {
-            "level": 4,
-            "text": "Webhook Payload Structure",
-            "line": 124
-          },
-          {
-            "level": 4,
-            "text": "Example Webhook Payloads",
-            "line": 150
-          },
-          {
-            "level": 4,
-            "text": "Setting Up Webhooks",
-            "line": 214
-          },
-          {
-            "level": 4,
-            "text": "Real-World Use Cases",
-            "line": 262
-          },
-          {
-            "level": 4,
-            "text": "Security and Best Practices",
-            "line": 279
-          },
-          {
-            "level": 4,
-            "text": "Webhook Management API",
-            "line": 296
+            "level": 2,
+            "text": "Related Topics",
+            "line": 62
           }
         ],
         "code_blocks": [
           {
-            "language": "json",
-            "code": "    {\n        \"base_rate\": 50,\n        \"per_distance_unit_rate\": 30\n    }"
-          },
-          {
-            "language": "json",
-            "code": "    {\n        \"base_rate\": 45,\n        \"per_distance_unit_rate\": 30\n    }"
-          },
-          {
-            "language": "json",
-            "code": "{\n  \"event_info\": {\n    \"webhook_event\": \"ExperimentStarted\",\n    \"time\": \"2024-12-24T10:30:00Z\",\n    \"workspace_id\": \"your-workspace\",\n    \"organisation_id\": \"your-org\",\n    \"config_version\": \"12345\"\n  },\n  \"payload\": {\n    // Event-specific experiment data\n  }\n}"
-          },
-          {
-            "language": "text",
-            "code": "case 'ExperimentConcluded':\n  // Promote winning variant\n  promoteVariant(payload.chosen_variant);\n  break;\n\ncase 'ExperimentInprogress':\n  // Update traffic routing\n  updateTrafficSplit(payload.traffic_percentage);\n  break;"
+            "language": "javascript",
+            "code": "async function execute(payload) {\n    const { value_validate } = payload;\n    \n    // Access variables directly\n    const apiEndpoint = VARS.API_ENDPOINT;\n    const maxRetries = parseInt(VARS.MAX_RETRIES);\n    const timeoutMs = parseInt(VARS.TIMEOUT_MS);\n    \n    // Use in validation logic\n    if (someCondition) {\n        const response = await axios.get(apiEndpoint, {\n            timeout: timeoutMs\n        });\n    }\n    \n    return true;\n}"
           }
         ],
         "tables": 1,
         "images": 0,
         "links": 0,
-        "word_count": 81,
-        "line_count": 324
+        "word_count": 16,
+        "line_count": 65
       },
-      "summary": "**Experimentation**\nSections: Introduction, Concepts, Experiment, Variant, Experiment's Traffic Percentage\n--- sidebar_position: 4 title: Experimentation description: Experimentation component of Superposition platform ---\n(81 words, 4 code blocks)",
+      "summary": "**Variables**\nSections: When to Use Variables vs Secrets, Naming Conventions, Using Variables in Functions, Audit Trail, Related Topics\n--- sidebar_position: 4 title: Variables ---\n(16 words, 1 code blocks)",
       "content": null,
       "_enhanced": true,
       "parsed_data": {
         "tables": 1,
-        "cross_references": 0,
-        "code_blocks": 4,
+        "cross_references": 2,
+        "code_blocks": 1,
         "images": 0,
         "quality_scores": {
-          "avg_code_quality": 9.05
+          "avg_code_quality": 10.0
         }
       }
     },
     {
-      "path": "experimental/cac-toml.md",
-      "filename": "cac-toml.md",
-      "category": "other",
-      "size_bytes": 2451,
-      "title": "Context Aware Configuration with TOML",
+      "path": "deployment.md",
+      "filename": "deployment.md",
+      "category": "overview",
+      "size_bytes": 5367,
+      "title": "Overview",
       "structure": {
-        "title": "Context Aware Configuration with TOML",
+        "title": "Overview",
         "headers": [
           {
             "level": 1,
-            "text": "Toml formatted CAC configuration file in a simple rust application",
-            "line": 6
+            "text": "Self-Hosting Superposition",
+            "line": 7
           },
           {
             "level": 2,
-            "text": "Add dependencies to your Cargo.toml",
-            "line": 9
-          },
-          {
-            "level": 2,
-            "text": "Include a simple context-aware-configuration file",
+            "text": "What You Need",
             "line": 17
           },
           {
             "level": 2,
-            "text": "Use it in your application with a sample context",
-            "line": 47
+            "text": "Quick Start",
+            "line": 24
           },
           {
             "level": 2,
-            "text": "Build and run the application",
-            "line": 73
+            "text": "Runtime Architecture",
+            "line": 94
+          },
+          {
+            "level": 2,
+            "text": "First Organisation And Workspace",
+            "line": 110
+          },
+          {
+            "level": 2,
+            "text": "Next Steps",
+            "line": 143
           }
         ],
         "code_blocks": [
           {
-            "language": "toml",
-            "code": "[dependencies]\ncac_toml = { git = \"https://github.com/juspay/superposition.git\", branch = \"main\" }\ntoml = { version = \"0.8.8\", features = [\"preserve_order\"] }"
-          },
-          {
-            "language": "toml",
-            "code": "[default-config]\nper_km_rate = { \"value\" = 20.0, \"schema\" = { \"type\" = \"number\" } }\nsurge_factor = { \"value\" = 0.0, \"schema\" = { \"type\" = \"number\" } }\n\n[dimensions]\ncity = { schema = { \"type\" = \"string\", \"enum\" = [\"Bangalore\", \"Delhi\"] } }\nvehicle_type = { schema = { \"type\" = \"string\", \"enum\" = [ \"auto\", \"cab\", \"bike\", ] } }\nhour_of_day = { schema = { \"type\" = \"integer\", \"minimum\" = 0, \"maximum\" = 23 }}\n\n[context.\"$vehicle_type == 'cab'\"]\nper_km_rate = 25.0\n\n[context.\"$vehicle_type == 'bike'\"]\nper_km_rate = 15.0\n\n[context.\"$city == 'Bangalore' && $vehicle_type == 'cab'\"]\nper_km_rate = 22.0\n\n[context.\"$city == 'Delhi' && $vehicle_type == 'cab' && $hour_of_day >= 18\"]\nsurge_factor = 5.0\n\n[context.\"$city == 'Delhi' && $vehicle_type == 'cab' && $hour_of_day <= 6\"]\nsurge_factor = 5.0"
-          },
-          {
-            "language": "rust",
-            "code": "use cac_toml::ContextAwareConfig;\nuse std::collections::HashMap;\nuse std::process;\nuse toml::Value;\n\nfn main() {\n    let file: String = String::from(\"example.cac.toml\");\n\n    let mut dimensions: HashMap<String, Value> = HashMap::new();\n    dimensions.insert(String::from(\"vehicle_type\"), Value::String(String::from(\"cab\")));\n\n    let cac = ContextAwareConfig::parse(&file).unwrap_or_else(|_err| {\n        eprintln!(\"Could not parse file at {}\", file);\n        process::exit(-1);\n    });\n\n    println!(\"{:#?}\", cac.get_resolved_config(&dimensions));\n    process::exit(0);\n}"
+            "language": "yaml",
+            "code": "services:\n  postgres:\n    image: postgres:16-alpine\n    environment:\n      POSTGRES_USER: superposition\n      POSTGRES_PASSWORD: superposition\n      POSTGRES_DB: superposition\n    volumes:\n      - postgres_data:/var/lib/postgresql/data\n      - ./superposition.sql:/docker-entrypoint-initdb.d/001-superposition.sql:ro\n\n  redis:\n    image: redis:7\n    command: redis-server\n    restart: unless-stopped\n\n  superposition:\n    image: ghcr.io/juspay/superposition:latest\n    depends_on:\n      - postgres\n      - redis\n    ports:\n      - \"8080:8080\"\n    restart: unless-stopped\n    environment:\n      PORT: \"8080\"\n      APP_ENV: DEV\n      DB_USER: superposition\n      DB_PASSWORD: superposition\n      DB_HOST: postgres:5432\n      DB_NAME: superposition\n      SERVICE_PREFIX: \"\"\n      CAC_HOST: http://localhost:8080\n      API_HOSTNAME: http://localhost:8080\n      SUPERPOSITION_VERSION: self-hosted\n      WORKER_ID: \"1\"\n      RUST_LOG: info,superposition=info,service_utils=info\n      MAX_DB_CONNECTION_POOL_SIZE: \"10\"\n      ACTIX_KEEP_ALIVE: \"120\"\n      ALLOW_SAME_KEYS_OVERLAPPING_CTX: \"true\"\n      ALLOW_DIFF_KEYS_OVERLAPPING_CTX: \"true\"\n      ALLOW_SAME_KEYS_NON_OVERLAPPING_CTX: \"true\"\n      TENANT_MIDDLEWARE_EXCLUSION_LIST: \"/health,/assets/favicon.ico,/pkg/frontend.js,/pkg,/pkg/frontend_bg.wasm,/pkg/tailwind.css,/pkg/style.css,/assets,/admin,/oidc/login,/admin/organisations,/organisations,/organisations/switch/{organisation_id},/\"\n      AUTH_PROVIDER: DISABLED\n      AUTH_Z_PROVIDER: DISABLED\n      REDIS_URL: redis://redis:6379\n\nvolumes:\n  postgres_data:"
           },
           {
             "language": "bash",
-            "code": "cargo run \n"
+            "code": "docker compose up -d\ncurl http://localhost:8080/health"
           },
           {
             "language": "text",
-            "code": "{\n    \"per_km_rate\": Float(\n        25.0,\n    ),\n    \"surge_factor\": Float(\n        0.0,\n    ),\n}"
+            "code": "Health is good :D"
+          },
+          {
+            "language": "text",
+            "code": "http://localhost:8080/admin/organisations"
+          },
+          {
+            "language": "bash",
+            "code": "curl -X POST http://localhost:8080/superposition/organisations \\\n  -H 'Content-Type: application/json' \\\n  -d '{\"name\":\"Acme\",\"admin_email\":\"admin@example.com\"}'"
+          },
+          {
+            "language": "bash",
+            "code": "curl -X POST http://localhost:8080/workspaces \\\n  -H 'Content-Type: application/json' \\\n  -H 'x-org-id: <organisation-id>' \\\n  -d '{\"workspace_name\":\"production\",\"workspace_admin_email\":\"admin@example.com\"}'"
           }
         ],
         "tables": 0,
         "images": 0,
         "links": 0,
-        "word_count": 14,
-        "line_count": 92
+        "word_count": 31,
+        "line_count": 153
       },
-      "summary": "**Context Aware Configuration with TOML**\nSections: Add dependencies to your Cargo.toml, Include a simple context-aware-configuration file, Use it in your application with a sample context, Build and run the application\n--- sidebar_position: 1 title: Context Aware Configuration with TOML ---\n(14 words, 5 code blocks)",
+      "summary": "**Overview**\nSections: What You Need, Quick Start, Runtime Architecture, First Organisation And Workspace, Next Steps\n--- title: Overview description: Self-host Superposition with PostgreSQL, optional Redis, and the official container image. slug: /self-hosting ---\n(31 words, 6 code blocks)",
       "content": null,
       "_enhanced": true,
       "parsed_data": {
         "tables": 0,
-        "cross_references": 0,
-        "code_blocks": 5,
+        "cross_references": 2,
+        "code_blocks": 6,
         "images": 0,
         "quality_scores": {
-          "avg_code_quality": 7.9
-        }
-      }
-    },
-    {
-      "path": "intro.md",
-      "filename": "intro.md",
-      "category": "overview",
-      "size_bytes": 6347,
-      "title": "Introduction",
-      "structure": {
-        "title": "Introduction",
-        "headers": [
-          {
-            "level": 2,
-            "text": "Getting started",
-            "line": 15
-          },
-          {
-            "level": 3,
-            "text": "Setup the server",
-            "line": 17
-          },
-          {
-            "level": 3,
-            "text": "Integrating Superposition in your application",
-            "line": 26
-          },
-          {
-            "level": 2,
-            "text": "Superposition Clients",
-            "line": 30
-          },
-          {
-            "level": 2,
-            "text": "Deeper dive into Superposition",
-            "line": 48
-          },
-          {
-            "level": 2,
-            "text": "Applications using Superposition",
-            "line": 57
-          },
-          {
-            "level": 2,
-            "text": "Key highlights",
-            "line": 61
-          },
-          {
-            "level": 2,
-            "text": "Email us",
-            "line": 70
-          }
-        ],
-        "code_blocks": [
-          {
-            "language": "text",
-            "code": "docker run -p 8080:8080 ghcr.io/juspay/superposition-demo:latest"
-          },
-          {
-            "language": "text",
-            "code": "* [Context-Aware-Configuration](https://superposition.juspay.io/docs/category/context-aware-config/)\n* [Experimentation](https://superposition.juspay.io/docs/category/experimentation/)"
-          }
-        ],
-        "tables": 1,
-        "images": 0,
-        "links": 3,
-        "word_count": 25,
-        "line_count": 73
-      },
-      "summary": "**Introduction**\nSections: Getting started, Setup the server, Integrating Superposition in your application, Superposition Clients, Deeper dive into Superposition\n--- sidebar_position: 1 title: Introduction slug: / --- Superposition is a configuration and experimentation management platform that allows software teams to manage their configurations safely and al...\n(25 words, 2 code blocks)",
-      "content": null,
-      "_enhanced": true,
-      "parsed_data": {
-        "tables": 1,
-        "cross_references": 3,
-        "code_blocks": 2,
-        "images": 0,
-        "quality_scores": {
-          "avg_code_quality": 6.85
+          "avg_code_quality": 7.25
         }
       }
     },
@@ -2000,6 +2139,174 @@
       }
     },
     {
+      "path": "providers/openfeature/haskell.md",
+      "filename": "haskell.md",
+      "category": "features",
+      "size_bytes": 14104,
+      "title": "Haskell",
+      "structure": {
+        "title": "Haskell",
+        "headers": [
+          {
+            "level": 1,
+            "text": "Haskell \u2014 Superposition OpenFeature Provider",
+            "line": 6
+          },
+          {
+            "level": 2,
+            "text": "Installation",
+            "line": 15
+          },
+          {
+            "level": 2,
+            "text": "Quick Start",
+            "line": 28
+          },
+          {
+            "level": 2,
+            "text": "Configuration Options",
+            "line": 87
+          },
+          {
+            "level": 3,
+            "text": "`SuperpositionOptions`",
+            "line": 89
+          },
+          {
+            "level": 3,
+            "text": "Refresh Strategies",
+            "line": 109
+          },
+          {
+            "level": 3,
+            "text": "`ExperimentationOptions`",
+            "line": 136
+          },
+          {
+            "level": 3,
+            "text": "`EvaluationCacheOptions`",
+            "line": 153
+          },
+          {
+            "level": 2,
+            "text": "Provider Variants",
+            "line": 160
+          },
+          {
+            "level": 3,
+            "text": "1. `LocalResolutionProvider` (Recommended)",
+            "line": 162
+          },
+          {
+            "level": 3,
+            "text": "2. `SuperpositionAPIProvider` (Remote / Stateless)",
+            "line": 213
+          },
+          {
+            "level": 2,
+            "text": "Local File Resolution (SuperTOML)",
+            "line": 241
+          },
+          {
+            "level": 2,
+            "text": "Local HTTP with File Fallback",
+            "line": 287
+          },
+          {
+            "level": 2,
+            "text": "Evaluation Context",
+            "line": 348
+          },
+          {
+            "level": 2,
+            "text": "Supported Value Types",
+            "line": 363
+          },
+          {
+            "level": 2,
+            "text": "Logging",
+            "line": 390
+          },
+          {
+            "level": 2,
+            "text": "Examples",
+            "line": 401
+          }
+        ],
+        "code_blocks": [
+          {
+            "language": "cabal",
+            "code": "build-depends:\n    base,\n    superposition-open-feature-provider,\n    open-feature,\n    text,\n    network-uri"
+          },
+          {
+            "language": "haskell",
+            "code": "{-# LANGUAGE OverloadedStrings #-}\n\nmodule Main where\n\nimport Data.OpenFeature (EvaluationContext, OpenFeature)\nimport Data.OpenFeature.SuperpositionProvider\n    ( HttpDataSource(..), LocalResolutionProvider(..)\n    , PollingStrategy(..), RefreshStrategy(..), SuperpositionOptions(..)\n    )\nimport Control.Concurrent (threadDelay)\n\nmain :: IO ()\nmain = do\n    -- 1. Create an HTTP data source pointing to your Superposition server\n    let httpSource = HttpDataSource $ SuperpositionOptions\n            { endpoint    = \"http://localhost:8080\"\n            , token       = \"your_token_here\"\n            , orgId       = \"localorg\"\n            , workspaceId = \"test\"\n            }\n\n    -- 2. Create the provider with a polling refresh strategy\n    let provider = LocalResolutionProvider\n            { dataSource       = httpSource\n            , fallbackSource   = Nothing  -- no fallback data source\n            , refreshStrategy  = Polling $ PollingStrategy\n                { interval = 60       -- seconds between polls\n                , timeout  = Just 30  -- HTTP request timeout in seconds\n                }\n            }\n\n    -- 3. Register with OpenFeature and create a client\n    api <- openFeatureSingleton\n    setProvider api provider\n    let client = createClient api\n\n    -- Allow time for the provider to initialize\n    threadDelay 2000000\n\n    -- 4. Evaluate feature flags\n    let context = defaultEvaluationContext\n            & withTargetingKey \"user-42\"\n            & withCustomField \"city\" \"Berlin\"\n\n    stringVal <- getStringValue client \"currency\" (Just context) Nothing\n    putStrLn $ \"currency = \" <> stringVal\n\n    intVal <- getIntValue client \"price\" (Just context) Nothing\n    putStrLn $ \"price = \" <> show intVal\n\n    boolVal <- getBoolValue client \"dark_mode\" (Just context) Nothing\n    putStrLn $ \"dark_mode = \" <> show boolVal"
+          },
+          {
+            "language": "haskell",
+            "code": "let options = SuperpositionOptions\n        { endpoint    = \"http://localhost:8080\"\n        , token       = \"your_token\"\n        , orgId       = \"localorg\"\n        , workspaceId = \"test\"\n        }"
+          },
+          {
+            "language": "haskell",
+            "code": "-- Polling \u2014 periodically fetches updates from the server\nPolling $ PollingStrategy\n    { interval = 60       -- seconds between polls (default: 60)\n    , timeout  = Just 30  -- HTTP request timeout in seconds (default: 30)\n    }\n\n-- On-Demand \u2014 fetches on first access, then caches with a TTL\nOnDemand $ OnDemandStrategy\n    { ttl             = 300        -- cache TTL in seconds (default: 300)\n    , useStaleOnError = Just True  -- serve stale data on fetch error (default: Just True)\n    , timeout         = Just 30    -- HTTP timeout in seconds (default: Just 30)\n    }\n\n-- Watch \u2014 uses file-system notifications (for FileDataSource only)\nWatch $ WatchStrategy\n    { debounceMs = Just 500  -- debounce interval in milliseconds (default: Just 500)\n    }\n\n-- Manual \u2014 no automatic refresh; user triggers refresh\nManual"
+          },
+          {
+            "language": "haskell",
+            "code": "let expOptions = defaultExperimentationOptions\n        (Polling $ PollingStrategy { interval = 5, timeout = Just 3 })\n        & withEvaluationCache defaultEvaluationCacheOptions\n        & withDefaultToss 50"
+          },
+          {
+            "language": "haskell",
+            "code": "import Data.OpenFeature (EvaluationContext(..))\nimport Data.OpenFeature.SuperpositionProvider\n    ( HttpDataSource(..), LocalResolutionProvider(..)\n    , AllFeatureProvider(..), FeatureExperimentMeta(..)\n    , PollingStrategy(..), RefreshStrategy(..), SuperpositionOptions(..)\n    )\n\nlet httpSource = HttpDataSource $ SuperpositionOptions\n        { endpoint    = \"http://localhost:8080\"\n        , token       = \"token\"\n        , orgId       = \"localorg\"\n        , workspaceId = \"dev\"\n        }\n\nlet provider = LocalResolutionProvider\n        { dataSource      = httpSource\n        , fallbackSource  = Nothing  -- optional fallback data source\n        , refreshStrategy = Polling $ PollingStrategy { interval = 30, timeout = Just 10 }\n        }\n\n-- Initialize the provider (fetches initial config)\ninitProvider provider defaultEvaluationContext\n\n-- Resolve all features\nlet context = defaultEvaluationContext\n        & withTargetingKey \"user-1234\"\n        & withCustomField \"dimension\" \"d2\"\n\nallConfig <- resolveAllFeatures provider context\nputStrLn $ \"All config: \" <> show allConfig\n\n-- Get applicable experiment variants\nvariants <- getApplicableVariants provider context Nothing\nputStrLn $ \"Variants: \" <> show variants\n\n-- Cleanup\ncloseProvider provider"
+          },
+          {
+            "language": "haskell",
+            "code": "import Data.OpenFeature (EvaluationContext, OpenFeature)\nimport Data.OpenFeature.SuperpositionProvider\n    ( SuperpositionAPIProvider(..), SuperpositionOptions(..) )\n\nlet provider = SuperpositionAPIProvider $ SuperpositionOptions\n        { endpoint    = \"http://localhost:8080\"\n        , token       = \"token\"\n        , orgId       = \"localorg\"\n        , workspaceId = \"dev\"\n        }\n\n-- Use with OpenFeature\napi <- openFeatureSingleton\nsetProvider api provider\nlet client = createClient api\n\nlet context = defaultEvaluationContext\n        & withCustomField \"city\" \"Berlin\"\n\nvalue <- getStringValue client \"currency\" (Just context) Nothing\nputStrLn $ \"currency = \" <> value"
+          },
+          {
+            "language": "haskell",
+            "code": "{-# LANGUAGE OverloadedStrings #-}\n\nmodule Main where\n\nimport Data.OpenFeature (EvaluationContext)\nimport Data.OpenFeature.SuperpositionProvider\n    ( FileDataSource(..), LocalResolutionProvider(..)\n    , AllFeatureProvider(..)\n    , OnDemandStrategy(..), RefreshStrategy(..)\n    )\n\nmain :: IO ()\nmain = do\n    let fileSource = FileDataSource \"config.toml\"\n\n    let provider = LocalResolutionProvider\n            { dataSource      = fileSource\n            , fallbackSource  = Nothing\n            , refreshStrategy = OnDemand $ OnDemandStrategy\n                { ttl             = 60\n                , useStaleOnError = Nothing\n                , timeout         = Nothing\n                }\n            }\n\n    initProvider provider defaultEvaluationContext\n\n    let context = defaultEvaluationContext\n            & withCustomField \"os\" \"linux\"\n            & withCustomField \"city\" \"Boston\"\n\n    config <- resolveAllFeatures provider context\n    putStrLn $ \"Config: \" <> show config\n\n    closeProvider provider"
+          },
+          {
+            "language": "haskell",
+            "code": "{-# LANGUAGE OverloadedStrings #-}\n\nmodule Main where\n\nimport Data.OpenFeature (EvaluationContext, OpenFeature)\nimport Data.OpenFeature.SuperpositionProvider\n    ( FileDataSource(..), HttpDataSource(..), LocalResolutionProvider(..)\n    , PollingStrategy(..), RefreshStrategy(..), SuperpositionOptions(..)\n    )\nimport Control.Concurrent (threadDelay)\n\nmain :: IO ()\nmain = do\n    -- Primary: HTTP data source (Superposition server)\n    let httpSource = HttpDataSource $ SuperpositionOptions\n            { endpoint    = \"http://localhost:8080\"\n            , token       = \"token\"\n            , orgId       = \"localorg\"\n            , workspaceId = \"dev\"\n            }\n\n    -- Fallback: local TOML config file\n    let fileSource = FileDataSource \"config.toml\"\n\n    let provider = LocalResolutionProvider\n            { dataSource      = httpSource\n            , fallbackSource  = Just fileSource  -- used when HTTP source is unavailable\n            , refreshStrategy = Polling $ PollingStrategy\n                { interval = 10\n                , timeout  = Just 10\n                }\n            }\n\n    -- Register with OpenFeature\n    api <- openFeatureSingleton\n    setProvider api provider\n    let client = createClient api\n\n    threadDelay 2000000\n\n    let context = defaultEvaluationContext\n            & withTargetingKey \"user-456\"\n            & withCustomField \"os\" \"linux\"\n            & withCustomField \"city\" \"Berlin\"\n\n    currency <- getStringValue client \"currency\" (Just context) Nothing\n    putStrLn $ \"currency = \" <> currency\n\n    price <- getIntValue client \"price\" (Just context) Nothing\n    putStrLn $ \"price = \" <> show price"
+          },
+          {
+            "language": "haskell",
+            "code": "import Data.OpenFeature (EvaluationContext)\n\nlet context = defaultEvaluationContext\n        & withTargetingKey \"user-42\"\n        & withCustomField \"city\" \"Berlin\"\n        & withCustomField \"os\" \"android\"\n\nvalue <- getStringValue client \"currency\" (Just context) Nothing"
+          },
+          {
+            "language": "haskell",
+            "code": "-- Resolve all features\nallConfig <- resolveAllFeatures provider context\n\n-- Resolve with a prefix filter (e.g. only keys starting with \"payment.\")\nfiltered <- resolveAllFeaturesWithFilter provider context (Just [\"payment.\"])"
+          },
+          {
+            "language": "haskell",
+            "code": "-- Get applicable experiment variant IDs\nvariants <- getApplicableVariants provider context Nothing  -- optional prefix filter"
+          },
+          {
+            "language": "haskell",
+            "code": "import Control.Monad.Logger (runStdoutLoggingT, LogLevel(..))\n\nrunStdoutLoggingT $ do\n    -- provider operations here"
+          }
+        ],
+        "tables": 0,
+        "images": 0,
+        "links": 1,
+        "word_count": 55,
+        "line_count": 404
+      },
+      "summary": "**Haskell**\nSections: Installation, Quick Start, Configuration Options, `SuperpositionOptions`, Refresh Strategies\n--- sidebar_position: 6 title: Haskell ---\n(55 words, 13 code blocks)",
+      "content": null,
+      "_enhanced": true,
+      "parsed_data": {
+        "tables": 0,
+        "cross_references": 0,
+        "code_blocks": 13,
+        "images": 0,
+        "quality_scores": {
+          "avg_code_quality": 8.26923076923077
+        }
+      }
+    },
+    {
       "path": "providers/openfeature/java.md",
       "filename": "java.md",
       "category": "features",
@@ -2350,7 +2657,7 @@
       "path": "providers/openfeature/overview.md",
       "filename": "overview.md",
       "category": "features",
-      "size_bytes": 4569,
+      "size_bytes": 4731,
       "title": "Overview",
       "structure": {
         "title": "Overview",
@@ -2373,47 +2680,47 @@
           {
             "level": 2,
             "text": "Prerequisites",
-            "line": 30
+            "line": 31
           },
           {
             "level": 2,
             "text": "Common Concepts",
-            "line": 38
+            "line": 39
           },
           {
             "level": 3,
             "text": "Provider Architecture",
-            "line": 40
+            "line": 41
           },
           {
             "level": 3,
             "text": "Evaluation Context",
-            "line": 51
+            "line": 52
           },
           {
             "level": 3,
             "text": "Refresh Strategies",
-            "line": 58
+            "line": 59
           },
           {
             "level": 3,
             "text": "Experimentation",
-            "line": 69
+            "line": 70
           }
         ],
         "code_blocks": [],
         "tables": 0,
         "images": 0,
-        "links": 5,
+        "links": 6,
         "word_count": 24,
-        "line_count": 78
+        "line_count": 79
       },
       "summary": "**Overview**\nSections: Features, Supported Languages, Prerequisites, Common Concepts, Provider Architecture\n--- sidebar_position: 1 title: Overview slug: /providers/openfeature ---\n(24 words, 0 code blocks)",
       "content": null,
       "_enhanced": true,
       "parsed_data": {
         "tables": 0,
-        "cross_references": 4,
+        "cross_references": 5,
         "code_blocks": 0,
         "images": 0,
         "quality_scores": {
@@ -2751,6 +3058,416 @@
         "images": 0,
         "quality_scores": {
           "avg_code_quality": 9.0
+        }
+      }
+    },
+    {
+      "path": "self-hosting/authentication.md",
+      "filename": "authentication.md",
+      "category": "other",
+      "size_bytes": 23432,
+      "title": "Authentication",
+      "structure": {
+        "title": "Authentication",
+        "headers": [
+          {
+            "level": 1,
+            "text": "Authentication",
+            "line": 6
+          },
+          {
+            "level": 2,
+            "text": "Design philosophy: Superposition does not store users",
+            "line": 17
+          },
+          {
+            "level": 2,
+            "text": "Providers",
+            "line": 30
+          },
+          {
+            "level": 2,
+            "text": "Credential schemes",
+            "line": 62
+          },
+          {
+            "level": 3,
+            "text": "`Bearer` \u2014 OIDC id-token",
+            "line": 79
+          },
+          {
+            "level": 3,
+            "text": "`Basic` \u2014 client credentials & password grants",
+            "line": 87
+          },
+          {
+            "level": 3,
+            "text": "`Bearer <prefix>` \u2014 API tokens (static tokens & RFC 7662 introspection)",
+            "line": 119
+          },
+          {
+            "level": 4,
+            "text": "Static tokens",
+            "line": 139
+          },
+          {
+            "level": 4,
+            "text": "RFC 7662 introspection",
+            "line": 172
+          },
+          {
+            "level": 3,
+            "text": "`Internal` \u2014 application-internal only",
+            "line": 245
+          },
+          {
+            "level": 2,
+            "text": "Caching",
+            "line": 261
+          },
+          {
+            "level": 2,
+            "text": "Error semantics",
+            "line": 284
+          },
+          {
+            "level": 2,
+            "text": "Environment variables",
+            "line": 302
+          },
+          {
+            "level": 3,
+            "text": "Core OIDC",
+            "line": 304
+          },
+          {
+            "level": 3,
+            "text": "API-token authentication (optional)",
+            "line": 315
+          },
+          {
+            "level": 2,
+            "text": "Design decisions & rationale",
+            "line": 403
+          },
+          {
+            "level": 2,
+            "text": "Reference introspection service",
+            "line": 434
+          }
+        ],
+        "code_blocks": [
+          {
+            "language": "bash",
+            "code": "# Disabled (dev only)\nAUTH_PROVIDER=DISABLED\n\n# Single-realm OIDC\nAUTH_PROVIDER=OIDC+https://issuer.example.com/realms/users\n\n# Per-org (SaaS) OIDC\nAUTH_PROVIDER=OIDC_SAAS+https://issuer.example.com/realms/users"
+          },
+          {
+            "language": "json",
+            "code": "[\n  { \"token\": \"<high-entropy-secret>\", \"principal\": \"svc-ci\", \"email\": \"ci@example.com\" },\n  { \"token\": \"<another-secret>\", \"principal\": \"svc-billing\", \"org\": \"acme\" }\n]"
+          },
+          {
+            "language": "bash",
+            "code": "AUTH_PROVIDER=OIDC+https://issuer.example.com/realms/users\nOIDC_CLIENT_ID=superposition\nOIDC_CLIENT_SECRET='<client-secret-or-kms-ciphertext>'\nOIDC_REDIRECT_HOST=https://superposition.example.com\n\n# Optional API-token flow. Prefix + at least one mechanism (static and/or introspection).\nOIDC_API_TOKEN_PREFIX=apikey\nOIDC_API_TOKEN_DELIMITER=_\nOIDC_INTROSPECTION_AUTH_HEADER='Bearer <token>'   # or 'Basic <base64(id:secret)>'; KMS ciphertext in non-dev\n# Optional: omit to use the endpoint discovered from provider metadata.\nOIDC_TOKEN_INTROSPECTION_URL=https://tokens.example.com/introspect"
+          },
+          {
+            "language": "bash",
+            "code": "AUTH_PROVIDER=OIDC+https://issuer.example.com/realms/users\nOIDC_CLIENT_ID=superposition\nOIDC_CLIENT_SECRET='<client-secret-or-kms-ciphertext>'\nOIDC_REDIRECT_HOST=https://superposition.example.com\n\nOIDC_API_TOKEN_PREFIX=apikey\nOIDC_API_TOKEN_DELIMITER=_\n# KMS ciphertext in non-dev; each token maps to a fixed principal.\nOIDC_API_STATIC_TOKENS='[{\"token\":\"<key>\",\"principal\":\"svc-ci\",\"email\":\"ci@example.com\"}]'"
+          },
+          {
+            "language": "bash",
+            "code": "AUTH_PROVIDER=OIDC_SAAS+https://issuer.example.com/realms/users\nOIDC_CLIENT_ID=superposition\nOIDC_CLIENT_SECRET='<client-secret-or-kms-ciphertext>'\nOIDC_REDIRECT_HOST=https://superposition.example.com\nOIDC_ORG_TOKEN_ENDPOINT_FORMAT='https://issuer.example.com/realms/<organisation>/protocol/openid-connect/token'\nOIDC_ORG_ISSUER_ENDPOINT_FORMAT='https://issuer.example.com/realms/<organisation>'\n\nOIDC_API_TOKEN_PREFIX=apikey\nOIDC_API_TOKEN_DELIMITER=_\nOIDC_INTROSPECTION_AUTH_HEADER='Bearer <token>'   # or 'Basic <base64(id:secret)>'; KMS ciphertext in non-dev\nOIDC_ORG_TOKEN_INTROSPECTION_URL_FORMAT='https://issuer.example.com/realms/<organisation>/protocol/openid-connect/token/introspect'\n# Global (Login::Global) endpoint is auto-discovered from provider metadata;\n# set OIDC_TOKEN_INTROSPECTION_URL only to override it."
+          }
+        ],
+        "tables": 0,
+        "images": 0,
+        "links": 2,
+        "word_count": 106,
+        "line_count": 441
+      },
+      "summary": "**Authentication**\nSections: Design philosophy: Superposition does not store users, Providers, Credential schemes, `Bearer` \u2014 OIDC id-token, `Basic` \u2014 client credentials & password grants\n--- title: Authentication description: How Superposition authenticates requests \u2014 providers, schemes, configuration, and the rationale behind the design. ---\n(106 words, 5 code blocks)",
+      "content": null,
+      "_enhanced": true,
+      "parsed_data": {
+        "tables": 0,
+        "cross_references": 3,
+        "code_blocks": 5,
+        "images": 0,
+        "quality_scores": {
+          "avg_code_quality": 9.0
+        }
+      }
+    },
+    {
+      "path": "self-hosting/environment-variables.md",
+      "filename": "environment-variables.md",
+      "category": "other",
+      "size_bytes": 11023,
+      "title": "Environment Variables",
+      "structure": {
+        "title": "Environment Variables",
+        "headers": [
+          {
+            "level": 1,
+            "text": "Environment Variables",
+            "line": 6
+          },
+          {
+            "level": 2,
+            "text": "Core Runtime Settings",
+            "line": 11
+          },
+          {
+            "level": 2,
+            "text": "Database And Cache Settings",
+            "line": 31
+          },
+          {
+            "level": 2,
+            "text": "Kronos Webhook Delivery",
+            "line": 45
+          },
+          {
+            "level": 2,
+            "text": "Required Validation Flags",
+            "line": 64
+          },
+          {
+            "level": 2,
+            "text": "Secret Loading Modes",
+            "line": 82
+          },
+          {
+            "level": 2,
+            "text": "Authentication",
+            "line": 124
+          },
+          {
+            "level": 2,
+            "text": "Authorization",
+            "line": 206
+          }
+        ],
+        "code_blocks": [
+          {
+            "language": "bash",
+            "code": "ALLOW_SAME_KEYS_OVERLAPPING_CTX=true\nALLOW_DIFF_KEYS_OVERLAPPING_CTX=true\nALLOW_SAME_KEYS_NON_OVERLAPPING_CTX=true"
+          },
+          {
+            "language": "bash",
+            "code": "TENANT_MIDDLEWARE_EXCLUSION_LIST=\"/health,/assets/favicon.ico,/pkg/frontend.js,/pkg,/pkg/frontend_bg.wasm,/pkg/tailwind.css,/pkg/style.css,/assets,/admin,/oidc/login,/admin/organisations,/organisations,/organisations/switch/{organisation_id},/\""
+          },
+          {
+            "language": "bash",
+            "code": "openssl rand -base64 32"
+          },
+          {
+            "language": "bash",
+            "code": "AUTH_PROVIDER=DISABLED\nAUTH_Z_PROVIDER=DISABLED"
+          },
+          {
+            "language": "bash",
+            "code": "AUTH_PROVIDER=OIDC+https://issuer.example.com/realms/users\nOIDC_CLIENT_ID=superposition\nOIDC_CLIENT_SECRET='<client-secret-or-kms-ciphertext>'\nOIDC_REDIRECT_HOST=https://superposition.example.com"
+          },
+          {
+            "language": "bash",
+            "code": "AUTH_PROVIDER=OIDC_SAAS+https://issuer.example.com/realms/users\nOIDC_CLIENT_ID=superposition\nOIDC_CLIENT_SECRET='<client-secret-or-kms-ciphertext>'\nOIDC_REDIRECT_HOST=https://superposition.example.com\nOIDC_ORG_TOKEN_ENDPOINT_FORMAT='https://issuer.example.com/realms/<organisation>/protocol/openid-connect/token'\nOIDC_ORG_ISSUER_ENDPOINT_FORMAT='https://issuer.example.com/realms/<organisation>'"
+          },
+          {
+            "language": "bash",
+            "code": "OIDC_API_TOKEN_PREFIX=apikey                      # arbitrary, operator-chosen; marks a bearer token as an API key\nOIDC_API_TOKEN_DELIMITER=_                         # optional; separates prefix and key (defaults to \"_\")\n\n# Mechanism 1 \u2014 static tokens. KMS-encrypted (like OIDC_CLIENT_SECRET) JSON array;\n# each entry maps a token to a fixed principal. In SaaS, \"org\" binds a token to an\n# organisation; omit \"org\" for a global-scoped token. \"email\" is optional.\nOIDC_API_STATIC_TOKENS='[{\"token\":\"<key>\",\"principal\":\"svc-ci\",\"org\":\"acme\"}]'\n\n# Mechanism 2 \u2014 RFC 7662 introspection. Verbatim Authorization header sent to the\n# endpoint (Bearer or Basic). Secret \u2014 KMS-encrypted in non-dev.\nOIDC_INTROSPECTION_AUTH_HEADER='Bearer <token>'   # or 'Basic <base64(id:secret)>'\n\n# Introspection endpoint URLs are OPTIONAL \u2014 when unset, the endpoint is\n# discovered from provider metadata. Simple: single endpoint (optional).\nOIDC_TOKEN_INTROSPECTION_URL='https://issuer.example.com/realms/users/protocol/openid-connect/token/introspect'\n\n# SaaS OIDC: the per-org format is REQUIRED when introspection is enabled (a\n# global-only SaaS introspection config is rejected at startup); the global\n# (Login::Global) endpoint is discovered unless OIDC_TOKEN_INTROSPECTION_URL\n# overrides it.\nOIDC_ORG_TOKEN_INTROSPECTION_URL_FORMAT='https://issuer.example.com/realms/<organisation>/protocol/openid-connect/token/introspect'"
+          },
+          {
+            "language": "bash",
+            "code": "# Cap on how long an RFC 7662 introspection result is cached, regardless of the\n# token's own expiry \u2014 keeps revocation lag small for long-lived tokens. (300)\nOIDC_MAX_INTROSPECTION_CACHE_TTL_SECS=300\n\n# For Basic-auth (password / client_credentials) token-exchange caching:\n# how far before the exchanged token's expiry a cached principal is dropped,\n# to stay ahead of clock skew and in-flight latency. (30)\nOIDC_CACHE_REFRESH_SAFETY_MARGIN_SECS=30\n\n# Fallback cache TTL used when the IdP omits `expires_in` from a Basic-auth\n# token response (`expires_in` is only RECOMMENDED by RFC 6749, not required). (60)\nOIDC_FALLBACK_TTL_SECS=60"
+          },
+          {
+            "language": "bash",
+            "code": "AUTH_Z_PROVIDER=CASBIN\nCASBIN_DB_USER=superposition\nCASBIN_DB_PASSWORD='<database-password-or-kms-ciphertext>'\nCASBIN_DB_HOST='postgres.example.com:5432'\nCASBIN_DB_NAME=superposition\nCASBIN_DB_POOL_SIZE=3\nCASBIN_POLICY_REFRESH_INTERVAL=20\nROOT_ADMIN_EMAIL=admin@example.com"
+          },
+          {
+            "language": "bash",
+            "code": "export CASBIN_DATABASE_URL=\"postgres://${CASBIN_DB_USER}:${CASBIN_DB_PASSWORD}@${CASBIN_DB_HOST}/${CASBIN_DB_NAME}\"\npsql \"$CASBIN_DATABASE_URL\" -f crates/service_utils/src/middlewares/auth_z/casbin/casbin.sql"
+          }
+        ],
+        "tables": 0,
+        "images": 0,
+        "links": 0,
+        "word_count": 42,
+        "line_count": 227
+      },
+      "summary": "**Environment Variables**\nSections: Core Runtime Settings, Database And Cache Settings, Kronos Webhook Delivery, Required Validation Flags, Secret Loading Modes\n--- title: Environment Variables description: Runtime configuration for self-hosted Superposition deployments. ---\n(42 words, 10 code blocks)",
+      "content": null,
+      "_enhanced": true,
+      "parsed_data": {
+        "tables": 0,
+        "cross_references": 3,
+        "code_blocks": 10,
+        "images": 0,
+        "quality_scores": {
+          "avg_code_quality": 7.8
+        }
+      }
+    },
+    {
+      "path": "self-hosting/kronos.md",
+      "filename": "kronos.md",
+      "category": "other",
+      "size_bytes": 3626,
+      "title": "Kronos",
+      "structure": {
+        "title": "Kronos",
+        "headers": [
+          {
+            "level": 1,
+            "text": "Kronos",
+            "line": 6
+          },
+          {
+            "level": 2,
+            "text": "Library Mode",
+            "line": 17
+          },
+          {
+            "level": 2,
+            "text": "Service Mode",
+            "line": 40
+          },
+          {
+            "level": 2,
+            "text": "Settings Shared By Both Modes",
+            "line": 67
+          }
+        ],
+        "code_blocks": [
+          {
+            "language": "bash",
+            "code": "# Do not set KRONOS_URL.\nSUPERPOSITION_HOST=https://superposition.example.com\nKRONOS_DISPATCH_TOKEN='<random-callback-token>'\nKRONOS_ENCRYPTION_KEY='<64-hex-character-key>'\nKRONOS_DB_POOL_SIZE=1\nKRONOS_TABLE_PREFIX=kronos_"
+          },
+          {
+            "language": "bash",
+            "code": "KRONOS_URL=http://kronos:8080/kronos\nKRONOS_API_KEY='<kronos-api-key>'\nKRONOS_ORG_ID='<existing-kronos-organisation-id>'\nKRONOS_WORKSPACE=superposition\n\nSUPERPOSITION_HOST=https://superposition.example.com\nKRONOS_DISPATCH_TOKEN='<random-callback-token>'"
+          }
+        ],
+        "tables": 0,
+        "images": 0,
+        "links": 2,
+        "word_count": 21,
+        "line_count": 85
+      },
+      "summary": "**Kronos**\nSections: Library Mode, Service Mode, Settings Shared By Both Modes\n--- title: Kronos description: Choose embedded library mode or a standalone Kronos service for durable webhook delivery. ---\n(21 words, 2 code blocks)",
+      "content": null,
+      "_enhanced": true,
+      "parsed_data": {
+        "tables": 0,
+        "cross_references": 0,
+        "code_blocks": 2,
+        "images": 0,
+        "quality_scores": {
+          "avg_code_quality": 8.75
+        }
+      }
+    },
+    {
+      "path": "self-hosting/kubernetes.md",
+      "filename": "kubernetes.md",
+      "category": "other",
+      "size_bytes": 474,
+      "title": "Kubernetes",
+      "structure": {
+        "title": "Kubernetes",
+        "headers": [
+          {
+            "level": 1,
+            "text": "Kubernetes",
+            "line": 6
+          }
+        ],
+        "code_blocks": [],
+        "tables": 0,
+        "images": 0,
+        "links": 1,
+        "word_count": 5,
+        "line_count": 19
+      },
+      "summary": "**Kubernetes**\n--- title: Kubernetes description: Deploy Superposition on Kubernetes with the Helm chart in this repository. ---\n(5 words, 0 code blocks)",
+      "content": null,
+      "_enhanced": true,
+      "parsed_data": {
+        "tables": 0,
+        "cross_references": 0,
+        "code_blocks": 0,
+        "images": 0,
+        "quality_scores": {
+          "avg_code_quality": 0
+        }
+      }
+    },
+    {
+      "path": "self-hosting/production.md",
+      "filename": "production.md",
+      "category": "other",
+      "size_bytes": 3267,
+      "title": "Production",
+      "structure": {
+        "title": "Production",
+        "headers": [
+          {
+            "level": 1,
+            "text": "Production",
+            "line": 6
+          },
+          {
+            "level": 2,
+            "text": "Deployment Model",
+            "line": 11
+          },
+          {
+            "level": 2,
+            "text": "Security",
+            "line": 22
+          },
+          {
+            "level": 2,
+            "text": "Database And Networking",
+            "line": 35
+          },
+          {
+            "level": 2,
+            "text": "Upgrades",
+            "line": 57
+          },
+          {
+            "level": 2,
+            "text": "Health And Operations",
+            "line": 79
+          }
+        ],
+        "code_blocks": [
+          {
+            "language": "bash",
+            "code": "export DB_USER=superposition\nexport DB_PASSWORD='<database-password>'\nexport DB_HOST='postgres.example.com:5432'\nexport DB_NAME=superposition\nexport DATABASE_URL=\"postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}\"\npsql \"$DATABASE_URL\" -f superposition.sql"
+          },
+          {
+            "language": "bash",
+            "code": "curl -X POST \"https://superposition.example.com/workspaces/<workspace>/db/migrate\" \\\n  -H \"x-org-id: <organisation-id>\""
+          }
+        ],
+        "tables": 0,
+        "images": 0,
+        "links": 0,
+        "word_count": 30,
+        "line_count": 89
+      },
+      "summary": "**Production**\nSections: Deployment Model, Security, Database And Networking, Upgrades, Health And Operations\n--- title: Production description: Production guidance for self-hosted Superposition deployments. ---\n(30 words, 2 code blocks)",
+      "content": null,
+      "_enhanced": true,
+      "parsed_data": {
+        "tables": 0,
+        "cross_references": 1,
+        "code_blocks": 2,
+        "images": 0,
+        "quality_scores": {
+          "avg_code_quality": 8.5
         }
       }
     },
@@ -4041,7 +4758,7 @@
       "path": "superposition-config-file/format-specification.md",
       "filename": "format-specification.md",
       "category": "other",
-      "size_bytes": 11269,
+      "size_bytes": 11965,
       "title": "Format Specification",
       "structure": {
         "title": "Format Specification",
@@ -4084,137 +4801,137 @@
           {
             "level": 3,
             "text": "Examples",
-            "line": 76
+            "line": 77
           },
           {
             "level": 4,
             "text": "Simple Types",
-            "line": 78
+            "line": 79
           },
           {
             "level": 4,
             "text": "Enum Values",
-            "line": 92
+            "line": 93
           },
           {
             "level": 4,
             "text": "Complex Objects",
-            "line": 105
+            "line": 106
           },
           {
             "level": 4,
             "text": "Arrays",
-            "line": 123
+            "line": 124
           },
           {
             "level": 2,
             "text": "Dimensions Section",
-            "line": 139
+            "line": 140
           },
           {
             "level": 3,
             "text": "Syntax",
-            "line": 143
+            "line": 144
           },
           {
             "level": 3,
             "text": "Parameters",
-            "line": 150
+            "line": 151
           },
           {
             "level": 3,
             "text": "Position and Priority",
-            "line": 158
+            "line": 160
           },
           {
             "level": 3,
             "text": "Examples",
-            "line": 171
-          },
-          {
-            "level": 4,
-            "text": "Basic Dimensions",
             "line": 173
           },
           {
             "level": 4,
+            "text": "Basic Dimensions",
+            "line": 175
+          },
+          {
+            "level": 4,
             "text": "Dimension with Numeric Range",
-            "line": 203
+            "line": 205
           },
           {
             "level": 4,
             "text": "Cohort Dimensions (Derived)",
-            "line": 216
+            "line": 218
           },
           {
             "level": 2,
             "text": "Overrides Section",
-            "line": 246
+            "line": 248
           },
           {
             "level": 3,
             "text": "Syntax",
-            "line": 250
+            "line": 252
           },
           {
             "level": 3,
             "text": "Context Matching",
-            "line": 259
+            "line": 261
           },
           {
             "level": 3,
             "text": "Examples",
-            "line": 267
-          },
-          {
-            "level": 4,
-            "text": "Single Dimension Override",
             "line": 269
           },
           {
             "level": 4,
+            "text": "Single Dimension Override",
+            "line": 271
+          },
+          {
+            "level": 4,
             "text": "Multi-Dimension Override",
-            "line": 279
+            "line": 281
           },
           {
             "level": 4,
             "text": "Multiple Overrides for Same Key",
-            "line": 289
+            "line": 291
           },
           {
             "level": 4,
             "text": "Multiple Config Keys in One Override",
-            "line": 303
+            "line": 305
           },
           {
             "level": 2,
             "text": "Complete Example",
-            "line": 316
+            "line": 318
           },
           {
             "level": 2,
             "text": "JSON Equivalent",
-            "line": 384
+            "line": 386
           },
           {
             "level": 2,
             "text": "Validation Rules",
-            "line": 433
-          },
-          {
-            "level": 3,
-            "text": "Default Configs Validation",
             "line": 435
           },
           {
             "level": 3,
+            "text": "Default Configs Validation",
+            "line": 437
+          },
+          {
+            "level": 3,
             "text": "Dimensions Validation",
-            "line": 441
+            "line": 443
           },
           {
             "level": 3,
             "text": "Overrides Validation",
-            "line": 449
+            "line": 451
           }
         ],
         "code_blocks": [
@@ -4224,11 +4941,11 @@
           },
           {
             "language": "json",
-            "code": "{\n  \"default-configs\": {\n    \"key\": { \"value\": <default_value>, \"schema\": <json_schema> }\n  },\n  \"dimensions\": {\n    \"dimension_name\": { \"position\": <number>, \"schema\": <json_schema> }\n  },\n  \"overrides\": [\n    {\n      \"_context_\": { /* context condition */ },\n      \"key\": <override_value>\n    }\n  ]\n}"
+            "code": "{\n  \"default-configs\": {\n    \"key\": { \"value\": <default_value>, \"schema\": <json_schema>, \"description\": <string> }\n  },\n  \"dimensions\": {\n    \"dimension_name\": { \"position\": <number>, \"schema\": <json_schema>, \"description\": <string> }\n  },\n  \"overrides\": [\n    {\n      \"_context_\": { /* context condition */ },\n      \"key\": <override_value>\n    }\n  ]\n}"
           },
           {
             "language": "toml",
-            "code": "[default-configs]\n<key> = { value = <default_value>, schema = <json_schema> }"
+            "code": "[default-configs]\n<key> = { value = <default_value>, schema = <json_schema> [, description = <string>] }"
           },
           {
             "language": "toml",
@@ -4248,7 +4965,7 @@
           },
           {
             "language": "toml",
-            "code": "[dimensions]\n<dimension_name> = { position = <number>, schema = <json_schema> [, type = <dimension_type>] }"
+            "code": "[dimensions]\n<dimension_name> = { position = <number>, schema = <json_schema> [, description = <string>] [, type = <dimension_type>] }"
           },
           {
             "language": "toml",
@@ -4295,7 +5012,7 @@
         "images": 0,
         "links": 0,
         "word_count": 80,
-        "line_count": 456
+        "line_count": 458
       },
       "summary": "**Format Specification**\nSections: File Structure, TOML Format, JSON Format, Default Configs Section, Syntax\n--- sidebar_position: 2 title: Format Specification description: Complete syntax reference for SuperTOML configuration files ---\n(80 words, 18 code blocks)",
       "content": null,

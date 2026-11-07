@@ -10,7 +10,7 @@ doc_version:
 
 Local codebase analysis and documentation generated from code analysis.
 
-**Path:** `/Users/saurav.suman/sdk/superposition-skills/docs/docs`
+**Path:** `/home/runner/work/superposition/superposition/docs/docs`
 **Files Analyzed:** 1
 **Languages:** TypeScript
 **Analysis Depth:** deep
@@ -45,12 +45,12 @@ Use this skill when you need to:
 
 *From C3.4 configuration analysis*
 
-**Configuration Files Analyzed:** 100
-**Total Settings:** 1123
+**Configuration Files Analyzed:** 270
+**Total Settings:** 6718
 **Patterns Detected:** 0
 
 **Configuration Types:**
-- unknown: 100 files
+- unknown: 270 files
 
 *See `references/config_patterns/` for detailed configuration analysis*
 
@@ -58,30 +58,31 @@ Use this skill when you need to:
 
 *Extracted from markdown files in the project (C3.9)*
 
-**Total Documentation Files:** 25
+**Total Documentation Files:** 34
 **Categories:** 3
 
 ### Overview
 
-- **Introduction**: **Introduction**
+- **Overview**: **Overview**
 - **Development Setup**: **Development Setup**
 
 ### Features
 
+- **Haskell**: **Haskell**
 - **Java / Kotlin**: **Java / Kotlin**
 - **JavaScript**: **JavaScript**
 - **Overview**: **Overview**
 - **Python**: **Python**
-- **Rust**: **Rust**
+- *...and 1 more*
 
 ### Other
 
 - **CAC Redis Module**: **CAC Redis Module**
 - **Kubernetes Staggered Releaser (Mayday)**: **Kubernetes Staggered Releaser (Mayday)**
-- **Context Aware Config**: **Context Aware Config**
-- **Experimentation**: **Experimentation**
-- **Context Aware Configuration with TOML**: **Context Aware Configuration with TOML**
-- *...and 13 more*
+- **Organisations**: **Organisations**
+- **Workspaces**: **Workspaces**
+- **Experiment Groups**: **Experiment Groups**
+- *...and 21 more*
 
 *See `references/documentation/` for all project documentation*
 

@@ -1,10 +1,10 @@
 {
-  "enhanced_files": 25,
-  "total_files": 25,
+  "enhanced_files": 34,
+  "total_files": 34,
   "extraction_stats": {
-    "tables": 8,
-    "cross_references": 15,
-    "code_blocks": 289
+    "tables": 10,
+    "cross_references": 28,
+    "code_blocks": 324
   },
   "parser_version": "unified_v1.0.0"
 }

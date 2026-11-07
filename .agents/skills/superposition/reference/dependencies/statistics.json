@@ -2,6 +2,7 @@
   "total_files": 1,
   "total_dependencies": 0,
   "circular_dependencies": 0,
+  "circular_dependencies_truncated": false,
   "strongly_connected_components": 1,
   "avg_dependencies_per_file": 0.0,
   "files_with_no_dependencies": 1,

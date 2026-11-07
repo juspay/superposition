@@ -26,6 +26,7 @@ OpenFeature provider implementations for [Superposition](https://github.com/jusp
 | Python     | [`superposition-provider`](https://pypi.org/project/superposition-provider/)              | [Python Provider](./python)           |
 | JavaScript | [`superposition-provider`](https://www.npmjs.com/package/superposition-provider)          | [JavaScript Provider](./javascript)   |
 | Java       | [`io.juspay.superposition:openfeature-provider`](https://central.sonatype.com/artifact/io.juspay.superposition/openfeature-provider) | [Java Provider](./java) |
+| Haskell    | [`superposition-open-feature-provider`](https://hackage.haskell.org/package/superposition-open-feature-provider) | [Haskell Provider](./haskell) |
 
 ## Prerequisites
 
