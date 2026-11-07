@@ -11,7 +11,7 @@ use fred::{
 };
 use kronos_common::tenant::SchemaProvider;
 use kronos_worker::{
-    KronosClient, KronosHttpClient, KronosLibraryClient, WorkerConfig, WorkerHandle,
+    InvokrClient, InvokrHttpClient, InvokrLibraryClient, WorkerConfig, WorkerHandle,
 };
 use service_utils::{
     db::utils::{
@@ -97,7 +97,7 @@ pub async fn get(
 
     let kronos_url = std::env::var("KRONOS_URL").ok();
     let (kronos_client, worker_handle, kronos_shutdown_timeout_sec, kronos_workspace): (
-        Arc<dyn KronosClient>,
+        Arc<dyn InvokrClient>,
         Option<WorkerHandle>,
         u64,
         Option<String>,
@@ -112,8 +112,8 @@ pub async fn get(
         log::info!(
             "Kronos service mode: {kronos_url} (org={org_id}, workspace={workspace})"
         );
-        let client: Arc<dyn KronosClient> =
-            Arc::new(KronosHttpClient::new(kronos_url, api_key, org_id));
+        let client: Arc<dyn InvokrClient> =
+            Arc::new(InvokrHttpClient::new(kronos_url, api_key, org_id));
 
         setup_dispatcher(
             client.as_ref(),
@@ -131,7 +131,7 @@ pub async fn get(
             get_from_env_or_default("KRONOS_ENCRYPTION_KEY", "0".repeat(64));
         let table_prefix =
             get_from_env_or_default("KRONOS_TABLE_PREFIX", "kronos_".to_string());
-        let client = KronosLibraryClient::from_database_url(
+        let client = InvokrLibraryClient::from_database_url(
             &database_url,
             pool_size,
             &table_prefix,
@@ -139,7 +139,7 @@ pub async fn get(
             None,
         )
         .await
-        .expect("Failed to create KronosLibraryClient");
+        .expect("Failed to create InvokrLibraryClient");
         let schema_provider = SuperpositionSchemaProvider::new(client.pool().clone());
 
         if matches!(app_env, AppEnv::DEV | AppEnv::TEST) {

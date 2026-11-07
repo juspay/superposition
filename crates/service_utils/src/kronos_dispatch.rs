@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use base64::{Engine, engine::general_purpose};
 use kronos_common::{sqlx, tenant::SchemaProvider};
-use kronos_worker::{JobTrigger, KronosClient};
+use kronos_worker::{InvokrClient, JobTrigger};
 use once_cell::sync::Lazy;
 use serde::Serialize;
 use serde_json::json;
@@ -92,7 +92,7 @@ pub fn dispatcher_retry_policy() -> serde_json::Value {
 }
 
 pub async fn setup_dispatcher(
-    kronos_client: &dyn KronosClient,
+    kronos_client: &dyn InvokrClient,
     workspace: &str,
     superposition_host: &str,
     dispatch_token: &str,
@@ -171,7 +171,7 @@ pub fn substitute_templates(
 // headers can route the callback back to the right SP schema.
 #[allow(clippy::too_many_arguments)]
 pub async fn submit_webhook_job<T: Serialize>(
-    kronos_client: &dyn KronosClient,
+    kronos_client: &dyn InvokrClient,
     target_workspace: &str,
     org_id: &str,
     workspace: &str,
