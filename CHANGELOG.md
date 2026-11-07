@@ -2,6 +2,25 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.119.0 - 2026-11-07
+### Package updates
+- superposition_sdk bumped to superposition_sdk-v0.24.2
+- service_utils bumped to service_utils-v0.46.2
+- haskell_client bumped to haskell_client-v0.24.4
+### Global changes
+#### Bug Fixes
+- remove legacy client from rust sdk (#1181) - (396e449) - Ayush Jain
+#### Continuous Integration
+- **(release)** use GitHub App token instead of SUPERPOSITION_TOKEN PAT (#1179) - (3149233) - sauraww
+#### Features
+- headless superposition build via HEADLESS_SUPERPOSITION (#1163) - (8e1d6e4) - Datron
+#### Miscellaneous Chores
+- **(deps)** bump cryptography (#1124) - (7b66639) - dependabot[bot]
+- **(version)** v0.118.2 [skip ci] - (c926c91) - Superposition Bot
+- update smithy version (#1077) - (04207ff) - Ayush Jain
+
+- - -
+
 ## v0.118.2 - 2026-10-13
 ### Package updates
 - frontend bumped to frontend-v0.58.2

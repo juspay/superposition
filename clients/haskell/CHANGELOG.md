@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## haskell_client-v0.24.4 - 2026-11-07
+#### Bug Fixes
+- **(haskell_provider)** properly spawn background threads for polling (#1171) - (afb9b5a) - Datron
+#### Miscellaneous Chores
+- **(version)** v0.118.2 [skip ci] - (c926c91) - Superposition Bot
+- update smithy version (#1077) - (04207ff) - Ayush Jain
+
+- - -
+
 ## haskell_client-v0.24.3 - 2026-10-13
 #### Bug Fixes
 - add Haskell OpenFeature provider integration tests to CI (#1151) - (0437831) - Datron

@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.46.2 - 2026-11-07
+#### Bug Fixes
+- remove legacy client from rust sdk (#1181) - (396e449) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.118.2 [skip ci] - (c926c91) - Superposition Bot
+
+- - -
+
 ## service_utils-v0.46.1 - 2026-10-13
 #### Bug Fixes
 - let Casbin run against a read-only replica (#1159) - (7d1d081) - sauraww
