@@ -61,6 +61,12 @@ pub struct ParamsBuilder {
 impl ParamsBuilder {
     /// Consume this builder, creating [`Params`].
     pub fn build(self) -> ::std::result::Result<crate::config::endpoint::Params, crate::config::endpoint::InvalidParams> {
+        self.build_without_validators()
+    }
+    /// Consume this builder, creating [`Params`] without the validators run by `build()`.
+    ///
+    /// Endpoint rule-set tests use this so they test the rules as the model defines them.
+    fn build_without_validators(self) -> ::std::result::Result<crate::config::endpoint::Params, crate::config::endpoint::InvalidParams> {
         Ok(#[allow(clippy::unnecessary_lazy_evaluations)]
         crate::config::endpoint::Params {
         })

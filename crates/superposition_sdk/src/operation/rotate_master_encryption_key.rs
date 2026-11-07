@@ -116,9 +116,9 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for RotateM
             let mut force_error = false;
 
             let parse_result = if !success && status != 200 || force_error {
-                crate::protocol_serde::shape_rotate_master_encryption_key::de_rotate_master_encryption_key_http_error(status, headers, body)
+                crate::protocol_serde::shape_rotate_master_encryption_key::de_rotate_master_encryption_key_http_error(status, headers, body, _cfg)
             } else {
-                crate::protocol_serde::shape_rotate_master_encryption_key::de_rotate_master_encryption_key_http_response(status, headers, body)
+                crate::protocol_serde::shape_rotate_master_encryption_key::de_rotate_master_encryption_key_http_response(status, headers, body, _cfg)
             };
             crate::protocol_serde::type_erase_result(parse_result)
                 }

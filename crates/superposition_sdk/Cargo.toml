@@ -12,29 +12,29 @@ rust-version = "1.91.1"
 readme = "README.md"
 
 [package.metadata.smithy]
-codegen-version = "62028c3457eb372f2dd13f28c760d441b155ffcb"
+codegen-version = "766e2935bd7a0ae1241de2d127df36e5c28b4299"
 protocol = "aws.protocols#restJson1"
 [dependencies.aws-smithy-async]
-version = "1.2.14"
+version = "1.3.1"
 [dependencies.aws-smithy-http]
-version = "0.63.6"
+version = "0.64.3"
 [dependencies.aws-smithy-json]
-version = "0.62.7"
+version = "0.65.1"
 [dependencies.aws-smithy-runtime]
-version = "1.11.3"
+version = "1.16.2"
 features = ["client", "http-auth"]
 [dependencies.aws-smithy-runtime-api]
-version = "1.12.3"
+version = "1.19.2"
 features = ["client", "http-1x", "http-auth"]
+[dependencies.aws-smithy-schema]
+version = "1.1.2"
 [dependencies.aws-smithy-types]
-version = "1.5.0"
+version = "1.9.1"
 features = ["http-body-1-x"]
 [dependencies.bytes]
 version = "1.4.0"
 [dependencies.fastrand]
 version = "2.0.0"
-[dependencies.http]
-version = "0.2.9"
 [dependencies.http-1x]
 version = "1"
 package = "http"
@@ -42,11 +42,10 @@ package = "http"
 version = "0.1"
 [features]
 rt-tokio = ["aws-smithy-async/rt-tokio", "aws-smithy-types/rt-tokio"]
-test-util = ["aws-smithy-runtime/test-util"]
+test-util = []
 behavior-version-latest = []
-rustls = ["aws-smithy-runtime/tls-rustls"]
 default-https-client = ["aws-smithy-runtime/default-https-client"]
 gated-tests = []
-default = ["rt-tokio", "rustls", "default-https-client"]
+default = ["rt-tokio", "default-https-client"]
 
 

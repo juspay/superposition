@@ -93,7 +93,8 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for CreateO
                 fn runtime_components(&self, _: &::aws_smithy_runtime_api::client::runtime_components::RuntimeComponentsBuilder) -> ::std::borrow::Cow<'_, ::aws_smithy_runtime_api::client::runtime_components::RuntimeComponentsBuilder> {
                     #[allow(unused_mut)]
                     let mut rcb = ::aws_smithy_runtime_api::client::runtime_components::RuntimeComponentsBuilder::new("CreateOrganisation")
-                            .with_interceptor(::aws_smithy_runtime_api::client::interceptors::SharedInterceptor::permanent(::aws_smithy_runtime::client::stalled_stream_protection::StalledStreamProtectionInterceptor::default()))
+                            .with_interceptor(::aws_smithy_runtime_api::client::interceptors::SharedInterceptor::permanent(CreateOrganisationTelemetryInputCaptureInterceptor))
+.with_interceptor(::aws_smithy_runtime_api::client::interceptors::SharedInterceptor::permanent(::aws_smithy_runtime::client::stalled_stream_protection::StalledStreamProtectionInterceptor::default()))
 .with_interceptor(::aws_smithy_runtime_api::client::interceptors::SharedInterceptor::permanent(CreateOrganisationEndpointParamsInterceptor))
                             .with_retry_classifier(::aws_smithy_runtime::client::retries::classifiers::TransientErrorClassifier::<crate::operation::create_organisation::CreateOrganisationError>::new())
 .with_retry_classifier(::aws_smithy_runtime::client::retries::classifiers::ModeledAsRetryableClassifier::<crate::operation::create_organisation::CreateOrganisationError>::new());
@@ -102,7 +103,66 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for CreateO
                 }
             }
 
+            #[derive(Debug)]
+            struct CreateOrganisationTelemetryInputCaptureInterceptor;
 
+            #[::aws_smithy_runtime_api::client::interceptors::dyn_dispatch_hint]
+            impl ::aws_smithy_runtime_api::client::interceptors::Intercept for CreateOrganisationTelemetryInputCaptureInterceptor {
+                fn name(&self) -> &'static str {
+                    "CreateOrganisationTelemetryInputCaptureInterceptor"
+                }
+
+                fn read_before_execution(
+                    &self,
+                    context: &::aws_smithy_runtime_api::client::interceptors::context::BeforeSerializationInterceptorContextRef<'_, ::aws_smithy_runtime_api::client::interceptors::context::Input, ::aws_smithy_runtime_api::client::interceptors::context::Output, ::aws_smithy_runtime_api::client::interceptors::context::Error>,
+                    cfg: &mut ::aws_smithy_types::config_bag::ConfigBag,
+                ) -> ::std::result::Result<(), ::aws_smithy_runtime_api::box_error::BoxError> {
+                    // Nothing to do unless the customer opted in by naming members to record.
+                    let ::std::option::Option::Some(requested) = cfg.load::<::aws_smithy_types::telemetry::RequestedTelemetryAttributes>().filter(|r| !r.is_empty()) else {
+                        return ::std::result::Result::Ok(());
+                    };
+
+                    let ::std::option::Option::Some(input) = context.input().downcast_ref::<CreateOrganisationInput>() else {
+                        // A mismatched input is not this interceptor's concern; skip quietly.
+                        return ::std::result::Result::Ok(());
+                    };
+
+                    let mut captured = ::aws_smithy_types::telemetry::CapturedTelemetryAttributes::default();
+                    if requested.should_capture("country_code") {
+                            if let ::std::option::Option::Some(value) = input.country_code.as_deref() {
+                                captured.insert("country_code", value);
+                            }
+                        }
+if requested.should_capture("contact_email") {
+                            if let ::std::option::Option::Some(value) = input.contact_email.as_deref() {
+                                captured.insert("contact_email", value);
+                            }
+                        }
+if requested.should_capture("contact_phone") {
+                            if let ::std::option::Option::Some(value) = input.contact_phone.as_deref() {
+                                captured.insert("contact_phone", value);
+                            }
+                        }
+if requested.should_capture("admin_email") {
+                            if let ::std::option::Option::Some(value) = input.admin_email.as_deref() {
+                                captured.insert("admin_email", value);
+                            }
+                        }
+if requested.should_capture("sector") {
+                            if let ::std::option::Option::Some(value) = input.sector.as_deref() {
+                                captured.insert("sector", value);
+                            }
+                        }
+if requested.should_capture("name") {
+                            if let ::std::option::Option::Some(value) = input.name.as_deref() {
+                                captured.insert("name", value);
+                            }
+                        }
+
+                    cfg.interceptor_state().store_put(captured);
+                    ::std::result::Result::Ok(())
+                }
+            }
 #[derive(Debug)]
             struct CreateOrganisationResponseDeserializer;
             impl ::aws_smithy_runtime_api::client::ser_de::DeserializeResponse for CreateOrganisationResponseDeserializer {
@@ -116,9 +176,9 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for CreateO
             let mut force_error = false;
 
             let parse_result = if !success && status != 200 || force_error {
-                crate::protocol_serde::shape_create_organisation::de_create_organisation_http_error(status, headers, body)
+                crate::protocol_serde::shape_create_organisation::de_create_organisation_http_error(status, headers, body, _cfg)
             } else {
-                crate::protocol_serde::shape_create_organisation::de_create_organisation_http_response(status, headers, body)
+                crate::protocol_serde::shape_create_organisation::de_create_organisation_http_response(status, headers, body, _cfg)
             };
             crate::protocol_serde::type_erase_result(parse_result)
                 }
