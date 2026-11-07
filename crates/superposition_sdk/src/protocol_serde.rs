@@ -81,10 +81,10 @@ pub(crate) mod shape_get_context;
 
 pub(crate) mod shape_get_context_from_condition;
 
-pub fn serialize_document(input: &::aws_smithy_types::Document) -> ::std::vec::Vec<u8> {
+pub fn serialize_document(input: &::aws_smithy_types::Document) -> std::result::Result<::std::vec::Vec<u8>, ::aws_smithy_types::error::operation::SerializationError> {
                     let mut out = String::new();
                     ::aws_smithy_json::serialize::JsonValueWriter::new(&mut out).document(input);
-                    out.into_bytes()
+                    Ok(out.into_bytes())
                 }
 
 pub(crate) mod shape_get_context_from_condition_input;

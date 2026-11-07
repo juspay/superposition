@@ -93,7 +93,8 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for BulkOpe
                 fn runtime_components(&self, _: &::aws_smithy_runtime_api::client::runtime_components::RuntimeComponentsBuilder) -> ::std::borrow::Cow<'_, ::aws_smithy_runtime_api::client::runtime_components::RuntimeComponentsBuilder> {
                     #[allow(unused_mut)]
                     let mut rcb = ::aws_smithy_runtime_api::client::runtime_components::RuntimeComponentsBuilder::new("BulkOperation")
-                            .with_interceptor(::aws_smithy_runtime_api::client::interceptors::SharedInterceptor::permanent(::aws_smithy_runtime::client::stalled_stream_protection::StalledStreamProtectionInterceptor::default()))
+                            .with_interceptor(::aws_smithy_runtime_api::client::interceptors::SharedInterceptor::permanent(BulkOperationTelemetryInputCaptureInterceptor))
+.with_interceptor(::aws_smithy_runtime_api::client::interceptors::SharedInterceptor::permanent(::aws_smithy_runtime::client::stalled_stream_protection::StalledStreamProtectionInterceptor::default()))
 .with_interceptor(::aws_smithy_runtime_api::client::interceptors::SharedInterceptor::permanent(BulkOperationEndpointParamsInterceptor))
                             .with_retry_classifier(::aws_smithy_runtime::client::retries::classifiers::TransientErrorClassifier::<crate::operation::bulk_operation::BulkOperationError>::new())
 .with_retry_classifier(::aws_smithy_runtime::client::retries::classifiers::ModeledAsRetryableClassifier::<crate::operation::bulk_operation::BulkOperationError>::new());
@@ -102,7 +103,51 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for BulkOpe
                 }
             }
 
+            #[derive(Debug)]
+            struct BulkOperationTelemetryInputCaptureInterceptor;
 
+            #[::aws_smithy_runtime_api::client::interceptors::dyn_dispatch_hint]
+            impl ::aws_smithy_runtime_api::client::interceptors::Intercept for BulkOperationTelemetryInputCaptureInterceptor {
+                fn name(&self) -> &'static str {
+                    "BulkOperationTelemetryInputCaptureInterceptor"
+                }
+
+                fn read_before_execution(
+                    &self,
+                    context: &::aws_smithy_runtime_api::client::interceptors::context::BeforeSerializationInterceptorContextRef<'_, ::aws_smithy_runtime_api::client::interceptors::context::Input, ::aws_smithy_runtime_api::client::interceptors::context::Output, ::aws_smithy_runtime_api::client::interceptors::context::Error>,
+                    cfg: &mut ::aws_smithy_types::config_bag::ConfigBag,
+                ) -> ::std::result::Result<(), ::aws_smithy_runtime_api::box_error::BoxError> {
+                    // Nothing to do unless the customer opted in by naming members to record.
+                    let ::std::option::Option::Some(requested) = cfg.load::<::aws_smithy_types::telemetry::RequestedTelemetryAttributes>().filter(|r| !r.is_empty()) else {
+                        return ::std::result::Result::Ok(());
+                    };
+
+                    let ::std::option::Option::Some(input) = context.input().downcast_ref::<BulkOperationInput>() else {
+                        // A mismatched input is not this interceptor's concern; skip quietly.
+                        return ::std::result::Result::Ok(());
+                    };
+
+                    let mut captured = ::aws_smithy_types::telemetry::CapturedTelemetryAttributes::default();
+                    if requested.should_capture("workspace_id") {
+                            if let ::std::option::Option::Some(value) = input.workspace_id.as_deref() {
+                                captured.insert("workspace_id", value);
+                            }
+                        }
+if requested.should_capture("org_id") {
+                            if let ::std::option::Option::Some(value) = input.org_id.as_deref() {
+                                captured.insert("org_id", value);
+                            }
+                        }
+if requested.should_capture("config_tags") {
+                            if let ::std::option::Option::Some(value) = input.config_tags.as_deref() {
+                                captured.insert("config_tags", value);
+                            }
+                        }
+
+                    cfg.interceptor_state().store_put(captured);
+                    ::std::result::Result::Ok(())
+                }
+            }
 #[derive(Debug)]
             struct BulkOperationResponseDeserializer;
             impl ::aws_smithy_runtime_api::client::ser_de::DeserializeResponse for BulkOperationResponseDeserializer {
@@ -116,9 +161,9 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for BulkOpe
             let mut force_error = false;
 
             let parse_result = if !success && status != 200 || force_error {
-                crate::protocol_serde::shape_bulk_operation::de_bulk_operation_http_error(status, headers, body)
+                crate::protocol_serde::shape_bulk_operation::de_bulk_operation_http_error(status, headers, body, _cfg)
             } else {
-                crate::protocol_serde::shape_bulk_operation::de_bulk_operation_http_response(status, headers, body)
+                crate::protocol_serde::shape_bulk_operation::de_bulk_operation_http_response(status, headers, body, _cfg)
             };
             crate::protocol_serde::type_erase_result(parse_result)
                 }

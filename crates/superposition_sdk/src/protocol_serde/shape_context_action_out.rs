@@ -66,8 +66,8 @@ pub(crate) fn de_context_action_out<'a, I>(tokens: &mut ::std::iter::Peekable<I>
         _ => return Err(::aws_smithy_json::deserialize::error::DeserializeError::custom("expected start object or null"))
     }
     if variant.is_none() {
-                                return Err(::aws_smithy_json::deserialize::error::DeserializeError::custom("Union did not contain a valid variant."))
-                            }
+                                    return Err(::aws_smithy_json::deserialize::error::DeserializeError::custom("Union did not contain a valid variant."))
+                                }
     Ok(variant)
 }
 

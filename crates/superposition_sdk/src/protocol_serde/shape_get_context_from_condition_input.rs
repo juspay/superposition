@@ -6,7 +6,7 @@ pub fn ser_context_http_payload(payload: &::std::option::Option<::aws_smithy_typ
         Vec::new()
     )};
     Ok(
-        crate::protocol_serde::serialize_document(payload)
+        crate::protocol_serde::serialize_document(payload)?
     )
 }
 

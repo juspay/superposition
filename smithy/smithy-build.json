@@ -14,7 +14,7 @@
       "software.amazon.smithy:smithy-rules-engine:1.69.0",
       "software.amazon.smithy.typescript:smithy-aws-typescript-codegen:0.26.0",
       "software.amazon.smithy:smithy-openapi:1.69.0",
-      "software.amazon.smithy.rust:codegen-client:0.1.19",
+      "software.amazon.smithy.rust:codegen-client:0.1.37",
       "software.amazon.smithy.python.codegen:core:0.0.1",
       "software.amazon.smithy.java:client-core:0.0.1",
       "software.amazon.smithy.java.codegen:plugins:0.0.1",
@@ -30,7 +30,8 @@
       "codegen": {
         "addMessageToErrors": true,
         "renameErrors": true,
-        "enableNewSmithyRuntime": "orchestrator"
+        "enableNewSmithyRuntime": "orchestrator",
+        "includeLegacyClient": false
       },
       "service": "io.superposition#Superposition",
       "module": "superposition_sdk",
