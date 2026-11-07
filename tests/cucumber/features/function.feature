@@ -119,6 +119,6 @@ Feature: Function Management
     When I create a value_validation function named "invalid-func" with code "invalid code"
     Then the operation should fail
 
-  Scenario: Create a value_compute function with string return type (validated at runtime)
+  Scenario: Fail to create a value_compute function whose code does not return an array
     When I create a value_compute function named "invalid-return" with code that returns a string
-    Then the operation should succeed
+    Then the operation should fail with error matching "did not return an array"

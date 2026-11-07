@@ -56,7 +56,7 @@ Feature: Variable Management
   Scenario: Fail to create a duplicate variable
     Given a variable "DUP_TEST_VAR" exists with value "test-value"
     When I create a variable named "DUP_TEST_VAR" with value "different-value"
-    Then the operation should fail with error matching "duplicate key"
+    Then the operation should fail with error matching "already exists"
 
   Scenario: Fail to get a non-existent variable
     When I get variable "NON_EXISTENT_VARIABLE"

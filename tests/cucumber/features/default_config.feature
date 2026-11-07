@@ -31,7 +31,7 @@ Feature: Default Configuration Management
 
   Scenario: Fail to create config when function validation fails
     When I create a default config with key "test-key-2" using validation function "false_validation"
-    Then the operation should fail with error matching "validation failed"
+    Then the operation should fail with error matching "returned false for key"
 
   Scenario: Create config with value_compute function
     When I create a default config with key "test-key-3" using compute function "auto_fn"

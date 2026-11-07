@@ -54,7 +54,7 @@ Feature: Secret Management
   Scenario: Fail to create a duplicate secret
     Given a secret "DUP_TEST_SECRET" exists with value "test-value"
     When I create a secret named "DUP_TEST_SECRET" with value "different-value"
-    Then the operation should fail with error matching "duplicate key"
+    Then the operation should fail with error matching "already exists"
 
   Scenario: Fail to get a non-existent secret
     When I get secret "NON_EXISTENT_SECRET"
