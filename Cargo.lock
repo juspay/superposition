@@ -1735,28 +1735,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "chrono-tz"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "93698b29de5e97ad0ae26447b344c482a7284c737d9ddc5f9e52b74a336671bb"
-dependencies = [
- "chrono",
- "chrono-tz-build",
- "phf 0.11.3",
-]
-
-[[package]]
-name = "chrono-tz-build"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c088aee841df9c3041febbb73934cfc39708749bf96dc827e3359cd39ef11b1"
-dependencies = [
- "parse-zoneinfo",
- "phf 0.11.3",
- "phf_codegen",
-]
-
-[[package]]
 name = "ciborium"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2043,7 +2021,7 @@ dependencies = [
  "fred",
  "inventory",
  "itertools 0.10.5",
- "jsonschema 0.17.0",
+ "jsonschema",
  "juspay_diesel",
  "juspay_jsonlogic",
  "log",
@@ -3788,17 +3766,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "fancy-regex"
-version = "0.13.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "531e46835a22af56d1e3b66f04844bed63158bc094a628bec1d321d9b4c44bf2"
-dependencies = [
- "bit-set 0.5.3",
- "regex-automata",
- "regex-syntax 0.8.6",
-]
-
-[[package]]
 name = "fastbloom"
 version = "0.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3975,16 +3942,6 @@ name = "fraction"
 version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3027ae1df8d41b4bed2241c8fdad4acc1e7af60c8e17743534b545e77182d678"
-dependencies = [
- "lazy_static",
- "num",
-]
-
-[[package]]
-name = "fraction"
-version = "0.15.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b486ab61634f05b11b591c38c71fb25139cb55e22be4fb6ecf649cc3736c074a"
 dependencies = [
  "lazy_static",
  "num",
@@ -5246,27 +5203,17 @@ dependencies = [
 
 [[package]]
 name = "invokr-common"
-version = "0.5.1"
-source = "git+https://github.com/juspay/invokr.git?tag=v0.5.1#7a556960d5d165e1cd90d4a0f6acdd6b2619c157"
+version = "0.6.0"
+source = "git+https://github.com/juspay/invokr.git?tag=v0.6.0#36e2decc98d7bd482e7145fa7e5580b03ee58eaa"
 dependencies = [
- "actix-web",
  "aes-gcm",
  "anyhow",
  "async-trait",
- "aws-config",
- "aws-sdk-kms",
  "base64 0.22.1",
  "chrono",
- "chrono-tz",
  "cron",
  "dashmap",
- "dotenvy",
- "google-cloud-kms",
- "jsonschema 0.18.3",
  "log",
- "metrics",
- "metrics-exporter-prometheus",
- "oci_kms",
  "rand 0.8.5",
  "serde",
  "serde_json",
@@ -5274,22 +5221,19 @@ dependencies = [
  "thiserror 1.0.69",
  "tokio",
  "tracing",
- "uuid",
 ]
 
 [[package]]
 name = "invokr-worker"
-version = "0.5.1"
-source = "git+https://github.com/juspay/invokr.git?tag=v0.5.1#7a556960d5d165e1cd90d4a0f6acdd6b2619c157"
+version = "0.6.0"
+source = "git+https://github.com/juspay/invokr.git?tag=v0.6.0#36e2decc98d7bd482e7145fa7e5580b03ee58eaa"
 dependencies = [
- "actix-web",
  "anyhow",
  "async-trait",
  "chrono",
  "dotenvy",
  "invokr-common",
  "metrics",
- "metrics-exporter-prometheus",
  "rand 0.8.5",
  "reqwest 0.12.28",
  "serde",
@@ -5456,8 +5400,8 @@ dependencies = [
  "base64 0.21.2",
  "bytecount",
  "clap 4.5.60",
- "fancy-regex 0.11.0",
- "fraction 0.13.1",
+ "fancy-regex",
+ "fraction",
  "getrandom 0.2.15",
  "iso8601",
  "itoa",
@@ -5468,36 +5412,6 @@ dependencies = [
  "percent-encoding",
  "regex",
  "reqwest 0.11.27",
- "serde",
- "serde_json",
- "time",
- "url",
- "uuid",
-]
-
-[[package]]
-name = "jsonschema"
-version = "0.18.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fa0f4bea31643be4c6a678e9aa4ae44f0db9e5609d5ca9dc9083d06eb3e9a27a"
-dependencies = [
- "ahash",
- "anyhow",
- "base64 0.22.1",
- "bytecount",
- "clap 4.5.60",
- "fancy-regex 0.13.0",
- "fraction 0.15.1",
- "getrandom 0.2.15",
- "iso8601",
- "itoa",
- "memchr",
- "num-cmp",
- "once_cell",
- "parking_lot",
- "percent-encoding",
- "regex",
- "reqwest 0.12.28",
  "serde",
  "serde_json",
  "time",
@@ -6111,43 +6025,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "metrics-exporter-prometheus"
-version = "0.16.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dd7399781913e5393588a8d8c6a2867bf85fb38eaf2502fdce465aad2dc6f034"
-dependencies = [
- "base64 0.22.1",
- "http-body-util",
- "hyper 1.12.0",
- "hyper-rustls",
- "hyper-util",
- "indexmap 2.14.2",
- "ipnet",
- "metrics",
- "metrics-util",
- "quanta",
- "thiserror 1.0.69",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "metrics-util"
-version = "0.19.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b8496cc523d1f94c1385dd8f0f0c2c480b2b8aeccb5b7e4485ad6365523ae376"
-dependencies = [
- "crossbeam-epoch",
- "crossbeam-utils",
- "hashbrown 0.15.5",
- "metrics",
- "quanta",
- "rand 0.9.3",
- "rand_xoshiro",
- "sketches-ddsketch",
-]
-
-[[package]]
 name = "mime"
 version = "0.3.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6532,26 +6409,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oci_kms"
-version = "0.1.0"
-source = "git+https://github.com/juspay/hyperswitch?rev=9986e5c0c201a20d2f7c06ae087d7b90fd2e899c#9986e5c0c201a20d2f7c06ae087d7b90fd2e899c"
-dependencies = [
- "base64 0.22.1",
- "rand 0.8.5",
- "reqwest 0.12.28",
- "rsa",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "thiserror 1.0.69",
- "time",
- "tokio",
- "tracing",
- "url",
- "zeroize",
-]
-
-[[package]]
 name = "oid-registry"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6901,15 +6758,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "parse-zoneinfo"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1f2a05b18d44e2957b88f96ba460715e295bc1d7510468a2f3d3b44535d26c24"
-dependencies = [
- "regex",
-]
-
-[[package]]
 name = "password-hash"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7039,16 +6887,6 @@ dependencies = [
  "phf_macros 0.13.1",
  "phf_shared 0.13.1",
  "serde",
-]
-
-[[package]]
-name = "phf_codegen"
-version = "0.11.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aef8048c789fa5e851558d709946d6d79a8ff88c0440c587967f8e94bfb1216a"
-dependencies = [
- "phf_generator 0.11.3",
- "phf_shared 0.11.3",
 ]
 
 [[package]]
@@ -7479,21 +7317,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "quanta"
-version = "0.12.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f3ab5a9d756f0d97bdc89019bd2e4ea098cf9cde50ee7564dde6b81ccc8f06c7"
-dependencies = [
- "crossbeam-utils",
- "libc",
- "once_cell",
- "raw-cpuid",
- "wasi 0.11.0+wasi-snapshot-preview1",
- "web-sys",
- "winapi",
-]
-
-[[package]]
 name = "quinn"
 version = "0.11.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7697,30 +7520,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "rand_xoshiro"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f703f4665700daf5512dcca5f43afa6af89f09db47fb56be587f80636bda2d41"
-dependencies = [
- "rand_core 0.9.5",
-]
-
-[[package]]
 name = "rapidhash"
 version = "4.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b5e48930979c155e2f33aa36ab3119b5ee81332beb6482199a8ecd6029b80b59"
 dependencies = [
  "rustversion",
-]
-
-[[package]]
-name = "raw-cpuid"
-version = "11.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "498cd0dc59d73224351ee52a95fee0f1a617a2eae0e7d9d720cc622c73a54186"
-dependencies = [
- "bitflags 2.13.2",
 ]
 
 [[package]]
@@ -8046,7 +7851,6 @@ dependencies = [
  "pkcs1",
  "pkcs8 0.10.2",
  "rand_core 0.6.4",
- "sha2 0.10.9",
  "signature 2.2.0",
  "spki 0.7.3",
  "subtle",
@@ -8972,12 +8776,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "sketches-ddsketch"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c6f73aeb92d671e0cc4dca167e59b2deb6387c375391bc99ee743f326994a2b"
-
-[[package]]
 name = "slab"
 version = "0.4.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -9493,7 +9291,7 @@ dependencies = [
  "cbindgen",
  "criterion",
  "itertools 0.10.5",
- "jsonschema 0.17.0",
+ "jsonschema",
  "juspay_jsonlogic",
  "log",
  "num-bigint",
