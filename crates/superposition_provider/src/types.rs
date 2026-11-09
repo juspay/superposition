@@ -253,6 +253,32 @@ impl Default for RefreshStrategy {
     }
 }
 
+/// Options for the evaluation result cache: an in-process LRU memoization of
+/// repeated resolutions, keyed by the inputs that discriminate a resolution
+/// (query data, merge strategy, prefix filters, targeting key).
+///
+/// Only the local provider supports it: the cache is emptied whenever config
+/// or experiment data is reloaded. The remote provider has no invalidation
+/// signal from the server, so it deliberately does not cache.
+#[derive(Debug, Clone, Default)]
+pub struct EvaluationCacheOptions {
+    /// Maximum number of cached resolutions. `None` or `0` disables caching.
+    pub max_entries: Option<u64>,
+}
+
+impl EvaluationCacheOptions {
+    pub fn new(max_entries: u64) -> Self {
+        Self {
+            max_entries: Some(max_entries),
+        }
+    }
+
+    /// An empty cache store for these options; `None` when caching is disabled.
+    pub(crate) fn build_cache(&self) -> Option<superposition_core::eval_cache::EvalCache> {
+        superposition_core::eval_cache::new(self.max_entries.unwrap_or(0))
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct ConfigurationOptions {
     pub fallback_config: Option<serde_json::Map<String, Value>>,

@@ -222,29 +222,45 @@ RefreshStrategy.OnDemand.of(
 
 Uses Lombok `@Builder`:
 
-| Field                    | Type                     | Required | Description                        |
-| ------------------------ | ------------------------ | -------- | ---------------------------------- |
-| `refreshStrategy`        | `RefreshStrategy`        | Yes      | How experiment data is refreshed   |
-| `evaluationCacheOptions` | `EvaluationCacheOptions` | No       | Cache for experiment evaluations   |
-| `defaultToss`            | `Integer`                | No       | Default toss value for experiments |
+| Field                    | Type                     | Required | Description                      |
+| ------------------------ | ------------------------ | -------- | -------------------------------- |
+| `refreshStrategy`        | `RefreshStrategy`        | Yes      | How experiment data is refreshed |
+| `evaluationCacheOptions` | `EvaluationCacheOptions` | No       | Cache for experiment evaluations |
 
 ```java
 ExperimentationOptions expOptions = ExperimentationOptions.builder()
     .refreshStrategy(RefreshStrategy.Polling.of(5000, 2000))
-    .evaluationCacheOptions(EvaluationCacheOptions.builder()
-        .ttl(300)
-        .size(1000)
-        .build())
-    .defaultToss(50)
+    .evaluationCacheOptions(EvaluationCacheOptions.of(1000))
     .build();
 ```
 
 ### `EvaluationCacheOptions`
 
-| Field  | Type  | Default | Description                     |
-| ------ | ----- | ------- | ------------------------------- |
-| `ttl`  | `int` | `60`    | Cache time-to-live in seconds   |
-| `size` | `int` | `500`   | Maximum number of cache entries |
+| Field        | Type  | Description                                                    |
+| ------------ | ----- | -------------------------------------------------------------- |
+| `maxEntries` | `int` | Maximum number of cached resolutions; non-positive disables caching |
+
+The evaluation cache lives in the native FFI layer. Repeated resolutions with
+identical inputs (context query, merge strategy, prefix filters, targeting key)
+are served without re-evaluating. Staleness is governed by the refresh strategy:
+the cache is emptied whenever config or experiment data is reloaded.
+
+Enable it on the provider through `SuperpositionProviderOptions`:
+
+```java
+SuperpositionProviderOptions options = SuperpositionProviderOptions.builder()
+    // ...endpoint, token, refresh strategy...
+    .evaluationCacheOptions(EvaluationCacheOptions.of(1000))
+    .build();
+```
+
+```kotlin
+// Kotlin — equivalent
+val options = SuperpositionProviderOptions.builder()
+    // ...
+    .evaluationCacheOptions(EvaluationCacheOptions.of(1000))
+    .build()
+```
 
 ## Provider Variants
 
