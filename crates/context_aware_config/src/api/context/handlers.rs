@@ -33,8 +33,9 @@ use superposition_types::{
         DimensionMatchStrategy,
         context::{
             BulkOperation, BulkOperationResponse, ContextAction, ContextBulkResponse,
-            ContextListFilters, ContextValidationRequest, Identifier, MoveRequest,
-            PutRequest, SortOn, UpdateRequest, WeightRecomputeResponse,
+            ContextListFilters, ContextValidationRequest, ContextWithDroppedKeys,
+            Identifier, MoveRequest, PutRequest, SortOn, UpdateRequest,
+            WeightRecomputeResponse,
         },
         webhook::Action,
     },
@@ -52,6 +53,7 @@ use superposition_types::{
 
 use crate::{
     api::context::{
+        auto_reduce,
         helpers::{
             changed_keys, create_ctx_from_put_req, query_description, validate_ctx,
             validate_override_with_functions,
@@ -149,6 +151,24 @@ async fn create_handler(
     )
     .await?;
 
+    let reducer = auto_reduce::build_if_enabled(
+        auto_reduce::is_enabled(custom_headers.auto_reduce, &workspace_context),
+        conn,
+        &workspace_context.schema_name,
+    )?;
+    let (new_ctx, dropped_keys) = match auto_reduce::apply(
+        reducer.as_ref(),
+        new_ctx,
+        &workspace_context.schema_name,
+    )? {
+        auto_reduce::ReducedContext::Unchanged(ctx) => (ctx, Vec::new()),
+        auto_reduce::ReducedContext::Trimmed { context, dropped } => (context, dropped),
+        // Nothing written, so no body and no config version bump; dropped keys are logged.
+        auto_reduce::ReducedContext::FullyRedundant { .. } => {
+            return Ok(HttpResponse::NoContent().finish());
+        }
+    };
+
     let (put_response, config_version) = conn
         .transaction::<_, superposition::AppError, _>(|transaction_conn| {
             let put_response = operations::upsert(
@@ -207,7 +227,7 @@ async fn create_handler(
         config_version.id.to_string(),
     ));
 
-    Ok(http_resp.json(put_response))
+    Ok(http_resp.json(ContextWithDroppedKeys::new(put_response, dropped_keys)))
 }
 
 async fn update_authorized<A: AuthZAction>(
@@ -818,6 +838,12 @@ enum PreparedOperation {
     Put {
         new_ctx: Context,
         change_reason: ChangeReason,
+        dropped_keys: Vec<String>,
+    },
+    /// Fully redundant PUT: keeps its slot in the response but writes nothing.
+    PutNoOp {
+        new_ctx: Context,
+        dropped_keys: Vec<String>,
     },
     Replace {
         update_request: UpdateRequest,
@@ -861,6 +887,14 @@ async fn bulk_operations_handler(
     let mut webhook_contexts: Vec<Context> = Vec::new();
 
     let tags = parse_config_tags(custom_headers.config_tags)?;
+
+    // Snapshots pre-batch state, like the rest of Phase 1.
+    let reducer = auto_reduce::build_if_enabled(
+        auto_reduce::is_enabled(custom_headers.auto_reduce, &workspace_context),
+        conn,
+        &workspace_context.schema_name,
+    )?;
+
     // ── Phase 1: async validation & preparation ──
     let mut prepared_ops =
         Vec::with_capacity(if ops.len() > 100 { 100 } else { ops.len() });
@@ -899,10 +933,33 @@ async fn bulk_operations_handler(
                 )
                 .await?;
 
-                prepared_ops.push(PreparedOperation::Put {
+                let prepared = match auto_reduce::apply(
+                    reducer.as_ref(),
                     new_ctx,
-                    change_reason,
-                });
+                    &workspace_context.schema_name,
+                )? {
+                    auto_reduce::ReducedContext::Unchanged(new_ctx) => {
+                        PreparedOperation::Put {
+                            new_ctx,
+                            change_reason,
+                            dropped_keys: Vec::new(),
+                        }
+                    }
+                    auto_reduce::ReducedContext::Trimmed { context, dropped } => {
+                        PreparedOperation::Put {
+                            new_ctx: context,
+                            change_reason,
+                            dropped_keys: dropped,
+                        }
+                    }
+                    auto_reduce::ReducedContext::FullyRedundant { context, dropped } => {
+                        PreparedOperation::PutNoOp {
+                            new_ctx: context,
+                            dropped_keys: dropped,
+                        }
+                    }
+                };
+                prepared_ops.push(prepared);
             }
             ContextAction::Replace(update_request) => {
                 let change_reason = update_request.change_reason.clone();
@@ -975,6 +1032,40 @@ async fn bulk_operations_handler(
         }
     }
 
+    // An all-redundant batch writes nothing, so no version bump and no webhook.
+    if !prepared_ops.is_empty()
+        && prepared_ops
+            .iter()
+            .all(|op| matches!(op, PreparedOperation::PutNoOp { .. }))
+    {
+        let response: Vec<ContextBulkResponse> = prepared_ops
+            .into_iter()
+            .map(|op| match op {
+                PreparedOperation::PutNoOp {
+                    new_ctx,
+                    dropped_keys,
+                } => ContextBulkResponse::Put(ContextWithDroppedKeys::new(
+                    new_ctx,
+                    dropped_keys,
+                )),
+                _ => unreachable!("guarded by the all() above"),
+            })
+            .collect();
+
+        let mut resp_builder = HttpResponse::Ok();
+        if let Some(version) = workspace_context.settings.config_version {
+            resp_builder.insert_header((
+                AppHeader::XConfigVersion.to_string(),
+                version.to_string(),
+            ));
+        }
+        return Ok(if is_v2 {
+            resp_builder.json(BulkOperationResponse { output: response })
+        } else {
+            resp_builder.json(response)
+        });
+    }
+
     // ── Phase 2: single transaction for all DB writes ──
     let (response, config_version) =
         conn.transaction::<_, superposition::AppError, _>(|transaction_conn| {
@@ -983,9 +1074,18 @@ async fn bulk_operations_handler(
 
             for prepared in prepared_ops {
                 match prepared {
+                    PreparedOperation::PutNoOp {
+                        new_ctx,
+                        dropped_keys,
+                    } => {
+                        response.push(ContextBulkResponse::Put(
+                            ContextWithDroppedKeys::new(new_ctx, dropped_keys),
+                        ));
+                    }
                     PreparedOperation::Put {
                         new_ctx,
                         change_reason,
+                        dropped_keys,
                     } => {
                         let put_resp = operations::upsert(
                             transaction_conn,
@@ -1006,7 +1106,9 @@ async fn bulk_operations_handler(
                         all_change_reasons.push(change_reason);
                         webhook_contexts.push(put_resp.clone());
                         webhook_actions.push(Action::Create);
-                        response.push(ContextBulkResponse::Put(put_resp));
+                        response.push(ContextBulkResponse::Put(
+                            ContextWithDroppedKeys::new(put_resp, dropped_keys),
+                        ));
                     }
                     PreparedOperation::Replace {
                         update_request,
