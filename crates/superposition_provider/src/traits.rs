@@ -86,10 +86,13 @@ pub trait AllFeatureProvider: Send + Sync {
                 log::error!("Error evaluating {} flag {}: {}", type_name, flag_key, e);
                 Err(EvaluationError {
                     code: EvaluationErrorCode::General(format!(
-                        "Error evaluating flag '{}': {}",
-                        flag_key, e
+                        "Error evaluating {} flag '{}': {}",
+                        type_name, flag_key, e
                     )),
-                    message: Some(format!("Error evaluating flag '{}': {}", flag_key, e)),
+                    message: Some(format!(
+                        "Error evaluating {} flag '{}': {}",
+                        type_name, flag_key, e
+                    )),
                 })
             }
         }
