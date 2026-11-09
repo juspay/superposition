@@ -57,16 +57,16 @@ pub struct ResolveConfigQuery {
     pub exclude_prefix: Option<CommaSeparatedStringQParams>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct DetailedResolvedConfigValue {
     pub description: String,
     pub schema: Option<Value>,
     pub value: Value,
     /// Condition of the last matching context that set this key. `None` means the value
     /// came from the default config.
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub context: Option<Condition>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub context_id: Option<String>,
 }
 
