@@ -1,0 +1,15 @@
+[default-configs]
+checkout_message = { value = "Welcome to checkout", schema = { type = "string" }, description = "Message shown to every shopper" }
+max_retries = { value = 3, schema = { type = "integer", minimum = 0 }, description = "Default retry budget" }
+
+[dimensions]
+env = { position = 1, schema = { type = "string" }, description = "Deployment environment" }
+country = { position = 2, schema = { type = "string" }, description = "Shopper country" }
+
+[[overrides]]
+_context_ = { env = "development" }
+checkout_message = "Welcome to your local checkout"
+
+[[overrides]]
+_context_ = { country = "IN" }
+max_retries = 5
