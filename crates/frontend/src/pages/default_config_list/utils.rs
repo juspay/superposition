@@ -5,7 +5,7 @@ use leptos_router::A;
 use serde_json::{Map, Value, json};
 
 use crate::types::BreadCrums;
-use crate::utils::unwrap_option_or_default_with_error;
+use crate::utils::{escape_html, safe_text, unwrap_option_or_default_with_error};
 
 #[component]
 pub fn BreadCrums(
@@ -33,12 +33,12 @@ pub fn BreadCrums(
                                 let label = ele.key.clone();
                                 view! {
                                     <A class="text-blue-500 underline underline-offset-2" href>
-                                        {label}
+                                        {safe_text(&label)}
                                     </A>
                                 }
                                     .into_view()
                             } else {
-                                view! { <span>{ele.key.clone()}</span> }.into_view()
+                                view! { <span inner_html=escape_html(&ele.key)></span> }.into_view()
                             }}
                         </h2>
                     }

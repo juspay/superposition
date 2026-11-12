@@ -14,6 +14,7 @@ use crate::{
     },
     providers::csr_provider::use_client_side_ready,
     schema::{JsonSchemaType, SchemaType},
+    utils::escape_html,
 };
 
 #[component]
@@ -243,9 +244,10 @@ fn MetricDefinitions(metrics_rws: RwSignal<Metrics>) -> impl IntoView {
                         view! {
                             <div class="flex flex-col first:border-t border-dashed">
                                 <label class="label">
-                                    <span class="label-text-alt">
-                                        {metric_name.get_value().to_string()}
-                                    </span>
+                                    <span
+                                        class="label-text-alt"
+                                        inner_html=escape_html(&metric_name.get_value().to_string())
+                                    ></span>
                                 </label>
                                 <Dropdown
                                     dropdown_width="w-44"

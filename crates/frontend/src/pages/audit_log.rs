@@ -30,6 +30,7 @@ use crate::{
     },
     query_updater::use_signal_from_query,
     types::{OrganisationId, Workspace},
+    utils::escape_html,
 };
 
 #[derive(Clone, Default, Serialize, Deserialize)]
@@ -104,8 +105,13 @@ fn audit_log_table_columns(
                     "DELETE" => "badge-error",
                     _ => "badge-info",
                 };
-                view! { <span class=format!("badge {badge_class}")>{action}</span> }
-                    .into_view()
+                view! {
+                    <span
+                        class=format!("badge {badge_class}")
+                        inner_html=escape_html(&action)
+                    ></span>
+                }
+                .into_view()
             },
             ColumnSortable::No,
             Expandable::Disabled,
@@ -115,7 +121,13 @@ fn audit_log_table_columns(
             "original_data".to_string(),
             false,
             move |value: &str, _row: &Map<String, Value>| {
-                view! { <pre class="text-xs text-gray-700 whitespace-pre-wrap">{value.to_string()}</pre> }.into_view()
+                view! {
+                    <pre
+                        class="text-xs text-gray-700 whitespace-pre-wrap"
+                        inner_html=escape_html(value)
+                    ></pre>
+                }
+                .into_view()
             },
             ColumnSortable::No,
             Expandable::Enabled(100),
@@ -125,7 +137,13 @@ fn audit_log_table_columns(
             "new_data".to_string(),
             false,
             move |value: &str, _row: &Map<String, Value>| {
-                view! { <pre class="text-xs text-gray-700 whitespace-pre-wrap">{value.to_string()}</pre> }.into_view()
+                view! {
+                    <pre
+                        class="text-xs text-gray-700 whitespace-pre-wrap"
+                        inner_html=escape_html(value)
+                    ></pre>
+                }
+                .into_view()
             },
             ColumnSortable::No,
             Expandable::Enabled(100),

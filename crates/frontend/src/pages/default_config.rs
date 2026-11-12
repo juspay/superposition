@@ -26,6 +26,7 @@ use crate::providers::{alert_provider::enqueue_alert, editor_provider::EditorPro
 use crate::query_updater::use_signal_from_query;
 use crate::schema::{EnumVariants, JsonSchemaType, SchemaType};
 use crate::types::{OrganisationId, Workspace};
+use crate::utils::{escape_html, safe_text};
 
 #[component]
 fn ConfigInfo(default_config: DefaultConfig) -> impl IntoView {
@@ -90,7 +91,7 @@ fn ConfigInfo(default_config: DefaultConfig) -> impl IntoView {
                                                     href=format!("../../function/{name}")
                                                     class="text-blue-500 underline underline-offset-2"
                                                 >
-                                                    {name}
+                                                    {safe_text(&name)}
                                                 </A>
                                             </div>
                                         }
@@ -105,7 +106,7 @@ fn ConfigInfo(default_config: DefaultConfig) -> impl IntoView {
                                                     href=format!("../../function/{name}")
                                                     class="text-blue-500 underline underline-offset-2"
                                                 >
-                                                    {name}
+                                                    {safe_text(&name)}
                                                 </A>
                                             </div>
                                         }
@@ -194,7 +195,10 @@ pub fn DefaultConfig() -> impl IntoView {
                 view! {
                     <div class="flex flex-col gap-4">
                         <div class="flex justify-between items-center">
-                            <h1 class="text-2xl font-extrabold">{default_config.key.clone()}</h1>
+                            <h1
+                                class="text-2xl font-extrabold"
+                                inner_html=escape_html(&default_config.key)
+                            ></h1>
                             <div class="w-full max-w-fit flex flex-row join">
                                 <ButtonAnchor
                                     force_style="btn join-item px-5 py-2.5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg rounded-lg"

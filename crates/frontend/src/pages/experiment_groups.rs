@@ -34,6 +34,7 @@ use crate::{
         condition_collapse_provider::ConditionCollapseProvider,
     },
     types::{OrganisationId, Workspace},
+    utils::{escape_html, safe_text},
 };
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -67,7 +68,7 @@ fn table_columns(
 
                 view! {
                     <A href=format!("../../experiments/{experiment_id}") class="text-blue-500 underline underline-offset-2">
-                        {experiment_name}
+                        {safe_text(&experiment_name)}
                     </A>
                 }
                 .into_view()
@@ -251,16 +252,20 @@ pub fn ExperimentGroups() -> impl IntoView {
 
                 view! {
                     <div class="h-full flex flex-col gap-10 overflow-x-auto bg-transparent">
-                        <h1 class="text-2xl font-extrabold">{resource.group.name.clone()}</h1>
+                        <h1
+                            class="text-2xl font-extrabold"
+                            inner_html=escape_html(&resource.group.name)
+                        ></h1>
                         <ExperimentGroupInfo group=resource.group.clone() />
                         <ContentDescription
                             pre_data=move || {
                                 view! {
                                     <div class="h-fit w-[250px]">
                                         <div class="stat-title">"Group ID"</div>
-                                        <div class="stat-value text-sm">
-                                            {resource.group.id.to_string()}
-                                        </div>
+                                        <div
+                                            class="stat-value text-sm"
+                                            inner_html=escape_html(&resource.group.id.to_string())
+                                        ></div>
                                     </div>
                                     <div class="h-fit w-[250px]">
                                         <div class="stat-title">"Traffic"</div>

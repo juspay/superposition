@@ -15,6 +15,7 @@ use crate::components::{
 };
 use crate::logic::Conditions;
 use crate::schema::HtmlDisplay;
+use crate::utils::{escape_html, safe_text};
 
 fn badge_class(status_type: ExperimentStatusType) -> &'static str {
     match status_type {
@@ -33,7 +34,10 @@ fn ExperimentInfo(experiment: StoredValue<ExperimentResponse>) -> impl IntoView 
             <div class="card-body flex flex-row gap-2 flex-wrap">
                 <div class="h-fit w-[300px]">
                     <div class="stat-title">Experiment ID</div>
-                    <div class="stat-value text-sm">{experiment.with_value(|v| v.id.clone())}</div>
+                    <div
+                        class="stat-value text-sm"
+                        inner_html=escape_html(&experiment.with_value(|v| v.id.clone()))
+                    ></div>
                 </div>
                 <div class="h-fit w-[300px]">
                     <div class="stat-title">Description</div>
@@ -41,16 +45,20 @@ fn ExperimentInfo(experiment: StoredValue<ExperimentResponse>) -> impl IntoView 
                         class="tooltip tooltip-bottom w-[inherit] text-left"
                         data-tip=experiment.with_value(|v| String::from(&v.description))
                     >
-                        <div class="stat-value text-sm text-ellipsis overflow-hidden">
-                            {experiment.with_value(|v| String::from(&v.description))}
-                        </div>
+                        <div
+                            class="stat-value text-sm text-ellipsis overflow-hidden"
+                            inner_html=escape_html(
+                                &experiment.with_value(|v| String::from(&v.description)),
+                            )
+                        ></div>
                     </div>
                 </div>
                 <div class="h-fit w-[300px]">
                     <div class="stat-title">Created by</div>
-                    <div class="stat-value text-sm">
-                        {experiment.with_value(|v| v.created_by.clone())}
-                    </div>
+                    <div
+                        class="stat-value text-sm"
+                        inner_html=escape_html(&experiment.with_value(|v| v.created_by.clone()))
+                    ></div>
                 </div>
                 <div class="h-fit w-[300px]">
                     <div class="stat-title">Created at</div>
@@ -74,9 +82,10 @@ fn ExperimentInfo(experiment: StoredValue<ExperimentResponse>) -> impl IntoView 
                                     class="tooltip tooltip-bottom w-[inherit] text-left"
                                     data-tip=&experiment_group_id
                                 >
-                                    <div class="stat-value text-sm text-ellipsis overflow-hidden">
-                                        {experiment_group_id}
-                                    </div>
+                                    <div
+                                        class="stat-value text-sm text-ellipsis overflow-hidden"
+                                        inner_html=escape_html(&experiment_group_id)
+                                    ></div>
                                 </div>
                             </div>
                         }
@@ -89,7 +98,10 @@ fn ExperimentInfo(experiment: StoredValue<ExperimentResponse>) -> impl IntoView 
                         view! {
                             <div class="h-fit w-[300px]">
                                 <div class="stat-title">Started by</div>
-                                <div class="stat-value text-sm">{started_by}</div>
+                                <div
+                                    class="stat-value text-sm"
+                                    inner_html=escape_html(&started_by)
+                                ></div>
                             </div>
                         }
                             .into_view()
@@ -111,9 +123,12 @@ fn ExperimentInfo(experiment: StoredValue<ExperimentResponse>) -> impl IntoView 
                     .unwrap_or_default()}
                 <div class="h-fit w-[300px]">
                     <div class="stat-title">Last Modified by</div>
-                    <div class="stat-value text-sm">
-                        {experiment.with_value(|v| v.last_modified_by.clone())}
-                    </div>
+                    <div
+                        class="stat-value text-sm"
+                        inner_html=escape_html(
+                            &experiment.with_value(|v| v.last_modified_by.clone()),
+                        )
+                    ></div>
                 </div>
                 <div class="h-fit w-[300px]">
                     <div class="stat-title">Last Modified at</div>
@@ -127,9 +142,12 @@ fn ExperimentInfo(experiment: StoredValue<ExperimentResponse>) -> impl IntoView 
                         class="tooltip tooltip-bottom w-[inherit] text-left"
                         data-tip=experiment.with_value(|v| String::from(&v.change_reason))
                     >
-                        <div class="stat-value text-sm text-ellipsis overflow-hidden">
-                            {experiment.with_value(|v| String::from(&v.change_reason))}
-                        </div>
+                        <div
+                            class="stat-value text-sm text-ellipsis overflow-hidden"
+                            inner_html=escape_html(
+                                &experiment.with_value(|v| String::from(&v.change_reason)),
+                            )
+                        ></div>
                     </div>
                 </div>
                 <div class="h-fit w-[300px]">
@@ -221,15 +239,14 @@ where
 
 #[component]
 fn ConcludeActions(experiment: StoredValue<ExperimentResponse>) -> impl IntoView {
+    let chosen_variant = experiment
+        .with_value(|v| v.chosen_variant.clone())
+        .map(|v| v.to_string())
+        .unwrap_or_default();
     view! {
         <div class="stat">
             <div class="stat-title">Chosen Variant</div>
-            <div class="stat-value">
-                {match experiment.with_value(|v| v.chosen_variant.clone()) {
-                    Some(ref v) => v.to_string(),
-                    None => String::new(),
-                }}
-            </div>
+            <div class="stat-value" inner_html=escape_html(&chosen_variant)></div>
         </div>
     }
 }
@@ -323,7 +340,7 @@ where
     view! {
         <div class="flex flex-col gap-10 overflow-x-auto bg-transparent">
             <h1 class="flex gap-3 items-center text-2xl font-extrabold">
-                {experiment.with_value(|v| v.name.clone())}
+                {safe_text(experiment.with_value(|v| v.name.clone()))}
                 <span class=badge_class>{experiment.with_value(|v| v.status.to_string())}</span>
             </h1>
             <div class="-mt-5 flex flex-row justify-end join">
@@ -370,10 +387,14 @@ where
                                 let dimension = condition.variable.clone();
                                 view! {
                                     <div class="stat w-3/12">
-                                        <div class="stat-title">{dimension}</div>
-                                        <div class="stat-value text-base">
-                                            {condition.value.html_display()}
-                                        </div>
+                                        <div
+                                            class="stat-title"
+                                            inner_html=escape_html(&dimension)
+                                        ></div>
+                                        <div
+                                            class="stat-value text-base"
+                                            inner_html=escape_html(&condition.value.html_display())
+                                        ></div>
                                     </div>
                                 }
                             })
@@ -405,22 +426,27 @@ where
                                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                             <div>
                                                 <div class="stat-title">Primary</div>
-                                                <div class="font-medium">
-                                                    {metrics.primary.name.to_string()}
-                                                </div>
+                                                <div
+                                                    class="font-medium"
+                                                    inner_html=escape_html(&metrics.primary.name.to_string())
+                                                ></div>
                                                 <div class="text-xs opacity-70">
                                                     {metrics.primary.direction.label()}
                                                 </div>
                                             </div>
                                             <div>
                                                 <div class="stat-title">Secondary</div>
-                                                <div class="font-medium">{secondary}</div>
+                                                <div
+                                                    class="font-medium"
+                                                    inner_html=escape_html(&secondary)
+                                                ></div>
                                             </div>
                                             <div>
                                                 <div class="stat-title">Guardrail</div>
-                                                <div class="font-medium">
-                                                    {metrics.guardrail.to_string()}
-                                                </div>
+                                                <div
+                                                    class="font-medium"
+                                                    inner_html=escape_html(&metrics.guardrail.to_string())
+                                                ></div>
                                             </div>
                                         </div>
                                     }

@@ -19,7 +19,7 @@ use crate::components::{
 };
 use crate::query_updater::use_signal_from_query;
 use crate::types::{OrganisationId, Workspace};
-use crate::utils::unwrap_option_or_default_with_error;
+use crate::utils::{safe_text, unwrap_option_or_default_with_error};
 
 #[derive(Clone)]
 enum Action {
@@ -53,7 +53,7 @@ pub fn TypesPage() -> impl IntoView {
                 let type_name = type_name.to_string();
                 view! {
                     <A href=type_name.clone() class="text-blue-500 underline underline-offset-2">
-                        {type_name}
+                        {safe_text(&type_name)}
                     </A>
                 }
             },

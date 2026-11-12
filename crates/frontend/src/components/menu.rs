@@ -1,5 +1,7 @@
 use leptos::*;
 
+use crate::utils::escape_html;
+
 use super::dropdown::utils::DropdownOption;
 
 #[component]
@@ -35,7 +37,10 @@ where
                                 }
                             >
 
-                                <a class="w-full word-break-break">{label.to_string()}</a>
+                                <a
+                                    class="w-full word-break-break"
+                                    inner_html=escape_html(&label.to_string())
+                                ></a>
                             </li>
                         }
                     }

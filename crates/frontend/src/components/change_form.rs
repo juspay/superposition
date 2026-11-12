@@ -1,6 +1,6 @@
 use leptos::*;
 
-use crate::components::form::label::Label;
+use crate::{components::form::label::Label, utils::escape_html};
 
 #[component]
 pub fn ChangeForm(
@@ -26,9 +26,8 @@ pub fn ChangeForm(
                 placeholder=placeholder
                 class=textarea_class
                 on:change=handle_change
-            >
-                {value}
-            </textarea>
+                inner_html=escape_html(&value)
+            ></textarea>
         </div>
     }
 }

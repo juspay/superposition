@@ -4069,6 +4069,7 @@ dependencies = [
  "strum_macros 0.25.3",
  "superposition_derives",
  "superposition_types",
+ "tokio",
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",

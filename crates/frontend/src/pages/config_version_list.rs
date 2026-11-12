@@ -14,7 +14,7 @@ use crate::components::table::{Table, types::Column};
 use crate::components::{datetime::DatetimeStr, skeleton::Skeleton};
 use crate::query_updater::use_signal_from_query;
 use crate::types::{OrganisationId, Workspace};
-use crate::utils::unwrap_or_default_with_error;
+use crate::utils::{escape_html, safe_text, unwrap_or_default_with_error};
 use crate::{api::snapshots, components::stat::Stat};
 
 #[component]
@@ -113,7 +113,9 @@ pub fn snapshot_table_columns() -> Vec<Column> {
             move |value: &str, _row: &Map<String, Value>| {
                 let id = value.to_string();
                 view! {
-                    <A href=id.clone() class="text-blue-500 underline underline-offset-2">{id}</A>
+                    <A href=id.clone() class="text-blue-500 underline underline-offset-2">
+                        {safe_text(&id)}
+                    </A>
                 }
                 .into_view()
             },
@@ -138,7 +140,7 @@ pub fn snapshot_table_columns() -> Vec<Column> {
                             .map(|v| v.as_str().unwrap_or(""))
                             .collect::<Vec<&str>>()
                             .join(", ");
-                        view! { <span class="w-24">{tags_str}</span> }
+                        view! { <span class="w-24" inner_html=escape_html(&tags_str)></span> }
                     }
                     None => view! { <span class="w-24">"-"</span> },
                 }

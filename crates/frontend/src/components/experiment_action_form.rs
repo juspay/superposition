@@ -10,6 +10,7 @@ use crate::{
     pages::experiment::PopupType,
     providers::alert_provider::enqueue_alert,
     types::{OrganisationId, Workspace},
+    utils::escape_html,
 };
 
 fn change_reason(popup_type: &PopupType) -> String {
@@ -144,8 +145,8 @@ pub fn ExperimentActionForm(
                     >
                         <i class="ri-close-line" />
                     </button>
-                    <h3 class="font-bold text-lg">{header}</h3>
-                    <p class="py-2">{message}</p>
+                    <h3 class="font-bold text-lg" inner_html=escape_html(header)></h3>
+                    <p class="py-2" inner_html=escape_html(message)></p>
                     <form class="flex flex-col gap-4">
                         <ChangeForm
                             title="Reason for Change".to_string()

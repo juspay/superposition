@@ -1,5 +1,7 @@
 use leptos::*;
 
+use crate::utils::escape_html;
+
 #[component]
 pub fn Modal<NF>(
     id: String,
@@ -21,7 +23,7 @@ where
                 >
                     <i class="ri-close-line"></i>
                 </button>
-                <h3 class="font-bold text-lg">{heading}</h3>
+                <h3 class="font-bold text-lg" inner_html=escape_html(&heading)></h3>
                 {children()}
                 <div class="modal-action"></div>
             </div>
@@ -50,7 +52,10 @@ pub fn PortalModal(
                         <i class="ri-close-line"></i>
                     </button>
                     <Show when=move || heading.with_value(|h| !h.is_empty())>
-                        <h3 class="font-bold text-lg">{heading.get_value()}</h3>
+                        <h3
+                            class="font-bold text-lg"
+                            inner_html=escape_html(&heading.get_value())
+                        ></h3>
                     </Show>
                     {children()}
                 </dialog>

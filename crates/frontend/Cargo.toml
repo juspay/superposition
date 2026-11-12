@@ -65,5 +65,8 @@ hydrate = [
 ]
 ssr = ["leptos/ssr", "leptos_meta/ssr", "leptos_router/ssr"]
 
+[dev-dependencies]
+tokio = { workspace = true }
+
 [lints]
 workspace = true

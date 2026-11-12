@@ -26,6 +26,7 @@ use crate::{
     },
     logic::Conditions,
     providers::condition_collapse_provider::ConditionCollapseProvider,
+    utils::escape_html,
 };
 
 #[component]
@@ -296,6 +297,9 @@ pub fn ContextFilterDrawer(
                         description="Searches both keys as well as the values"
                     />
                     {move || {
+                        let plaintext = context_filters_rws
+                            .with(|f| f.plaintext.clone())
+                            .unwrap_or_default();
                         view! {
                             <textarea
                                 id="context-plaintext-filter"
@@ -307,11 +311,8 @@ pub fn ContextFilterDrawer(
                                     filters_buffer_rws
                                         .update(|filter| filter.plaintext = plaintext);
                                 }
-                            >
-                                {context_filters_rws
-                                    .with(|f| f.plaintext.clone())
-                                    .unwrap_or_default()}
-                            </textarea>
+                                inner_html=escape_html(&plaintext)
+                            ></textarea>
                         }
                     }}
                 </div>

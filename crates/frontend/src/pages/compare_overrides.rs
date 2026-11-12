@@ -32,7 +32,7 @@ use crate::{
     },
     query_updater::{use_signal_from_query, use_update_url_query},
     types::{OrganisationId, Workspace},
-    utils::url_or_string,
+    utils::{escape_html, safe_text, url_or_string},
 };
 
 const DEFAULT_CONFIG_COLUMN: &str = "default_config";
@@ -209,12 +209,12 @@ pub fn CompareOverrides() -> impl IntoView {
                     class="text-blue-500 underline underline-offset-2"
                     href=redirect_url(Some(prefix))
                 >
-                    {label}
+                    {safe_text(&label)}
                 </A>
             }
             .into_view()
         } else {
-            view! { <span>{label}</span> }.into_view()
+            view! { <span inner_html=escape_html(&label)></span> }.into_view()
         }
     });
 

@@ -29,6 +29,7 @@ use crate::providers::{
 };
 use crate::schema::{JsonSchemaType, SchemaType};
 use crate::types::{OrganisationId, Workspace};
+use crate::utils::{escape_html, safe_text};
 
 use super::dropdown::utils::DropdownOption;
 
@@ -453,7 +454,7 @@ fn EditForm(
                     </div>
                 }
             }}
-            <p class="text-red-500">{move || error_message_rws.get()}</p>
+            <p class="text-red-500">{move || safe_text(error_message_rws.get())}</p>
         </div>
     }
 }
@@ -566,9 +567,8 @@ pub fn TestForm(
                                             }
                                         };
                                     }
-                                >
-                                    {value.to_string()}
-                                </textarea>
+                                    inner_html=escape_html(&value.to_string())
+                                ></textarea>
                             </div>
                         }
                             .into_view()
@@ -808,7 +808,7 @@ pub fn TestForm(
                 }
             }}
             <Show when=move || !error_message.get().is_empty()>
-                <p class="text-red-500">{move || error_message.get()}</p>
+                <p class="text-red-500">{move || safe_text(error_message.get())}</p>
             </Show>
             {move || {
                 output_message_rs
@@ -817,11 +817,11 @@ pub fn TestForm(
                         let output_c = output.clone();
                         view! {
                             <p class="text-green-700">
-                                {format!("Function returned = {}", output.fn_output)}
+                                {safe_text(format!("Function returned = {}", output.fn_output))}
                             </p>
                             <Show when=move || !output_c.stdout.is_empty()>
                                 <p class="text-green-700">
-                                    {format!("Logs: \n {}", output.stdout)}
+                                    {safe_text(format!("Logs: \n {}", output.stdout))}
                                 </p>
                             </Show>
                         }

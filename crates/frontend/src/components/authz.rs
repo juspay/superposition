@@ -30,6 +30,7 @@ use crate::{
         },
     },
     providers::alert_provider::enqueue_alert,
+    utils::escape_html,
 };
 
 #[component]
@@ -48,7 +49,12 @@ fn TabularViewer(
                         Ok(rows) => {
                             view! { <Table rows key_column="idx" columns=columns.get_value() /> }
                         }
-                        Err(e) => view! { <div class="text-sm text-red-600">{e}</div> }.into_view(),
+                        Err(e) => {
+                            view! {
+                                <div class="text-sm text-red-600" inner_html=escape_html(&e)></div>
+                            }
+                                .into_view()
+                        }
                     })
                     .unwrap_or_else(|| ().into_view())
             }}
@@ -1225,8 +1231,8 @@ pub fn AuthzEditor(
         <div class="flex flex-col gap-6">
             <div class="card bg-base-100 shadow">
                 <div class="card-body gap-3">
-                    <h2 class="card-title">{title}</h2>
-                    <p class="text-sm text-gray-600">{description}</p>
+                    <h2 class="card-title" inner_html=escape_html(&title)></h2>
+                    <p class="text-sm text-gray-600" inner_html=escape_html(&description)></p>
                 </div>
             </div>
 

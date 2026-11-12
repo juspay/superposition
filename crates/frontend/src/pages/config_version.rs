@@ -8,6 +8,7 @@ use crate::components::datetime::Datetime;
 use crate::components::skeleton::{Skeleton, SkeletonVariant};
 use crate::components::toast::Toast;
 use crate::types::{OrganisationId, Workspace};
+use crate::utils::escape_html;
 
 #[component]
 pub fn ConfigVersion() -> impl IntoView {
@@ -34,7 +35,10 @@ pub fn ConfigVersion() -> impl IntoView {
                             .unwrap_or_default();
                         view! {
                             <div class="h-full flex flex-col gap-10 overflow-x-auto bg-transparent">
-                                <h1 class="text-2xl font-extrabold">{snapshot.id}</h1>
+                                <h1
+                                    class="text-2xl font-extrabold"
+                                    inner_html=escape_html(&snapshot.id.to_string())
+                                ></h1>
 
                                 <div class="card bg-base-100 max-w-screen shadow">
                                     <div class="card-body flex flex-col gap-2">
@@ -45,9 +49,10 @@ pub fn ConfigVersion() -> impl IntoView {
                                                     class="tooltip tooltip-bottom w-[inherit] text-left"
                                                     data-tip=String::from(&snapshot.description)
                                                 >
-                                                    <div class="stat-value text-sm text-ellipsis overflow-hidden">
-                                                        {String::from(&snapshot.description)}
-                                                    </div>
+                                                    <div
+                                                        class="stat-value text-sm text-ellipsis overflow-hidden"
+                                                        inner_html=escape_html(&String::from(&snapshot.description))
+                                                    ></div>
                                                 </div>
                                             </div>
                                             <div class="h-fit w-[250px]">

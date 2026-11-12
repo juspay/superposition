@@ -28,6 +28,7 @@ use crate::components::{
 };
 use crate::query_updater::{use_signal_from_query, use_update_url_query};
 use crate::types::{OrganisationId, Workspace};
+use crate::utils::{escape_html, safe_text};
 use crate::{api::default_configs, pages::default_config::CreatePageParams};
 
 #[component]
@@ -97,14 +98,17 @@ pub fn DefaultConfigList() -> impl IntoView {
                 view! {
                     <A href=redirect_url(Some(prefix))>
                         <i class="ri-folder-open-line mr-2" />
-                        <span class="text-blue-500 underline underline-offset-2">{label}</span>
+                        <span
+                            class="text-blue-500 underline underline-offset-2"
+                            inner_html=escape_html(&label)
+                        ></span>
                     </A>
                 }
                 .into_view()
             } else {
                 view! {
                     <A href=prefix class="ml-[22px] text-blue-500 underline underline-offset-2">
-                        {label}
+                        {safe_text(&label)}
                     </A>
                 }
                 .into_view()

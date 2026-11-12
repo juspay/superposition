@@ -1,5 +1,7 @@
 use leptos::*;
 
+use crate::utils::escape_html;
+
 #[component]
 fn InfoSection(
     title: &'static str,
@@ -13,7 +15,7 @@ fn InfoSection(
                 {title}
             </h4>
             <div class="min-h-[48px] bg-gray-50 p-3 rounded-md border border-gray-200">
-                <p class="text-gray-700">{content}</p>
+                <p class="text-gray-700" inner_html=escape_html(&content)></p>
             </div>
         </div>
     }

@@ -26,7 +26,7 @@ use crate::components::{
 };
 use crate::query_updater::{use_signal_from_query, use_update_url_query};
 use crate::types::{OrganisationId, Workspace};
-use crate::utils::to_title_case;
+use crate::utils::{escape_html, to_title_case};
 use crate::{api::fetch_function, components::datetime::Datetime};
 
 fn stage_to_action(stage: Stage) -> String {
@@ -64,7 +64,7 @@ fn FunctionCodeInfo(
                         view! {
                             <div class="h-fit w-[250px]">
                                 <div class="stat-title">{format!("{action_type} By")}</div>
-                                <div class="stat-value text-sm">{by}</div>
+                                <div class="stat-value text-sm" inner_html=escape_html(&by)></div>
                             </div>
                         }
                     })}
@@ -122,7 +122,10 @@ pub fn FunctionPage() -> impl IntoView {
                     };
                     let function_st = StoredValue::new(function.clone());
                     view! {
-                        <h1 class="text-2xl font-extrabold">{function.function_name.clone()}</h1>
+                        <h1
+                            class="text-2xl font-extrabold"
+                            inner_html=escape_html(&function.function_name)
+                        ></h1>
                         <ContentDescription
                             pre_data=move || {
                                 view! {

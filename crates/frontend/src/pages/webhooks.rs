@@ -27,6 +27,7 @@ use crate::{
     },
     query_updater::use_signal_from_query,
     types::{OrganisationId, Workspace},
+    utils::safe_text,
 };
 
 #[derive(Clone)]
@@ -65,7 +66,7 @@ pub fn Webhooks() -> impl IntoView {
                 let webhook_name = webhook_name.to_string();
                 view! {
                     <A href=webhook_name.clone() class="text-blue-500 underline underline-offset-2">
-                        {webhook_name}
+                        {safe_text(&webhook_name)}
                     </A>
                 }
             },
