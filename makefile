@@ -57,7 +57,8 @@ DB_CONTAINER_NAME = $(shell $(call read-container-name,postgres))
 DB_UP = $(shell $(call check-container,$(DB_CONTAINER_NAME)))
 LSTACK_CONTAINER_NAME = $(shell $(call read-container-name,localstack))
 LSTACK_UP = $(shell $(call check-container,$(LSTACK_CONTAINER_NAME)))
-export SMITHY_MAVEN_REPOS = https://sandbox.assets.juspay.in/smithy/m2|https://repo1.maven.org/maven2
+SMITHY_LOCAL_REPO ?= $(CURDIR)/smithy/.local-m2
+export SMITHY_MAVEN_REPOS = file://$(SMITHY_LOCAL_REPO)|https://sandbox.assets.juspay.in/smithy/m2|https://repo1.maven.org/maven2
 
 .PHONY: amend \
 	amend-no-edit \
@@ -96,6 +97,7 @@ export SMITHY_MAVEN_REPOS = https://sandbox.assets.juspay.in/smithy/m2|https://r
 	smithy-build \
 	smithy-clean \
 	smithy-clean-build \
+	smithy-local-build \
 	smithy-clients \
 	smithy-updates \
 	superposition \
@@ -266,6 +268,31 @@ tailwind:
 
 smithy-clean:
 	rm -rf smithy/output
+
+smithy-local-build:
+	@set -e; \
+	if [ -z "$(SMITHY_RUST_CODEGEN_VERSION)" ] || [ -z "$(SMITHY_RUST_KOTLIN_VERSION)" ]; then \
+		echo "usage: make smithy-local-build SMITHY_RUST_CODEGEN_VERSION=<ver> SMITHY_RUST_KOTLIN_VERSION=<ver> [SMITHY_LOCAL_REPO=<dir>]" >&2; \
+		exit 1; \
+	fi; \
+	v=$(SMITHY_RUST_CODEGEN_VERSION); \
+	for a in codegen-client codegen-core; do \
+		dir="$(SMITHY_LOCAL_REPO)/software/amazon/smithy/rust/$$a/$$v"; \
+		if [ ! -f "$$dir/$$a-$$v.pom" ]; then \
+			mkdir -p "$$dir"; \
+			base="https://repo1.maven.org/maven2/software/amazon/smithy/rust/$$a/$$v/$$a-$$v"; \
+			curl -fsSL -o "$$dir/$$a-$$v.jar" "$$base.jar"; \
+			curl -fsSL -o "$$dir/$$a-$$v.pom" "$$base.pom"; \
+			sed -i.bak 's#<version>unspecified</version>#<version>$(SMITHY_RUST_KOTLIN_VERSION)</version>#g' "$$dir/$$a-$$v.pom" && rm -f "$$dir/$$a-$$v.pom.bak"; \
+			for f in "$$dir/$$a-$$v.jar" "$$dir/$$a-$$v.pom"; do \
+				shasum -a 1 "$$f" | cut -d' ' -f1 > "$$f.sha1"; \
+				shasum -a 256 "$$f" | cut -d' ' -f1 > "$$f.sha256"; \
+				shasum -a 512 "$$f" | cut -d' ' -f1 > "$$f.sha512"; \
+				openssl md5 -r "$$f" | cut -d' ' -f1 > "$$f.md5"; \
+			done; \
+			echo "prepared $$a-$$v (kotlin-stdlib-jdk8 pinned to $(SMITHY_RUST_KOTLIN_VERSION))"; \
+		fi; \
+	done
 
 smithy-build:
 	cd smithy && smithy build

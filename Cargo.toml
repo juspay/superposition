@@ -119,8 +119,8 @@ uniffi = { version = "0.29.3", features = ["cli"] }
 vaultrs = { version = "0.8.0", default-features = false, features = [
     "native-tls",
 ] }
-kronos-worker = { git = "https://github.com/juspay/invokr.git", tag = "v0.5.1", package = "invokr-worker" }
-kronos-common = { git = "https://github.com/juspay/invokr.git", tag = "v0.5.1", package = "invokr-common" }
+kronos-worker = { git = "https://github.com/juspay/invokr.git", tag = "v0.6.0", package = "invokr-worker", default-features = false }
+kronos-common = { git = "https://github.com/juspay/invokr.git", tag = "v0.6.0", package = "invokr-common" }
 superposition = { path = "crates/superposition", version = "0.119.0" }
 superposition_types = { path = "crates/superposition_types", version = "0.119.0" }
 superposition_derives = { path = "crates/superposition_derives", version = "0.119.0" }
