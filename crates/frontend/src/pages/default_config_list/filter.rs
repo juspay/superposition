@@ -90,7 +90,7 @@ pub(super) fn DefaultConfigFilterWidget(
     pagination_params_rws: RwSignal<PaginationParams>,
     filters_rws: RwSignal<DefaultConfigFilters>,
 ) -> impl IntoView {
-    let filters_buffer_rws = create_rw_signal(filters_rws.get_untracked());
+    let filters_buffer_rws = RwSignal::new(filters_rws.get_untracked());
 
     Effect::new(move |_| {
         let filters = filters_rws.get();
@@ -118,7 +118,8 @@ pub(super) fn DefaultConfigFilterWidget(
                         <Label
                             title="Config key"
                             info="(any of)"
-                            description="Separate each ID by a comma"
+                            description="Exact match filter. When grouping is enabled searches for the group/key names at that level, isntead of full key."
+                            extra_info="Separate each ID by a comma"
                         />
                         {move || {
                             filters_buffer_rws

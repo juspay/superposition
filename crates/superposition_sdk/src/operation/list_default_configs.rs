@@ -138,9 +138,14 @@ if requested.should_capture("org_id") {
                                 captured.insert("org_id", value);
                             }
                         }
-if requested.should_capture("name") {
-                            if let ::std::option::Option::Some(value) = input.name.as_deref() {
-                                captured.insert("name", value);
+if requested.should_capture("prefix") {
+                            if let ::std::option::Option::Some(value) = input.prefix.as_deref() {
+                                captured.insert("prefix", value);
+                            }
+                        }
+if requested.should_capture("search") {
+                            if let ::std::option::Option::Some(value) = input.search.as_deref() {
+                                captured.insert("search", value);
                             }
                         }
 
@@ -201,7 +206,29 @@ fn uri_query(_input: &crate::operation::list_default_configs::ListDefaultConfigs
     }
     if let ::std::option::Option::Some(inner_4) = &_input.name {
          {
-            query.push_kv("name", &::aws_smithy_http::query::fmt_string(inner_4));
+            for inner_5 in inner_4 {
+                query.push_kv("name", &::aws_smithy_http::query::fmt_string(inner_5));
+            }
+        }
+    }
+    if let ::std::option::Option::Some(inner_6) = &_input.prefix {
+         {
+            query.push_kv("prefix", &::aws_smithy_http::query::fmt_string(inner_6));
+        }
+    }
+    if let ::std::option::Option::Some(inner_7) = &_input.sort_by {
+         {
+            query.push_kv("sort_by", &::aws_smithy_http::query::fmt_string(inner_7.as_str()));
+        }
+    }
+    if let ::std::option::Option::Some(inner_8) = &_input.sort_on {
+         {
+            query.push_kv("sort_on", &::aws_smithy_http::query::fmt_string(inner_8.as_str()));
+        }
+    }
+    if let ::std::option::Option::Some(inner_9) = &_input.search {
+         {
+            query.push_kv("search", &::aws_smithy_http::query::fmt_string(inner_9));
         }
     }
     ::std::result::Result::Ok(())

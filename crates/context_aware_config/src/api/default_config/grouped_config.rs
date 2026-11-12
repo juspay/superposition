@@ -237,7 +237,8 @@ pub(super) fn list(
         .get_results::<DefaultConfig>(conn)?;
 
     if let Some(search_term) = filters.search.as_ref().filter(|s| !s.is_empty()) {
-        configs.retain(|config| config.key.to_lowercase().contains(search_term));
+        let search_term = search_term.to_lowercase();
+        configs.retain(|config| config.key.to_lowercase().contains(&search_term));
     }
 
     let unflattened_config_map = unflatten_map(configs)

@@ -63,7 +63,7 @@ pub fn DefaultConfigList() -> impl IntoView {
                     .into_inner();
 
             if pagination.page.unwrap_or(1) <= 1 && filters.grouped.unwrap_or(true) {
-                filters.init_with_grouping();
+                filters.grouped = Some(true);
             }
 
             (filters, pagination)
@@ -264,8 +264,8 @@ pub fn DefaultConfigList() -> impl IntoView {
                                     filters_rws
                                         .update(|params| {
                                             let grouped = params.grouped.unwrap_or(true);
-                                            *params = DefaultConfigFilters::default();
                                             params.grouped = Some(!grouped);
+                                            params.prefix = None;
                                         });
                                     pagination_params_rws.update(|p| p.reset_page());
                                 });

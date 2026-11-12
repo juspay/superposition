@@ -48,12 +48,6 @@ pub struct DefaultConfigFilters {
 }
 
 impl DefaultConfigFilters {
-    pub fn init_with_grouping(&mut self) {
-        if self.search.is_none() && self.name.is_none() {
-            self.grouped = Some(true);
-        }
-    }
-
     pub fn set_search(&mut self, search: Option<String>) {
         self.search = search;
         self.name = None;
@@ -62,9 +56,6 @@ impl DefaultConfigFilters {
     pub fn set_name(&mut self, name: Option<CommaSeparatedStringQParams>) {
         self.name = name;
         self.search = None;
-        if self.prefix.is_none() {
-            self.grouped = None;
-        }
     }
 }
 
