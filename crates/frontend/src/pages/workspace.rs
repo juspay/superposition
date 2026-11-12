@@ -10,6 +10,7 @@ use crate::components::{
     datetime::DatetimeStr,
     drawer::{Drawer, DrawerBtn, close_drawer, open_drawer},
     key_rotation_modal::WorkspaceKeyRotationModal,
+    safe_text::SafeText,
     skeleton::Skeleton,
     stat::Stat,
     table::{
@@ -23,7 +24,6 @@ use crate::components::{
 };
 use crate::query_updater::use_signal_from_query;
 use crate::types::OrganisationId;
-use crate::utils::safe_text;
 use crate::{api::workspaces, types::AdminPageParams};
 
 #[component]
@@ -155,7 +155,7 @@ pub fn Workspace() -> impl IntoView {
                     class="text-blue-500 underline underline-offset-2"
                     href=format!("../{workspace_name}/default-config")
                 >
-                    {safe_text(&workspace_name)}
+                    <SafeText text=workspace_name />
                 </A>
             }
             .into_view()

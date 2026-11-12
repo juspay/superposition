@@ -1,6 +1,6 @@
 use leptos::*;
 
-use crate::utils::escape_html;
+use crate::components::safe_text::SafeText;
 
 #[component]
 pub fn Stat(heading: &'static str, icon: &'static str, number: String) -> impl IntoView {
@@ -11,8 +11,12 @@ pub fn Stat(heading: &'static str, icon: &'static str, number: String) -> impl I
                 <div class="stat-figure text-purple-700">
                     <i class=icon_class></i>
                 </div>
-                <div class="stat-title" inner_html=escape_html(heading)></div>
-                <div class="stat-value" inner_html=escape_html(&number)></div>
+                <div class="stat-title">
+                    <SafeText text=heading />
+                </div>
+                <div class="stat-value">
+                    <SafeText text=number />
+                </div>
             </div>
         </div>
     }

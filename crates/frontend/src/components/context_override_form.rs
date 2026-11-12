@@ -23,6 +23,7 @@ use crate::{
         context_form::ContextForm,
         description::ContentDescription,
         override_form::OverrideForm,
+        safe_text::SafeText,
         skeleton::{Skeleton, SkeletonVariant},
         step_indicator::{Step, StepIndicator, StepNavigation, StepType},
         table::{Table, types::Column},
@@ -37,7 +38,6 @@ use crate::{
         editor_provider::EditorProvider,
     },
     types::{OrganisationId, Workspace},
-    utils::escape_html,
 };
 
 enum ResponseType {
@@ -447,10 +447,9 @@ pub fn OverrideDetailView(
                 <div class="stat-title flex items-center justify-center leading-none">
                     "Override ID"
                 </div>
-                <div
-                    class="p-2 flex items-center justify-center font-mono leading-none text-sm bg-base-200 rounded"
-                    inner_html=escape_html(&override_id)
-                ></div>
+                <div class="p-2 flex items-center justify-center font-mono leading-none text-sm bg-base-200 rounded">
+                    <SafeText text=override_id />
+                </div>
             </div>
 
             <ContentDescription

@@ -18,12 +18,12 @@ use crate::{
     components::{
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection},
         override_form::OverrideForm,
+        safe_text::SafeText,
         skeleton::{Skeleton, SkeletonVariant},
     },
     logic::Conditions,
     schema::SchemaType,
     types::{OrganisationId, VariantFormT, Workspace},
-    utils::escape_html,
 };
 
 fn get_override_keys_from_variants(
@@ -500,10 +500,7 @@ pub fn DeleteVariant(
         <div class="my-2 p-4 rounded bg-gray-50">
             <div class="flex items-center justify-between">
                 <label class="label">
-                    <span
-                        class="label-text font-semibold text-base"
-                        inner_html=escape_html(&label)
-                    ></span>
+                    <SafeText text=label class="label-text font-semibold text-base" />
                 </label>
                 <div class="flex items-center gap-4">
                     <Show when=move || !override_keys.get().is_empty()>

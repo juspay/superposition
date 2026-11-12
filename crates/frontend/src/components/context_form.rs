@@ -10,11 +10,12 @@ use superposition_types::api::{
 
 use crate::components::form::label::Label;
 use crate::components::input::{Input, InputType, StringArrayInput};
+use crate::components::safe_text::SafeText;
 use crate::components::tooltip::{Tooltip, TooltipPosition};
 use crate::logic::{Condition, Conditions};
 use crate::schema::EnumVariants;
 use crate::types::{OrganisationId, ValueComputeCallbacks, Workspace};
-use crate::utils::{escape_html, value_compute_fn_generator};
+use crate::utils::value_compute_fn_generator;
 use crate::{
     components::dropdown::{Dropdown, DropdownDirection},
     schema::SchemaType,
@@ -346,12 +347,9 @@ pub fn ContextForm(
         if let Some(parent) = invalid_dimensions.with(|m| m.get(variable).cloned()) {
             return TooltipType::Error(view! {
                 <div class="text-base w-[250px]">
-                    {"Dimension "}
-                    <span
-                        class="w-fit italic font-semibold"
-                        inner_html=escape_html(variable)
-                    ></span> {" is a cohort dimension which can be derived from "}
-                    <span class="w-fit italic font-semibold" inner_html=escape_html(&parent)></span>
+                    {"Dimension "} <SafeText text=variable class="w-fit italic font-semibold" />
+                    {" is a cohort dimension which can be derived from "}
+                    <SafeText text=parent class="w-fit italic font-semibold" />
                     {" dimension using the cohort definitions. Hence, usage of this dimension is not allowed."}
                 </div>
             }.into_view());

@@ -21,11 +21,8 @@ use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::types::{OrganisationId, Workspace};
 use crate::{
     api::{dimensions, fetch_config, resolve_config},
-    components::{button::Button, context_form::ContextForm},
-    utils::{
-        check_url_and_return_val, escape_html, get_element_by_id, safe_text,
-        url_or_string,
-    },
+    components::{button::Button, context_form::ContextForm, safe_text::SafeText},
+    utils::{check_url_and_return_val, escape_html, get_element_by_id, url_or_string},
 };
 
 #[derive(Clone, Debug, Copy, Display, strum_macros::EnumProperty, PartialEq)]
@@ -64,8 +61,9 @@ fn AllContextView(config: Config) -> impl IntoView {
                                 class:text-black=!striked
                                 class:font-bold=!striked
                                 class:text-gray-300=striked
-                                inner_html=escape_html(key)
-                            ></span>
+                            >
+                                <SafeText text=key.clone() />
+                            </span>
                         </td>
                         <td class="min-w-48 max-w-72" style="word-break: break-word;">
                             <span
@@ -465,7 +463,7 @@ pub fn Home() -> impl IntoView {
                                                         vec![
                                                             view! {
                                                                 <div class="error">
-                                                                    "Failed to fetch config data: " {safe_text(error)}
+                                                                    "Failed to fetch config data: " <SafeText text=error />
                                                                 </div>
                                                             }
                                                                 .into_view(),
@@ -516,7 +514,9 @@ pub fn Home() -> impl IntoView {
                                                                                 children=move |(config, value)| {
                                                                                     view! {
                                                                                         <tr class="min-w-48 max-w-72">
-                                                                                            <td inner_html=escape_html(&config)></td>
+                                                                                            <td>
+                                                                                                <SafeText text=config />
+                                                                                            </td>
                                                                                             <td class="break-words">
                                                                                                 {match value {
                                                                                                     Value::String(s) => url_or_string(&s).into_view(),
@@ -541,7 +541,7 @@ pub fn Home() -> impl IntoView {
                                                     Some(Err(error)) => {
                                                         view! {
                                                             <div class="error">
-                                                                {"Failed to fetch config data: "} {safe_text(error)}
+                                                                {"Failed to fetch config data: "} <SafeText text=error />
                                                             </div>
                                                         }
                                                     }

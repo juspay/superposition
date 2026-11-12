@@ -20,6 +20,7 @@ use crate::{
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection, utils::DropdownOption},
         form::label::Label,
         modal::PortalModal,
+        safe_text::SafeText,
         skeleton::{Skeleton, SkeletonVariant},
         table::{
             Table,
@@ -30,7 +31,6 @@ use crate::{
         },
     },
     providers::alert_provider::enqueue_alert,
-    utils::escape_html,
 };
 
 #[component]
@@ -51,7 +51,9 @@ fn TabularViewer(
                         }
                         Err(e) => {
                             view! {
-                                <div class="text-sm text-red-600" inner_html=escape_html(&e)></div>
+                                <div class="text-sm text-red-600">
+                                    <SafeText text=e />
+                                </div>
                             }
                                 .into_view()
                         }
@@ -1231,8 +1233,12 @@ pub fn AuthzEditor(
         <div class="flex flex-col gap-6">
             <div class="card bg-base-100 shadow">
                 <div class="card-body gap-3">
-                    <h2 class="card-title" inner_html=escape_html(&title)></h2>
-                    <p class="text-sm text-gray-600" inner_html=escape_html(&description)></p>
+                    <h2 class="card-title">
+                        <SafeText text=title />
+                    </h2>
+                    <p class="text-sm text-gray-600">
+                        <SafeText text=description />
+                    </p>
                 </div>
             </div>
 

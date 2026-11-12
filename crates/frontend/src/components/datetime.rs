@@ -8,7 +8,9 @@ use leptos_meta::*;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::JsValue;
 
-use crate::{providers::csr_provider::use_client_side_ready, utils::escape_html};
+use crate::{
+    components::safe_text::SafeText, providers::csr_provider::use_client_side_ready,
+};
 
 #[cfg(target_arch = "wasm32")]
 fn browser_locale() -> String {
@@ -158,7 +160,11 @@ pub fn DatetimeStr(
         DatetimeFormat::Date => format_local_date_from_str(&datetime),
         DatetimeFormat::DateTime => format_local_datetime_from_str(&datetime),
     };
-    view! { <time class=class datetime=datetime.clone() inner_html=escape_html(&formatted)></time> }
+    view! {
+        <time class=class datetime=datetime.clone()>
+            <SafeText text=formatted />
+        </time>
+    }
 }
 
 /// Script to fetch the inner content of both the time tag with class 'datetime' and time tag with class 'datetime_date' to

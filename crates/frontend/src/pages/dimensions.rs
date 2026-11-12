@@ -7,6 +7,7 @@ use superposition_types::database::models::cac::DimensionType;
 use crate::api::dimensions;
 use crate::components::button::ButtonAnchor;
 use crate::components::datetime::DatetimeStr;
+use crate::components::safe_text::SafeText;
 use crate::components::skeleton::Skeleton;
 use crate::components::table::types::{
     ColumnSortable, Expandable, default_column_formatter,
@@ -20,7 +21,6 @@ use crate::components::{
 };
 use crate::query_updater::use_signal_from_query;
 use crate::types::{DimensionTypeOptions, OrganisationId, Workspace};
-use crate::utils::safe_text;
 
 #[component]
 pub fn Dimensions() -> impl IntoView {
@@ -51,7 +51,7 @@ pub fn Dimensions() -> impl IntoView {
                 let dimension_name = dimension_name.to_string();
                 view! {
                     <A href=dimension_name.clone() class="text-blue-500 underline underline-offset-2">
-                        {safe_text(&dimension_name)}
+                        <SafeText text=dimension_name />
                     </A>
                 }
             },

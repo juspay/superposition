@@ -4,7 +4,7 @@ use leptos::{Callback, IntoView, View, view};
 use serde_json::{Map, Value};
 use superposition_types::SortBy;
 
-use crate::utils::{escape_html, to_title_case};
+use crate::{components::safe_text::SafeText, utils::to_title_case};
 
 pub type CellFormatter = Box<Rc<dyn Fn(&str, &Map<String, Value>) -> View>>;
 pub type ColumnFormatter = Box<Rc<dyn Fn(&str) -> View>>;
@@ -47,13 +47,13 @@ impl PartialEq for Column {
 }
 
 pub fn default_formatter(value: &str, _row: &Map<String, Value>) -> View {
-    view! { <span inner_html=escape_html(value)></span> }.into_view()
+    view! { <SafeText text=value /> }.into_view()
 }
 
 pub fn default_column_formatter(value: &str) -> View {
     let column_name = to_title_case(value);
-    view! { <span class="font-medium text-sm text-black" inner_html=escape_html(&column_name)></span> }
-    .into_view()
+    view! { <SafeText text=column_name class="font-medium text-sm text-black" /> }
+        .into_view()
 }
 
 impl Column {

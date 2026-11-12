@@ -23,10 +23,10 @@ use crate::{
         drawer::{Drawer, close_drawer},
         form::label::Label,
         input::Toggle,
+        safe_text::SafeTextarea,
     },
     logic::Conditions,
     providers::condition_collapse_provider::ConditionCollapseProvider,
-    utils::escape_html,
 };
 
 #[component]
@@ -301,18 +301,17 @@ pub fn ContextFilterDrawer(
                             .with(|f| f.plaintext.clone())
                             .unwrap_or_default();
                         view! {
-                            <textarea
+                            <SafeTextarea
                                 id="context-plaintext-filter"
                                 placeholder="Search overrides with plaintext"
                                 class="textarea textarea-bordered w-full max-w-md"
-                                on:change=move |event| {
-                                    let plaintext = event_target_value(&event);
+                                value=plaintext
+                                on_change=move |plaintext: String| {
                                     let plaintext = (!plaintext.is_empty()).then_some(plaintext);
                                     filters_buffer_rws
                                         .update(|filter| filter.plaintext = plaintext);
                                 }
-                                inner_html=escape_html(&plaintext)
-                            ></textarea>
+                            />
                         }
                     }}
                 </div>

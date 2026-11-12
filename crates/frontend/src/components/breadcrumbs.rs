@@ -3,8 +3,9 @@ use std::str::FromStr;
 use leptos::*;
 use leptos_router::{A, use_location};
 
+use crate::components::safe_text::SafeText;
 use crate::types::{BreadcrumbSegment, OrganisationId, RouteSegment, Workspace};
-use crate::utils::{escape_html, safe_text, use_url_base};
+use crate::utils::use_url_base;
 
 const SKIP_SEGMENTS: [RouteSegment; 4] = [
     RouteSegment::Admin,
@@ -152,20 +153,14 @@ fn BreadcrumbItem(item: BreadcrumbSegment) -> impl IntoView {
     view! {
         <div class="flex items-center gap-1">
             {if item.is_current || item.href.is_empty() {
-                view! {
-                    <span
-                        class="font-bold text-gray-800"
-                        inner_html=escape_html(&item.label)
-                    ></span>
-                }
-                    .into_view()
+                view! { <SafeText text=item.label class="font-bold text-gray-800" /> }.into_view()
             } else {
                 view! {
                     <A
                         href=item.href.clone()
                         class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
                     >
-                        {safe_text(&item.label)}
+                        <SafeText text=item.label />
                     </A>
                 }
                     .into_view()

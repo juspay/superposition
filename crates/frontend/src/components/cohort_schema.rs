@@ -15,13 +15,14 @@ use crate::logic::{Condition, Conditions, jsonlogic};
 use crate::providers::editor_provider::EditorProvider;
 use crate::schema::{EnumVariants, JsonSchemaType, SchemaType};
 use crate::types::{OrganisationId, Workspace};
-use crate::utils::{escape_html, safe_text, to_title_case, value_compute_fn_generator};
+use crate::utils::{to_title_case, value_compute_fn_generator};
 use crate::{
     components::{
         button::Button,
         drawer::PortalDrawer,
         form::label::Label,
         input::{Input, InputType, NumberArrayInput, StringArrayInput},
+        safe_text::SafeText,
         sortable::Sortable,
     },
     providers::alert_provider::enqueue_alert,
@@ -108,10 +109,9 @@ pub fn CohortSchema(
                         "drag-handle bg-purple-50 rounded border border-purple-200 cursor-grab hover:text-purple-700"
                     },
                 )>"⋮⋮"</div>
-                <div
-                    class="w-full font-medium text-purple-700 text-ellipsis overflow-hidden whitespace-nowrap"
-                    inner_html=escape_html(&item_st.get_value())
-                ></div>
+                <div class="w-full font-medium text-purple-700 text-ellipsis overflow-hidden whitespace-nowrap">
+                    <SafeText text=item_st.get_value() />
+                </div>
                 <div class="flex items-center gap-4">
                     {match (inactive, cohort_based_on.get_value()) {
                         (false, Some(cohort_based_on)) => {
@@ -337,12 +337,10 @@ pub fn CohortSchema(
                         >
                             <div class="flex flex-col gap-5">
                                 <span>
-                                    {safe_text(
-                                        format!(
-                                            "Are you sure you want to remove the cohort option '{}'? This action cannot be undone.",
-                                            cohort_name.get_value(),
-                                        ),
-                                    )}
+                                    <SafeText text=format!(
+                                        "Are you sure you want to remove the cohort option '{}'? This action cannot be undone.",
+                                        cohort_name.get_value(),
+                                    ) />
                                 </span>
                                 <div class="form-control">
                                     <Label
@@ -682,15 +680,12 @@ fn CohortForm(
                                         <span class="label-text text-slate-400">
                                             "Hint: Use the following format to access the cohort variable"
                                         </span>
-                                        <pre
-                                            class="w-fit p-2 text-sm font-mono bg-gray-100 rounded"
-                                            inner_html=escape_html(
-                                                &format!(
-                                                    "{{\n\t\"var\": \"{}\"\n}}",
-                                                    cohort_based_on.dimension,
-                                                ),
-                                            )
-                                        ></pre>
+                                        <pre class="w-fit p-2 text-sm font-mono bg-gray-100 rounded">
+                                            <SafeText text=format!(
+                                                "{{\n\t\"var\": \"{}\"\n}}",
+                                                cohort_based_on.dimension,
+                                            ) />
+                                        </pre>
                                     </div>
                                 </div>
                             }

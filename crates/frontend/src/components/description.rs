@@ -2,10 +2,7 @@ use chrono::{DateTime, Utc};
 use leptos::*;
 use superposition_types::database::models::{ChangeReason, Description};
 
-use crate::{
-    components::{datetime::Datetime, info_modal::InfoModal},
-    utils::escape_html,
-};
+use crate::components::{datetime::Datetime, info_modal::InfoModal, safe_text::SafeText};
 
 #[component]
 pub fn InfoDescription(
@@ -68,14 +65,15 @@ pub fn ContentDescription(
                         class="tooltip tooltip-bottom w-[inherit] text-left"
                         data-tip=String::from(&description)
                     >
-                        <div
-                            class="stat-value text-sm text-ellipsis overflow-hidden"
-                            inner_html=escape_html(&String::from(&description))
-                        ></div>
+                        <div class="stat-value text-sm text-ellipsis overflow-hidden">
+                            <SafeText text=String::from(&description) />
+                        </div>
                     </div>
                 </div> <div class="h-fit w-[250px]">
                     <div class="stat-title">"Created by"</div>
-                    <div class="stat-value text-sm" inner_html=escape_html(&created_by)></div>
+                    <div class="stat-value text-sm">
+                        <SafeText text=created_by />
+                    </div>
                 </div> <div class="h-fit w-[250px]">
                     <div class="stat-title">"Created at"</div>
                     <div class="stat-value text-sm">
@@ -83,7 +81,9 @@ pub fn ContentDescription(
                     </div>
                 </div> <div class="h-fit w-[250px]">
                     <div class="stat-title">"Last Modified by"</div>
-                    <div class="stat-value text-sm" inner_html=escape_html(&last_modified_by)></div>
+                    <div class="stat-value text-sm">
+                        <SafeText text=last_modified_by />
+                    </div>
                 </div> <div class="h-fit w-[250px]">
                     <div class="stat-title">"Last Modified at"</div>
                     <div class="stat-value text-sm">
@@ -95,10 +95,9 @@ pub fn ContentDescription(
                         class="tooltip tooltip-bottom w-[inherit] text-left"
                         data-tip=String::from(&change_reason)
                     >
-                        <div
-                            class="stat-value text-sm text-ellipsis overflow-hidden"
-                            inner_html=escape_html(&String::from(&change_reason))
-                        ></div>
+                        <div class="stat-value text-sm text-ellipsis overflow-hidden">
+                            <SafeText text=String::from(&change_reason) />
+                        </div>
                     </div>
                 </div> {post_data.map(|f| f.run())}
             </div>

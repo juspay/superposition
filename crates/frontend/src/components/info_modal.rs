@@ -1,6 +1,6 @@
 use leptos::*;
 
-use crate::utils::escape_html;
+use crate::components::safe_text::SafeText;
 
 #[component]
 fn InfoSection(
@@ -15,7 +15,9 @@ fn InfoSection(
                 {title}
             </h4>
             <div class="min-h-[48px] bg-gray-50 p-3 rounded-md border border-gray-200">
-                <p class="text-gray-700" inner_html=escape_html(&content)></p>
+                <p class="text-gray-700">
+                    <SafeText text=content />
+                </p>
             </div>
         </div>
     }

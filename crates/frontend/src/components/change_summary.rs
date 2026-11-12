@@ -4,9 +4,8 @@ use leptos::*;
 use serde_json::{Map, Value};
 use similar::{ChangeTag, TextDiff};
 
-use crate::{
-    components::{button::Button, monaco_editor::MonacoDiffEditor, table::Table},
-    utils::escape_html,
+use crate::components::{
+    button::Button, monaco_editor::MonacoDiffEditor, safe_text::SafeText, table::Table,
 };
 
 use super::{
@@ -78,12 +77,10 @@ fn render_inline_diff(old_text: &str, new_text: &str, side: DiffSide) -> View {
         .filter_map(|change| {
             let tag = change.tag();
             if tag == ChangeTag::Equal {
-                let t = escape_html(change.value());
-                Some(view! { <span inner_html=t></span> }.into_view())
+                Some(view! { <SafeText text=change.value() /> }.into_view())
             } else if tag == highlight_tag {
-                let t = escape_html(change.value());
                 Some(
-                    view! { <span class=highlight_class inner_html=t></span> }
+                    view! { <SafeText text=change.value() class=highlight_class /> }
                         .into_view(),
                 )
             } else {
@@ -108,8 +105,9 @@ fn make_diff_formatter(side: DiffSide) -> impl Fn(&str, &Map<String, Value>) -> 
                 };
                 render_inline_diff(old, new, side)
             }
-            None => view! { <span class=side.wrapper_class() inner_html=escape_html(value)></span> }
-            .into_view(),
+            None => {
+                view! { <SafeText text=value class=side.wrapper_class() /> }.into_view()
+            }
         }
     }
 }
@@ -340,14 +338,12 @@ pub fn ChangeLogPopup(
             <div class="z-[999999999] fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center">
                 <dialog class="modal" open=true>
                     <div class="modal-box max-h-[80%] !max-w-[90%] !w-fit p-6 flex flex-col gap-4 overflow-hidden bg-white rounded-lg shadow-xl border-2 border-lightgray">
-                        <h4
-                            class="flex-0 text-2xl font-semibold text-gray-800"
-                            inner_html=escape_html(&title)
-                        ></h4>
-                        <p
-                            class="flex-0 text-sm text-gray-600"
-                            inner_html=escape_html(&description)
-                        ></p>
+                        <h4 class="flex-0 text-2xl font-semibold text-gray-800">
+                            <SafeText text=title.clone() />
+                        </h4>
+                        <p class="flex-0 text-sm text-gray-600">
+                            <SafeText text=description.clone() />
+                        </p>
                         <div class="flex-1 flex flex-col gap-8 overflow-auto">{children()}</div>
                         <div class="flex-0 flex justify-end gap-4">
                             {move || {

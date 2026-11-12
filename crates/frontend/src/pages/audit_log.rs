@@ -18,6 +18,7 @@ use crate::{
     components::{
         change_summary::{ChangeLogPopup, ChangeSummary},
         datetime::DatetimeStr,
+        safe_text::SafeText,
         skeleton::Skeleton,
         stat::Stat,
         table::{
@@ -30,7 +31,6 @@ use crate::{
     },
     query_updater::use_signal_from_query,
     types::{OrganisationId, Workspace},
-    utils::escape_html,
 };
 
 #[derive(Clone, Default, Serialize, Deserialize)]
@@ -105,13 +105,8 @@ fn audit_log_table_columns(
                     "DELETE" => "badge-error",
                     _ => "badge-info",
                 };
-                view! {
-                    <span
-                        class=format!("badge {badge_class}")
-                        inner_html=escape_html(&action)
-                    ></span>
-                }
-                .into_view()
+                view! { <SafeText text=action class=format!("badge {badge_class}") /> }
+                    .into_view()
             },
             ColumnSortable::No,
             Expandable::Disabled,
@@ -122,10 +117,9 @@ fn audit_log_table_columns(
             false,
             move |value: &str, _row: &Map<String, Value>| {
                 view! {
-                    <pre
-                        class="text-xs text-gray-700 whitespace-pre-wrap"
-                        inner_html=escape_html(value)
-                    ></pre>
+                    <pre class="text-xs text-gray-700 whitespace-pre-wrap">
+                        <SafeText text=value />
+                    </pre>
                 }
                 .into_view()
             },
@@ -138,10 +132,9 @@ fn audit_log_table_columns(
             false,
             move |value: &str, _row: &Map<String, Value>| {
                 view! {
-                    <pre
-                        class="text-xs text-gray-700 whitespace-pre-wrap"
-                        inner_html=escape_html(value)
-                    ></pre>
+                    <pre class="text-xs text-gray-700 whitespace-pre-wrap">
+                        <SafeText text=value />
+                    </pre>
                 }
                 .into_view()
             },

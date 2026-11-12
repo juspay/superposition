@@ -2,7 +2,7 @@ pub mod utils;
 
 use leptos::*;
 
-use crate::utils::escape_html;
+use crate::components::safe_text::SafeText;
 
 use crate::components::badge::Badge;
 
@@ -153,10 +153,9 @@ where
                                     }
                                 >
 
-                                    <a
-                                        class="w-full word-break-break"
-                                        inner_html=escape_html(&label.to_string())
-                                    ></a>
+                                    <a class="w-full word-break-break">
+                                        <SafeText text=label.to_string() />
+                                    </a>
                                 </li>
                             }
                         }

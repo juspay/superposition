@@ -14,10 +14,10 @@ use crate::{
     components::{
         condition_pills::Condition,
         datetime::DatetimeStr,
+        safe_text::SafeText,
         table::types::{Column, ColumnSortable, Expandable, default_column_formatter},
     },
     logic::Conditions,
-    utils::{escape_html, safe_text},
 };
 
 fn sort_callback(
@@ -80,10 +80,10 @@ pub fn experiment_table_columns(
                 view! {
                         <div>
                             <A href=experiment_id.to_string() class="text-blue-500 underline underline-offset-2">
-                                {safe_text(&experiment_name)}
+                                <SafeText text=experiment_name />
                             </A>
                             <div class="text-gray-500">
-                                <span class="text-xs" inner_html=escape_html(&experiment_id)></span>
+                                <SafeText text=experiment_id class="text-xs" />
                                 <i class="ri-file-copy-line ml-2 cursor-pointer" on:click:undelegated=handle_copy></i>
                                 <Show when=move || copied.get()>
                                     <div class="w-fit ml-2 px-2 flex justify-center items-center bg-gray-600 rounded-xl">
@@ -124,10 +124,10 @@ pub fn experiment_table_columns(
                 };
                 view! {
                     <div class={class}>
-                        <span
+                        <SafeText
+                            text=status_label
                             class="text-white font-semibold text-xs"
-                            inner_html=escape_html(&status_label)
-                        ></span>
+                        />
                     </div>
                 }
                 .into_view()
@@ -165,7 +165,7 @@ pub fn experiment_table_columns(
                     other => other.to_string(),
                 };
 
-                view! { <span inner_html=escape_html(&label)></span> }.into_view()
+                view! { <SafeText text=label /> }.into_view()
             },
         ),
         Column::new(

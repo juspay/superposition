@@ -20,6 +20,7 @@ use crate::components::{
     form::label::Label,
     input::{Input, InputType},
     monaco_editor::MonacoEditor,
+    safe_text::{SafeText, SafeTextarea},
     skeleton::{Skeleton, SkeletonVariant},
     tip::Tip,
 };
@@ -29,7 +30,6 @@ use crate::providers::{
 };
 use crate::schema::{JsonSchemaType, SchemaType};
 use crate::types::{OrganisationId, Workspace};
-use crate::utils::{escape_html, safe_text};
 
 use super::dropdown::utils::DropdownOption;
 
@@ -454,7 +454,9 @@ fn EditForm(
                     </div>
                 }
             }}
-            <p class="text-red-500">{move || safe_text(error_message_rws.get())}</p>
+            <p class="text-red-500">
+                {move || view! { <SafeText text=error_message_rws.get() /> }}
+            </p>
         </div>
     }
 }
@@ -539,14 +541,13 @@ pub fn TestForm(
 
                             <div class="form-control w-full max-w-md">
                                 <Label title="Value" />
-                                <textarea
-                                    type="text"
+                                <SafeTextarea
                                     class="textarea textarea-bordered"
                                     name="value"
                                     id="value"
                                     placeholder="value"
-                                    on:change=move |ev| {
-                                        let value = event_target_value(&ev);
+                                    value=value.to_string()
+                                    on_change=Callback::new(move |value: String| {
                                         match from_str::<Value>(&value) {
                                             Ok(test_val) => {
                                                 function_args_ws
@@ -566,9 +567,8 @@ pub fn TestForm(
                                                 out_message_ws.set(None);
                                             }
                                         };
-                                    }
-                                    inner_html=escape_html(&value.to_string())
-                                ></textarea>
+                                    })
+                                />
                             </div>
                         }
                             .into_view()
@@ -808,7 +808,9 @@ pub fn TestForm(
                 }
             }}
             <Show when=move || !error_message.get().is_empty()>
-                <p class="text-red-500">{move || safe_text(error_message.get())}</p>
+                <p class="text-red-500">
+                    {move || view! { <SafeText text=error_message.get() /> }}
+                </p>
             </Show>
             {move || {
                 output_message_rs
@@ -817,11 +819,14 @@ pub fn TestForm(
                         let output_c = output.clone();
                         view! {
                             <p class="text-green-700">
-                                {safe_text(format!("Function returned = {}", output.fn_output))}
+                                <SafeText text=format!(
+                                    "Function returned = {}",
+                                    output.fn_output,
+                                ) />
                             </p>
                             <Show when=move || !output_c.stdout.is_empty()>
                                 <p class="text-green-700">
-                                    {safe_text(format!("Logs: \n {}", output.stdout))}
+                                    <SafeText text=format!("Logs: \n {}", output.stdout) />
                                 </p>
                             </Show>
                         }

@@ -18,6 +18,7 @@ use crate::{
         button::Button,
         condition_pills::Condition,
         context_form::ContextForm,
+        safe_text::SafeText,
         skeleton::{Skeleton, SkeletonVariant},
         table::{
             Table,
@@ -32,7 +33,7 @@ use crate::{
     },
     query_updater::{use_signal_from_query, use_update_url_query},
     types::{OrganisationId, Workspace},
-    utils::{escape_html, safe_text, url_or_string},
+    utils::url_or_string,
 };
 
 const DEFAULT_CONFIG_COLUMN: &str = "default_config";
@@ -209,12 +210,12 @@ pub fn CompareOverrides() -> impl IntoView {
                     class="text-blue-500 underline underline-offset-2"
                     href=redirect_url(Some(prefix))
                 >
-                    {safe_text(&label)}
+                    <SafeText text=label />
                 </A>
             }
             .into_view()
         } else {
-            view! { <span inner_html=escape_html(&label)></span> }.into_view()
+            view! { <SafeText text=label /> }.into_view()
         }
     });
 

@@ -18,7 +18,7 @@ use wasm_bindgen::JsCast;
 
 use crate::{
     api::execute_value_compute_function,
-    components::alert::AlertType,
+    components::{alert::AlertType, safe_text::SafeText},
     providers::alert_provider::enqueue_alert,
     types::{
         Envs, ErrorResponse, FunctionName, SsrSharedHttpRequestHeaders,
@@ -187,16 +187,6 @@ pub fn escape_html(s: &str) -> String {
     escaped
 }
 
-/// Renders `s` as HTML-escaped literal text inside a `<span>` via `inner_html`.
-///
-/// `leptos_dom` 0.6 (`ssr_in_order`, used by `SsrMode::Async` and `SsrMode::InOrder`)
-/// emits `View::Text` nodes unescaped during SSR. Handing pre-escaped text to
-/// `inner_html` avoids raw HTML injection in SSR while matching CSR and hydration.
-pub fn safe_text(s: impl AsRef<str>) -> View {
-    let escaped = escape_html(s.as_ref());
-    view! { <span inner_html=escaped></span> }.into_view()
-}
-
 fn is_safe_http_url(s: &str) -> bool {
     Url::parse(s)
         .map(|u| matches!(u.scheme(), "http" | "https"))
@@ -207,12 +197,12 @@ pub fn url_or_string(s: &str) -> impl IntoView {
     if is_safe_http_url(s) {
         view! {
             <a class="value_link" href=s.to_string() target="_blank" rel="noopener noreferrer">
-                {safe_text(s)}
+                <SafeText text=s />
             </a>
         }
         .into_view()
     } else {
-        safe_text(s)
+        view! { <SafeText text=s /> }.into_view()
     }
 }
 
@@ -622,6 +612,7 @@ mod ssr_tests {
             datetime::DatetimeStr,
             description::ContentDescription,
             info_modal::InfoModal,
+            safe_text::{SafeText, SafeTextarea},
             table::types::{default_column_formatter, default_formatter},
         },
         logic::Condition,
@@ -678,15 +669,22 @@ mod ssr_tests {
     #[test]
     fn test_safe_text_escapes_html_in_ssr_in_order_and_render_to_string() {
         let payload = "<img src=x onerror=alert(1)><div style='width:100vw'>banner";
-        let in_order_html = render_in_order(move || safe_text(payload));
+        let in_order_html =
+            render_in_order(move || view! { <SafeText text=payload class="styled" /> });
         assert!(!in_order_html.contains("<img"));
         assert!(!in_order_html.contains("<div"));
+        assert!(
+            in_order_html.contains("class=\"styled\"")
+                || in_order_html.contains("class=\" styled\""),
+            "expected class styled in SSR output: {in_order_html}"
+        );
         assert!(in_order_html.contains(
             "&lt;img src=x onerror=alert(1)&gt;&lt;div style=&#x27;width:100vw&#x27;&gt;banner"
         ));
 
         let string_html =
-            leptos::ssr::render_to_string(move || safe_text(payload)).to_string();
+            leptos::ssr::render_to_string(move || view! { <SafeText text=payload /> })
+                .to_string();
         assert!(!string_html.contains("<img"));
         assert!(!string_html.contains("<div"));
         assert!(string_html.contains(
@@ -817,10 +815,10 @@ mod ssr_tests {
     }
 
     #[test]
-    fn test_textarea_inner_html_after_event_handler_preserves_escaped_value() {
+    fn test_safe_textarea_after_event_handler_preserves_escaped_value() {
         let breakout = "</textarea><script>alert(1)</script>";
         let html = render_in_order(move || {
-            view! { <textarea id="filter" on:change=move |_| {} inner_html=escape_html(breakout)></textarea> }
+            view! { <SafeTextarea id="filter" value=breakout on_change=Callback::new(|_| ()) /> }
         });
         assert!(
             !html.contains("</textarea><script>"),

@@ -9,12 +9,12 @@ use crate::components::{
     button::Button,
     description::ContentDescription,
     drawer::PortalDrawer,
+    safe_text::SafeText,
     secret_form::{ChangeLogSummary, ChangeType, SecretForm},
     skeleton::{Skeleton, SkeletonVariant},
 };
 use crate::providers::alert_provider::enqueue_alert;
 use crate::types::{OrganisationId, Workspace};
-use crate::utils::escape_html;
 
 #[derive(Clone)]
 enum Action {
@@ -87,10 +87,9 @@ pub fn Secret() -> impl IntoView {
                 view! {
                     <div class="flex flex-col gap-4">
                         <div class="flex justify-between items-center">
-                            <h1
-                                class="text-2xl font-extrabold"
-                                inner_html=escape_html(&secret.name)
-                            ></h1>
+                            <h1 class="text-2xl font-extrabold">
+                                <SafeText text=secret.name />
+                            </h1>
                             <div class="flex flex-row join">
                                 <Button
                                     force_style="btn join-item px-5 py-2.5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg rounded-lg"

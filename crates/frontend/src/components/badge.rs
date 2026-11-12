@@ -4,10 +4,7 @@ use leptos::*;
 use leptos_router::A;
 use strum::IntoEnumIterator;
 
-use crate::{
-    components::form::label::Label,
-    utils::{escape_html, safe_text},
-};
+use crate::components::{form::label::Label, safe_text::SafeText};
 
 use super::dropdown::utils::DropdownOption;
 
@@ -33,11 +30,13 @@ where
                             <div class="flex justify-between badge badge-primary badge-outline">
                                 {if let Some(href_fn) = href_fn {
                                     view! {
-                                        <A href=href_fn.call(option.clone())>{safe_text(&label)}</A>
+                                        <A href=href_fn.call(option.clone())>
+                                            <SafeText text=label />
+                                        </A>
                                     }
                                         .into_view()
                                 } else {
-                                    safe_text(&label)
+                                    view! { <SafeText text=label /> }.into_view()
                                 }}
                                 {if let Some(on_remove) = handle_remove {
                                     view! {
@@ -80,10 +79,7 @@ pub fn GrayPill<T: Display + Clone + 'static>(
             }}
             {match renderer {
                 Some(renderer) => renderer.call(data_st.get_value()),
-                None => {
-                    view! { <span inner_html=escape_html(&data_st.get_value().to_string())></span> }
-                        .into_view()
-                }
+                None => view! { <SafeText text=data_st.get_value().to_string() /> }.into_view(),
             }} <Show when=move || { deletable }>
                 <i
                     class="ri-close-line cursor-pointer"
@@ -111,7 +107,8 @@ where
     view! {
         <div class="flex gap-2 items-center">
             <div class="min-w-fit flex items-center gap-[2px] text-xs">
-                {safe_text(&label)} <span class="text-[10px] text-slate-400">"(any of)"</span>
+                <SafeText text=label />
+                <span class="text-[10px] text-slate-400">"(any of)"</span>
             </div>
             <div class="flex gap-[2px] items-center flex-wrap">
                 {items
@@ -174,8 +171,9 @@ pub fn GlassyPills<T: IntoEnumIterator + Display + Eq + Hash + Copy + 'static>(
                                 <label
                                     for=&input_id
                                     class="badge h-[30px] px-6 py-2 peer-checked:bg-purple-500 peer-checked:border-purple-500 peer-checked:text-white cursor-pointer transition duration-300 ease-in-out peer-checked:shadow-purple-500 peer-checked:shadow-md shadow-inner shadow-slate-500"
-                                    inner_html=escape_html(&label)
-                                ></label>
+                                >
+                                    <SafeText text=label />
+                                </label>
                             </div>
                         }
                     })

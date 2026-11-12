@@ -1,6 +1,6 @@
 use leptos::*;
 
-use crate::utils::escape_html;
+use crate::components::safe_text::SafeText;
 
 use super::dropdown::utils::DropdownOption;
 
@@ -37,10 +37,9 @@ where
                                 }
                             >
 
-                                <a
-                                    class="w-full word-break-break"
-                                    inner_html=escape_html(&label.to_string())
-                                ></a>
+                                <a class="w-full word-break-break">
+                                    <SafeText text=label.to_string() />
+                                </a>
                             </li>
                         }
                     }

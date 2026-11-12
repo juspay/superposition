@@ -1,6 +1,6 @@
 use leptos::*;
 
-use crate::utils::{escape_html, safe_text};
+use crate::components::safe_text::SafeText;
 
 #[derive(Clone, Copy, PartialEq, Default)]
 pub enum TooltipPosition {
@@ -44,27 +44,21 @@ pub fn Label(
     view! {
         <label class=format!("label flex flex-col items-start justify-center {class}")>
             <div class="flex items-center gap-1 label-text font-semibold text-base">
-                {safe_text(title)}
+                <SafeText text=title />
                 {info
                     .map(|info| {
-                        view! {
-                            <span
-                                class="text-sm font-normal text-slate-400"
-                                inner_html=escape_html(&info)
-                            ></span>
-                        }
+                        view! { <SafeText text=info class="text-sm font-normal text-slate-400" /> }
                     })}
                 {extra_info
                     .map(|extra_info| {
                         view! {
                             <div class="group relative inline-block text-[10px] text-gray-700 cursor-pointer">
-                                <p
-                                    class=format!(
-                                        "z-[1000] hidden absolute w-[320px] max-w-[90vw] p-2.5 group-hover:flex flex-col gap-4 bg-black text-white leading-relaxed rounded shadow-[0_4px_6px_rgba(0,0,0,0.1)] whitespace-normal {}",
-                                        position_class,
-                                    )
-                                    inner_html=escape_html(&extra_info)
-                                ></p>
+                                <p class=format!(
+                                    "z-[1000] hidden absolute w-[320px] max-w-[90vw] p-2.5 group-hover:flex flex-col gap-4 bg-black text-white leading-relaxed rounded shadow-[0_4px_6px_rgba(0,0,0,0.1)] whitespace-normal {}",
+                                    position_class,
+                                )>
+                                    <SafeText text=extra_info />
+                                </p>
                                 <i class="ri-information-line ri-lg" />
                             </div>
                         }
@@ -72,12 +66,7 @@ pub fn Label(
             </div>
             {description
                 .map(|description| {
-                    view! {
-                        <span
-                            class="label-text text-slate-400"
-                            inner_html=escape_html(&description)
-                        ></span>
-                    }
+                    view! { <SafeText text=description class="label-text text-slate-400" /> }
                 })}
         </label>
     }

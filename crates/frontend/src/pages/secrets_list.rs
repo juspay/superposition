@@ -14,6 +14,7 @@ use crate::components::{
     button::Button,
     datetime::DatetimeStr,
     drawer::PortalDrawer,
+    safe_text::SafeText,
     secret_form::SecretForm,
     skeleton::Skeleton,
     stat::Stat,
@@ -27,7 +28,6 @@ use crate::components::{
 };
 use crate::query_updater::use_signal_from_query;
 use crate::types::{OrganisationId, Workspace};
-use crate::utils::safe_text;
 
 #[derive(Clone)]
 enum Action {
@@ -63,7 +63,7 @@ fn secret_table_columns(
 
         view! {
             <A href=label.clone() class="text-blue-500 underline underline-offset-2">
-                {safe_text(&label)}
+                <SafeText text=label />
             </A>
         }
         .into_view()

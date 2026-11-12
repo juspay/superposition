@@ -1,7 +1,7 @@
 use crate::{
+    components::safe_text::SafeText,
     logic::{Condition, Conditions},
     schema::HtmlDisplay,
-    utils::escape_html,
 };
 
 use leptos::{leptos_dom::helpers::WindowListenerHandle, *};
@@ -81,12 +81,9 @@ pub fn ConditionExpression(
                         }
                     }
                 >
-                    <span
-                        class="font-medium context_condition text-gray-500"
-                        inner_html=escape_html(&dimension)
-                    ></span>
+                    <SafeText text=dimension class="font-medium context_condition text-gray-500" />
                     <span class="font-medium text-gray-650 context_condition">{operator}</span>
-                    <span class=value_class inner_html=escape_html(&operands)></span>
+                    <SafeText text=operands class=value_class />
                 </li>
             }
         }}

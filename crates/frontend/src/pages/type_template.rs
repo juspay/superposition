@@ -12,6 +12,7 @@ use crate::components::{
     button::Button,
     drawer::PortalDrawer,
     input::{Input, InputType},
+    safe_text::SafeText,
     skeleton::{Skeleton, SkeletonVariant},
     type_template_form::{
         ChangeLogSummary, ChangeType, TypeTemplateForm, utils::delete_type,
@@ -20,7 +21,6 @@ use crate::components::{
 use crate::providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider};
 use crate::schema::{JsonSchemaType, SchemaType};
 use crate::types::{OrganisationId, Workspace};
-use crate::utils::escape_html;
 
 #[component]
 fn TypeInfo(type_template: TypeTemplate) -> impl IntoView {
@@ -121,10 +121,9 @@ pub fn TypePage() -> impl IntoView {
                 view! {
                     <div class="flex flex-col gap-4">
                         <div class="flex justify-between items-center">
-                            <h1
-                                class="text-2xl font-extrabold"
-                                inner_html=escape_html(&type_template.type_name)
-                            ></h1>
+                            <h1 class="text-2xl font-extrabold">
+                                <SafeText text=type_template.type_name.clone() />
+                            </h1>
                             <div class="flex flex-row join">
                                 <Button
                                     force_style="btn join-item px-5 py-2.5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg rounded-lg"

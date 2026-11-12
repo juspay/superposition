@@ -5,12 +5,11 @@ use crate::{
     api::{discard_experiment, pause_experiment, resume_experiment},
     components::{
         alert::AlertType, button::Button, change_form::ChangeForm,
-        experiment_ramp_form::utils::ramp_experiment,
+        experiment_ramp_form::utils::ramp_experiment, safe_text::SafeText,
     },
     pages::experiment::PopupType,
     providers::alert_provider::enqueue_alert,
     types::{OrganisationId, Workspace},
-    utils::escape_html,
 };
 
 fn change_reason(popup_type: &PopupType) -> String {
@@ -145,8 +144,12 @@ pub fn ExperimentActionForm(
                     >
                         <i class="ri-close-line" />
                     </button>
-                    <h3 class="font-bold text-lg" inner_html=escape_html(header)></h3>
-                    <p class="py-2" inner_html=escape_html(message)></p>
+                    <h3 class="font-bold text-lg">
+                        <SafeText text=header />
+                    </h3>
+                    <p class="py-2">
+                        <SafeText text=message />
+                    </p>
                     <form class="flex flex-col gap-4">
                         <ChangeForm
                             title="Reason for Change".to_string()

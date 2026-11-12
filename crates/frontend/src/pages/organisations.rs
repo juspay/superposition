@@ -11,6 +11,7 @@ use crate::components::key_rotation_modal::MasterKeyRotationModal;
 use crate::components::modal::PortalModal;
 use crate::components::table::types::{Expandable, default_column_formatter};
 use crate::components::{
+    safe_text::SafeText,
     skeleton::Skeleton,
     stat::Stat,
     table::{
@@ -21,7 +22,7 @@ use crate::components::{
 use crate::providers::alert_provider::enqueue_alert;
 use crate::query_updater::use_signal_from_query;
 use crate::types::{AdminPageParams, Envs};
-use crate::utils::{escape_html, safe_text, use_url_base};
+use crate::utils::use_url_base;
 
 fn key_generation_instructions() -> [View; 5] {
     [
@@ -111,7 +112,7 @@ pub fn Organisations() -> impl IntoView {
                     formaction=format!("{base}/organisations/switch/{organisation_id}")
                     class="cursor-pointer text-blue-500"
                 >
-                    {safe_text(&organisation_id)}
+                    <SafeText text=organisation_id />
                 </button>
             }
             .into_view()
@@ -245,10 +246,9 @@ pub fn Organisations() -> impl IntoView {
                                         <div class="control-form">
                                             <Label title="Generated Key" />
                                             <div class="p-4 flex justify-between items-center bg-gray-900 text-green-400 rounded-lg">
-                                                <div
-                                                    class="font-mono text-[14px] break-all select-all"
-                                                    inner_html=escape_html(&generated_key)
-                                                ></div>
+                                                <div class="font-mono text-[14px] break-all select-all">
+                                                    <SafeText text=generated_key />
+                                                </div>
                                                 <button
                                                     type="button"
                                                     class="px-1 bg-gray-800 hover:bg-gray-700 text-white rounded transition-colors"
