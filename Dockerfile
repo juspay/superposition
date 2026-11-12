@@ -1,34 +1,37 @@
-FROM rust:1.95.0 as builder
+FROM public.ecr.aws/docker/library/node:26.13.0-trixie-slim@sha256:5adad64f9a1fca2d51972caa65983634c8a774eb300d72b20f7f2a0f60368072 as css
+
+WORKDIR /frontend
+COPY crates/frontend/package.json crates/frontend/package-lock.json ./
+RUN npm ci --ignore-scripts
+COPY crates/frontend/tailwind.config.js ./
+COPY crates/frontend/styles ./styles
+COPY crates/frontend/src ./src
+RUN npx --no-install tailwindcss -i ./styles/tailwind.css -o ./style.css
+
+FROM public.ecr.aws/docker/library/rust:1.95.0@sha256:f49565f188ee00bc2a18dd418183f2c5f23ef7d6e691890517ed341a598f67c3 as builder
 
 WORKDIR /build
 
-# install nodeJS for functions
-ENV NVM_DIR /usr/local/nvm
-ENV NODE_VERSION 18.19.0
-
-RUN mkdir -p $NVM_DIR
-RUN curl "https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh" | bash \
-    && . $NVM_DIR/nvm.sh \
-    && nvm install $NODE_VERSION \
-    && nvm alias default $NODE_VERSION \
-    && nvm use default
-
-ENV NODE_PATH $NVM_DIR/v$NODE_VERSION/lib/node_modules
-ENV PATH="${NVM_DIR}/versions/node/v${NODE_VERSION}/bin/:${PATH}"
-RUN node --version
-
-RUN curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+RUN ARCH=$(dpkg --print-architecture) \
+    && if [ "$ARCH" = "arm64" ]; then \
+         WP_TARGET="aarch64-unknown-linux-musl"; WP_SHA256="7004853c7925ae1984033b5f25866ec604bbc921ef956d5e6c5595bc5af6d30c"; \
+       else \
+         WP_TARGET="x86_64-unknown-linux-musl"; WP_SHA256="410101009739b9d01c7d5affaaad6e9c9a24b4cba6791a4805db8e89b9bf7af2"; \
+       fi \
+    && curl -fsSL -o /tmp/wasm-pack.tar.gz "https://github.com/rustwasm/wasm-pack/releases/download/v0.15.1/wasm-pack-v0.15.1-${WP_TARGET}.tar.gz" \
+    && echo "${WP_SHA256}  /tmp/wasm-pack.tar.gz" | sha256sum -c - \
+    && tar -xzf /tmp/wasm-pack.tar.gz -C /tmp \
+    && install -m 0755 "/tmp/wasm-pack-v0.15.1-${WP_TARGET}/wasm-pack" /usr/local/bin/wasm-pack \
+    && rm -rf /tmp/wasm-pack.tar.gz "/tmp/wasm-pack-v0.15.1-${WP_TARGET}"
 
 COPY . .
-RUN npm ci --loglevel=info
 
 RUN cd crates/frontend \
     && wasm-pack build --target=web --release --no-default-features --features=hydrate
 
 # copying .wasm, .js and .css files to target/site directory
 RUN mkdir -p target/site && mkdir -p target/site/pkg
-RUN cd crates/frontend \
-    && npx tailwindcss -i ./styles/tailwind.css -o ./pkg/style.css
+COPY --from=css /frontend/style.css crates/frontend/pkg/style.css
 RUN mv crates/frontend/pkg target/site/
 RUN cp -a crates/frontend/assets/. target/site/
 RUN cp .env.example target/.env
@@ -37,11 +40,10 @@ RUN cargo build --release --features=ssr
 RUN pwd
 RUN ls -l target
 
-FROM ubuntu:25.10 as runtime
+FROM public.ecr.aws/docker/library/ubuntu:25.10@sha256:7cc5e35f6567ee8c66d2abb4aab0fd866669e6207c237c3a8f0947a5c7f17092 as runtime
 
 
 RUN mkdir -p /app/crates/superposition
-ENV NODE_VERSION=18.19.0
 WORKDIR /app
 
 ARG SOURCE_COMMIT

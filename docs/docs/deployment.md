@@ -29,7 +29,7 @@ This example uses PostgreSQL for persistence, Redis for caching, and
 ```yaml
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:17.11-alpine
     environment:
       POSTGRES_USER: superposition
       POSTGRES_PASSWORD: superposition
@@ -39,7 +39,7 @@ services:
       - ./superposition.sql:/docker-entrypoint-initdb.d/001-superposition.sql:ro
 
   redis:
-    image: redis:7
+    image: redis:8.10.3
     command: redis-server
     restart: unless-stopped
 

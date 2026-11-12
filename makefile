@@ -168,6 +168,7 @@ validate-psql-connection:
 
 node-dependencies:
 	npm ci
+	cd crates/frontend && npm ci --ignore-scripts
 
 SETUP_DEPS = env-file db
 ifdef CI
@@ -180,7 +181,7 @@ setup-clients:
 		npm run build:cjs &&\
 		npm run build:types &&\
 		npm run build:es
-	cd tests && bun install
+	cd tests && bun install --frozen-lockfile
 
 clients: smithy-clients setup-clients
 
@@ -220,7 +221,7 @@ frontend:
 	cd crates/frontend && \
 		wasm-pack build --target web $(WASM_PACK_MODE) --no-default-features --features '$(FE_FEATURES)'
 	cd crates/frontend && \
-		npx tailwindcss -i ./styles/tailwind.css -o ./pkg/style.css
+		npx --no-install tailwindcss -i ./styles/tailwind.css -o ./pkg/style.css
 	-rm -rf $(CARGO_TARGET_DIR)/site
 	mkdir -p $(CARGO_TARGET_DIR)/site/pkg
 	mv crates/frontend/pkg $(CARGO_TARGET_DIR)/site/
@@ -264,7 +265,7 @@ test: setup $(FRONTEND_TARGET) superposition
 # cd $(SMITHY_CLIENT_DIR)/ts && npm ci && npm test
 
 tailwind:
-	cd crates/frontend && npx tailwindcss -i ./styles/tailwind.css -o ./pkg/style.css --watch
+	cd crates/frontend && npx --no-install tailwindcss -i ./styles/tailwind.css -o ./pkg/style.css --watch
 
 smithy-clean:
 	rm -rf smithy/output
@@ -521,7 +522,7 @@ SKILLS_TARGETS := claude openai gemini markdown
 
 skills-update:
 	@command -v skill-seekers >/dev/null 2>&1 || \
-		{ echo "Installing skill-seekers via uv..."; uv tool install skill-seekers; }
+		{ echo "Installing skill-seekers via uv..."; uv tool install skill-seekers==3.10.0; }
 	@echo "Creating skill from docs..."
 	@rm -rf $(SKILLS_BUILD) $(SKILLS_DEST) $(SKILLS_PACKAGES)
 	@skill-seekers create $(SKILLS_SRC) --name superposition --output $(SKILLS_BUILD) --quiet

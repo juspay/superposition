@@ -19,21 +19,23 @@ jobs:
       # main requires PRs; this app is on the ruleset's bypass list, so it can push here.
       - name: Generate GitHub app token
         id: app-token
-        uses: actions/create-github-app-token@v3
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         with:
           client-id: ${{ vars.HYPER_SDK_APP_CLIENT_ID }}
           private-key: ${{ secrets.HYPER_SDK_APP_PRIVATE_KEY }}
           permission-contents: write
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           token: ${{ steps.app-token.outputs.token }}
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v4
+        uses: astral-sh/setup-uv@e4db8464a088ece1b920f60402e813ea4de65b8f # v4
+        with:
+          version: "0.13.7"
 
       - name: Install skill-seekers
-        run: uv tool install skill-seekers
+        run: uv tool install skill-seekers==3.10.0
 
       - name: Generate skills
         run: |
@@ -75,7 +77,7 @@ jobs:
           ls -lh "$PACKAGES/"
 
       - name: Upload skill packages
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: superposition-skills
           path: /tmp/superposition-skill-packages/
