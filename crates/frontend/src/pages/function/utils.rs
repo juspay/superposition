@@ -6,6 +6,7 @@ use superposition_types::{
 };
 
 use crate::components::datetime::DatetimeStr;
+use crate::components::safe_text::SafeText;
 use crate::components::table::types::{
     Column, ColumnSortable, Expandable, default_column_formatter,
 };
@@ -22,7 +23,7 @@ pub fn function_table_columns() -> Vec<Column> {
                 let function_name = value.to_string();
                 view! {
                     <A href=function_name.clone() class="text-blue-500 underline underline-offset-2">
-                        {function_name}
+                        <SafeText text=function_name />
                     </A>
                 }
                 .into_view()

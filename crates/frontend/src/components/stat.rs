@@ -1,5 +1,7 @@
 use leptos::*;
 
+use crate::components::safe_text::SafeText;
+
 #[component]
 pub fn Stat(heading: &'static str, icon: &'static str, number: String) -> impl IntoView {
     let icon_class = format!("{} text-5xl", icon);
@@ -9,8 +11,12 @@ pub fn Stat(heading: &'static str, icon: &'static str, number: String) -> impl I
                 <div class="stat-figure text-purple-700">
                     <i class=icon_class></i>
                 </div>
-                <div class="stat-title">{heading}</div>
-                <div class="stat-value">{number}</div>
+                <div class="stat-title">
+                    <SafeText text=heading />
+                </div>
+                <div class="stat-value">
+                    <SafeText text=number />
+                </div>
             </div>
         </div>
     }

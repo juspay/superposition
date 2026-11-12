@@ -1,6 +1,6 @@
 use leptos::*;
 
-use crate::components::form::label::Label;
+use crate::components::{form::label::Label, safe_text::SafeTextarea};
 
 #[component]
 pub fn ChangeForm(
@@ -13,22 +13,16 @@ pub fn ChangeForm(
     #[prop(into)] on_change: Callback<String, ()>,
     #[prop(default = false)] disabled: bool,
 ) -> impl IntoView {
-    let handle_change = move |ev| {
-        let new_value = event_target_value(&ev);
-        on_change.call(new_value.clone());
-    };
     view! {
         <div class=format!("form-control flex-1 max-w-md min-w-[300px] {class}")>
             <Label title />
-            <textarea
-                type="text"
+            <SafeTextarea
                 disabled=disabled
                 placeholder=placeholder
                 class=textarea_class
-                on:change=handle_change
-            >
-                {value}
-            </textarea>
+                value=value
+                on_change=on_change
+            />
         </div>
     }
 }

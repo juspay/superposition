@@ -12,6 +12,7 @@ use crate::components::datetime::DatetimeStr;
 use crate::components::{
     button::Button,
     drawer::PortalDrawer,
+    safe_text::SafeText,
     skeleton::Skeleton,
     stat::Stat,
     table::{
@@ -60,7 +61,7 @@ fn variable_table_columns(
 
         view! {
             <A href=label.clone() class="text-blue-500 underline underline-offset-2">
-                {label}
+                <SafeText text=label />
             </A>
         }
         .into_view()

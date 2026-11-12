@@ -22,6 +22,7 @@ use crate::{
         drawer::PortalDrawer,
         form::label::Label,
         input::{Input, InputType, NumberArrayInput, StringArrayInput},
+        safe_text::SafeText,
         sortable::Sortable,
     },
     providers::alert_provider::enqueue_alert,
@@ -109,7 +110,7 @@ pub fn CohortSchema(
                     },
                 )>"⋮⋮"</div>
                 <div class="w-full font-medium text-purple-700 text-ellipsis overflow-hidden whitespace-nowrap">
-                    {item_st.get_value()}
+                    <SafeText text=item_st.get_value() />
                 </div>
                 <div class="flex items-center gap-4">
                     {match (inactive, cohort_based_on.get_value()) {
@@ -336,10 +337,10 @@ pub fn CohortSchema(
                         >
                             <div class="flex flex-col gap-5">
                                 <span>
-                                    {format!(
+                                    <SafeText text=format!(
                                         "Are you sure you want to remove the cohort option '{}'? This action cannot be undone.",
                                         cohort_name.get_value(),
-                                    )}
+                                    ) />
                                 </span>
                                 <div class="form-control">
                                     <Label
@@ -680,10 +681,10 @@ fn CohortForm(
                                             "Hint: Use the following format to access the cohort variable"
                                         </span>
                                         <pre class="w-fit p-2 text-sm font-mono bg-gray-100 rounded">
-                                            {format!(
+                                            <SafeText text=format!(
                                                 "{{\n\t\"var\": \"{}\"\n}}",
                                                 cohort_based_on.dimension,
-                                            )}
+                                            ) />
                                         </pre>
                                     </div>
                                 </div>

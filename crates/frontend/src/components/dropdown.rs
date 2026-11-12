@@ -2,6 +2,8 @@ pub mod utils;
 
 use leptos::*;
 
+use crate::components::safe_text::SafeText;
+
 use crate::components::badge::Badge;
 
 use self::utils::DropdownOption;
@@ -151,7 +153,9 @@ where
                                     }
                                 >
 
-                                    <a class="w-full word-break-break">{label.to_string()}</a>
+                                    <a class="w-full word-break-break">
+                                        <SafeText text=label.to_string() />
+                                    </a>
                                 </li>
                             }
                         }

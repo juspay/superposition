@@ -11,6 +11,7 @@ use crate::components::key_rotation_modal::MasterKeyRotationModal;
 use crate::components::modal::PortalModal;
 use crate::components::table::types::{Expandable, default_column_formatter};
 use crate::components::{
+    safe_text::SafeText,
     skeleton::Skeleton,
     stat::Stat,
     table::{
@@ -111,7 +112,7 @@ pub fn Organisations() -> impl IntoView {
                     formaction=format!("{base}/organisations/switch/{organisation_id}")
                     class="cursor-pointer text-blue-500"
                 >
-                    {organisation_id}
+                    <SafeText text=organisation_id />
                 </button>
             }
             .into_view()
@@ -246,7 +247,7 @@ pub fn Organisations() -> impl IntoView {
                                             <Label title="Generated Key" />
                                             <div class="p-4 flex justify-between items-center bg-gray-900 text-green-400 rounded-lg">
                                                 <div class="font-mono text-[14px] break-all select-all">
-                                                    {generated_key}
+                                                    <SafeText text=generated_key />
                                                 </div>
                                                 <button
                                                     type="button"

@@ -14,6 +14,7 @@ use crate::{
         form::label::Label,
         menu::SelectionMenu,
         monaco_editor::{Languages, MonacoEditor},
+        safe_text::SafeText,
     },
     providers::{alert_provider::enqueue_alert, editor_provider::use_editor},
     schema::{EnumVariants, HtmlDisplay, JsonSchemaType, SchemaType},
@@ -259,7 +260,7 @@ fn BasicInput(
                         view! {
                             <span class="flex gap-2 px-4 text-xs font-semibold text-red-600">
                                 <i class="ri-close-circle-line"></i>
-                                {err}
+                                <SafeText text=err />
                             </span>
                         }
                             .into_view()
@@ -416,7 +417,9 @@ pub fn MonacoInput(
                                 <div class="breadcrumbs px-4 py-4 font-bold">
                                     <ul>
                                         <li>Override</li>
-                                        <li>{id.get_value()}</li>
+                                        <li>
+                                            <SafeText text=id.get_value() />
+                                        </li>
                                     </ul>
                                 </div>
                                 <div class="divider m-0"></div>
@@ -448,7 +451,11 @@ pub fn MonacoInput(
                                 >
                                     <span class="flex gap-2 px-4 text-xs font-semibold text-red-600">
                                         <i class="ri-close-circle-line"></i>
-                                        {move || { error_rs.get().unwrap_or(String::new()) }}
+                                        {move || {
+                                            view! {
+                                                <SafeText text=error_rs.get().unwrap_or_default() />
+                                            }
+                                        }}
                                     </span>
                                 </AnimatedShow>
                                 <div class="join ml-auto">
@@ -525,7 +532,7 @@ pub fn DateInput(
             <Show when=move || !error_rs.get().is_empty()>
                 <span class="flex gap-2 px-4 text-xs font-semibold text-red-600">
                     <i class="ri-close-circle-line"></i>
-                    {move || error_rs.get()}
+                    {move || view! { <SafeText text=error_rs.get() /> }}
                 </span>
             </Show>
 

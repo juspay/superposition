@@ -1,5 +1,7 @@
 use leptos::*;
 
+use crate::components::safe_text::SafeText;
+
 #[component]
 fn InfoSection(
     title: &'static str,
@@ -13,7 +15,9 @@ fn InfoSection(
                 {title}
             </h4>
             <div class="min-h-[48px] bg-gray-50 p-3 rounded-md border border-gray-200">
-                <p class="text-gray-700">{content}</p>
+                <p class="text-gray-700">
+                    <SafeText text=content />
+                </p>
             </div>
         </div>
     }

@@ -14,6 +14,7 @@ use crate::{
     components::{
         condition_pills::Condition,
         datetime::DatetimeStr,
+        safe_text::SafeText,
         table::types::{Column, ColumnSortable, Expandable, default_column_formatter},
     },
     logic::Conditions,
@@ -79,12 +80,10 @@ pub fn experiment_table_columns(
                 view! {
                         <div>
                             <A href=experiment_id.to_string() class="text-blue-500 underline underline-offset-2">
-                                {experiment_name}
+                                <SafeText text=experiment_name />
                             </A>
                             <div class="text-gray-500">
-                                <span class="text-xs">
-                                    {experiment_id}
-                                </span>
+                                <SafeText text=experiment_id class="text-xs" />
                                 <i class="ri-file-copy-line ml-2 cursor-pointer" on:click:undelegated=handle_copy></i>
                                 <Show when=move || copied.get()>
                                     <div class="w-fit ml-2 px-2 flex justify-center items-center bg-gray-600 rounded-xl">
@@ -118,17 +117,17 @@ pub fn experiment_table_columns(
                 let traffic_percentage = traffic_percentage
                     .map(|val| val.as_u64().unwrap_or(0))
                     .unwrap_or(0);
+                let status_label = if value == "INPROGRESS" {
+                    format!("{}: {}%", value, traffic_percentage)
+                } else {
+                    value.to_string()
+                };
                 view! {
                     <div class={class}>
-                        <span class="text-white font-semibold text-xs">
-                            {
-                                if value == "INPROGRESS" {
-                                    format!("{}: {}%", value, traffic_percentage)
-                                } else {
-                                    value.to_string()
-                                }
-                            }
-                        </span>
+                        <SafeText
+                            text=status_label
+                            class="text-white font-semibold text-xs"
+                        />
                     </div>
                 }
                 .into_view()
@@ -166,10 +165,7 @@ pub fn experiment_table_columns(
                     other => other.to_string(),
                 };
 
-                view! {
-                    <span>{label}</span>
-                }
-                .into_view()
+                view! { <SafeText text=label /> }.into_view()
             },
         ),
         Column::new(

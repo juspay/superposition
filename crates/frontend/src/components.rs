@@ -34,6 +34,7 @@ pub mod modal;
 pub mod monaco_editor;
 pub mod override_form;
 pub mod pagination;
+pub mod safe_text;
 pub mod secret_form;
 pub mod side_nav;
 pub mod skeleton;

@@ -1,6 +1,6 @@
 use leptos::*;
 
-use crate::components::change_form::ChangeForm;
+use crate::components::{change_form::ChangeForm, safe_text::SafeText};
 
 #[component]
 pub fn DeleteModal(
@@ -18,7 +18,9 @@ pub fn DeleteModal(
                 <dialog id="my_modal_2" class="modal" open=modal_visible.get()>
                     <div class="modal-box bg-white rounded-lg p-6 shadow-xl border-2 border-lightgray">
                         <h4 class="text-xl font-semibold text-gray-800 mb-4">Confirm Delete</h4>
-                        <p class="text-sm text-gray-600 mb-6">{header_text.clone()}</p>
+                        <p class="text-sm text-gray-600 mb-6">
+                            <SafeText text=header_text.clone() />
+                        </p>
                         <Show when=move || with_change_reason>
                             <ChangeForm
                                 title="Change Reason".to_string()

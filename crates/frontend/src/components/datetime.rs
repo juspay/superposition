@@ -8,7 +8,9 @@ use leptos_meta::*;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::JsValue;
 
-use crate::providers::csr_provider::use_client_side_ready;
+use crate::{
+    components::safe_text::SafeText, providers::csr_provider::use_client_side_ready,
+};
 
 #[cfg(target_arch = "wasm32")]
 fn browser_locale() -> String {
@@ -154,12 +156,13 @@ pub fn DatetimeStr(
     #[prop(optional)] format: DatetimeFormat,
 ) -> impl IntoView {
     let class = format!("{} {}", format.class(), class);
+    let formatted = match format {
+        DatetimeFormat::Date => format_local_date_from_str(&datetime),
+        DatetimeFormat::DateTime => format_local_datetime_from_str(&datetime),
+    };
     view! {
         <time class=class datetime=datetime.clone()>
-            {match format {
-                DatetimeFormat::Date => format_local_date_from_str(&datetime),
-                DatetimeFormat::DateTime => format_local_datetime_from_str(&datetime),
-            }}
+            <SafeText text=formatted />
         </time>
     }
 }

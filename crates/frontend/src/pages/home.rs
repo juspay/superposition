@@ -21,8 +21,8 @@ use crate::providers::condition_collapse_provider::ConditionCollapseProvider;
 use crate::types::{OrganisationId, Workspace};
 use crate::{
     api::{dimensions, fetch_config, resolve_config},
-    components::{button::Button, context_form::ContextForm},
-    utils::{check_url_and_return_val, get_element_by_id},
+    components::{button::Button, context_form::ContextForm, safe_text::SafeText},
+    utils::{check_url_and_return_val, escape_html, get_element_by_id, url_or_string},
 };
 
 #[derive(Clone, Debug, Copy, Display, strum_macros::EnumProperty, PartialEq)]
@@ -62,7 +62,7 @@ fn AllContextView(config: Config) -> impl IntoView {
                                 class:font-bold=!striked
                                 class:text-gray-300=striked
                             >
-                                {key}
+                                <SafeText text=key.clone() />
                             </span>
                         </td>
                         <td class="min-w-48 max-w-72" style="word-break: break-word;">
@@ -73,7 +73,7 @@ fn AllContextView(config: Config) -> impl IntoView {
                                 class:font-bold=!striked
                                 class:text-gray-300=striked
                             >
-                                {check_url_and_return_val(value)}
+                                {url_or_string(&value)}
                             </span>
                         </td>
                     </tr>
@@ -314,13 +314,17 @@ pub fn Home() -> impl IntoView {
 
                 let mut table_rows = String::new();
                 for (key, value) in config.iter() {
+                    let key_escaped = escape_html(key);
+                    let val_escaped = check_url_and_return_val(
+                        serde_json::from_value(value.to_owned())
+                            .unwrap_or_else(|_| format!("{value}")),
+                    );
                     table_rows.push_str(
-                    format!(
-                        "<tr><td>{key}</td><td style='word-break: break-word;'>{}</td></tr>",
-                        check_url_and_return_val(serde_json::from_value(value.to_owned()).unwrap_or(format!("{}", value)))
-                    )
-                    .as_str(),
-                )
+                        format!(
+                            "<tr><td>{key_escaped}</td><td style='word-break: break-word;'>{val_escaped}</td></tr>"
+                        )
+                        .as_str(),
+                    );
                 }
                 resolution_card.set_inner_html(&table_rows);
             }
@@ -459,7 +463,7 @@ pub fn Home() -> impl IntoView {
                                                         vec![
                                                             view! {
                                                                 <div class="error">
-                                                                    Failed to fetch config data: {error.to_string()}
+                                                                    "Failed to fetch config data: " <SafeText text=error />
                                                                 </div>
                                                             }
                                                                 .into_view(),
@@ -510,13 +514,15 @@ pub fn Home() -> impl IntoView {
                                                                                 children=move |(config, value)| {
                                                                                     view! {
                                                                                         <tr class="min-w-48 max-w-72">
-                                                                                            <td>{config}</td>
+                                                                                            <td>
+                                                                                                <SafeText text=config />
+                                                                                            </td>
                                                                                             <td class="break-words">
                                                                                                 {match value {
-                                                                                                    Value::String(s) => check_url_and_return_val(s),
-                                                                                                    Value::Number(num) => num.to_string(),
-                                                                                                    Value::Bool(b) => b.to_string(),
-                                                                                                    _ => "".into(),
+                                                                                                    Value::String(s) => url_or_string(&s).into_view(),
+                                                                                                    Value::Number(num) => num.to_string().into_view(),
+                                                                                                    Value::Bool(b) => b.to_string().into_view(),
+                                                                                                    _ => "".into_view(),
                                                                                                 }}
 
                                                                                             </td>
@@ -535,7 +541,7 @@ pub fn Home() -> impl IntoView {
                                                     Some(Err(error)) => {
                                                         view! {
                                                             <div class="error">
-                                                                {"Failed to fetch config data: "} {error.to_string()}
+                                                                {"Failed to fetch config data: "} <SafeText text=error />
                                                             </div>
                                                         }
                                                     }

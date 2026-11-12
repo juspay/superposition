@@ -4,7 +4,9 @@ use leptos::*;
 use serde_json::{Map, Value};
 use similar::{ChangeTag, TextDiff};
 
-use crate::components::{button::Button, monaco_editor::MonacoDiffEditor, table::Table};
+use crate::components::{
+    button::Button, monaco_editor::MonacoDiffEditor, safe_text::SafeText, table::Table,
+};
 
 use super::{
     form::label::Label,
@@ -75,11 +77,12 @@ fn render_inline_diff(old_text: &str, new_text: &str, side: DiffSide) -> View {
         .filter_map(|change| {
             let tag = change.tag();
             if tag == ChangeTag::Equal {
-                let t = change.value().to_string();
-                Some(view! { <span>{t}</span> }.into_view())
+                Some(view! { <SafeText text=change.value() /> }.into_view())
             } else if tag == highlight_tag {
-                let t = change.value().to_string();
-                Some(view! { <span class=highlight_class>{t}</span> }.into_view())
+                Some(
+                    view! { <SafeText text=change.value() class=highlight_class /> }
+                        .into_view(),
+                )
             } else {
                 None
             }
@@ -102,8 +105,9 @@ fn make_diff_formatter(side: DiffSide) -> impl Fn(&str, &Map<String, Value>) -> 
                 };
                 render_inline_diff(old, new, side)
             }
-            None => view! { <span class=side.wrapper_class()>{value.to_string()}</span> }
-                .into_view(),
+            None => {
+                view! { <SafeText text=value class=side.wrapper_class() /> }.into_view()
+            }
         }
     }
 }
@@ -334,8 +338,12 @@ pub fn ChangeLogPopup(
             <div class="z-[999999999] fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center">
                 <dialog class="modal" open=true>
                     <div class="modal-box max-h-[80%] !max-w-[90%] !w-fit p-6 flex flex-col gap-4 overflow-hidden bg-white rounded-lg shadow-xl border-2 border-lightgray">
-                        <h4 class="flex-0 text-2xl font-semibold text-gray-800">{title.clone()}</h4>
-                        <p class="flex-0 text-sm text-gray-600">{description.clone()}</p>
+                        <h4 class="flex-0 text-2xl font-semibold text-gray-800">
+                            <SafeText text=title.clone() />
+                        </h4>
+                        <p class="flex-0 text-sm text-gray-600">
+                            <SafeText text=description.clone() />
+                        </p>
                         <div class="flex-1 flex flex-col gap-8 overflow-auto">{children()}</div>
                         <div class="flex-0 flex justify-end gap-4">
                             {move || {

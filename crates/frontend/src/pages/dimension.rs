@@ -17,6 +17,7 @@ use crate::components::{
     button::{Button, ButtonAnchor},
     dimension_form::{ChangeLogSummary, ChangeType, DimensionForm},
     input::{Input, InputType, Toggle},
+    safe_text::SafeText,
     skeleton::{Skeleton, SkeletonVariant},
 };
 use crate::providers::{alert_provider::enqueue_alert, editor_provider::EditorProvider};
@@ -48,7 +49,8 @@ fn TreeNode(
                 {if root {
                     view! {
                         <div class="flex gap-2 font-medium">
-                            {name} <span class="stat-title">"(current)"</span>
+                            <SafeText text=name />
+                            <span class="stat-title">"(current)"</span>
                         </div>
                     }
                         .into_view()
@@ -58,7 +60,7 @@ fn TreeNode(
                             href=format!("../{name}")
                             class="underline text-blue-600 hover:text-blue-800 text-ellipsis overflow-hidden"
                         >
-                            {name}
+                            <SafeText text=name />
                         </A>
                     }
                         .into_view()
@@ -124,7 +126,7 @@ fn DimensionInfo(dimension: DimensionResponse) -> impl IntoView {
                                                     href=format!("../../function/{name}")
                                                     class="text-base text-blue-500 underline underline-offset-2"
                                                 >
-                                                    {name}
+                                                    <SafeText text=name />
                                                 </A>
                                             </div>
                                         }
@@ -139,7 +141,7 @@ fn DimensionInfo(dimension: DimensionResponse) -> impl IntoView {
                                                     href=format!("../../function/{name}")
                                                     class="text-base text-blue-500 underline underline-offset-2"
                                                 >
-                                                    {name}
+                                                    <SafeText text=name />
                                                 </A>
                                             </div>
                                         }
@@ -337,7 +339,7 @@ pub fn DimensionPage() -> impl IntoView {
                     <div class="flex flex-col gap-4">
                         <div class="flex justify-between items-center gap-2">
                             <h1 class="text-2xl font-extrabold text-ellipsis overflow-hidden">
-                                {dimension.dimension.clone()}
+                                <SafeText text=dimension.dimension.clone() />
                             </h1>
                             {if dimension.dimension != "variantIds" {
                                 view! {

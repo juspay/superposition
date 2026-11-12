@@ -11,6 +11,7 @@ use crate::{
         dropdown::{Dropdown, DropdownBtnType, DropdownDirection, utils::DropdownOption},
         form::label::Label,
         input::{Input, InputType, StringArrayInput, Toggle},
+        safe_text::SafeText,
     },
     providers::csr_provider::use_client_side_ready,
     schema::{JsonSchemaType, SchemaType},
@@ -243,9 +244,10 @@ fn MetricDefinitions(metrics_rws: RwSignal<Metrics>) -> impl IntoView {
                         view! {
                             <div class="flex flex-col first:border-t border-dashed">
                                 <label class="label">
-                                    <span class="label-text-alt">
-                                        {metric_name.get_value().to_string()}
-                                    </span>
+                                    <SafeText
+                                        text=metric_name.get_value().to_string()
+                                        class="label-text-alt"
+                                    />
                                 </label>
                                 <Dropdown
                                     dropdown_width="w-44"

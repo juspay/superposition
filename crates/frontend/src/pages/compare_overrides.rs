@@ -18,6 +18,7 @@ use crate::{
         button::Button,
         condition_pills::Condition,
         context_form::ContextForm,
+        safe_text::SafeText,
         skeleton::{Skeleton, SkeletonVariant},
         table::{
             Table,
@@ -209,12 +210,12 @@ pub fn CompareOverrides() -> impl IntoView {
                     class="text-blue-500 underline underline-offset-2"
                     href=redirect_url(Some(prefix))
                 >
-                    {label}
+                    <SafeText text=label />
                 </A>
             }
             .into_view()
         } else {
-            view! { <span>{label}</span> }.into_view()
+            view! { <SafeText text=label /> }.into_view()
         }
     });
 

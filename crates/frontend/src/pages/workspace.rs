@@ -10,6 +10,7 @@ use crate::components::{
     datetime::DatetimeStr,
     drawer::{Drawer, DrawerBtn, close_drawer, open_drawer},
     key_rotation_modal::WorkspaceKeyRotationModal,
+    safe_text::SafeText,
     skeleton::Skeleton,
     stat::Stat,
     table::{
@@ -154,7 +155,7 @@ pub fn Workspace() -> impl IntoView {
                     class="text-blue-500 underline underline-offset-2"
                     href=format!("../{workspace_name}/default-config")
                 >
-                    {workspace_name}
+                    <SafeText text=workspace_name />
                 </A>
             }
             .into_view()

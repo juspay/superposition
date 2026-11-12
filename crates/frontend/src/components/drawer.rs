@@ -1,7 +1,7 @@
 use leptos::*;
 use web_sys::MouseEvent;
 
-use crate::utils::get_element_by_id;
+use crate::{components::safe_text::SafeText, utils::get_element_by_id};
 
 use super::button::{Button, ButtonStyle};
 
@@ -74,7 +74,9 @@ where
                     "h-full {width_class} flex flex-col bg-base-100 overflow-x-hidden",
                 )>
                     <div class="px-4 py-4 flex justify-between items-center">
-                        <h3 class="text-lg font-bold">{header}</h3>
+                        <h3 class="text-lg font-bold">
+                            <SafeText text=header />
+                        </h3>
                         <button class="btn btn-sm btn-circle btn-ghost" on:click=close_drawer>
                             <i class="ri-close-line"></i>
                         </button>
@@ -104,7 +106,9 @@ pub fn PortalDrawer(
                         "h-full {width_class} flex flex-col bg-base-100 overflow-x-hidden",
                     )>
                         <div class="px-4 py-4 flex justify-between items-center">
-                            <h3 class="text-lg font-bold">{title.clone()}</h3>
+                            <h3 class="text-lg font-bold">
+                                <SafeText text=title.clone() />
+                            </h3>
                             <button
                                 class="btn btn-sm btn-circle btn-ghost"
                                 on:click=move |_| { handle_close.call(()) }

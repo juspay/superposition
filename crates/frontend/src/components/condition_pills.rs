@@ -1,4 +1,5 @@
 use crate::{
+    components::safe_text::SafeText,
     logic::{Condition, Conditions},
     schema::HtmlDisplay,
 };
@@ -80,9 +81,9 @@ pub fn ConditionExpression(
                         }
                     }
                 >
-                    <span class="font-medium context_condition text-gray-500">{dimension}</span>
+                    <SafeText text=dimension class="font-medium context_condition text-gray-500" />
                     <span class="font-medium text-gray-650 context_condition">{operator}</span>
-                    <span class=value_class>{operands}</span>
+                    <SafeText text=operands class=value_class />
                 </li>
             }
         }}

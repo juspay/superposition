@@ -10,6 +10,7 @@ use superposition_types::api::{
 
 use crate::components::form::label::Label;
 use crate::components::input::{Input, InputType, StringArrayInput};
+use crate::components::safe_text::SafeText;
 use crate::components::tooltip::{Tooltip, TooltipPosition};
 use crate::logic::{Condition, Conditions};
 use crate::schema::EnumVariants;
@@ -346,9 +347,9 @@ pub fn ContextForm(
         if let Some(parent) = invalid_dimensions.with(|m| m.get(variable).cloned()) {
             return TooltipType::Error(view! {
                 <div class="text-base w-[250px]">
-                    {"Dimension "} <span class="w-fit italic font-semibold">{variable}</span>
+                    {"Dimension "} <SafeText text=variable class="w-fit italic font-semibold" />
                     {" is a cohort dimension which can be derived from "}
-                    <span class="w-fit italic font-semibold">{parent}</span>
+                    <SafeText text=parent class="w-fit italic font-semibold" />
                     {" dimension using the cohort definitions. Hence, usage of this dimension is not allowed."}
                 </div>
             }.into_view());

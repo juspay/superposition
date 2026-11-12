@@ -1,5 +1,7 @@
 use leptos::*;
 
+use crate::components::safe_text::SafeText;
+
 use super::dropdown::utils::DropdownOption;
 
 #[component]
@@ -35,7 +37,9 @@ where
                                 }
                             >
 
-                                <a class="w-full word-break-break">{label.to_string()}</a>
+                                <a class="w-full word-break-break">
+                                    <SafeText text=label.to_string() />
+                                </a>
                             </li>
                         }
                     }

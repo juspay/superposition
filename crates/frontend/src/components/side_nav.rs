@@ -3,7 +3,10 @@ use leptos::*;
 use leptos_router::{A, use_location, use_route};
 use superposition_types::{PaginatedResponse, api::workspace::WorkspaceResponse};
 
-use crate::components::skeleton::{Skeleton, SkeletonVariant};
+use crate::components::{
+    safe_text::SafeText,
+    skeleton::{Skeleton, SkeletonVariant},
+};
 use crate::providers::csr_provider::use_client_side_ready;
 use crate::types::{AppRoute, Envs, OrganisationId, Workspace};
 use crate::utils::use_url_base;
@@ -251,7 +254,7 @@ pub fn WorkspaceSelector(
                                         view! {
                                             <li class=format!("w-full {disable_class}")>
                                                 <A class="w-full flex justify-between" href=redirect_url>
-                                                    {option}
+                                                    <SafeText text=option />
                                                     <Show when=move || selected>
                                                         <i class="ri-check-line" />
                                                     </Show>
@@ -301,9 +304,10 @@ pub fn NavItem(
             )>
                 <i class=format!("{icon} text-lg font-normal {icon_class}") />
             </div>
-            <span class="max-xl:hidden xl:group-[.collapsed]:hidden max-xl:group-hover:block duration-300 opacity-100 pointer-events-none ease-soft">
-                {text}
-            </span>
+            <SafeText
+                text=text
+                class="max-xl:hidden xl:group-[.collapsed]:hidden max-xl:group-hover:block duration-300 opacity-100 pointer-events-none ease-soft"
+            />
         </A>
     }
 }

@@ -12,6 +12,7 @@ use crate::components::{
     button::Button,
     drawer::PortalDrawer,
     input::{Input, InputType},
+    safe_text::SafeText,
     skeleton::{Skeleton, SkeletonVariant},
     type_template_form::{
         ChangeLogSummary, ChangeType, TypeTemplateForm, utils::delete_type,
@@ -121,7 +122,7 @@ pub fn TypePage() -> impl IntoView {
                     <div class="flex flex-col gap-4">
                         <div class="flex justify-between items-center">
                             <h1 class="text-2xl font-extrabold">
-                                {type_template.type_name.clone()}
+                                <SafeText text=type_template.type_name.clone() />
                             </h1>
                             <div class="flex flex-row join">
                                 <Button

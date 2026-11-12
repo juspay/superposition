@@ -25,6 +25,7 @@ use crate::{
         datetime::DatetimeStr,
         drawer::{Drawer, DrawerBtn, close_drawer},
         experiment_group_form::{ChangeLogSummary, ChangeType, ExperimentGroupForm},
+        safe_text::SafeText,
         skeleton::Skeleton,
         stat::Stat,
         table::{
@@ -122,12 +123,10 @@ fn table_columns(
                 view! {
                     <div>
                         <A href=group_id.to_string() class="text-blue-500 underline underline-offset-2">
-                            {group_name}
+                            <SafeText text=group_name />
                         </A>
                         <div class="text-gray-500">
-                            <span class="text-xs">
-                                {group_id}
-                            </span>
+                            <SafeText text=group_id class="text-xs" />
                             <i class="ri-file-copy-line ml-2 cursor-pointer" on:click:undelegated=handle_copy></i>
                             <Show when=move || copied_rs.get()>
                                 <div class="w-fit ml-2 px-2 flex justify-center items-center bg-gray-600 rounded-xl">
@@ -173,9 +172,10 @@ fn table_columns(
             |value: &str, _| {
                 let percentage = format!("{}%", value);
                 view! {
-                    <span class="badge badge-warning badge-lg text-white">
-                        {percentage}
-                    </span>
+                    <SafeText
+                        text=percentage
+                        class="badge badge-warning badge-lg text-white"
+                    />
                 }
                 .into_view()
             },

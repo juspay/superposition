@@ -22,6 +22,7 @@ use crate::{
         description::ContentDescription,
         drawer::PortalDrawer,
         experiment_group_form::AddExperimentToGroupForm,
+        safe_text::SafeText,
         skeleton::{Skeleton, SkeletonVariant},
         table::{
             Table,
@@ -67,7 +68,7 @@ fn table_columns(
 
                 view! {
                     <A href=format!("../../experiments/{experiment_id}") class="text-blue-500 underline underline-offset-2">
-                        {experiment_name}
+                        <SafeText text=experiment_name />
                     </A>
                 }
                 .into_view()
@@ -251,7 +252,9 @@ pub fn ExperimentGroups() -> impl IntoView {
 
                 view! {
                     <div class="h-full flex flex-col gap-10 overflow-x-auto bg-transparent">
-                        <h1 class="text-2xl font-extrabold">{resource.group.name.clone()}</h1>
+                        <h1 class="text-2xl font-extrabold">
+                            <SafeText text=resource.group.name.clone() />
+                        </h1>
                         <ExperimentGroupInfo group=resource.group.clone() />
                         <ContentDescription
                             pre_data=move || {
@@ -259,7 +262,7 @@ pub fn ExperimentGroups() -> impl IntoView {
                                     <div class="h-fit w-[250px]">
                                         <div class="stat-title">"Group ID"</div>
                                         <div class="stat-value text-sm">
-                                            {resource.group.id.to_string()}
+                                            <SafeText text=resource.group.id.to_string() />
                                         </div>
                                     </div>
                                     <div class="h-fit w-[250px]">

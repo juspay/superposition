@@ -10,6 +10,7 @@ use crate::components::{
     button::Button,
     description::ContentDescription,
     drawer::PortalDrawer,
+    safe_text::SafeText,
     skeleton::{Skeleton, SkeletonVariant},
     variable_form::{ChangeLogSummary, ChangeType, VariableForm},
 };
@@ -26,7 +27,7 @@ fn VariableInfo(variable: Variable) -> impl IntoView {
                     <div class="flex flex-row gap-6 flex-wrap">
                         <div class="h-fit flex items-center gap-4">
                             <div class="stat-title">"Value"</div>
-                            <div class="stat-value text-base">{variable.value}</div>
+                            <SafeText class="stat-value text-base" text=variable.value />
                         </div>
                     </div>
                 </div>
@@ -109,7 +110,9 @@ pub fn Variable() -> impl IntoView {
                 view! {
                     <div class="flex flex-col gap-4">
                         <div class="flex justify-between items-center">
-                            <h1 class="text-2xl font-extrabold">{variable.name.deref().clone()}</h1>
+                            <h1 class="text-2xl font-extrabold">
+                                <SafeText text=variable.name.deref().clone() />
+                            </h1>
                             <div class="flex flex-row join">
                                 <Button
                                     force_style="btn join-item px-5 py-2.5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 shadow-lg rounded-lg"

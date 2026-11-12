@@ -18,7 +18,7 @@ use wasm_bindgen::JsCast;
 
 use crate::{
     api::execute_value_compute_function,
-    components::alert::AlertType,
+    components::{alert::AlertType, safe_text::SafeText},
     providers::alert_provider::enqueue_alert,
     types::{
         Envs, ErrorResponse, FunctionName, SsrSharedHttpRequestHeaders,
@@ -170,28 +170,50 @@ pub fn close_modal(id: &str) {
     }
 }
 
-pub fn url_or_string(s: &str) -> impl IntoView {
-    match Url::parse(s) {
-        Ok(_) => {
-            let s = s.to_string();
-            view! {
-                <a class="value_link" href=s.clone() target="_blank">
-                    {s}
-                </a>
-            }
-            .into_view()
+/// Escapes HTML metacharacters so untrusted or config-controlled strings
+/// render as inert literal text.
+pub fn escape_html(s: &str) -> String {
+    let mut escaped = String::with_capacity(s.len());
+    for ch in s.chars() {
+        match ch {
+            '&' => escaped.push_str("&amp;"),
+            '<' => escaped.push_str("&lt;"),
+            '>' => escaped.push_str("&gt;"),
+            '"' => escaped.push_str("&quot;"),
+            '\'' => escaped.push_str("&#x27;"),
+            _ => escaped.push(ch),
         }
-        Err(_) => s.to_string().into_view(),
+    }
+    escaped
+}
+
+fn is_safe_http_url(s: &str) -> bool {
+    Url::parse(s)
+        .map(|u| matches!(u.scheme(), "http" | "https"))
+        .unwrap_or(false)
+}
+
+pub fn url_or_string(s: &str) -> impl IntoView {
+    if is_safe_http_url(s) {
+        view! {
+            <a class="value_link" href=s.to_string() target="_blank" rel="noopener noreferrer">
+                <SafeText text=s />
+            </a>
+        }
+        .into_view()
+    } else {
+        view! { <SafeText text=s /> }.into_view()
     }
 }
 
 pub fn check_url_and_return_val(s: String) -> String {
-    match Url::parse(&s) {
-        Ok(_) => format!(
-            "<a class='value_link' href={} target='_blank'>{}</a>",
-            &s, &s
-        ),
-        Err(_) => s,
+    let escaped = escape_html(&s);
+    if is_safe_http_url(&s) {
+        format!(
+            "<a class='value_link' href='{escaped}' target='_blank' rel='noopener noreferrer'>{escaped}</a>"
+        )
+    } else {
+        escaped
     }
 }
 
@@ -543,4 +565,268 @@ pub fn get_fn_names_by_type(
                 .map(|f| f.function_name.clone()),
         )
         .collect::<Vec<_>>()
+}
+
+#[cfg(all(test, not(feature = "ssr")))]
+use tokio as _;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_escape_html_escapes_metacharacters() {
+        let payload = r#"<div style='width:100vw'>hello & "world"</div>"#;
+        assert_eq!(
+            escape_html(payload),
+            "&lt;div style=&#x27;width:100vw&#x27;&gt;hello &amp; &quot;world&quot;&lt;/div&gt;"
+        );
+    }
+
+    #[test]
+    fn test_check_url_and_return_val_neutralizes_html_and_unsafe_schemes() {
+        assert_eq!(
+            check_url_and_return_val("<img src=x onerror=alert(1)>".to_string()),
+            "&lt;img src=x onerror=alert(1)&gt;"
+        );
+        assert_eq!(
+            check_url_and_return_val("javascript:alert('xss')".to_string()),
+            "javascript:alert(&#x27;xss&#x27;)"
+        );
+        assert_eq!(
+            check_url_and_return_val("https://example.com/a?x=1&y='2'".to_string()),
+            "<a class='value_link' href='https://example.com/a?x=1&amp;y=&#x27;2&#x27;' target='_blank' rel='noopener noreferrer'>https://example.com/a?x=1&amp;y=&#x27;2&#x27;</a>"
+        );
+    }
+}
+
+#[cfg(all(test, feature = "ssr"))]
+mod ssr_tests {
+    use super::*;
+    use crate::{
+        components::{
+            alert::{Alert, AlertType},
+            badge::GrayPill,
+            change_form::ChangeForm,
+            condition_pills::{ConditionExpression, ConditionId},
+            datetime::DatetimeStr,
+            description::ContentDescription,
+            info_modal::InfoModal,
+            safe_text::{SafeText, SafeTextarea},
+            table::types::{default_column_formatter, default_formatter},
+        },
+        logic::Condition,
+    };
+    use chrono::Utc;
+    use futures::StreamExt;
+    use serde_json::{Map, Value};
+    use superposition_types::database::models::{ChangeReason, Description};
+
+    fn render_in_order<F, V>(view_fn: F) -> String
+    where
+        F: FnOnce() -> V + 'static,
+        V: IntoView,
+    {
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .expect("tokio runtime");
+        let local = tokio::task::LocalSet::new();
+        rt.block_on(local.run_until(async move {
+            let stream =
+                leptos::ssr::render_to_stream_in_order(move || view_fn().into_view());
+            stream.collect::<Vec<String>>().await.concat()
+        }))
+    }
+
+    fn assert_escaped_payload(html: &str, context: &str) {
+        assert!(
+            !html.contains("<img src=x"),
+            "{context}: raw <img element leaked into SSR output: {html}"
+        );
+        assert!(
+            !html.contains("<script>alert("),
+            "{context}: raw <script> element leaked into SSR output: {html}"
+        );
+        assert!(
+            !html.contains("<div style='width:100vw'>"),
+            "{context}: raw <div> element leaked into SSR output: {html}"
+        );
+        assert!(
+            html.contains("&lt;"),
+            "{context}: expected escaped HTML entities in SSR output: {html}"
+        );
+    }
+
+    #[test]
+    fn test_leptos_in_order_raw_text_node_is_unescaped_repro() {
+        let payload = "<img src=x onerror=alert(1)>";
+        let html = render_in_order(move || view! { <div>{payload}</div> });
+        // Confirms upstream leptos 0.6.11 ssr_in_order View::Text omits escaping.
+        assert!(html.contains("<img src=x onerror=alert(1)>"));
+    }
+
+    #[test]
+    fn test_safe_text_escapes_html_in_ssr_in_order_and_render_to_string() {
+        let payload = "<img src=x onerror=alert(1)><div style='width:100vw'>banner";
+        let in_order_html =
+            render_in_order(move || view! { <SafeText text=payload class="styled" /> });
+        assert!(!in_order_html.contains("<img"));
+        assert!(!in_order_html.contains("<div"));
+        assert!(
+            in_order_html.contains("class=\"styled\"")
+                || in_order_html.contains("class=\" styled\""),
+            "expected class styled in SSR output: {in_order_html}"
+        );
+        assert!(in_order_html.contains(
+            "&lt;img src=x onerror=alert(1)&gt;&lt;div style=&#x27;width:100vw&#x27;&gt;banner"
+        ));
+
+        let string_html =
+            leptos::ssr::render_to_string(move || view! { <SafeText text=payload /> })
+                .to_string();
+        assert!(!string_html.contains("<img"));
+        assert!(!string_html.contains("<div"));
+        assert!(string_html.contains(
+            "&lt;img src=x onerror=alert(1)&gt;&lt;div style=&#x27;width:100vw&#x27;&gt;banner"
+        ));
+    }
+
+    #[test]
+    fn test_url_or_string_escapes_html_and_rejects_javascript_scheme() {
+        let html_payload = "<img src=x onerror=alert(1)>";
+        let rendered_html_payload = render_in_order(move || url_or_string(html_payload));
+        assert!(!rendered_html_payload.contains("<img"));
+        assert!(rendered_html_payload.contains("&lt;img src=x onerror=alert(1)&gt;"));
+
+        let js_payload = "javascript:alert(1)";
+        let rendered_js = render_in_order(move || url_or_string(js_payload));
+        assert!(!rendered_js.contains("<a "));
+        assert!(rendered_js.contains("javascript:alert(1)"));
+
+        let valid_url = "https://example.com/path?a=1&b=<b>";
+        let rendered_url = render_in_order(move || url_or_string(valid_url));
+        assert!(
+            rendered_url
+                .contains("href=\"https://example.com/path?a=1&amp;b=&lt;b&gt;\"")
+        );
+        assert!(rendered_url.contains("rel=\"noopener noreferrer\""));
+        assert!(!rendered_url.contains("<b>"));
+        assert!(rendered_url.contains("&lt;b&gt;"));
+    }
+
+    #[test]
+    fn test_table_formatters_escape_html_in_ssr_in_order() {
+        let row = Map::new();
+        let cell_html = render_in_order(move || {
+            default_formatter(
+                "<img src=x onerror=alert(1)><script>alert(1)</script>",
+                &row,
+            )
+        });
+        assert_escaped_payload(&cell_html, "default_formatter");
+
+        let col_html = render_in_order(move || {
+            default_column_formatter("<div style='width:100vw'>col")
+        });
+        assert_escaped_payload(&col_html, "default_column_formatter");
+    }
+
+    #[test]
+    fn test_shared_components_escape_user_content_in_ssr_in_order() {
+        let payload = "<img src=x onerror=alert(1)><div style='width:100vw'>banner";
+        let textarea_breakout = "</textarea><script>alert(1)</script>";
+
+        let description = Description::try_from(payload.to_string()).unwrap();
+        let change_reason = ChangeReason::try_from(payload.to_string()).unwrap();
+        let desc_html = render_in_order(move || {
+            view! {
+                <ContentDescription
+                    description=description
+                    created_by=payload.to_string()
+                    created_at=Utc::now()
+                    last_modified_by=payload.to_string()
+                    last_modified_at=Utc::now()
+                    change_reason=change_reason
+                />
+            }
+        });
+        assert_escaped_payload(&desc_html, "ContentDescription");
+
+        let pill_html = render_in_order(move || {
+            view! { <GrayPill data=payload.to_string() deletable=false on_delete=move |_: String| () /> }
+        });
+        assert_escaped_payload(&pill_html, "GrayPill");
+
+        let alert_html = render_in_order(move || {
+            view! { <Alert alert=Alert::new(1, payload.to_string(), AlertType::Info, 1000) /> }
+        });
+        assert_escaped_payload(&alert_html, "Alert");
+
+        let change_form_html = render_in_order(move || {
+            view! {
+                <ChangeForm
+                    title=payload.to_string()
+                    placeholder="reason".to_string()
+                    value=textarea_breakout.to_string()
+                    on_change=Callback::new(|_| ())
+                />
+            }
+        });
+        assert_escaped_payload(&change_form_html, "ChangeForm");
+        assert!(
+            !change_form_html.contains("</textarea><script>"),
+            "ChangeForm allowed textarea breakout: {change_form_html}"
+        );
+
+        let condition_html = render_in_order(move || {
+            let (cond_id_rs, _) = create_signal(ConditionId::default());
+            provide_context(cond_id_rs);
+            view! {
+                <ConditionExpression
+                    id="cond-0"
+                    list_id="cond"
+                    resolve_summary=false
+                    condition=Condition {
+                        variable: payload.to_string(),
+                        value: Value::String(payload.to_string()),
+                    }
+                />
+            }
+        });
+        assert_escaped_payload(&condition_html, "ConditionExpression");
+
+        let info_modal_html = render_in_order(move || {
+            view! {
+                <InfoModal
+                    visible=true
+                    description=payload.to_string()
+                    change_reason=textarea_breakout.to_string()
+                    on_close=Callback::new(|_| ())
+                />
+            }
+        });
+        assert_escaped_payload(&info_modal_html, "InfoModal");
+
+        let dt_html = render_in_order(move || {
+            view! { <DatetimeStr datetime="<img src=x onerror=alert(1)>".to_string() /> }
+        });
+        assert_escaped_payload(&dt_html, "DatetimeStr");
+    }
+
+    #[test]
+    fn test_safe_textarea_after_event_handler_preserves_escaped_value() {
+        let breakout = "</textarea><script>alert(1)</script>";
+        let html = render_in_order(move || {
+            view! { <SafeTextarea id="filter" value=breakout on_change=Callback::new(|_| ()) /> }
+        });
+        assert!(
+            !html.contains("</textarea><script>"),
+            "textarea breakout leaked: {html}"
+        );
+        assert!(
+            html.contains("&lt;/textarea&gt;&lt;script&gt;alert(1)&lt;/script&gt;"),
+            "expected escaped textarea body (inner_html must remain last attr in leptos 0.6 SSR): {html}"
+        );
+    }
 }

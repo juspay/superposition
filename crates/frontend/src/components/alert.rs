@@ -1,5 +1,7 @@
 use leptos::*;
 
+use crate::components::safe_text::SafeText;
+
 #[derive(PartialEq, Clone, Debug, strum_macros::Display)]
 #[strum(serialize_all = "lowercase")]
 pub enum AlertType {
@@ -64,7 +66,7 @@ pub fn Alert(alert: Alert) -> impl IntoView {
     view! {
         <div role="alert" class=outer_div_class>
             <i class=content_icon></i>
-            <span class="w-full text-ellipsis">{alert.text}</span>
+            <SafeText text=alert.text class="w-full text-ellipsis" />
         </div>
     }
 }

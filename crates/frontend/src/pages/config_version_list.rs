@@ -11,7 +11,7 @@ use superposition_types::{
 use crate::components::table::types::default_column_formatter;
 use crate::components::table::types::{ColumnSortable, Expandable, TablePaginationProps};
 use crate::components::table::{Table, types::Column};
-use crate::components::{datetime::DatetimeStr, skeleton::Skeleton};
+use crate::components::{datetime::DatetimeStr, safe_text::SafeText, skeleton::Skeleton};
 use crate::query_updater::use_signal_from_query;
 use crate::types::{OrganisationId, Workspace};
 use crate::utils::unwrap_or_default_with_error;
@@ -113,7 +113,9 @@ pub fn snapshot_table_columns() -> Vec<Column> {
             move |value: &str, _row: &Map<String, Value>| {
                 let id = value.to_string();
                 view! {
-                    <A href=id.clone() class="text-blue-500 underline underline-offset-2">{id}</A>
+                    <A href=id.clone() class="text-blue-500 underline underline-offset-2">
+                        <SafeText text=id />
+                    </A>
                 }
                 .into_view()
             },
@@ -138,11 +140,10 @@ pub fn snapshot_table_columns() -> Vec<Column> {
                             .map(|v| v.as_str().unwrap_or(""))
                             .collect::<Vec<&str>>()
                             .join(", ");
-                        view! { <span class="w-24">{tags_str}</span> }
+                        view! { <SafeText text=tags_str class="w-24" /> }.into_view()
                     }
-                    None => view! { <span class="w-24">"-"</span> },
+                    None => view! { <span class="w-24">"-"</span> }.into_view(),
                 }
-                .into_view()
             },
         ),
     ]

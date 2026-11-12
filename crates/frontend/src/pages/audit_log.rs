@@ -18,6 +18,7 @@ use crate::{
     components::{
         change_summary::{ChangeLogPopup, ChangeSummary},
         datetime::DatetimeStr,
+        safe_text::SafeText,
         skeleton::Skeleton,
         stat::Stat,
         table::{
@@ -104,7 +105,7 @@ fn audit_log_table_columns(
                     "DELETE" => "badge-error",
                     _ => "badge-info",
                 };
-                view! { <span class=format!("badge {badge_class}")>{action}</span> }
+                view! { <SafeText text=action class=format!("badge {badge_class}") /> }
                     .into_view()
             },
             ColumnSortable::No,
@@ -115,7 +116,12 @@ fn audit_log_table_columns(
             "original_data".to_string(),
             false,
             move |value: &str, _row: &Map<String, Value>| {
-                view! { <pre class="text-xs text-gray-700 whitespace-pre-wrap">{value.to_string()}</pre> }.into_view()
+                view! {
+                    <pre class="text-xs text-gray-700 whitespace-pre-wrap">
+                        <SafeText text=value />
+                    </pre>
+                }
+                .into_view()
             },
             ColumnSortable::No,
             Expandable::Enabled(100),
@@ -125,7 +131,12 @@ fn audit_log_table_columns(
             "new_data".to_string(),
             false,
             move |value: &str, _row: &Map<String, Value>| {
-                view! { <pre class="text-xs text-gray-700 whitespace-pre-wrap">{value.to_string()}</pre> }.into_view()
+                view! {
+                    <pre class="text-xs text-gray-700 whitespace-pre-wrap">
+                        <SafeText text=value />
+                    </pre>
+                }
+                .into_view()
             },
             ColumnSortable::No,
             Expandable::Enabled(100),

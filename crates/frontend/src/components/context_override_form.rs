@@ -23,6 +23,7 @@ use crate::{
         context_form::ContextForm,
         description::ContentDescription,
         override_form::OverrideForm,
+        safe_text::SafeText,
         skeleton::{Skeleton, SkeletonVariant},
         step_indicator::{Step, StepIndicator, StepNavigation, StepType},
         table::{Table, types::Column},
@@ -447,7 +448,7 @@ pub fn OverrideDetailView(
                     "Override ID"
                 </div>
                 <div class="p-2 flex items-center justify-center font-mono leading-none text-sm bg-base-200 rounded">
-                    {override_id}
+                    <SafeText text=override_id />
                 </div>
             </div>
 
