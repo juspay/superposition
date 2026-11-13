@@ -1,5 +1,6 @@
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl, SelectableHelper};
 use secrecy::ExposeSecret;
+use serde_json::{Map, Value};
 use service_utils::{
     encryption::{decrypt_secret, decrypt_workspace_key},
     service::types::{EncryptionKey, SchemaName, WorkspaceContext},
@@ -18,6 +19,11 @@ use superposition_types::{
 };
 
 use super::types::FunctionInfo;
+
+pub struct InjectedFunctionCode {
+    pub code: FunctionCode,
+    pub secret_values: Vec<String>,
+}
 
 pub fn fetch_function(
     f_name: &String,
@@ -91,15 +97,11 @@ pub fn check_fn_published(
     }
 }
 
-pub fn generate_template(name: &str, vars: &[(String, String)]) -> String {
+pub fn generate_template(name: &str, vars: &Map<String, Value>) -> String {
     if vars.is_empty() {
         return String::new();
     }
-    let map: serde_json::Map<String, serde_json::Value> = vars
-        .iter()
-        .map(|(k, v)| (k.clone(), serde_json::Value::String(v.clone())))
-        .collect();
-    let json = serde_json::to_string_pretty(&map).unwrap_or_default();
+    let json = serde_json::to_string_pretty(&vars).unwrap_or_default();
     format!("const {} = {};", name, json)
 }
 
@@ -108,10 +110,13 @@ pub fn inject_variables_into_code(
     conn: &mut DBConnection,
     schema_name: &SchemaName,
 ) -> superposition::Result<FunctionCode> {
-    let vars: Vec<(String, String)> = variables::variables
+    let vars = variables::variables
         .select((variables::name, variables::value))
         .schema_name(schema_name)
-        .load(conn)?;
+        .load(conn)?
+        .into_iter()
+        .map(|(name, value)| (name, Value::String(value)))
+        .collect::<Map<String, Value>>();
 
     let vars_template = generate_template("VARS", &vars);
     let processed_code = format!("{}\n\n{}", vars_template, code);
@@ -124,16 +129,22 @@ pub fn inject_secrets_into_code(
     code: &str,
     conn: &mut DBConnection,
     master_encryption_key: &Option<EncryptionKey>,
-) -> superposition::Result<FunctionCode> {
-    let all_secrets: Vec<(String, String)> = secrets_dsl::secrets
+) -> superposition::Result<InjectedFunctionCode> {
+    let all_secrets = secrets_dsl::secrets
         .select((secrets_dsl::name, secrets_dsl::encrypted_value))
         .schema_name(&workspace_context.schema_name)
-        .load(conn)?;
+        .load(conn)?
+        .into_iter()
+        .map(|(name, value)| (name, Value::String(value)))
+        .collect::<Map<String, Value>>();
 
     if all_secrets.is_empty() {
-        let secrets_template = generate_template("SECRETS", &[]);
+        let secrets_template = generate_template("SECRETS", &Map::default());
         let processed_code = format!("{}\n\n{}", secrets_template, code);
-        return Ok(FunctionCode(processed_code));
+        return Ok(InjectedFunctionCode {
+            code: FunctionCode(processed_code),
+            secret_values: Vec::new(),
+        });
     }
 
     // If master_encryption_key is not available, we cannot decrypt secrets
@@ -141,9 +152,12 @@ pub fn inject_secrets_into_code(
         log::warn!(
             "Master encryption key not configured, skipping secret injection in function code"
         );
-        let secrets_template = generate_template("SECRETS", &[]);
+        let secrets_template = generate_template("SECRETS", &Map::default());
         let processed_code = format!("{}\n\n{}", secrets_template, code);
-        return Ok(FunctionCode(processed_code));
+        return Ok(InjectedFunctionCode {
+            code: FunctionCode(processed_code),
+            secret_values: Vec::new(),
+        });
     };
 
     let workspace = &workspace_context.settings;
@@ -152,21 +166,40 @@ pub fn inject_secrets_into_code(
         decrypt_workspace_key(&workspace.encryption_key, master_encryption_key)
             .map_err(|e| unexpected_error!("Failed to decrypt workspace key: {}", e))?;
 
-    let decrypted_secrets: superposition::Result<Vec<(String, String)>> = all_secrets
+    let decrypted_secrets = all_secrets
         .into_iter()
         .map(|(name, encrypted_value)| {
+            let Value::String(encrypted_value) = encrypted_value else {
+                return Err(unexpected_error!(
+                    "Encrypted value for secret '{}' is not a string",
+                    name
+                ));
+            };
             let decrypted_value = decrypt_secret(&encrypted_value, &workspace_key)
                 .map_err(|e| {
                     unexpected_error!("Failed to decrypt secret '{}': {}", name, e)
                 })?;
-            Ok((name, decrypted_value.expose_secret().to_string()))
+            Ok((
+                name,
+                Value::String(decrypted_value.expose_secret().to_string()),
+            ))
         })
-        .collect();
+        .collect::<superposition::Result<Map<String, Value>>>()?;
 
-    let secrets_template = generate_template("SECRETS", &decrypted_secrets?);
+    let secret_values = decrypted_secrets
+        .values()
+        .filter_map(|v| match v {
+            Value::String(s) => Some(s.clone()),
+            _ => None,
+        })
+        .collect::<Vec<String>>();
+    let secrets_template = generate_template("SECRETS", &decrypted_secrets);
     let processed_code = format!("{}\n\n{}", secrets_template, code);
 
-    Ok(FunctionCode(processed_code))
+    Ok(InjectedFunctionCode {
+        code: FunctionCode(processed_code),
+        secret_values,
+    })
 }
 
 pub fn get_first_function_by_type(
@@ -187,15 +220,20 @@ pub fn inject_secrets_and_variables_into_code(
     conn: &mut DBConnection,
     workspace_context: &WorkspaceContext,
     master_encryption_key: &Option<EncryptionKey>,
-) -> superposition::Result<FunctionCode> {
-    let code_with_secrets =
-        inject_secrets_into_code(workspace_context, code, conn, master_encryption_key)?;
+) -> superposition::Result<InjectedFunctionCode> {
+    let InjectedFunctionCode {
+        code: code_with_secrets,
+        secret_values,
+    } = inject_secrets_into_code(workspace_context, code, conn, master_encryption_key)?;
 
-    let final_code = inject_variables_into_code(
+    let code = inject_variables_into_code(
         &code_with_secrets,
         conn,
         &workspace_context.schema_name,
     )?;
 
-    Ok(final_code)
+    Ok(InjectedFunctionCode {
+        code,
+        secret_values,
+    })
 }
