@@ -396,6 +396,11 @@ jobs:
               with:
                   fetch-depth: 0
 
+            - name: Install Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24.1.0
+
             - name: Install Smithy CLI
               run: |
                   curl -sSL https://github.com/smithy-lang/smithy/releases/download/1.69.0/smithy-cli-linux-x86_64.zip -o "$RUNNER_TEMP/smithy.zip"
