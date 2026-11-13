@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use async_trait::async_trait;
 use aws_smithy_types::Document;
@@ -48,13 +48,12 @@ impl SuperpositionAPIProvider {
 
     async fn resolve_remote(
         &self,
-        context: EvaluationContext,
+        query_data: HashMap<String, Document>,
+        identifier: Option<String>,
         prefix_filter: Option<Vec<String>>,
         exclude_prefix_filter: Option<Vec<String>>,
     ) -> Result<Map<String, Value>> {
         // TODO: Check if we need to add a separte check to verify the status of provider before doing stuff
-
-        let (query_data, targeting_key) = self.get_merged_context(context).await;
 
         let response = self
             .client
@@ -62,7 +61,7 @@ impl SuperpositionAPIProvider {
             .workspace_id(&self.options.workspace_id)
             .org_id(&self.options.org_id)
             .set_context(Some(query_data))
-            .set_identifier(targeting_key)
+            .set_identifier(identifier)
             .set_prefix(prefix_filter)
             .set_exclude_prefix(exclude_prefix_filter)
             .send()
@@ -89,6 +88,65 @@ impl SuperpositionAPIProvider {
 
         Ok(result)
     }
+
+    /// Resolves through `/config/resolve/detailed`, whose entries carry the condition of
+    /// the context that last set each key alongside its value.
+    async fn resolve_remote_detailed(
+        &self,
+        query_data: HashMap<String, Document>,
+        prefix_filter: Option<Vec<String>>,
+        exclude_prefix_filter: Option<Vec<String>>,
+    ) -> Result<Map<String, Value>> {
+        let response = self
+            .client
+            .get_detailed_resolved_config()
+            .workspace_id(&self.options.workspace_id)
+            .org_id(&self.options.org_id)
+            .set_context(Some(query_data))
+            .set_prefix(prefix_filter)
+            .set_exclude_prefix(exclude_prefix_filter)
+            .send()
+            .await
+            .map_err(|e| {
+                SuperpositionError::NetworkError(format!(
+                    "Failed to get detailed resolved config: {e}"
+                ))
+            })?;
+
+        match conversions::document_to_value(response.config) {
+            Value::Object(map) => Ok(map),
+            other => Err(SuperpositionError::SerializationError(format!(
+                "Detailed resolved config is not an object: {other:?}"
+            ))),
+        }
+    }
+
+    async fn fetch_applicable_variants(
+        &self,
+        query_data: HashMap<String, Document>,
+        identifier: String,
+        prefix_filter: Option<Vec<String>>,
+        exclude_prefix_filter: Option<Vec<String>>,
+    ) -> Result<Vec<String>> {
+        let applicable_variants = self
+            .client
+            .applicable_variants()
+            .workspace_id(&self.options.workspace_id)
+            .org_id(&self.options.org_id)
+            .set_context(Some(query_data))
+            .identifier(identifier)
+            .set_prefix(prefix_filter)
+            .set_exclude_prefix(exclude_prefix_filter)
+            .send()
+            .await
+            .map_err(|e| {
+                SuperpositionError::NetworkError(format!(
+                    "Failed to get applicable variants: {e}",
+                ))
+            })?;
+
+        Ok(applicable_variants.data.into_iter().map(|v| v.id).collect())
+    }
 }
 
 #[async_trait]
@@ -99,8 +157,86 @@ impl AllFeatureProvider for SuperpositionAPIProvider {
         prefix_filter: Option<Vec<String>>,
         exclude_prefix_filter: Option<Vec<String>>,
     ) -> Result<Map<String, Value>> {
-        self.resolve_remote(context, prefix_filter, exclude_prefix_filter)
-            .await
+        let (query_data, targeting_key) = self.get_merged_context(context).await;
+        self.resolve_remote(
+            query_data,
+            targeting_key,
+            prefix_filter,
+            exclude_prefix_filter,
+        )
+        .await
+    }
+
+    async fn resolve_all_features_with_filter_details(
+        &self,
+        context: EvaluationContext,
+        prefix_filter: Option<Vec<String>>,
+        exclude_prefix_filter: Option<Vec<String>>,
+    ) -> Result<AllFeaturesResolutionDetails> {
+        let (mut query_data, targeting_key) = self.get_merged_context(context).await;
+
+        // Without an identifier, a `variantIds` already on the context is the caller's
+        // own assignment and is resolved as given.
+        if let Some(identifier) = targeting_key {
+            let variant_ids = self
+                .fetch_applicable_variants(
+                    query_data.clone(),
+                    identifier,
+                    prefix_filter.clone(),
+                    exclude_prefix_filter.clone(),
+                )
+                .await?;
+            query_data.insert(
+                "variantIds".to_string(),
+                Document::Array(variant_ids.into_iter().map(Document::String).collect()),
+            );
+        }
+        let variant_ids: Vec<String> = match query_data.get("variantIds") {
+            Some(Document::Array(ids)) => ids
+                .iter()
+                .filter_map(|id| match id {
+                    Document::String(id) => Some(id.clone()),
+                    _ => None,
+                })
+                .collect(),
+            _ => Vec::new(),
+        };
+
+        let detailed = self
+            .resolve_remote_detailed(query_data, prefix_filter, exclude_prefix_filter)
+            .await?;
+
+        // Report only the variants that took effect, not every applicable one: the
+        // detailed response names the context that last set each key, so a variant
+        // whose keys were all overridden by later contexts never shows up there.
+        let mut applied = HashSet::new();
+        let value = detailed
+            .into_iter()
+            .map(|(key, entry)| {
+                let variant_id = entry
+                    .get("context")
+                    .and_then(|condition| condition.get("variantIds"))
+                    .and_then(Value::as_str);
+                if let Some(variant_id) = variant_id {
+                    applied.insert(variant_id.to_string());
+                }
+                let value = match entry {
+                    Value::Object(mut entry) => {
+                        entry.remove("value").unwrap_or(Value::Null)
+                    }
+                    other => other,
+                };
+                (key, value)
+            })
+            .collect();
+
+        Ok(AllFeaturesResolutionDetails {
+            value,
+            variant_ids: variant_ids
+                .into_iter()
+                .filter(|id| applied.contains(id))
+                .collect(),
+        })
     }
 }
 
@@ -113,25 +249,13 @@ impl FeatureExperimentMeta for SuperpositionAPIProvider {
         exclude_prefix_filter: Option<Vec<String>>,
     ) -> Result<Vec<String>> {
         let (query_data, targeting_key) = self.get_merged_context(context).await;
-
-        let applicable_variants = self
-            .client
-            .applicable_variants()
-            .workspace_id(&self.options.workspace_id)
-            .org_id(&self.options.org_id)
-            .set_context(Some(query_data))
-            .identifier(targeting_key.unwrap_or_default())
-            .set_prefix(prefix_filter)
-            .set_exclude_prefix(exclude_prefix_filter)
-            .send()
-            .await
-            .map_err(|e| {
-                SuperpositionError::NetworkError(format!(
-                    "Failed to get applicable variants: {e}",
-                ))
-            })?;
-
-        Ok(applicable_variants.data.into_iter().map(|v| v.id).collect())
+        self.fetch_applicable_variants(
+            query_data,
+            targeting_key.unwrap_or_default(),
+            prefix_filter,
+            exclude_prefix_filter,
+        )
+        .await
     }
 }
 

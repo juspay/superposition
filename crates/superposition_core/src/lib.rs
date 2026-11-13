@@ -13,7 +13,10 @@ pub mod format;
 pub mod helpers;
 pub mod validations;
 // Re-export main config functions
-pub use config::{eval, eval_config, merge, MergeStrategy};
+pub use config::{
+    eval, eval_config, eval_with_applied_variants, eval_with_key_sources, merge,
+    MergeStrategy,
+};
 
 // Re-export experiment functions
 pub use experiment::{

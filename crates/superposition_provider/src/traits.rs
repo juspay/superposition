@@ -5,7 +5,10 @@ use open_feature::{
 };
 use serde_json::{Map, Value};
 
-use crate::{conversions, types::Result};
+use crate::{
+    conversions,
+    types::{AllFeaturesResolutionDetails, Result},
+};
 
 /// Trait for experiment variant resolution.
 ///
@@ -45,6 +48,21 @@ pub trait AllFeatureProvider: Send + Sync {
         prefix_filter: Option<Vec<String>>,
         exclude_prefix_filter: Option<Vec<String>>,
     ) -> Result<Map<String, Value>>;
+
+    async fn resolve_all_features_details(
+        &self,
+        context: EvaluationContext,
+    ) -> Result<AllFeaturesResolutionDetails> {
+        self.resolve_all_features_with_filter_details(context, None, None)
+            .await
+    }
+
+    async fn resolve_all_features_with_filter_details(
+        &self,
+        context: EvaluationContext,
+        prefix_filter: Option<Vec<String>>,
+        exclude_prefix_filter: Option<Vec<String>>,
+    ) -> Result<AllFeaturesResolutionDetails>;
 
     /// Resolve a flag and extract it as `T`.
     ///

@@ -187,18 +187,20 @@ pub struct ApplicableVariantsQuery {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ApplicableVariantsRequest {
     pub context: Map<String, Value>,
-    // TODO: remove this once services start using newer sdk
-    #[serde(alias = "toss", deserialize_with = "deserialize_identifier")]
-    pub identifier: String,
+    // TODO: remove this once services start using newer sdk, which sends the
+    // identifier as the `identifier` query param instead
+    #[serde(default, alias = "toss", deserialize_with = "deserialize_identifier")]
+    pub identifier: Option<String>,
 }
 
-fn deserialize_identifier<'de, D>(deserializer: D) -> Result<String, D::Error>
+fn deserialize_identifier<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
 where
     D: Deserializer<'de>,
 {
     match Value::deserialize(deserializer)? {
-        Value::Number(toss) => Ok(toss.to_string()),
-        Value::String(identifier) => Ok(identifier),
+        Value::Null => Ok(None),
+        Value::Number(toss) => Ok(Some(toss.to_string())),
+        Value::String(identifier) => Ok(Some(identifier)),
         _ => Err(serde::de::Error::custom("identifier must be a string")),
     }
 }
