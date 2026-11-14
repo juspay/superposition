@@ -18,6 +18,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.flake-parts.follows = "flake-parts";
     };
+    # Compiler cache for rustc (https://github.com/kunobi-ninja/kache).
+    # `stable` tracks released versions.
+    kache = {
+      url = "github:kunobi-ninja/kache/stable";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -46,8 +52,16 @@
           pkgs,
           self',
           config,
+          system,
           ...
         }:
+        let
+          # Skip kache's own test suite: it takes minutes and has sandbox-flaky
+          # tests (rustdoc version probe timing out) not yet on its skip list.
+          kache = inputs.kache.packages.${system}.default.overrideAttrs (_: {
+            doCheck = false;
+          });
+        in
         {
           formatter = pkgs.nixpkgs-fmt;
           packages.smithy-cli = pkgs.callPackage ./nix/smithy-cli.nix { };
@@ -60,6 +74,7 @@
             # Add your devShell tools here
             packages = with pkgs; [
               bun
+              kache
               self'.packages.smithy-cli
               docker-compose
               gnumake
@@ -87,6 +102,10 @@
               # go client
               # go
             ];
+
+            # Route rustc through kache so repeated builds (worktrees, branch
+            # switches) reuse cached compiler output.
+            RUSTC_WRAPPER = "${kache}/bin/kache";
 
             shellHook = ''
                 # If it exists from the host system, kill it
