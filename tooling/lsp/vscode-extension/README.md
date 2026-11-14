@@ -7,6 +7,10 @@ A Visual Studio Code extension that provides language server support for SuperTO
 - **Diagnostics**: Real-time validation of TOML syntax and structure
 - **Completions**: Auto-completion for TOML keys and values
 - **Hover**: Documentation and type information on hover
+- **Go to Definition**: Jump from a `_context_` dimension, an override key, or a
+  cohort reference to the entry that declares it
+- **Code Actions**: Quick fixes to declare a missing dimension or config key,
+  add an absent `schema`, and replace a value that is not in its schema's enum
 - **Syntax Highlighting**: Full TOML syntax highlighting with SuperTOML-specific enhancements
 
 ## Prerequisites

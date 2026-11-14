@@ -1,0 +1,17 @@
+# QUICK FIX — cursor on the `city_tier` line, Cmd+.
+# Expect: "Swap positions of 'city' and 'city_tier'"
+#
+# A cohort's base dimension must sit at or above the dimension declaring it.
+# Here city (1) is below city_tier (2). Swapping is the only repair that can't
+# create a new position clash.
+
+[default-configs]
+per_km_rate = { value = 20.0, schema = { type = "number", minimum = 5.0 } }
+
+[dimensions]
+city = { position = 1, schema = { type = "string", enum = ["Bangalore", "Delhi"] } }
+city_tier = { position = 2, type = "LOCAL_COHORT:city", schema = { type = "string", enum = ["metro", "otherwise"], definitions = { metro = { in = [{ var = "city" }, ["Bangalore"]] } } } }
+
+[[overrides]]
+_context_ = { city = "Bangalore" }
+per_km_rate = 25.0

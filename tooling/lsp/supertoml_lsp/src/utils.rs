@@ -105,6 +105,60 @@ pub fn find_comment_start(line: &str) -> Option<usize> {
     None
 }
 
+/// Find the byte span of the word (identifier characters: alphanumeric, `_`,
+/// `-`) under `col`, as a half-open `(start, end)` range.
+pub fn word_span(line: &str, col: usize) -> Option<(usize, usize)> {
+    let col = col.min(line.len());
+    let bytes = line.as_bytes();
+    let is_ident = |b: u8| b.is_ascii_alphanumeric() || b == b'_' || b == b'-';
+
+    let start = (0..col)
+        .rev()
+        .find(|&i| !is_ident(bytes[i]))
+        .map(|i| i + 1)
+        .unwrap_or(0);
+
+    let end = (col..bytes.len())
+        .find(|&i| !is_ident(bytes[i]))
+        .unwrap_or(bytes.len());
+
+    (start < end).then_some((start, end))
+}
+
+/// Extract the word (identifier characters: alphanumeric, `_`, `-`) under `col`.
+pub fn extract_word(line: &str, col: usize) -> Option<&str> {
+    let (start, end) = word_span(line, col)?;
+    Some(&line[start..end])
+}
+
+/// Check whether the word under `col` is a key, i.e. the next non-space
+/// character after it is `=`.
+pub fn is_key_at(line: &str, col: usize) -> bool {
+    match word_span(line, col) {
+        Some((_, end)) => line[end..].trim_start().starts_with('='),
+        None => false,
+    }
+}
+
+/// Determine which table section a line belongs to.
+///
+/// Scans backwards from `line_num` for the nearest `[table]` or `[[table]]`
+/// header and returns the table name. Returns `None` when the line sits before
+/// any header.
+pub fn section_at_line(lines: &[&str], line_num: usize) -> Option<String> {
+    let end = line_num.min(lines.len().checked_sub(1)?);
+    for line in lines[..=end].iter().rev() {
+        let trimmed = line.trim();
+        if let Some(rest) = trimmed.strip_prefix("[[") {
+            return rest.split("]]").next().map(|n| n.trim().to_string());
+        }
+        if let Some(rest) = trimmed.strip_prefix('[') {
+            return rest.split(']').next().map(|n| n.trim().to_string());
+        }
+    }
+    None
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

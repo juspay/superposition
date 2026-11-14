@@ -1,0 +1,13 @@
+# QUICK FIX — cursor on "Mumbai", Cmd+.
+# Expect two actions: 'Replace with "Bangalore"' and 'Replace with "Delhi"'
+# The valid values are read from the dimension's schema, not from the error text.
+
+[default-configs]
+per_km_rate = { value = 20.0, schema = { type = "number", minimum = 5.0 } }
+
+[dimensions]
+city = { position = 1, schema = { type = "string", enum = ["Bangalore", "Delhi"] } }
+
+[[overrides]]
+_context_ = { city = "Mumbai" }
+per_km_rate = 25.0
