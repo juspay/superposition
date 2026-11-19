@@ -91,7 +91,7 @@ describe("Organisation Tests", () => {
             });
 
             await expect(superpositionClient.send(getCommand)).rejects.toThrow(
-                "the identifier can only contain letters, numbers and underscores",
+                "the identifier can only contain letters and numbers",
             );
         });
 
