@@ -15,7 +15,7 @@
 | actions/upload-pages-artifact | [v3.0.1](https://github.com/actions/upload-pages-artifact/releases/tag/v3.0.1) | [56afc60](https://github.com/actions/upload-pages-artifact/commit/56afc609e74202658d3ffba0e8f6dda462b719fa) |
 | astral-sh/setup-uv | [v3.2.4](https://github.com/astral-sh/setup-uv/releases/tag/v3.2.4) | [caf0cab](https://github.com/astral-sh/setup-uv/commit/caf0cab7a618c569241d31dcd442f54681755d39) |
 | astral-sh/setup-uv | [v4](https://github.com/astral-sh/setup-uv/releases/tag/v4) | [e4db846](https://github.com/astral-sh/setup-uv/commit/e4db8464a088ece1b920f60402e813ea4de65b8f) |
-| baptiste0928/cargo-install | [v2.2.0](https://github.com/baptiste0928/cargo-install/releases/tag/v2.2.0) | [21a18ba](https://github.com/baptiste0928/cargo-install/commit/21a18ba3bf4a184d1804e8b759930d3471b1c941) |
+| baptiste0928/cargo-install | [v3.5.0](https://github.com/baptiste0928/cargo-install/releases/tag/v3.5.0) | [8195d4f](https://github.com/baptiste0928/cargo-install/commit/8195d4f734a149db85385bb4102b42efcd373759) |
 | docker/build-push-action | [v6.19.2](https://github.com/docker/build-push-action/releases/tag/v6.19.2) | [10e90e3](https://github.com/docker/build-push-action/commit/10e90e3645eae34f1e60eeb005ba3a3d33f178e8) |
 | docker/login-action | [v3.7.0](https://github.com/docker/login-action/releases/tag/v3.7.0) | [c94ce9f](https://github.com/docker/login-action/commit/c94ce9fb468520275223c153574b00df6fe4bcc9) |
 | docker/setup-buildx-action | [v3.12.0](https://github.com/docker/setup-buildx-action/releases/tag/v3.12.0) | [8d2750c](https://github.com/docker/setup-buildx-action/commit/8d2750c68a42422c14e847fe6c8ac0403b4cbd6f) |

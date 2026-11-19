@@ -40,13 +40,13 @@ jobs:
               run: rustup toolchain install
 
             - name: install cargo-edit to perform set-version
-              uses: baptiste0928/cargo-install@21a18ba3bf4a184d1804e8b759930d3471b1c941 # v2.2.0
+              uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3.5.0
               with:
                   crate: cargo-edit
-                  version: "0.13.14"
+                  version: "0.13.13"
 
             - name: install cocogitto
-              uses: baptiste0928/cargo-install@21a18ba3bf4a184d1804e8b759930d3471b1c941 # v2.2.0
+              uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3.5.0
               with:
                   crate: cocogitto
                   version: "6.2.0"
@@ -619,10 +619,10 @@ jobs:
               run: rustup toolchain install
 
             - name: install cargo-edit to perform set-version
-              uses: baptiste0928/cargo-install@21a18ba3bf4a184d1804e8b759930d3471b1c941 # v2.2.0
+              uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3.5.0
               with:
                   crate: cargo-edit
-                  version: "0.13.14"
+                  version: "0.13.13"
 
             - name: Build and package superposition
               run: |
