@@ -14,4 +14,5 @@ pub mod observability;
 pub mod redis;
 pub mod registry;
 pub mod service;
+pub mod webhook_sender;
 pub mod workspace_lock;

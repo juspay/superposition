@@ -196,12 +196,13 @@ async fn create_handler(
 
     put_workspace_in_redis(&created_workspace, &state, &workspace_schema_name.0).await;
 
-    if state.kronos_workspace.is_none() {
+    // Library mode only: Kronos tables live in each SP schema.
+    if let Some(kronos) = state.kronos.as_ref().filter(|k| k.workspace.is_none()) {
         setup_dispatcher(
-            state.kronos_client.as_ref(),
+            kronos.client.as_ref(),
             &workspace_schema_name.0,
             &state.superposition_host,
-            &state.kronos_dispatch_token,
+            &kronos.dispatch_token,
         )
         .await;
     }
@@ -466,12 +467,13 @@ async fn migrate_schema_handler(
         Ok(())
     })?;
 
-    if state.kronos_workspace.is_none() {
+    // Library mode only: Kronos tables live in each SP schema.
+    if let Some(kronos) = state.kronos.as_ref().filter(|k| k.workspace.is_none()) {
         setup_dispatcher(
-            state.kronos_client.as_ref(),
+            kronos.client.as_ref(),
             &schema_name.0,
             &state.superposition_host,
-            &state.kronos_dispatch_token,
+            &kronos.dispatch_token,
         )
         .await;
     }

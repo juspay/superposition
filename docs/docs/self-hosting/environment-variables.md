@@ -45,10 +45,13 @@ deployment.
 ## Kronos Webhook Delivery
 
 Kronos provides durable, retryable webhook delivery. It runs as an embedded
-library by default; setting `KRONOS_URL` selects service mode.
+library by default; setting `KRONOS_URL` selects service mode. Set
+`KRONOS_ENABLED=false` to run without Kronos; the other variables below are then
+ignored.
 
 | Variable | Mode | Notes |
 | --- | --- | --- |
+| `KRONOS_ENABLED` | All | `true` (default) or `false`. When `false`, webhooks are sent inline during the API request, once, with no retries. |
 | `SUPERPOSITION_HOST` | Both | Callback base URL reachable by Kronos. Include `SERVICE_PREFIX` when configured. Falls back to `CAC_HOST`. |
 | `KRONOS_DISPATCH_TOKEN` | Both | Secret used only to authenticate Kronos callbacks. |
  | `KRONOS_ENCRYPTION_KEY` | Library | Stable 64-character hexadecimal key. Generate with `openssl rand -hex 32`. Do not leave this unset in production (the app defaults to 64 `0` characters). |
