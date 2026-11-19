@@ -513,6 +513,7 @@ pub async fn rotate_encryption_key_handler(
         organisation_id: org_id,
         workspace_id: WorkspaceId(workspace.workspace_name.clone()),
         settings: workspace,
+        enable_functions: state.enable_functions,
     };
 
     let total_secrets_re_encrypted = conn

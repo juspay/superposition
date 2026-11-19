@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use rustyscript::{Module, Runtime, RuntimeOptions, json_args};
 use serde::Serialize;
-use superposition_macros::{bad_argument, validation_error};
+use superposition_macros::{bad_argument, forbidden, validation_error};
 
 use service_utils::service::types::{EncryptionKey, WorkspaceContext};
 use superposition_types::{
@@ -26,6 +26,8 @@ struct FunctionPayload {
     #[serde(flatten)]
     payload: FunctionExecutionRequest,
 }
+
+pub(crate) const FUNCTIONS_DISABLED_MSG: &str = "Function execution is disabled on this server. Please contact your administrator to enable this feature.";
 
 const FUNCTION_WRAPPER: &str = r#"
 let logBuffer = [];
@@ -73,12 +75,18 @@ fn generate_wrapped_code(code: &str) -> String {
 
 /// Runs JS function code in a rustyscript runtime. This function is `Send`-safe
 /// and does not require any DB connection, making it suitable for use with
-/// `spawn_blocking`.
+/// `spawn_blocking`. `enable_functions` is the global `ENABLE_FUNCTIONS` flag
+/// (from AppState); when false, no user-defined JS is executed.
 pub fn run_js_function(
     code: FunctionCode,
     args: FunctionExecutionRequest,
     runtime_version: FunctionRuntimeVersion,
+    enable_functions: bool,
 ) -> Result<FunctionExecutionResponse, (String, Option<String>)> {
+    if !enable_functions {
+        log::error!("Blocked function execution: ENABLE_FUNCTIONS is not set to true");
+        return Err((FUNCTIONS_DISABLED_MSG.to_string(), None));
+    }
     let wrapped_code = generate_wrapped_code(&code);
     let module = Module::new("function.js", &wrapped_code);
 
@@ -140,6 +148,10 @@ pub fn execute_fn(
     conn: &mut DBConnection,
     master_encryption_key: &Option<EncryptionKey>,
 ) -> Result<FunctionExecutionResponse, (String, Option<String>)> {
+    if !workspace_context.enable_functions {
+        log::error!("Blocked function execution: ENABLE_FUNCTIONS is not set to true");
+        return Err((FUNCTIONS_DISABLED_MSG.to_string(), None));
+    }
     let code = inject_secrets_and_variables_into_code(
         code_str,
         conn,
@@ -151,13 +163,25 @@ pub fn execute_fn(
         (err.to_string(), None)
     })?;
 
-    run_js_function(code, args.clone(), runtime_version)
+    run_js_function(
+        code,
+        args.clone(),
+        runtime_version,
+        workspace_context.enable_functions,
+    )
 }
 
 pub fn compile_fn(
     code_str: &FunctionCode,
     fn_type: &FunctionType,
+    enable_functions: bool,
 ) -> superposition::Result<()> {
+    if !enable_functions {
+        log::error!(
+            "Blocked function compile dry-run: ENABLE_FUNCTIONS is not set to true"
+        );
+        return Err(forbidden!(FUNCTIONS_DISABLED_MSG));
+    }
     // syntax validation, so we do not need the actual secrets and vars
     let stubs = "const SECRETS = {};\nconst VARS = {};\n";
     let stubbed_code = FunctionCode(format!("{}\n{}", stubs, code_str));

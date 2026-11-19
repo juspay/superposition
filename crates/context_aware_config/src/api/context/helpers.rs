@@ -35,7 +35,7 @@ use crate::api::functions::helpers::{
 };
 use crate::{
     api::functions::{helpers::get_published_functions_by_names, types::FunctionInfo},
-    validation_functions::run_js_function,
+    validation_functions::{FUNCTIONS_DISABLED_MSG, run_js_function},
 };
 
 use super::validations::{validate_dimensions, validate_override_with_default_configs};
@@ -287,6 +287,10 @@ pub async fn validation_function_executor(
     conn: &mut DBConnection,
     master_encryption_key: &Option<EncryptionKey>,
 ) -> superposition::Result<()> {
+    if !workspace_context.enable_functions {
+        log::error!("Blocked function validation: ENABLE_FUNCTIONS is not set to true");
+        return Err(validation_error!(FUNCTIONS_DISABLED_MSG));
+    }
     let code = inject_secrets_and_variables_into_code(
         function,
         conn,
@@ -295,9 +299,12 @@ pub async fn validation_function_executor(
     )?;
 
     let args_owned = args.clone();
+    let enable_functions = workspace_context.enable_functions;
     let handle = rustyscript::tokio::runtime::Handle::current();
     let result = handle
-        .spawn_blocking(move || run_js_function(code, args_owned, runtime_version))
+        .spawn_blocking(move || {
+            run_js_function(code, args_owned, runtime_version, enable_functions)
+        })
         .await
         .map_err(|e| {
             log::error!("spawn_blocking join error: {:?}", e);

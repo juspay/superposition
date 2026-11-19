@@ -327,6 +327,7 @@ pub async fn rotate_master_key_handler(
                     organisation_id: OrganisationId(workspace.organisation_id.clone()),
                     schema_name,
                     settings: workspace,
+                    enable_functions: state.enable_functions,
                 };
                 match rotate_workspace_encryption_key_helper(
                     &workspace_context,

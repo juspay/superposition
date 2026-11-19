@@ -69,6 +69,7 @@ services:
       ALLOW_SAME_KEYS_OVERLAPPING_CTX: "true"
       ALLOW_DIFF_KEYS_OVERLAPPING_CTX: "true"
       ALLOW_SAME_KEYS_NON_OVERLAPPING_CTX: "true"
+      ENABLE_FUNCTIONS: "true"
       TENANT_MIDDLEWARE_EXCLUSION_LIST: "/health,/assets/favicon.ico,/pkg/frontend.js,/pkg,/pkg/frontend_bg.wasm,/pkg/tailwind.css,/pkg/style.css,/assets,/admin,/oidc/login,/admin/organisations,/organisations,/organisations/switch/{organisation_id},/"
       AUTH_PROVIDER: DISABLED
       AUTH_Z_PROVIDER: DISABLED
