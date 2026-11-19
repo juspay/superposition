@@ -195,6 +195,64 @@ pub fn parse_config_tags(
     }
 }
 
+/// Maximum length for an identifier used as a PostgreSQL schema-name
+/// component. PostgreSQL's `NAMEDATALEN` is 64, leaving 63 usable characters.
+/// This is the floor for any identifier that can land in a schema name.
+pub const MAX_IDENTIFIER_LEN: usize = 63;
+
+/// Maximum length for a workspace name. Workspace names are combined with an
+/// org id (`{org_id}_{workspace_name}`) to form a schema name, which must fit
+/// within [`MAX_IDENTIFIER_LEN`]; capping the workspace half keeps the
+/// combined value comfortably under the PostgreSQL limit.
+pub const MAX_WORKSPACE_NAME_LEN: usize = 30;
+
+static IDENTIFIER_REGEX: Lazy<Option<Regex>> = Lazy::new(|| {
+    Regex::new(r"^[a-zA-Z0-9_]+$").ok()
+});
+
+/// Validates and sanitises an identifier (organisation id, workspace name, or
+/// derived schema name).
+///
+/// Trims leading/trailing whitespace (sanitise), then enforces that the
+/// remainder is non-empty, no longer than `max_len`, and matches the
+/// `^[a-zA-Z0-9_]+$` regex (validate). On success returns the trimmed value
+/// for the caller to use; on failure returns [`result::AppError::BadArgument`]
+/// (HTTP 400).
+///
+/// Use [`MAX_IDENTIFIER_LEN`] for identifiers that can land directly in a
+/// schema name (org ids, derived schema names, DDL), and
+/// [`MAX_WORKSPACE_NAME_LEN`] for workspace names which combine with an org id.
+pub fn validate_and_sanitize_identifier(
+    name: &str,
+    max_len: usize,
+) -> result::Result<String> {
+    let sanitized = name.trim();
+    let regex = IDENTIFIER_REGEX.as_ref().ok_or_else(|| {
+        log::error!("identifier validation regex could not be compiled");
+        result::AppError::UnexpectedError(anyhow!(
+            "could not validate the provided identifier"
+        ))
+    })?;
+    if sanitized.is_empty() {
+        return Err(result::AppError::BadArgument(
+            "the identifier cannot be empty".to_string(),
+        ));
+    }
+    if sanitized.len() > max_len {
+        return Err(result::AppError::BadArgument(format!(
+            "the identifier cannot be longer than {} characters",
+            max_len
+        )));
+    }
+    if !regex.is_match(sanitized) {
+        return Err(result::AppError::BadArgument(
+            "the identifier can only contain letters, numbers and underscores"
+                .to_string(),
+        ));
+    }
+    Ok(sanitized.to_string())
+}
+
 pub fn get_workspace(
     workspace_schema_name: &SchemaName,
     db_conn: &mut DBConnection,
@@ -346,4 +404,95 @@ pub fn is_not_modified(max_created_at: Option<DateTime<Utc>>, req: &HttpRequest)
     log::info!("last modified {last_modified:?}");
     let parsed_max: Option<DateTime<Utc>> = max_created_at.and_then(nanosecond_erasure);
     max_created_at.is_some() && parsed_max <= last_modified
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn trims_and_accepts_alphanumeric() {
+        assert_eq!(
+            validate_and_sanitize_identifier("  orgid123  ", MAX_IDENTIFIER_LEN).unwrap(),
+            "orgid123"
+        );
+        assert_eq!(
+            validate_and_sanitize_identifier("myworkspace", MAX_WORKSPACE_NAME_LEN).unwrap(),
+            "myworkspace"
+        );
+    }
+
+    #[test]
+    fn accepts_underscore() {
+        assert_eq!(
+            validate_and_sanitize_identifier("orgid123_myworkspace", MAX_IDENTIFIER_LEN)
+                .unwrap(),
+            "orgid123_myworkspace"
+        );
+    }
+
+    #[test]
+    fn rejects_empty_after_trim() {
+        assert!(validate_and_sanitize_identifier("   ", MAX_IDENTIFIER_LEN).is_err());
+        assert!(validate_and_sanitize_identifier("", MAX_IDENTIFIER_LEN).is_err());
+    }
+
+    #[test]
+    fn rejects_too_long_for_identifier_limit() {
+        let long = "a".repeat(MAX_IDENTIFIER_LEN + 1);
+        assert!(validate_and_sanitize_identifier(&long, MAX_IDENTIFIER_LEN).is_err());
+    }
+
+    #[test]
+    fn rejects_workspace_name_longer_than_30() {
+        let thirty_one = "a".repeat(MAX_WORKSPACE_NAME_LEN + 1);
+        assert!(
+            validate_and_sanitize_identifier(&thirty_one, MAX_WORKSPACE_NAME_LEN).is_err()
+        );
+    }
+
+    #[test]
+    fn accepts_workspace_name_of_exactly_30() {
+        let thirty = "a".repeat(MAX_WORKSPACE_NAME_LEN);
+        assert_eq!(
+            validate_and_sanitize_identifier(&thirty, MAX_WORKSPACE_NAME_LEN).unwrap(),
+            thirty
+        );
+    }
+
+    #[test]
+    fn rejects_inner_space() {
+        assert!(validate_and_sanitize_identifier("org id", MAX_IDENTIFIER_LEN).is_err());
+    }
+
+    #[test]
+    fn rejects_semicolon() {
+        assert!(validate_and_sanitize_identifier("orgid;--", MAX_IDENTIFIER_LEN).is_err());
+    }
+
+    #[test]
+    fn rejects_quote() {
+        assert!(validate_and_sanitize_identifier("org'id", MAX_IDENTIFIER_LEN).is_err());
+        assert!(validate_and_sanitize_identifier("org\"id", MAX_IDENTIFIER_LEN).is_err());
+    }
+
+    #[test]
+    fn rejects_dot() {
+        assert!(
+            validate_and_sanitize_identifier("public.dimensions", MAX_IDENTIFIER_LEN).is_err()
+        );
+    }
+
+    #[test]
+    fn rejects_injection_payload() {
+        assert!(validate_and_sanitize_identifier(
+            "orgid1; DROP TABLE workspaces;--",
+            MAX_IDENTIFIER_LEN
+        )
+        .is_err());
+        assert!(
+            validate_and_sanitize_identifier("orgid1 UNION SELECT 1", MAX_IDENTIFIER_LEN)
+                .is_err()
+        );
+    }
 }

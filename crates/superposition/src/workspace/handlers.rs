@@ -12,13 +12,14 @@ use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
 };
 use fred::{prelude::KeysInterface, types::Expiration};
-use regex::Regex;
 use service_utils::{
     encryption::{
         encrypt_workspace_key, generate_encryption_key,
         rotate_workspace_encryption_key_helper,
     },
-    helpers::get_workspace,
+    helpers::{
+        MAX_IDENTIFIER_LEN, MAX_WORKSPACE_NAME_LEN, get_workspace, validate_and_sanitize_identifier,
+    },
     kronos_dispatch::setup_dispatcher,
     middlewares::auth_z::AuthZHandler,
     service::types::{
@@ -26,7 +27,7 @@ use service_utils::{
     },
 };
 use superposition_derives::{authorized, declare_resource};
-use superposition_macros::{bad_argument, db_error, unexpected_error, validation_error};
+use superposition_macros::{bad_argument, db_error, unexpected_error};
 use superposition_types::{
     PaginatedResponse, User,
     api::{
@@ -53,6 +54,10 @@ fn setup_workspace_schema(
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
     workspace_schema_name: &str,
 ) -> superposition::Result<()> {
+    // the schema name is string-replaced into a raw DDL
+    // script and executed via `batch_execute`. Sanitise it before
+    // interpolation, regardless of how the caller obtained it.
+    let workspace_schema_name = validate_and_sanitize_identifier(workspace_schema_name, MAX_IDENTIFIER_LEN)?;
     let workspace_template =
         fs::read_to_string(WORKSPACE_TEMPLATE_PATH).map_err(|err| {
             log::error!("Could not load the workspace template due to {}", err);
@@ -61,7 +66,7 @@ fn setup_workspace_schema(
             )
         })?;
     let workspace_template =
-        workspace_template.replace("{replaceme}", workspace_schema_name);
+        workspace_template.replace("{replaceme}", &workspace_schema_name);
     conn.batch_execute(&workspace_template).map_err(|err| {
         log::error!(
             "Could not create workspace {} due to {}",
@@ -91,7 +96,7 @@ async fn get_handler(
     org_id: OrganisationId,
 ) -> superposition::Result<Json<WorkspaceResponse>> {
     let DbConnection(mut conn) = db_conn;
-    let workspace_name = workspace_name.into_inner();
+    let workspace_name = validate_and_sanitize_identifier(&workspace_name.into_inner(), MAX_WORKSPACE_NAME_LEN)?;
     let workspace: Workspace = workspaces::dsl::workspaces
         .filter(workspaces::organisation_id.eq(&org_id.0))
         .filter(workspaces::workspace_name.eq(workspace_name))
@@ -117,9 +122,9 @@ async fn create_handler(
     let timestamp = Utc::now();
     let request = request.into_inner();
 
-    validate_workspace_name(&request.workspace_name)?;
+    let workspace_name = validate_and_sanitize_identifier(&request.workspace_name, MAX_WORKSPACE_NAME_LEN)?;
     let workspace_schema_name =
-        SchemaName(format!("{}_{}", &org_info.id, &request.workspace_name));
+        SchemaName(format!("{}_{}", &org_info.id, &workspace_name));
 
     let encryption_key = match state.master_encryption_key {
         Some(ref master_encryption_key) => {
@@ -141,7 +146,7 @@ async fn create_handler(
     let workspace = Workspace {
         organisation_id: org_info.id,
         organisation_name: org_info.name,
-        workspace_name: request.workspace_name,
+        workspace_name,
         workspace_schema_name: workspace_schema_name.to_string(),
         workspace_status: WorkspaceStatus::ENABLED,
         workspace_admin_email: request.workspace_admin_email,
@@ -217,7 +222,7 @@ async fn update_handler(
     authz_handler: AuthZHandler,
 ) -> superposition::Result<Json<WorkspaceResponse>> {
     let request = request.into_inner();
-    let workspace_name = workspace_name.into_inner();
+    let workspace_name = validate_and_sanitize_identifier(&workspace_name.into_inner(), MAX_WORKSPACE_NAME_LEN)?;
     let timestamp = Utc::now();
     let schema_name = SchemaName(format!("{}_{}", *org_id, workspace_name));
     let DbConnection(mut conn) = db_conn;
@@ -392,38 +397,6 @@ async fn list_handler(
     }))
 }
 
-const WORKSPACE_NAME_REGEX: &str = "^[a-zA-Z0-9]+$";
-
-fn validate_workspace_name(workspace_name: &String) -> superposition::Result<()> {
-    let regex = Regex::new(WORKSPACE_NAME_REGEX).map_err(|err| {
-        log::error!("Could not process the regex for validating workspace names {err}");
-        unexpected_error!("Could not process the regex for validating workspace names")
-    })?;
-    match workspace_name {
-        w_name if w_name.len() > 25 => {
-            log::error!(
-                "the workspace name {} was larger than 25 bytes/characters, the actual length was {}",
-                w_name,
-                w_name.len()
-            );
-            Err(validation_error!(
-                "the workspace name cannot be larger than 25 characters"
-            ))
-        }
-        w_name if !regex.is_match(w_name) => {
-            log::error!(
-                "the workspace name {} did not match the regex {}",
-                w_name,
-                WORKSPACE_NAME_REGEX
-            );
-            Err(validation_error!(
-                "the workspace name can only contain letters and numbers"
-            ))
-        }
-        _ => Ok(()),
-    }
-}
-
 #[authorized]
 #[post("/{workspace_name}/db/migrate")]
 async fn migrate_schema_handler(
@@ -433,7 +406,7 @@ async fn migrate_schema_handler(
     state: Data<AppState>,
     user: User,
 ) -> superposition::Result<Json<WorkspaceResponse>> {
-    let workspace_name = workspace_name.into_inner();
+    let workspace_name = validate_and_sanitize_identifier(&workspace_name.into_inner(), MAX_WORKSPACE_NAME_LEN)?;
     let DbConnection(mut conn) = db_conn;
     let schema_name = SchemaName(format!("{}_{}", *org_id, &workspace_name));
     let workspace = get_workspace(&schema_name, &mut conn)?;
@@ -499,6 +472,7 @@ pub async fn rotate_encryption_key_handler(
     state: Data<AppState>,
 ) -> superposition::Result<Json<KeyRotationResponse>> {
     let DbConnection(mut conn) = db_conn;
+    let workspace_name = validate_and_sanitize_identifier(&workspace_name.into_inner(), MAX_WORKSPACE_NAME_LEN)?;
 
     let Some(ref master_encryption_key) = state.master_encryption_key else {
         log::error!("Master encryption key not configured");
@@ -507,7 +481,7 @@ pub async fn rotate_encryption_key_handler(
         ));
     };
 
-    let schema_name = SchemaName(format!("{}_{}", *org_id, workspace_name.into_inner()));
+    let schema_name = SchemaName(format!("{}_{}", *org_id, &workspace_name));
     let workspace = get_workspace(&schema_name, &mut conn)?;
     let workspace_context = WorkspaceContext {
         schema_name: schema_name.clone(),

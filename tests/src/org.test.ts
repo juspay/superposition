@@ -77,7 +77,7 @@ describe("Organisation Tests", () => {
 
         it("should handle non-existent organisation id", async () => {
             const getCommand = new GetOrganisationCommand({
-                id: "non-existent-id",
+                id: "nonexistentid",
             });
 
             await expect(superpositionClient.send(getCommand)).rejects.toThrow(
@@ -91,7 +91,7 @@ describe("Organisation Tests", () => {
             });
 
             await expect(superpositionClient.send(getCommand)).rejects.toThrow(
-                "No records found. Please refine or correct your search parameters",
+                "the identifier can only contain letters, numbers and underscores",
             );
         });
 
@@ -210,7 +210,7 @@ describe("Organisation Tests", () => {
 
         it("should handle non-existent organisation update", async () => {
             const updateCommand = new UpdateOrganisationCommand({
-                id: "non-existent-id",
+                id: "nonexistentid",
                 admin_email: "test@gmail.com",
             });
 

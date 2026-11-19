@@ -27,7 +27,6 @@ inventory = { workspace = true }
 leptos = { workspace = true, optional = true }
 leptos_actix = { version = "0.6.11", optional = true }
 log = { workspace = true }
-regex = { workspace = true }
 reqwest = { workspace = true }
 rs-snowflake = { workspace = true }
 rustls = { workspace = true }

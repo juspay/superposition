@@ -1,5 +1,8 @@
 use actix_web::HttpRequest;
 
+use crate::helpers::{
+    MAX_IDENTIFIER_LEN, MAX_WORKSPACE_NAME_LEN, validate_and_sanitize_identifier,
+};
 use crate::service::types::{OrganisationId, WorkspaceId};
 
 pub trait HttpRequestExt {
@@ -39,7 +42,13 @@ impl HttpRequestExt for HttpRequest {
             .or_else(|| self.get_path_param("{org_id}"))
             .or_else(|| self.get_query_param("org"))
             .map(String::from)
-            .map(OrganisationId)
+            .and_then(|id| match validate_and_sanitize_identifier(&id, MAX_IDENTIFIER_LEN) {
+                Ok(sanitized) => Some(OrganisationId(sanitized)),
+                Err(e) => {
+                    log::warn!("rejecting invalid organisation id: {}", e);
+                    None
+                }
+            })
     }
 
     fn get_workspace_id(&self) -> Option<WorkspaceId> {
@@ -50,6 +59,12 @@ impl HttpRequestExt for HttpRequest {
             .or_else(|| self.get_query_param("workspace"))
             .or_else(|| self.get_query_param("tenant"))
             .map(String::from)
-            .map(WorkspaceId)
+            .and_then(|id| match validate_and_sanitize_identifier(&id, MAX_WORKSPACE_NAME_LEN) {
+                Ok(sanitized) => Some(WorkspaceId(sanitized)),
+                Err(e) => {
+                    log::warn!("rejecting invalid workspace id: {}", e);
+                    None
+                }
+            })
     }
 }
