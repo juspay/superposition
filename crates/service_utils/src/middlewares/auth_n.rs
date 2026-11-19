@@ -115,7 +115,10 @@ fn process_basic_auth<'a>(
         })?;
 
     if request.path().ends_with("/dispatch/webhook")
-        && is_dispatch_credential(&id, &secret, &state.kronos_dispatch_token)
+        && state
+            .kronos
+            .as_ref()
+            .is_some_and(|k| is_dispatch_credential(&id, &secret, &k.dispatch_token))
     {
         let user = process_dipatcher_token(request);
         return Some(Box::pin(ready(Ok(user))));
