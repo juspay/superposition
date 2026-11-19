@@ -24,6 +24,7 @@ use base64::{Engine, engine::general_purpose};
 use futures_util::future::LocalBoxFuture;
 use no_auth::DisabledAuthenticator;
 use oidc::{SaasOIDCAuthenticator, SimpleOIDCAuthenticator};
+use superposition_macros::bad_argument;
 use superposition_types::{DispatchUser, InternalUser, User};
 
 use crate::{
@@ -150,7 +151,7 @@ impl<S> AuthNMiddleware<S> {
         &self,
         request: &ServiceRequest,
         exception: &HashSet<String>,
-    ) -> Login {
+    ) -> Result<Login, Error> {
         let path_prefix = self.auth_n_handler.0.get_path_prefix();
         let request_pattern = request
             .match_pattern()
@@ -162,18 +163,23 @@ impl<S> AuthNMiddleware<S> {
         let admin_authz_request = request.path().matches("/authz/admin").count() > 0;
         let admin_settings_request =
             request.path().matches("/admin/settings").count() > 0;
-        let global_request = org_request || admin_authz_request || admin_settings_request;
+        let master_key_request =
+            request.path().matches("/master-encryption-key").count() > 0;
+        let global_request = org_request
+            || admin_authz_request
+            || admin_settings_request
+            || master_key_request;
 
         match (excep, global_request) {
-            (true, false) => Login::None,
-            (_, true) => Login::Global,
-            (false, false) => Login::Org(
-                request
-                    .request()
-                    .get_organisation_id()
-                    .map(|o| o.0)
-                    .unwrap_or_default(),
-            ),
+            (true, false) => Ok(Login::None),
+            (_, true) => Ok(Login::Global),
+            (false, false) => match request.request().get_organisation_id() {
+                Ok(org) => Ok(Login::Org(org.0)),
+                Err(e) => {
+                    log::error!("Invalid org_id: {}", e);
+                    Err(bad_argument!("Invalid org_id: must be alphanumeric, lowercase, and less than 25 characters").into())
+                }
+            },
         }
     }
 }
@@ -193,8 +199,16 @@ where
     fn call(&self, request: ServiceRequest) -> Self::Future {
         let state = request.app_data::<Data<AppState>>().unwrap();
 
-        let login_type =
-            self.get_login_type(&request, &state.tenant_middleware_exclusion_list);
+        let login_type = match self
+            .get_login_type(&request, &state.tenant_middleware_exclusion_list)
+        {
+            Ok(lt) => lt,
+            Err(e) => {
+                return Box::pin(async move {
+                    Ok(request.into_response(e.error_response().map_into_right_body()))
+                });
+            }
+        };
 
         let auth_future = request
             .headers()

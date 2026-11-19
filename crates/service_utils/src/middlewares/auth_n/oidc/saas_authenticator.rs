@@ -245,7 +245,10 @@ impl SaasOIDCAuthenticator {
         request: HttpRequest,
         login_type: Login,
     ) -> Result<User, HttpResponse> {
-        let org_id = request.get_organisation_id().unwrap_or_default();
+        let org_id = request.get_organisation_id().map_err(|e| {
+            log::error!("Invalid org_id: {}", e);
+            HttpResponse::BadRequest().body("Invalid org_id: must be alphanumeric, lowercase, and less than 25 characters")
+        })?;
         let token = request.cookie(&login_type.to_string()).and_then(|c| {
             self.decode_org_token(&org_id, c.value())
                 .map_err(|e| log::error!("Error in decoding org_user : {e}"))
