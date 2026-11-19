@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_sdk-v0.25.0 - 2026-11-19
+#### Features
+- support search, filtering and grouping for list default configs (#879) - (2e85645) - Ayush Jain
+
+- - -
+
 ## superposition_sdk-v0.24.2 - 2026-11-07
 #### Bug Fixes
 - remove legacy client from rust sdk (#1181) - (396e449) - Ayush Jain

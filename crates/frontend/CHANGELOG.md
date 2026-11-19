@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## frontend-v0.59.0 - 2026-11-19
+#### Features
+- support search, filtering and grouping for list default configs (#879) - (2e85645) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.118.2 [skip ci] - (c926c91) - Superposition Bot
+- pin versions across all usages (#1183) - (6002d60) - Ayush Jain
+- update smithy version (#1077) - (04207ff) - Ayush Jain
+
+- - -
+
 ## frontend-v0.58.2 - 2026-10-13
 #### Bug Fixes
 - support anyOf/type-less JSON schemas in key/config creation UI (#1152) - (86ecf23) - Natarajan Kannan

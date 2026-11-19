@@ -2,6 +2,30 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.120.0 - 2026-11-19
+### Package updates
+- frontend bumped to frontend-v0.59.0
+- superposition_types bumped to superposition_types-v0.52.0
+- service_utils bumped to service_utils-v0.46.3
+- haskell_client bumped to haskell_client-v0.25.0
+- superposition_sdk bumped to superposition_sdk-v0.25.0
+- context_aware_config bumped to context_aware_config-v0.80.0
+### Global changes
+#### Bug Fixes
+- update kronos version (#1182) - (43d0e60) - Ayush Jain
+- prevent sqli injection through workspace parameters (#1187) - (05a5356) - Datron
+#### Documentation
+- auto-update AI skills from provider docs - (434e51b) - Superposition Bot
+- auto-update AI skills from provider docs - (f893f34) - Superposition Bot
+#### Features
+- support search, filtering and grouping for list default configs (#879) - (2e85645) - Ayush Jain
+#### Miscellaneous Chores
+- **(ci)** update versions to avoid rust version issues (#1189) - (950cce4) - Datron
+- pin versions across all usages (#1183) - (6002d60) - Ayush Jain
+- add kache compiler cache to the nix dev shell (#1186) - (516bb03) - Natarajan Kannan
+
+- - -
+
 ## v0.119.0 - 2026-11-07
 ### Package updates
 - superposition_sdk bumped to superposition_sdk-v0.24.2

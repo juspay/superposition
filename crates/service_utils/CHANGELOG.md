@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.46.3 - 2026-11-19
+#### Bug Fixes
+- prevent sqli injection through workspace parameters (#1187) - (05a5356) - Datron
+
+- - -
+
 ## service_utils-v0.46.2 - 2026-11-07
 #### Bug Fixes
 - remove legacy client from rust sdk (#1181) - (396e449) - Ayush Jain
