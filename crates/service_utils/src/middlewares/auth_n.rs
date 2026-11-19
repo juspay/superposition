@@ -163,7 +163,12 @@ impl<S> AuthNMiddleware<S> {
         let admin_authz_request = request.path().matches("/authz/admin").count() > 0;
         let admin_settings_request =
             request.path().matches("/admin/settings").count() > 0;
-        let global_request = org_request || admin_authz_request || admin_settings_request;
+        let master_key_request =
+            request.path().matches("/master-encryption-key").count() > 0;
+        let global_request = org_request
+            || admin_authz_request
+            || admin_settings_request
+            || master_key_request;
 
         match (excep, global_request) {
             (true, false) => Ok(Login::None),

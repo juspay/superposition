@@ -77,6 +77,7 @@
               kache
               self'.packages.smithy-cli
               docker-compose
+              libpq
               gnumake
               # Why do we need this?
               stdenv.cc
