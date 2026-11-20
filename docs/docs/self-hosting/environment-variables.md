@@ -73,22 +73,21 @@ ALLOW_SAME_KEYS_NON_OVERLAPPING_CTX=true
 
 ## Function Execution
 
-`ENABLE_FUNCTIONS` is the master switch for user-defined (JavaScript) function
-execution. It defaults to `false` — when unset or not `true`, no user-defined JS
-is executed anywhere: the function test endpoint, resolve-time value compute,
+`ENABLE_FUNCTION_EXECUTION` is the master switch for user-defined (JavaScript) function
+execution. It defaults to `true` — when unset, function execution is enabled.
+Set it to `false` to disable the feature: no user-defined JS is then executed
+anywhere — the function test endpoint, resolve-time value compute,
 context/default-config validation functions, change-reason validation, and the
 compile dry-run performed on function create/update all fail with an error.
 
-Set it to `true` to enable the feature:
-
 ```bash
-ENABLE_FUNCTIONS=true
+ENABLE_FUNCTION_EXECUTION=false
 ```
 
 Workspaces that do not use functions are unaffected. Deployments that DO use
 functions (validation functions attached to dimensions or default configs,
-value-compute dimensions, or remote cohorts) must set this to `true`, otherwise
-resolve and write-time validation will fail for those workspaces.
+value-compute dimensions, or remote cohorts) should leave this enabled,
+otherwise resolve and write-time validation will fail for those workspaces.
 
 `TENANT_MIDDLEWARE_EXCLUSION_LIST` is also required. Start with the default
 list from `.env.example` and only change it if you are modifying route prefixes
