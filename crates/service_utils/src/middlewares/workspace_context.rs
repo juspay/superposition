@@ -154,6 +154,7 @@ where
                             workspace_id,
                             schema_name: schema_name.clone(),
                             settings: workspace_settings,
+                            enable_functions: app_state.enable_functions,
                         });
 
                         (schema_name, AuthZDomain::new(schema))

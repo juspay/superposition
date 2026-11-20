@@ -100,6 +100,7 @@ pub struct AppState {
     pub cac_version: String,
     pub db_pool: PgSchemaConnectionPool,
     pub experimentation_flags: ExperimentationFlags,
+    pub enable_functions: bool,
     pub snowflake_generator: Arc<Mutex<SnowflakeIdGenerator>>,
     pub tenant_middleware_exclusion_list: HashSet<String>,
     pub service_prefix: String,
@@ -209,6 +210,7 @@ pub struct WorkspaceContext {
     pub organisation_id: OrganisationId,
     pub schema_name: SchemaName,
     pub settings: Workspace,
+    pub enable_functions: bool,
 }
 
 impl FromRequest for WorkspaceContext {
