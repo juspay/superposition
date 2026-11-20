@@ -288,7 +288,9 @@ pub async fn validation_function_executor(
     master_encryption_key: &Option<EncryptionKey>,
 ) -> superposition::Result<()> {
     if !workspace_context.enable_functions {
-        log::error!("Blocked function validation: ENABLE_FUNCTIONS is not set to true");
+        log::error!(
+            "Blocked function validation: ENABLE_FUNCTION_EXECUTION is not set to true"
+        );
         return Err(validation_error!(FUNCTIONS_DISABLED_MSG));
     }
     let code = inject_secrets_and_variables_into_code(

@@ -191,7 +191,7 @@ pub async fn get(
             )
             .expect("ALLOW_SAME_KEYS_NON_OVERLAPPING_CTX not set"),
         },
-        enable_functions: get_from_env_or_default("ENABLE_FUNCTIONS", false),
+        enable_functions: get_from_env_or_default("ENABLE_FUNCTION_EXECUTION", true),
         snowflake_generator,
         app_env,
         tenant_middleware_exclusion_list: get_from_env_unsafe::<String>(

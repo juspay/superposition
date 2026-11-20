@@ -75,8 +75,9 @@ fn generate_wrapped_code(code: &str) -> String {
 
 /// Runs JS function code in a rustyscript runtime. This function is `Send`-safe
 /// and does not require any DB connection, making it suitable for use with
-/// `spawn_blocking`. `enable_functions` is the global `ENABLE_FUNCTIONS` flag
-/// (from AppState); when false, no user-defined JS is executed.
+/// `spawn_blocking`. `enable_functions` is the global
+/// `ENABLE_FUNCTION_EXECUTION` flag (from AppState); when false, no
+/// user-defined JS is executed.
 pub fn run_js_function(
     code: FunctionCode,
     args: FunctionExecutionRequest,
@@ -84,7 +85,9 @@ pub fn run_js_function(
     enable_functions: bool,
 ) -> Result<FunctionExecutionResponse, (String, Option<String>)> {
     if !enable_functions {
-        log::error!("Blocked function execution: ENABLE_FUNCTIONS is not set to true");
+        log::error!(
+            "Blocked function execution: ENABLE_FUNCTION_EXECUTION is not set to true"
+        );
         return Err((FUNCTIONS_DISABLED_MSG.to_string(), None));
     }
     let wrapped_code = generate_wrapped_code(&code);
@@ -149,7 +152,9 @@ pub fn execute_fn(
     master_encryption_key: &Option<EncryptionKey>,
 ) -> Result<FunctionExecutionResponse, (String, Option<String>)> {
     if !workspace_context.enable_functions {
-        log::error!("Blocked function execution: ENABLE_FUNCTIONS is not set to true");
+        log::error!(
+            "Blocked function execution: ENABLE_FUNCTION_EXECUTION is not set to true"
+        );
         return Err((FUNCTIONS_DISABLED_MSG.to_string(), None));
     }
     let code = inject_secrets_and_variables_into_code(
@@ -178,7 +183,7 @@ pub fn compile_fn(
 ) -> superposition::Result<()> {
     if !enable_functions {
         log::error!(
-            "Blocked function compile dry-run: ENABLE_FUNCTIONS is not set to true"
+            "Blocked function compile dry-run: ENABLE_FUNCTION_EXECUTION is not set to true"
         );
         return Err(forbidden!(FUNCTIONS_DISABLED_MSG));
     }

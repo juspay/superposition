@@ -73,7 +73,7 @@ ALLOW_SAME_KEYS_NON_OVERLAPPING_CTX=true
 
 ## Function Execution
 
-`ENABLE_FUNCTIONS` is the master switch for user-defined (JavaScript) function
+`ENABLE_FUNCTION_EXECUTION` is the master switch for user-defined (JavaScript) function
 execution. It defaults to `false` — when unset or not `true`, no user-defined JS
 is executed anywhere: the function test endpoint, resolve-time value compute,
 context/default-config validation functions, change-reason validation, and the
@@ -82,7 +82,7 @@ compile dry-run performed on function create/update all fail with an error.
 Set it to `true` to enable the feature:
 
 ```bash
-ENABLE_FUNCTIONS=true
+ENABLE_FUNCTION_EXECUTION=true
 ```
 
 Workspaces that do not use functions are unaffected. Deployments that DO use
