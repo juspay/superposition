@@ -136,7 +136,7 @@ describe("Secret Operations", () => {
 
         const functionCode = `
         async function execute(payload) {
-            return [SECRETS.${secretName}];
+            return [SECRETS.${secretName} === "${updatedValue}"];
         }`;
 
         const createFuncCmd = new CreateFunctionCommand({
@@ -172,12 +172,12 @@ describe("Secret Operations", () => {
             trackFunction(functionName);
 
             const testResponse1 = await superpositionClient.send(testCmd);
-            expect(testResponse1.fn_output).toEqual([originalValue]);
+            expect(testResponse1.fn_output).toEqual([false]);
 
             await superpositionClient.send(updateCmd);
 
             const testResponse2 = await superpositionClient.send(testCmd);
-            expect(testResponse2.fn_output).toEqual([updatedValue]);
+            expect(testResponse2.fn_output).toEqual([true]);
         } catch (error: any) {
             console.log("Error verifying secret update:", error.message);
             throw error;
