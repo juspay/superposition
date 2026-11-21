@@ -20,7 +20,8 @@ use tokio::task::JoinHandle;
 use tokio::time::{sleep, Duration};
 
 use crate::data_source::{
-    ConfigData, ExperimentData, FetchResponse, SuperpositionDataSource,
+    file::FileDataSource, http::HttpDataSource, ConfigData, ExperimentData,
+    FetchResponse, SuperpositionDataSource,
 };
 use crate::traits::{AllFeatureProvider, FeatureExperimentMeta};
 use crate::{conversions, types::*};
@@ -63,6 +64,32 @@ impl LocalResolutionProvider {
             status: RwLock::new(ProviderStatus::NotReady),
             global_context: RwLock::new(EvaluationContext::default()),
         }))
+    }
+
+    /// Build a provider from the environment with no code-side configuration.
+    ///
+    /// The file from [`FileDataSource::from_env`] is served in process and
+    /// watched for edits. When [`SuperpositionOptions::from_env`] finds remote
+    /// settings, the server is primary and the file is its offline fallback.
+    pub fn auto() -> Result<Self> {
+        let file = FileDataSource::from_env()?
+            .map(|source| Box::new(source) as Box<dyn SuperpositionDataSource>);
+
+        match (SuperpositionOptions::from_env()?, file) {
+            (Some(options), fallback) => Ok(Self::new(
+                Box::new(HttpDataSource::new(options)),
+                fallback,
+                RefreshStrategy::default(),
+            )),
+            (None, Some(file)) => Ok(Self::new(
+                file,
+                None,
+                RefreshStrategy::Watch(WatchStrategy::default()),
+            )),
+            (None, None) => Err(SuperpositionError::ConfigError(
+                "no local configuration found: create ./super.toml (or set SUPERPOSITION_CONFIG_FILE), or configure SUPERPOSITION_ENDPOINT, SUPERPOSITION_TOKEN, SUPERPOSITION_ORG_ID, and SUPERPOSITION_WORKSPACE_ID".into(),
+            )),
+        }
     }
 
     pub async fn init(&self, context: EvaluationContext) -> Result<()> {
