@@ -132,12 +132,13 @@ impl SuperpositionProvider {
             Value::Array(variant_ids.into_iter().map(Value::String).collect()),
         );
 
-        match &self.cac_config {
-            Some(cac_config) => cac_config.evaluate_config(context, None, None).await,
-            None => Err(SuperpositionError::ConfigError(
+        let config = self
+            .cac_config
+            .as_ref()
+            .ok_or(SuperpositionError::ConfigError(
                 "CAC config not initialized".into(),
-            )),
-        }
+            ))?;
+        config.evaluate_config(context, None, None).await
     }
 
     pub async fn get_cached_config(

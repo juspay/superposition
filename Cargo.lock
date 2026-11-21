@@ -9293,6 +9293,7 @@ dependencies = [
  "jsonschema",
  "juspay_jsonlogic",
  "log",
+ "lru",
  "num-bigint",
  "serde",
  "serde_json",

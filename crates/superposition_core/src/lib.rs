@@ -6,6 +6,7 @@ use jsonlogic as _;
 
 uniffi::setup_scaffolding!("superposition_client");
 pub mod config;
+pub mod eval_cache;
 pub mod experiment;
 pub mod ffi;
 pub mod ffi_legacy;

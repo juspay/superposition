@@ -122,8 +122,10 @@ impl CacConfig {
                     loop {
                         match Self::get_config_static(&superposition_options).await {
                             Ok(config) => {
-                                let mut cached = cached_config.write().await;
-                                *cached = Some(config);
+                                {
+                                    let mut cached = cached_config.write().await;
+                                    *cached = Some(config);
+                                }
                                 let mut updated = last_updated.write().await;
                                 *updated = Some(chrono::Utc::now());
                                 debug!("CAC config updated via polling");
@@ -156,8 +158,10 @@ impl CacConfig {
             debug!("TTL expired. Fetching config on-demand");
             match self.get_config(&self.superposition_options).await {
                 Ok(config) => {
-                    let mut cached_config = self.cached_config.write().await;
-                    *cached_config = Some(config.clone());
+                    {
+                        let mut cached_config = self.cached_config.write().await;
+                        *cached_config = Some(config.clone());
+                    }
                     let mut last_updated_mut = self.last_updated.write().await;
                     *last_updated_mut = Some(chrono::Utc::now());
                     info!("Config fetched successfully on-demand");
@@ -392,10 +396,12 @@ impl ExperimentationConfig {
                         );
                         match (experiments_result, groups_result) {
                             (Ok(Some(experiments)), Ok(Some(experiment_groups))) => {
-                                let mut cached = cached_experiments.write().await;
-                                *cached = Some(experiments);
-                                let mut cached_groups = cached_experiment_groups.write().await;
-                                *cached_groups = Some(experiment_groups);
+                                {
+                                    let mut cached = cached_experiments.write().await;
+                                    *cached = Some(experiments);
+                                    let mut cached_groups = cached_experiment_groups.write().await;
+                                    *cached_groups = Some(experiment_groups);
+                                }
                                 let mut updated = last_updated.write().await;
                                 *updated = Some(chrono::Utc::now());
                                 debug!("Experiments and Experiment Groups updated via polling");
@@ -440,11 +446,14 @@ impl ExperimentationConfig {
             );
             match (experiments_result, groups_result) {
                 (Ok(Some(experiments)), Ok(Some(experiment_groups))) => {
-                    let mut cached_experiments = self.cached_experiments.write().await;
-                    *cached_experiments = Some(experiments.clone());
-                    let mut cached_experiment_groups =
-                        self.cached_experiment_groups.write().await;
-                    *cached_experiment_groups = Some(experiment_groups);
+                    {
+                        let mut cached_experiments =
+                            self.cached_experiments.write().await;
+                        *cached_experiments = Some(experiments.clone());
+                        let mut cached_experiment_groups =
+                            self.cached_experiment_groups.write().await;
+                        *cached_experiment_groups = Some(experiment_groups);
+                    }
                     let mut last_updated_mut = self.last_updated.write().await;
                     *last_updated_mut = Some(chrono::Utc::now());
                     info!("Experiments and Experiment Groups fetched successfully on-demand");
