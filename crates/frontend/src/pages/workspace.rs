@@ -99,6 +99,9 @@ pub fn Workspace() -> impl IntoView {
                 .as_bool()
                 .unwrap_or_default();
 
+            let enable_auto_reduce =
+                row["enable_auto_reduce"].as_bool().unwrap_or_default();
+
             let workspace_name_clone = workspace_name.clone();
 
             let edit_click_handler = move |_| {
@@ -118,6 +121,7 @@ pub fn Workspace() -> impl IntoView {
                     auto_populate_control,
                     enable_context_validation,
                     enable_change_reason_validation,
+                    enable_auto_reduce,
                 };
                 logging::log!("{:?}", row_data);
                 selected_workspace.set(Some(row_data));
@@ -220,6 +224,7 @@ pub fn Workspace() -> impl IntoView {
                                     .enable_context_validation
                                 enable_change_reason_validation=selected_workspace_data
                                     .enable_change_reason_validation
+                                enable_auto_reduce=selected_workspace_data.enable_auto_reduce
                                 handle_submit=move |_| {
                                     workspace_resource.refetch();
                                     selected_workspace.set(None);
