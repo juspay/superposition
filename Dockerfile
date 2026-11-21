@@ -40,6 +40,33 @@ RUN cargo build --release --features=ssr
 RUN pwd
 RUN ls -l target
 
+# Superposition functions enable rustyscript's safe_extensions + web + worker.
+# deno_core reads the corresponding extension scripts from absolute cargo paths
+# at runtime. Copy only those scripts: deno_core itself is already embedded.
+RUN set -eu; \
+    mkdir -p /runtime-extension-sources; \
+    cd /usr/local/cargo; \
+    for crate_dir in \
+        registry/src/*/deno_webidl-* \
+        registry/src/*/deno_web-* \
+        registry/src/*/deno_crypto-* \
+        registry/src/*/deno_fetch-* \
+        registry/src/*/deno_net-* \
+        registry/src/*/deno_telemetry-*; do \
+        test -d "$crate_dir"; \
+        find "$crate_dir" -maxdepth 1 -type f \
+            \( -name '*.js' -o -name '*.mjs' -o -name '*.ts' \) ! -name '*.d.ts' \
+            -exec cp --parents {} /runtime-extension-sources/ \;; \
+    done; \
+    for extension in rustyscript webidl web url console crypto; do \
+        for extension_dir in git/checkouts/rustyscript-*/*/src/ext/$extension; do \
+            test -d "$extension_dir"; \
+            find "$extension_dir" -maxdepth 1 -type f \
+                \( -name '*.js' -o -name '*.mjs' -o -name '*.ts' \) ! -name '*.d.ts' \
+                -exec cp --parents {} /runtime-extension-sources/ \;; \
+        done; \
+    done
+
 FROM public.ecr.aws/docker/library/ubuntu:25.10@sha256:7cc5e35f6567ee8c66d2abb4aab0fd866669e6207c237c3a8f0947a5c7f17092 as runtime
 
 
@@ -62,6 +89,8 @@ COPY --from=builder /build/target/release/superposition /app/superposition
 COPY --from=builder /build/Cargo.toml /app/Cargo.toml
 COPY --from=builder /build/target/site /app/target/site
 COPY --from=builder /build/workspace_template.sql /app/workspace_template.sql
+# Runtime JavaScript modules for rustyscript and its deno extension packages.
+COPY --from=builder /runtime-extension-sources /usr/local/cargo
 ENV SUPERPOSITION_VERSION=$SUPERPOSITION_VERSION
 ENV SOURCE_COMMIT=$SOURCE_COMMIT
 CMD ["/app/superposition"]
