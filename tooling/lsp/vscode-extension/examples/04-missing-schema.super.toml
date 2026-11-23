@@ -1,0 +1,16 @@
+# QUICK FIX — cursor anywhere on the `surge_multiplier` line, Cmd+.
+# Expect: "Add schema to 'surge_multiplier'"  ->  type = "number", inferred from 1.5
+#
+# Try editing the value to 2 (integer) or "high" (string) and re-running the fix:
+# the generated type follows the value.
+
+[default-configs]
+per_km_rate = { value = 20.0, schema = { type = "number", minimum = 5.0 } }
+surge_multiplier = { value = 1.5 }
+
+[dimensions]
+city = { position = 1, schema = { type = "string", enum = ["Bangalore", "Delhi"] } }
+
+[[overrides]]
+_context_ = { city = "Bangalore" }
+per_km_rate = 25.0
