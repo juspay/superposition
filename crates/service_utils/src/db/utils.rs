@@ -13,7 +13,7 @@ pub async fn get_superposition_token(
     app_env: &AppEnv,
 ) -> String {
     match app_env {
-        AppEnv::DEV | AppEnv::TEST | AppEnv::SANDBOX => {
+        AppEnv::DEV | AppEnv::TEST => {
             get_from_env_or_default("SUPERPOSITION_TOKEN", "123456".into())
         }
         _ => {
@@ -49,7 +49,7 @@ pub async fn get_oidc_client_secret(
     app_env: &AppEnv,
 ) -> String {
     match app_env {
-        AppEnv::DEV | AppEnv::TEST | AppEnv::SANDBOX => {
+        AppEnv::DEV | AppEnv::TEST => {
             get_from_env_or_default("OIDC_CLIENT_SECRET", "123456".into())
         }
         _ => {
