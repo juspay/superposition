@@ -1272,7 +1272,7 @@ async fn weight_recompute_handler(
 }
 
 #[authorized]
-#[post("/validate")]
+#[put("/validate")]
 async fn validate_handler(
     workspace_context: WorkspaceContext,
     db_conn: DbConnection,
