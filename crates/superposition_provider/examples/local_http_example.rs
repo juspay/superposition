@@ -15,7 +15,8 @@ async fn main() {
         AuthMethod::Token("token".to_string()),
         "localorg".to_string(),
         "dev".to_string(),
-    ));
+    )
+    .expect("valid Superposition options"));
 
     let provider = LocalResolutionProvider::new(
         Box::new(http_source),

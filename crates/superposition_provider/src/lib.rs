@@ -32,7 +32,8 @@ mod tests {
             AuthMethod::Token("test-token".to_string()),
             "test-org".to_string(),
             "test-workspace".to_string(),
-        );
+        )
+        .expect("valid Superposition options");
 
         let config_options = ConfigurationOptions::new(
             RefreshStrategy::OnDemand(OnDemandStrategy::default()),
@@ -51,7 +52,8 @@ mod tests {
             AuthMethod::Token("test-token".to_string()),
             "test-org".to_string(),
             "test-workspace".to_string(),
-        );
+        )
+        .expect("valid Superposition options");
 
         let exp_options = ExperimentationOptions::new(RefreshStrategy::OnDemand(
             OnDemandStrategy::default(),
