@@ -1,0 +1,497 @@
+import { Given, When, Then } from "@cucumber/cucumber";
+import {
+  CreateFunctionCommand,
+  GetFunctionCommand,
+  ListFunctionCommand,
+  UpdateFunctionCommand,
+  DeleteFunctionCommand,
+  PublishCommand,
+  TestCommand,
+  FunctionTypes,
+  FunctionRuntimeVersion,
+  Stage,
+} from "@juspay/superposition-sdk";
+import { SuperpositionWorld } from "../support/world.ts";
+import * as assert from "node:assert";
+
+/** Run the function Test endpoint for a value_validation function and record the outcome. */
+async function runValidationTest(
+  world: SuperpositionWorld,
+  functionName: string,
+  stage: string,
+  key: string,
+  value: string
+): Promise<void> {
+  try {
+    world.lastResponse = await world.client.send(
+      new TestCommand({
+        workspace_id: world.workspaceId,
+        org_id: world.orgId,
+        function_name: functionName,
+        stage: stage as Stage,
+        request: {
+          value_validate: {
+            key,
+            value,
+            type: "Dimension",
+            environment: { context: {}, overrides: {} },
+          },
+        },
+      })
+    );
+    world.lastError = undefined;
+  } catch (e: any) {
+    world.lastError = e;
+    world.lastResponse = undefined;
+  }
+}
+
+// ── Given ───────────────────────────────────────────────────────────
+
+Given(
+  "a value_validation function {string} exists",
+  async function (this: SuperpositionWorld, name: string) {
+    const uniqueName = this.uniqueName(name);
+    this.functionName = uniqueName;
+    const code = `
+      async function execute(payload) {
+        let value = payload.value_validate.value;
+        let key = payload.value_validate.key;
+        if (key === "test-dimension" && value === "valid") return true;
+        return false;
+      }
+    `;
+    try {
+      await this.client.send(
+        new CreateFunctionCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          function_name: uniqueName,
+          function: code,
+          description: "Test value_validation function",
+          change_reason: "Cucumber setup",
+          runtime_version: FunctionRuntimeVersion.V1,
+          function_type: FunctionTypes.VALUE_VALIDATION,
+        })
+      );
+      this.createdFunctions.push(uniqueName);
+    } catch {
+      // Already exists
+    }
+  }
+);
+
+Given(
+  "a value_compute function {string} exists",
+  async function (this: SuperpositionWorld, name: string) {
+    const uniqueName = this.uniqueName(name);
+    this.functionName = uniqueName;
+    const code = `
+      async function execute(payload) {
+        return ["test1", "test2", "test3"];
+      }
+    `;
+    try {
+      await this.client.send(
+        new CreateFunctionCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          function_name: uniqueName,
+          function: code,
+          description: "Test value_compute function",
+          change_reason: "Cucumber setup",
+          runtime_version: FunctionRuntimeVersion.V1,
+          function_type: FunctionTypes.VALUE_COMPUTE,
+        })
+      );
+      this.createdFunctions.push(uniqueName);
+    } catch {
+      // Already exists
+    }
+  }
+);
+
+Given(
+  "a value_validation function {string} exists that logs its input and throws on {string}",
+  async function (this: SuperpositionWorld, name: string, trigger: string) {
+    const uniqueName = this.uniqueName(name);
+    this.functionName = uniqueName;
+    const code = `
+      async function execute(payload) {
+        let value = payload.value_validate.value;
+        console.log("validating value:", value);
+        if (value === "${trigger}") {
+          throw new Error("intentional failure");
+        }
+        return true;
+      }
+    `;
+    try {
+      await this.client.send(
+        new CreateFunctionCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          function_name: uniqueName,
+          function: code,
+          description: "Function for test endpoint stdout and errors",
+          change_reason: "Cucumber setup",
+          runtime_version: FunctionRuntimeVersion.V1,
+          function_type: FunctionTypes.VALUE_VALIDATION,
+        })
+      );
+      this.createdFunctions.push(uniqueName);
+    } catch {
+      // Already exists
+    }
+  }
+);
+
+// ── When ────────────────────────────────────────────────────────────
+
+When(
+  "I create a value_validation function named {string} with code that validates key {string}",
+  async function (this: SuperpositionWorld, name: string, key: string) {
+    const uniqueName = this.uniqueName(name);
+    this.functionName = uniqueName;
+    const code = `
+      async function execute(payload) {
+        let value = payload.value_validate.value;
+        let key = payload.value_validate.key;
+        if (key === "${key}" && value === "valid") return true;
+        return false;
+      }
+    `;
+    try {
+      this.lastResponse = await this.client.send(
+        new CreateFunctionCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          function_name: uniqueName,
+          function: code,
+          description: "Test value_validation function",
+          change_reason: "Cucumber test",
+          runtime_version: FunctionRuntimeVersion.V1,
+          function_type: FunctionTypes.VALUE_VALIDATION,
+        })
+      );
+      this.createdFunctions.push(uniqueName);
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
+
+When(
+  "I create a value_compute function named {string} with code that returns computed values",
+  async function (this: SuperpositionWorld, name: string) {
+    const uniqueName = this.uniqueName(name);
+    this.functionName = uniqueName;
+    const code = `
+      async function execute(payload) {
+        return ["test1", "test2", "test3"];
+      }
+    `;
+    try {
+      this.lastResponse = await this.client.send(
+        new CreateFunctionCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          function_name: uniqueName,
+          function: code,
+          description: "Test value_compute function",
+          change_reason: "Cucumber test",
+          runtime_version: FunctionRuntimeVersion.V1,
+          function_type: FunctionTypes.VALUE_COMPUTE,
+        })
+      );
+      this.createdFunctions.push(uniqueName);
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
+
+When(
+  "I create a value_validation function named {string} with code {string}",
+  async function (this: SuperpositionWorld, name: string, code: string) {
+    const uniqueName = this.uniqueName(name);
+    try {
+      this.lastResponse = await this.client.send(
+        new CreateFunctionCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          function_name: uniqueName,
+          function: code,
+          description: "Test function",
+          change_reason: "Cucumber test",
+          runtime_version: FunctionRuntimeVersion.V1,
+          function_type: FunctionTypes.VALUE_VALIDATION,
+        })
+      );
+      this.createdFunctions.push(uniqueName);
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
+
+When(
+  "I create a value_compute function named {string} with code that returns a string",
+  async function (this: SuperpositionWorld, name: string) {
+    const uniqueName = this.uniqueName(name);
+    const code = `
+      async function execute(payload) {
+        return "invalid return type";
+      }
+    `;
+    try {
+      this.lastResponse = await this.client.send(
+        new CreateFunctionCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          function_name: uniqueName,
+          function: code,
+          description: "Test function",
+          change_reason: "Cucumber test",
+          runtime_version: FunctionRuntimeVersion.V1,
+          function_type: FunctionTypes.VALUE_COMPUTE,
+        })
+      );
+      this.createdFunctions.push(uniqueName);
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
+
+When(
+  "I get function {string}",
+  async function (this: SuperpositionWorld, _name: string) {
+    try {
+      this.lastResponse = await this.client.send(
+        new GetFunctionCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          function_name: this.functionName,
+        })
+      );
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
+
+When(
+  "I list functions with count {int} and page {int}",
+  async function (this: SuperpositionWorld, count: number, page: number) {
+    try {
+      this.lastResponse = await this.client.send(
+        new ListFunctionCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          count,
+          page,
+        })
+      );
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
+
+When(
+  "I update function {string} with new validation code",
+  async function (this: SuperpositionWorld, _name: string) {
+    const code = `
+      async function execute(payload) {
+        let value = payload.value_validate.value;
+        if (value === "updated-valid") return true;
+        return false;
+      }
+    `;
+    try {
+      this.lastResponse = await this.client.send(
+        new UpdateFunctionCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          function_name: this.functionName,
+          function: code,
+          description: "Updated value_validation function",
+          change_reason: "Cucumber update",
+          runtime_version: FunctionRuntimeVersion.V1,
+        })
+      );
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
+
+When(
+  "I publish function {string}",
+  async function (this: SuperpositionWorld, name: string) {
+    // Use the tracked function name if it matches, otherwise use as-is
+    const funcName = this.functionName || this.uniqueName(name);
+    try {
+      this.lastResponse = await this.client.send(
+        new PublishCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          function_name: name === "non-existent-function" ? name : funcName,
+          change_reason: "Cucumber publish",
+        })
+      );
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
+
+When(
+  "I delete function {string}",
+  async function (this: SuperpositionWorld, _name: string) {
+    try {
+      this.lastResponse = await this.client.send(
+        new DeleteFunctionCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          function_name: this.functionName,
+        })
+      );
+      this.createdFunctions = this.createdFunctions.filter(
+        (f) => f !== this.functionName
+      );
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
+
+// ── When: Test endpoint ────────────────────────────────────────────
+
+When(
+  "I test the validation function in {string} stage with key {string} and value {string}",
+  async function (this: SuperpositionWorld, stage: string, key: string, value: string) {
+    await runValidationTest(this, this.functionName, stage, key, value);
+  }
+);
+
+When(
+  "I test function {string} in {string} stage with key {string} and value {string}",
+  async function (
+    this: SuperpositionWorld,
+    name: string,
+    stage: string,
+    key: string,
+    value: string
+  ) {
+    await runValidationTest(this, name, stage, key, value);
+  }
+);
+
+When(
+  "I test the compute function in {string} stage with name {string} and prefix {string}",
+  async function (this: SuperpositionWorld, stage: string, name: string, prefix: string) {
+    try {
+      this.lastResponse = await this.client.send(
+        new TestCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          function_name: this.functionName,
+          stage: stage as Stage,
+          request: {
+            value_compute: {
+              name,
+              prefix,
+              type: "Dimension",
+              environment: { context: {}, overrides: {} },
+            },
+          },
+        })
+      );
+      this.lastError = undefined;
+    } catch (e: any) {
+      this.lastError = e;
+      this.lastResponse = undefined;
+    }
+  }
+);
+
+// ── Then ────────────────────────────────────────────────────────────
+
+Then(
+  "the function output should be false",
+  function (this: SuperpositionWorld) {
+    assert.ok(this.lastResponse, "No response");
+    assert.strictEqual(this.lastResponse.fn_output, false);
+  }
+);
+
+Then(
+  "the function output should be the list {string}",
+  function (this: SuperpositionWorld, csv: string) {
+    assert.ok(this.lastResponse, "No response");
+    const expected = csv.split(",").map((s) => s.trim());
+    assert.deepStrictEqual(this.lastResponse.fn_output, expected);
+  }
+);
+
+Then(
+  "getting function {string} should fail",
+  async function (this: SuperpositionWorld, _name: string) {
+    try {
+      await this.client.send(
+        new GetFunctionCommand({
+          workspace_id: this.workspaceId,
+          org_id: this.orgId,
+          function_name: this.functionName,
+        })
+      );
+      assert.fail("Expected an error but got success");
+    } catch (e: any) {
+      assert.ok(e, "Expected an error");
+    }
+  }
+);
+
+Then(
+  "the response should have function type {string}",
+  function (this: SuperpositionWorld, type: string) {
+    assert.ok(this.lastResponse, "No response");
+    assert.strictEqual(this.lastResponse.function_type, type);
+  }
+);
+
+Then(
+  "the response should have function name {string}",
+  function (this: SuperpositionWorld, _name: string) {
+    assert.ok(this.lastResponse, "No response");
+    assert.strictEqual(this.lastResponse.function_name, this.functionName);
+  }
+);
+
+Then(
+  "the response should have description {string}",
+  function (this: SuperpositionWorld, desc: string) {
+    assert.ok(this.lastResponse, "No response");
+    assert.strictEqual(this.lastResponse.description, desc);
+  }
+);
