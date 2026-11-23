@@ -138,24 +138,25 @@ Manual
 | Field              | Type                             | Required | Description                         |
 | ------------------ | -------------------------------- | -------- | ----------------------------------- |
 | `refreshStrategy`  | `RefreshStrategy`                | Yes      | How experiment data is refreshed    |
-| `evaluationCache`  | `Maybe EvaluationCacheOptions`   | No       | Cache for experiment evaluations    |
-| `defaultToss`      | `Maybe Int`                      | No       | Default toss value for experiments  |
 
-`ExperimentationOptions` supports a builder pattern:
+### Evaluation Result Cache
+
+The bindings expose a native provider cache variant that memoizes repeated
+resolutions in an in-process LRU. There is one option — the maximum number of
+cached resolutions; `0` disables caching:
 
 ```haskell
-let expOptions = defaultExperimentationOptions
-        (Polling $ PollingStrategy { interval = 5, timeout = Just 3 })
-        & withEvaluationCache defaultEvaluationCacheOptions
-        & withDefaultToss 50
+import FFI.Superposition (newProviderCacheWithEvalCache)
+
+-- Keep up to 1000 memoized resolutions.
+cache <- newProviderCacheWithEvalCache 1000
 ```
 
-### `EvaluationCacheOptions`
-
-| Field  | Type          | Default    | Description                     |
-| ------ | ------------- | ---------- | ------------------------------- |
-| `ttl`  | `Maybe Int`   | `Just 60`  | Cache time-to-live in seconds   |
-| `size` | `Maybe Int`   | `Just 500` | Maximum number of cache entries |
+Resolutions are keyed by every input that discriminates one (context query,
+merge strategy, prefix filters, targeting key), and the cache is emptied
+whenever config or experiment data is re-initialized via `initConfig` /
+`initExperiments`. There is no TTL option — staleness is governed by the
+refresh strategy. Use `newProviderCache` for the un-cached default.
 
 ## Provider Variants
 

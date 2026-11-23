@@ -76,3 +76,21 @@ When experimentation options are configured, the provider will:
 3. Apply experiment overrides to the resolved configuration
 
 All providers support configurable `ExperimentationOptions` including refresh strategy, evaluation cache, and a default toss value.
+
+### Evaluation Result Cache
+
+Local-evaluation providers can memoize repeated resolutions in an in-process
+LRU cache, keyed by every input that discriminates a resolution (context query,
+merge strategy, prefix filters, targeting key). It takes a single option — the
+maximum number of cached entries. On the local providers the cache is emptied
+whenever config or experiment data is reloaded, so entries never go stale
+beyond the refresh strategy's guarantees. Remote providers do not cache: they
+receive no invalidation signal from the server.
+
+| Language   | Option                                    | How to enable |
+| ---------- | ----------------------------------------- | ------------- |
+| **Rust**   | `EvaluationCacheOptions { max_entries }`  | `LocalResolutionProvider::with_evaluation_cache` |
+| **Java**   | `EvaluationCacheOptions { maxEntries }`   | `SuperpositionProviderOptions.evaluationCacheOptions` |
+| **Python** | `EvaluationCacheOptions { max_entries }`  | `LocalResolutionProvider(evaluation_cache_options=...)` |
+| **Node.js**| `EvaluationCacheOptions { maxEntries }`   | `SuperpositionProviderOptions.evaluationCache` |
+| **Haskell**| `Word64` max entries                      | `FFI.Superposition.newProviderCacheWithEvalCache` |
