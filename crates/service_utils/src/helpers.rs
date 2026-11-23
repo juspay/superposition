@@ -63,7 +63,10 @@ where
     <F as FromStr>::Err: std::fmt::Debug,
 {
     match std::env::var(name) {
-        Ok(env) => env.parse().unwrap(),
+        Ok(env) => env.parse().unwrap_or_else(|e| {
+            log::warn!("{name} ENV could not be parsed due to {:?}", e);
+            panic!("{name} ENV could not be parsed");
+        }),
         Err(err) => {
             warn!(
                 "{name} ENV failed to load due to {err}, using default value {default}"

@@ -1,2 +1,13 @@
 target
 **/node_modules
+**/dist-newstyle
+clients
+.git
+docs
+tests
+docker-compose/postgres/data
+tooling/lsp/supertoml-zed-extension
+tooling/lsp/vscode-extension
+tooling/lsp/neovim-extension
+smithy
+**/.DS_Store
