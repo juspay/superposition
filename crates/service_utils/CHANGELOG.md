@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.46.4 - 2026-11-23
+#### Bug Fixes
+- import deno dependencies (#1191) - (8ab1995) - Datron
+
+- - -
+
 ## service_utils-v0.46.3 - 2026-11-19
 #### Bug Fixes
 - prevent sqli injection through workspace parameters (#1187) - (05a5356) - Datron

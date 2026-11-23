@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.120.1 - 2026-11-23
+### Package updates
+- service_utils bumped to service_utils-v0.46.4
+### Global changes
+#### Bug Fixes
+- import deno dependencies (#1191) - (8ab1995) - Datron
+
+- - -
+
 ## v0.120.0 - 2026-11-19
 ### Package updates
 - frontend bumped to frontend-v0.59.0
