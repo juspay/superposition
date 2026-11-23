@@ -772,3 +772,155 @@ config = { host = "prod.unix.com", port = 8443 }
         vec!["prod.example.com".to_string(), "prod.unix.com".to_string()]
     );
 }
+
+const META_TEST_BODY: &str = r#"
+[default-configs]
+timeout = { value = 30, schema = { type = "integer" } }
+
+[dimensions]
+os = { position = 1, schema = { type = "string" } }
+
+[[overrides]]
+_context_ = { os = "linux" }
+timeout = 60
+"#;
+
+#[test]
+fn test_meta_valid() {
+    let toml = format!(
+        "[meta]\ntype = \"supertoml\"\nversion = 1\n{}",
+        META_TEST_BODY
+    );
+
+    let config = TomlFormat::parse_config(&toml).unwrap();
+    assert_eq!(config.default_configs.len(), 1);
+    assert_eq!(config.contexts.len(), 1);
+}
+
+#[test]
+fn test_meta_invalid_type() {
+    let toml = format!("[meta]\ntype = \"json\"\nversion = 1\n{}", META_TEST_BODY);
+
+    let err = TomlFormat::parse_config(&toml).unwrap_err().to_string();
+    assert!(err.contains("unsupported file type `json`, expected `supertoml`"));
+}
+
+#[test]
+fn test_meta_unsupported_version() {
+    for version in ["0", "2"] {
+        let toml = format!(
+            "[meta]\ntype = \"supertoml\"\nversion = {}\n{}",
+            version, META_TEST_BODY
+        );
+
+        let err = TomlFormat::parse_config(&toml).unwrap_err().to_string();
+        assert!(
+            err.contains(&format!("unsupported SuperTOML version {}", version)),
+            "unexpected error for version {}: {}",
+            version,
+            err
+        );
+    }
+}
+
+#[test]
+fn test_meta_missing_field() {
+    let toml = format!("[meta]\nversion = 1\n{}", META_TEST_BODY);
+
+    let err = TomlFormat::parse_config(&toml).unwrap_err().to_string();
+    assert!(err.contains("missing field `type`"));
+}
+
+#[test]
+fn test_meta_error_span_points_at_value() {
+    // The LSP renders diagnostics from this span, so it must land on the value.
+    let toml = format!(
+        "[meta]\ntype = \"supertoml\"\nversion = 2\n{}",
+        META_TEST_BODY
+    );
+
+    match TomlFormat::parse_config(&toml).unwrap_err() {
+        FormatError::SyntaxError {
+            span: Some(span), ..
+        } => assert_eq!(&toml[span], "2"),
+        other => panic!("expected SyntaxError with span, got {:?}", other),
+    }
+}
+
+#[test]
+fn test_serialize_emits_meta() {
+    let config = TomlFormat::parse_config(META_TEST_BODY).unwrap();
+    let serialized = TomlFormat::serialize(config_to_detailed(&config)).unwrap();
+
+    assert!(serialized.starts_with("[meta]\ntype = \"supertoml\"\nversion = 1\n"));
+
+    let reparsed = TomlFormat::parse_config(&serialized).unwrap();
+    assert_eq!(config.default_configs, reparsed.default_configs);
+    assert_eq!(config.contexts.len(), reparsed.contexts.len());
+}
+
+/// Records log messages with the thread that logged them, so a test only sees
+/// its own messages while other tests run in parallel.
+struct CaptureLogger;
+
+static CAPTURED_LOGS: std::sync::Mutex<Vec<(std::thread::ThreadId, String)>> =
+    std::sync::Mutex::new(Vec::new());
+
+impl log::Log for CaptureLogger {
+    fn enabled(&self, _: &log::Metadata) -> bool {
+        true
+    }
+
+    fn log(&self, record: &log::Record) {
+        CAPTURED_LOGS
+            .lock()
+            .unwrap()
+            .push((std::thread::current().id(), record.args().to_string()));
+    }
+
+    fn flush(&self) {}
+}
+
+fn warnings_logged_by(f: impl FnOnce()) -> Vec<String> {
+    static LOGGER: CaptureLogger = CaptureLogger;
+    let _ = log::set_logger(&LOGGER);
+    log::set_max_level(log::LevelFilter::Warn);
+
+    let thread = std::thread::current().id();
+    CAPTURED_LOGS
+        .lock()
+        .unwrap()
+        .retain(|(id, _)| *id != thread);
+    f();
+    CAPTURED_LOGS
+        .lock()
+        .unwrap()
+        .iter()
+        .filter(|(id, _)| *id == thread)
+        .map(|(_, message)| message.clone())
+        .collect()
+}
+
+#[test]
+fn test_meta_absent_warns_to_pin_version() {
+    let warnings = warnings_logged_by(|| {
+        TomlFormat::parse_config(META_TEST_BODY).unwrap();
+    });
+
+    assert_eq!(warnings.len(), 1, "{:?}", warnings);
+    assert!(warnings[0].contains("no [meta] table, reading it as version 1"));
+    assert!(warnings[0].contains("type = \"supertoml\" and version = 1"));
+}
+
+#[test]
+fn test_meta_present_does_not_warn() {
+    let toml = format!(
+        "[meta]\ntype = \"supertoml\"\nversion = 1\n{}",
+        META_TEST_BODY
+    );
+
+    let warnings = warnings_logged_by(|| {
+        TomlFormat::parse_config(&toml).unwrap();
+    });
+    assert!(warnings.is_empty(), "{:?}", warnings);
+}
