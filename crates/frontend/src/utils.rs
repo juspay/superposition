@@ -181,7 +181,17 @@ pub fn url_or_string(s: &str) -> impl IntoView {
             }
             .into_view()
         }
-        Err(_) => s.to_string().into_view(),
+        // Render as text. Text interpolation is not HTML-escaped in this SSR path, so a
+        // config value that is itself markup (e.g. an HTML banner string) would otherwise
+        // inject raw DOM into the page. Escape the HTML metacharacters ourselves and hand
+        // the pre-escaped string to `inner_html`, so the browser shows it as literal text.
+        Err(_) => {
+            let escaped = s
+                .replace('&', "&amp;")
+                .replace('<', "&lt;")
+                .replace('>', "&gt;");
+            view! { <span inner_html=escaped></span> }.into_view()
+        }
     }
 }
 
