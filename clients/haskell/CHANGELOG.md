@@ -2,6 +2,29 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## haskell_client-v0.25.0 - 2026-11-19
+#### Features
+- support search, filtering and grouping for list default configs (#879) - (2e85645) - Ayush Jain
+
+- - -
+
+## haskell_client-v0.24.4 - 2026-11-07
+#### Bug Fixes
+- **(haskell_provider)** properly spawn background threads for polling (#1171) - (afb9b5a) - Datron
+#### Miscellaneous Chores
+- **(version)** v0.118.2 [skip ci] - (c926c91) - Superposition Bot
+- update smithy version (#1077) - (04207ff) - Ayush Jain
+
+- - -
+
+## haskell_client-v0.24.3 - 2026-10-13
+#### Bug Fixes
+- add Haskell OpenFeature provider integration tests to CI (#1151) - (0437831) - Datron
+#### Miscellaneous Chores
+- **(version)** v0.117.2 [skip ci] - (1ba5786) - Superposition Bot
+
+- - -
+
 ## haskell_client-v0.24.2 - 2026-08-31
 #### Bug Fixes
 - pass correct args to FFI function in haskell (#1135) - (cba23b6) - Datron

@@ -2,6 +2,85 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.120.1 - 2026-11-23
+### Package updates
+- service_utils bumped to service_utils-v0.46.4
+### Global changes
+#### Bug Fixes
+- import deno dependencies (#1191) - (8ab1995) - Datron
+
+- - -
+
+## v0.120.0 - 2026-11-19
+### Package updates
+- frontend bumped to frontend-v0.59.0
+- superposition_types bumped to superposition_types-v0.52.0
+- service_utils bumped to service_utils-v0.46.3
+- haskell_client bumped to haskell_client-v0.25.0
+- superposition_sdk bumped to superposition_sdk-v0.25.0
+- context_aware_config bumped to context_aware_config-v0.80.0
+### Global changes
+#### Bug Fixes
+- update kronos version (#1182) - (43d0e60) - Ayush Jain
+- prevent sqli injection through workspace parameters (#1187) - (05a5356) - Datron
+#### Documentation
+- auto-update AI skills from provider docs - (434e51b) - Superposition Bot
+- auto-update AI skills from provider docs - (f893f34) - Superposition Bot
+#### Features
+- support search, filtering and grouping for list default configs (#879) - (2e85645) - Ayush Jain
+#### Miscellaneous Chores
+- **(ci)** update versions to avoid rust version issues (#1189) - (950cce4) - Datron
+- pin versions across all usages (#1183) - (6002d60) - Ayush Jain
+- add kache compiler cache to the nix dev shell (#1186) - (516bb03) - Natarajan Kannan
+
+- - -
+
+## v0.119.0 - 2026-11-07
+### Package updates
+- superposition_sdk bumped to superposition_sdk-v0.24.2
+- service_utils bumped to service_utils-v0.46.2
+- haskell_client bumped to haskell_client-v0.24.4
+### Global changes
+#### Bug Fixes
+- remove legacy client from rust sdk (#1181) - (396e449) - Ayush Jain
+#### Continuous Integration
+- **(release)** use GitHub App token instead of SUPERPOSITION_TOKEN PAT (#1179) - (3149233) - sauraww
+#### Features
+- headless superposition build via HEADLESS_SUPERPOSITION (#1163) - (8e1d6e4) - Datron
+#### Miscellaneous Chores
+- **(deps)** bump cryptography (#1124) - (7b66639) - dependabot[bot]
+- **(version)** v0.118.2 [skip ci] - (c926c91) - Superposition Bot
+- update smithy version (#1077) - (04207ff) - Ayush Jain
+
+- - -
+
+## v0.118.2 - 2026-10-13
+### Package updates
+- frontend bumped to frontend-v0.58.2
+- service_utils bumped to service_utils-v0.46.1
+- superposition_types bumped to superposition_types-v0.51.2
+- haskell_client bumped to haskell_client-v0.24.3
+- superposition_sdk bumped to superposition_sdk-v0.24.1
+### Global changes
+#### Bug Fixes
+- add Haskell OpenFeature provider integration tests to CI (#1151) - (0437831) - Datron
+- let Casbin run against a read-only replica (#1159) - (7d1d081) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.118.1 [skip ci] - (65ef921) - Superposition Bot
+
+- - -
+
+## v0.118.1 - 2026-09-16
+### Package updates
+- frontend bumped to frontend-v0.58.1
+- context_aware_config bumped to context_aware_config-v0.79.1
+- superposition_types bumped to superposition_types-v0.51.1
+### Global changes
+#### Miscellaneous Chores
+- **(version)** v0.118.0 [skip ci] - (9f8783d) - Superposition Bot
+
+- - -
+
 ## v0.118.0 - 2026-09-05
 ### Package updates
 - frontend bumped to frontend-v0.58.0

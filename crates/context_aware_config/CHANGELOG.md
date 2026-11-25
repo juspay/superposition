@@ -2,6 +2,27 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## context_aware_config-v0.80.0 - 2026-11-19
+#### Bug Fixes
+- prevent sqli injection through workspace parameters (#1187) - (05a5356) - Datron
+#### Features
+- support search, filtering and grouping for list default configs (#879) - (2e85645) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.118.1 [skip ci] - (65ef921) - Superposition Bot
+- update smithy version (#1077) - (04207ff) - Ayush Jain
+
+- - -
+
+## context_aware_config-v0.79.1 - 2026-09-16
+#### Bug Fixes
+- resolve-detailed (#1150) - (770603a) - Ankit Kumar Mahato
+#### Miscellaneous Chores
+- **(version)** v0.116.0 [skip ci] - (4bad497) - Superposition Bot
+#### Refactoring
+- remove unnecessary clone from eval logic (#857) - (41c7a5d) - Ayush Jain
+
+- - -
+
 ## context_aware_config-v0.79.0 - 2026-08-03
 #### Features
 - extend workspace lock to CAC write entities (#1069) - (dc5c98f) - sauraww

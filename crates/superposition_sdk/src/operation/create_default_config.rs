@@ -23,7 +23,7 @@ impl CreateDefaultConfig {
                         let output = context.finalize().map_err(map_err)?;
                         ::std::result::Result::Ok(output.downcast::<crate::operation::create_default_config::CreateDefaultConfigOutput>().expect("correct output type"))
                     }
-    
+
                     pub(crate) async fn orchestrate_with_stop_point(
                         runtime_plugins: &::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugins,
                         input: crate::operation::create_default_config::CreateDefaultConfigInput,
@@ -45,20 +45,18 @@ impl CreateDefaultConfig {
                                 "rpc.service" = "Superposition",
                                 "rpc.method" = "CreateDefaultConfig",
                                 "sdk_invocation_id" = ::fastrand::u32(1_000_000..10_000_000),
-                                
+
                             ))
                         .await
                     }
-    
+
                     pub(crate) fn operation_runtime_plugins(
                         client_runtime_plugins: ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugins,
                         client_config: &crate::config::Config,
                         config_override: ::std::option::Option<crate::config::Builder>,
                     ) -> ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugins {
                         let mut runtime_plugins = client_runtime_plugins.with_operation_plugin(Self::new());
-                        runtime_plugins = runtime_plugins
-                                        .with_client_plugin(crate::auth_plugin::DefaultAuthOptionsPlugin::new(vec![::aws_smithy_runtime_api::client::auth::http::HTTP_BASIC_AUTH_SCHEME_ID
-    , ::aws_smithy_runtime_api::client::auth::http::HTTP_BEARER_AUTH_SCHEME_ID]));
+
                         if let ::std::option::Option::Some(config_override) = config_override {
                             for plugin in config_override.runtime_plugins.iter().cloned() {
                                 runtime_plugins = runtime_plugins.with_operation_plugin(plugin);
@@ -77,8 +75,12 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for CreateD
                     cfg.store_put(::aws_smithy_runtime_api::client::ser_de::SharedRequestSerializer::new(CreateDefaultConfigRequestSerializer));
                     cfg.store_put(::aws_smithy_runtime_api::client::ser_de::SharedResponseDeserializer::new(CreateDefaultConfigResponseDeserializer));
 
-                    
-                    cfg.store_put(::aws_smithy_runtime_api::client::auth::AuthSchemeOptionResolverParams::new(::aws_smithy_runtime_api::client::auth::static_resolver::StaticAuthSchemeOptionResolverParams::new()));
+                    cfg.store_put(::aws_smithy_runtime_api::client::auth::AuthSchemeOptionResolverParams::new(
+                        crate::config::auth::Params::builder()
+                            .operation_name("CreateDefaultConfig")
+                            .build()
+                            .expect("required fields set")
+                    ));
 
                     cfg.store_put(::aws_smithy_runtime_api::client::orchestrator::Metadata::new(
                             "CreateDefaultConfig",
@@ -91,8 +93,9 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for CreateD
                 fn runtime_components(&self, _: &::aws_smithy_runtime_api::client::runtime_components::RuntimeComponentsBuilder) -> ::std::borrow::Cow<'_, ::aws_smithy_runtime_api::client::runtime_components::RuntimeComponentsBuilder> {
                     #[allow(unused_mut)]
                     let mut rcb = ::aws_smithy_runtime_api::client::runtime_components::RuntimeComponentsBuilder::new("CreateDefaultConfig")
-                            .with_interceptor(::aws_smithy_runtime::client::stalled_stream_protection::StalledStreamProtectionInterceptor::default())
-.with_interceptor(CreateDefaultConfigEndpointParamsInterceptor)
+                            .with_interceptor(::aws_smithy_runtime_api::client::interceptors::SharedInterceptor::permanent(CreateDefaultConfigTelemetryInputCaptureInterceptor))
+.with_interceptor(::aws_smithy_runtime_api::client::interceptors::SharedInterceptor::permanent(::aws_smithy_runtime::client::stalled_stream_protection::StalledStreamProtectionInterceptor::default()))
+.with_interceptor(::aws_smithy_runtime_api::client::interceptors::SharedInterceptor::permanent(CreateDefaultConfigEndpointParamsInterceptor))
                             .with_retry_classifier(::aws_smithy_runtime::client::retries::classifiers::TransientErrorClassifier::<crate::operation::create_default_config::CreateDefaultConfigError>::new())
 .with_retry_classifier(::aws_smithy_runtime::client::retries::classifiers::ModeledAsRetryableClassifier::<crate::operation::create_default_config::CreateDefaultConfigError>::new());
 
@@ -100,23 +103,87 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for CreateD
                 }
             }
 
-            
+            #[derive(Debug)]
+            struct CreateDefaultConfigTelemetryInputCaptureInterceptor;
+
+            #[::aws_smithy_runtime_api::client::interceptors::dyn_dispatch_hint]
+            impl ::aws_smithy_runtime_api::client::interceptors::Intercept for CreateDefaultConfigTelemetryInputCaptureInterceptor {
+                fn name(&self) -> &'static str {
+                    "CreateDefaultConfigTelemetryInputCaptureInterceptor"
+                }
+
+                fn read_before_execution(
+                    &self,
+                    context: &::aws_smithy_runtime_api::client::interceptors::context::BeforeSerializationInterceptorContextRef<'_, ::aws_smithy_runtime_api::client::interceptors::context::Input, ::aws_smithy_runtime_api::client::interceptors::context::Output, ::aws_smithy_runtime_api::client::interceptors::context::Error>,
+                    cfg: &mut ::aws_smithy_types::config_bag::ConfigBag,
+                ) -> ::std::result::Result<(), ::aws_smithy_runtime_api::box_error::BoxError> {
+                    // Nothing to do unless the customer opted in by naming members to record.
+                    let ::std::option::Option::Some(requested) = cfg.load::<::aws_smithy_types::telemetry::RequestedTelemetryAttributes>().filter(|r| !r.is_empty()) else {
+                        return ::std::result::Result::Ok(());
+                    };
+
+                    let ::std::option::Option::Some(input) = context.input().downcast_ref::<CreateDefaultConfigInput>() else {
+                        // A mismatched input is not this interceptor's concern; skip quietly.
+                        return ::std::result::Result::Ok(());
+                    };
+
+                    let mut captured = ::aws_smithy_types::telemetry::CapturedTelemetryAttributes::default();
+                    if requested.should_capture("key") {
+                            if let ::std::option::Option::Some(value) = input.key.as_deref() {
+                                captured.insert("key", value);
+                            }
+                        }
+if requested.should_capture("description") {
+                            if let ::std::option::Option::Some(value) = input.description.as_deref() {
+                                captured.insert("description", value);
+                            }
+                        }
+if requested.should_capture("change_reason") {
+                            if let ::std::option::Option::Some(value) = input.change_reason.as_deref() {
+                                captured.insert("change_reason", value);
+                            }
+                        }
+if requested.should_capture("value_validation_function_name") {
+                            if let ::std::option::Option::Some(value) = input.value_validation_function_name.as_deref() {
+                                captured.insert("value_validation_function_name", value);
+                            }
+                        }
+if requested.should_capture("value_compute_function_name") {
+                            if let ::std::option::Option::Some(value) = input.value_compute_function_name.as_deref() {
+                                captured.insert("value_compute_function_name", value);
+                            }
+                        }
+if requested.should_capture("workspace_id") {
+                            if let ::std::option::Option::Some(value) = input.workspace_id.as_deref() {
+                                captured.insert("workspace_id", value);
+                            }
+                        }
+if requested.should_capture("org_id") {
+                            if let ::std::option::Option::Some(value) = input.org_id.as_deref() {
+                                captured.insert("org_id", value);
+                            }
+                        }
+
+                    cfg.interceptor_state().store_put(captured);
+                    ::std::result::Result::Ok(())
+                }
+            }
 #[derive(Debug)]
             struct CreateDefaultConfigResponseDeserializer;
             impl ::aws_smithy_runtime_api::client::ser_de::DeserializeResponse for CreateDefaultConfigResponseDeserializer {
-                
 
-                fn deserialize_nonstreaming(&self, response: &::aws_smithy_runtime_api::client::orchestrator::HttpResponse) -> ::aws_smithy_runtime_api::client::interceptors::context::OutputOrError {
+
+                fn deserialize_nonstreaming_with_config(&self, response: &::aws_smithy_runtime_api::client::orchestrator::HttpResponse, _cfg: &::aws_smithy_types::config_bag::ConfigBag) -> ::aws_smithy_runtime_api::client::interceptors::context::OutputOrError {
                     let (success, status) = (response.status().is_success(), response.status().as_u16());
             let headers = response.headers();
             let body = response.body().bytes().expect("body loaded");
             #[allow(unused_mut)]
             let mut force_error = false;
-            
+
             let parse_result = if !success && status != 200 || force_error {
-                crate::protocol_serde::shape_create_default_config::de_create_default_config_http_error(status, headers, body)
+                crate::protocol_serde::shape_create_default_config::de_create_default_config_http_error(status, headers, body, _cfg)
             } else {
-                crate::protocol_serde::shape_create_default_config::de_create_default_config_http_response(status, headers, body)
+                crate::protocol_serde::shape_create_default_config::de_create_default_config_http_response(status, headers, body, _cfg)
             };
             crate::protocol_serde::type_erase_result(parse_result)
                 }
@@ -129,7 +196,8 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for CreateD
                     let input = input.downcast::<crate::operation::create_default_config::CreateDefaultConfigInput>().expect("correct type");
                     let _header_serialization_settings = _cfg.load::<crate::serialization_settings::HeaderSerializationSettings>().cloned().unwrap_or_default();
                     let mut request_builder = {
-                        fn uri_base(_input: &crate::operation::create_default_config::CreateDefaultConfigInput, output: &mut ::std::string::String) -> ::std::result::Result<(), ::aws_smithy_types::error::operation::BuildError> {
+                        #[allow(clippy::uninlined_format_args)]
+fn uri_base(_input: &crate::operation::create_default_config::CreateDefaultConfigInput, output: &mut ::std::string::String) -> ::std::result::Result<(), ::aws_smithy_types::error::operation::BuildError> {
     use ::std::fmt::Write as _;
     ::std::write!(output, "/default-config").expect("formatting should succeed");
     ::std::result::Result::Ok(())
@@ -137,21 +205,21 @@ impl ::aws_smithy_runtime_api::client::runtime_plugin::RuntimePlugin for CreateD
 #[allow(clippy::unnecessary_wraps)]
 fn update_http_builder(
                 input: &crate::operation::create_default_config::CreateDefaultConfigInput,
-                builder: ::http::request::Builder
-            ) -> ::std::result::Result<::http::request::Builder, ::aws_smithy_types::error::operation::BuildError> {
+                builder: ::http_1x::request::Builder
+            ) -> ::std::result::Result<::http_1x::request::Builder, ::aws_smithy_types::error::operation::BuildError> {
     let mut uri = ::std::string::String::new();
     uri_base(input, &mut uri)?;
     let builder = crate::protocol_serde::shape_create_default_config::ser_create_default_config_headers(input, builder)?;
     ::std::result::Result::Ok(builder.method("POST").uri(uri))
 }
-let mut builder = update_http_builder(&input, ::http::request::Builder::new())?;
-builder = _header_serialization_settings.set_default_header(builder, ::http::header::CONTENT_TYPE, "application/json");
+let mut builder = update_http_builder(&input, ::http_1x::request::Builder::new())?;
+builder = _header_serialization_settings.set_default_header(builder, ::http_1x::header::CONTENT_TYPE, "application/json");
 builder
                     };
                     let body = ::aws_smithy_types::body::SdkBody::from(crate::protocol_serde::shape_create_default_config::ser_create_default_config_input(&input)?);
                     if let Some(content_length) = body.content_length() {
                                 let content_length = content_length.to_string();
-                                request_builder = _header_serialization_settings.set_default_header(request_builder, ::http::header::CONTENT_LENGTH, &content_length);
+                                request_builder = _header_serialization_settings.set_default_header(request_builder, ::http_1x::header::CONTENT_LENGTH, &content_length);
                             }
                     ::std::result::Result::Ok(request_builder.body(body).expect("valid request").try_into().unwrap())
                 }
@@ -159,6 +227,7 @@ builder
 #[derive(Debug)]
             struct CreateDefaultConfigEndpointParamsInterceptor;
 
+            #[::aws_smithy_runtime_api::client::interceptors::dyn_dispatch_hint]
             impl ::aws_smithy_runtime_api::client::interceptors::Intercept for CreateDefaultConfigEndpointParamsInterceptor {
                 fn name(&self) -> &'static str {
                     "CreateDefaultConfigEndpointParamsInterceptor"
@@ -173,10 +242,10 @@ builder
                         .downcast_ref::<CreateDefaultConfigInput>()
                         .ok_or("failed to downcast to CreateDefaultConfigInput")?;
 
-                    
+
 
                     let params = crate::config::endpoint::Params::builder()
-                        
+
                         .build()
                         .map_err(|err| ::aws_smithy_runtime_api::client::interceptors::error::ContextAttachedError::new("endpoint params could not be built", err))?;
                     cfg.interceptor_state().store_put(::aws_smithy_runtime_api::client::endpoint::EndpointResolverParams::new(params));
@@ -187,7 +256,7 @@ builder
             // The get_* functions below are generated from JMESPath expressions in the
             // operationContextParams trait. They target the operation's input shape.
 
-            
+
 
 /// Error type for the `CreateDefaultConfigError` operation.
 #[non_exhaustive]
@@ -213,15 +282,15 @@ impl CreateDefaultConfigError {
                     pub fn unhandled(err: impl ::std::convert::Into<::std::boxed::Box<dyn ::std::error::Error + ::std::marker::Send + ::std::marker::Sync + 'static>>) -> Self {
                         Self::Unhandled(crate::error::sealed_unhandled::Unhandled { source: err.into(), meta: ::std::default::Default::default() })
                     }
-    
+
                     /// Creates the `CreateDefaultConfigError::Unhandled` variant from an [`ErrorMetadata`](::aws_smithy_types::error::ErrorMetadata).
                     pub fn generic(err: ::aws_smithy_types::error::ErrorMetadata) -> Self {
                         Self::Unhandled(crate::error::sealed_unhandled::Unhandled { source: err.clone().into(), meta: err })
                     }
-    /// 
+    ///
     /// Returns error metadata, which includes the error code, message,
     /// request ID, and potentially additional information.
-    /// 
+    ///
     pub fn meta(&self) -> &::aws_smithy_types::error::ErrorMetadata {
         match self {
             Self::WebhookFailed(e) => ::aws_smithy_types::error::metadata::ProvideErrorMetadata::meta(e),
@@ -318,9 +387,9 @@ impl ::aws_smithy_runtime_api::client::result::CreateUnhandledError for CreateDe
     }
 }
 
-pub use crate::operation::create_default_config::_create_default_config_output::CreateDefaultConfigOutput;
-
 pub use crate::operation::create_default_config::_create_default_config_input::CreateDefaultConfigInput;
+
+pub use crate::operation::create_default_config::_create_default_config_output::CreateDefaultConfigOutput;
 
 mod _create_default_config_input;
 

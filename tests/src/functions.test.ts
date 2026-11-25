@@ -5,8 +5,10 @@ import {
     UpdateFunctionCommand,
     DeleteFunctionCommand,
     PublishCommand,
+    TestCommand,
     FunctionTypes,
     FunctionRuntimeVersion,
+    Stage,
 } from "@juspay/superposition-sdk";
 import { expect, describe, it, afterAll } from "bun:test";
 import { ENV, superpositionClient } from "../env.ts";
@@ -14,6 +16,50 @@ import { ENV, superpositionClient } from "../env.ts";
 describe("Function Operations", () => {
     let valueValidationFunctionName: string;
     let valueComputeFunctionName: string;
+
+    function valueValidationTest(
+        functionName: string,
+        stage: Stage,
+        key: string,
+        value: string,
+    ) {
+        return new TestCommand({
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
+            function_name: functionName,
+            stage,
+            request: {
+                value_validate: {
+                    key,
+                    value,
+                    type: "Dimension",
+                    environment: { context: {}, overrides: {} },
+                },
+            },
+        });
+    }
+
+    function valueComputeTest(
+        functionName: string,
+        stage: Stage,
+        name: string,
+        prefix: string,
+    ) {
+        return new TestCommand({
+            workspace_id: ENV.workspace_id,
+            org_id: ENV.org_id,
+            function_name: functionName,
+            stage,
+            request: {
+                value_compute: {
+                    name,
+                    prefix,
+                    type: "Dimension",
+                    environment: { context: {}, overrides: {} },
+                },
+            },
+        });
+    }
 
     // Value Validation Function Tests
     it("should create and test value_validation function", async () => {
@@ -107,6 +153,153 @@ describe("Function Operations", () => {
         }
     });
 
+    // Test endpoint tests
+    it("should test draft value_validation function", async () => {
+        try {
+            const validResponse = await superpositionClient.send(
+                valueValidationTest(
+                    valueValidationFunctionName,
+                    Stage.DRAFT,
+                    "test-dimension",
+                    "valid",
+                ),
+            );
+            expect(validResponse.fn_output).toBe(true);
+            expect(validResponse.function_type).toBe(
+                FunctionTypes.VALUE_VALIDATION,
+            );
+            expect(typeof validResponse.stdout).toBe("string");
+
+            const invalidResponse = await superpositionClient.send(
+                valueValidationTest(
+                    valueValidationFunctionName,
+                    Stage.DRAFT,
+                    "test-dimension",
+                    "invalid",
+                ),
+            );
+            expect(invalidResponse.fn_output).toBe(false);
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    });
+
+    it("should test draft value_compute function", async () => {
+        try {
+            const matchResponse = await superpositionClient.send(
+                valueComputeTest(
+                    valueComputeFunctionName,
+                    Stage.DRAFT,
+                    "test-dimension",
+                    "t",
+                ),
+            );
+            expect(matchResponse.fn_output).toEqual(["test1", "test2", "test3"]);
+            expect(matchResponse.function_type).toBe(
+                FunctionTypes.VALUE_COMPUTE,
+            );
+
+            const noMatchResponse = await superpositionClient.send(
+                valueComputeTest(
+                    valueComputeFunctionName,
+                    Stage.DRAFT,
+                    "other-dimension",
+                    "t",
+                ),
+            );
+            expect(noMatchResponse.fn_output).toEqual([]);
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    });
+
+    it("should fail to test published stage of unpublished function", async () => {
+        await expect(
+            superpositionClient.send(
+                valueValidationTest(
+                    valueValidationFunctionName,
+                    Stage.PUBLISHED,
+                    "test-dimension",
+                    "valid",
+                ),
+            ),
+        ).rejects.toThrow("function not published yet");
+    });
+
+    it("should fail to test non-existent function", async () => {
+        await expect(
+            superpositionClient.send(
+                valueValidationTest(
+                    "non-existent-function",
+                    Stage.DRAFT,
+                    "test-dimension",
+                    "valid",
+                ),
+            ),
+        ).rejects.toThrow();
+    });
+
+    it("should capture stdout and surface errors when testing a function", async () => {
+        const functionName = "test-function-stdout-and-error";
+        const code = `
+            async function execute(payload) {
+                let value = payload.value_validate.value;
+                console.log("validating value:", value);
+                if (value === "boom") {
+                    throw new Error("intentional failure");
+                }
+                return true;
+            }
+        `;
+
+        await superpositionClient.send(
+            new CreateFunctionCommand({
+                workspace_id: ENV.workspace_id,
+                org_id: ENV.org_id,
+                function_name: functionName,
+                function: code,
+                description: "Function for test endpoint stdout and errors",
+                change_reason: "Initial creation",
+                runtime_version: FunctionRuntimeVersion.V1,
+                function_type: FunctionTypes.VALUE_VALIDATION,
+            }),
+        );
+
+        try {
+            const response = await superpositionClient.send(
+                valueValidationTest(
+                    functionName,
+                    Stage.DRAFT,
+                    "test-dimension",
+                    "hello",
+                ),
+            );
+            expect(response.fn_output).toBe(true);
+            expect(response.stdout).toContain("validating value: hello");
+
+            await expect(
+                superpositionClient.send(
+                    valueValidationTest(
+                        functionName,
+                        Stage.DRAFT,
+                        "test-dimension",
+                        "boom",
+                    ),
+                ),
+            ).rejects.toThrow("intentional failure");
+        } finally {
+            await superpositionClient.send(
+                new DeleteFunctionCommand({
+                    workspace_id: ENV.workspace_id,
+                    org_id: ENV.org_id,
+                    function_name: functionName,
+                }),
+            );
+        }
+    });
+
     it("should list functions with both types", async () => {
         const listCommand = new ListFunctionCommand({
             workspace_id: ENV.workspace_id,
@@ -197,6 +390,47 @@ describe("Function Operations", () => {
         }
     });
 
+    it("should test updated draft code", async () => {
+        try {
+            const validationResponse = await superpositionClient.send(
+                valueValidationTest(
+                    valueValidationFunctionName,
+                    Stage.DRAFT,
+                    "test-dimension",
+                    "updated-valid",
+                ),
+            );
+            expect(validationResponse.fn_output).toBe(true);
+
+            const staleValueResponse = await superpositionClient.send(
+                valueValidationTest(
+                    valueValidationFunctionName,
+                    Stage.DRAFT,
+                    "test-dimension",
+                    "valid",
+                ),
+            );
+            expect(staleValueResponse.fn_output).toBe(false);
+
+            const computeResponse = await superpositionClient.send(
+                valueComputeTest(
+                    valueComputeFunctionName,
+                    Stage.DRAFT,
+                    "test-dimension",
+                    "updated",
+                ),
+            );
+            expect(computeResponse.fn_output).toEqual([
+                "updated1",
+                "updated2",
+                "updated3",
+            ]);
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    });
+
     // Negative Tests
     it("should fail to create value_validation function with invalid code", async () => {
         const command = new CreateFunctionCommand({
@@ -281,6 +515,40 @@ describe("Function Operations", () => {
             expect(response.published_by).toBeDefined();
             expect(response.published_runtime_version).toBeDefined();
             expect(response.published_code).toBeDefined();
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    });
+
+    it("should test published stage after publishing", async () => {
+        try {
+            const validationResponse = await superpositionClient.send(
+                valueValidationTest(
+                    valueValidationFunctionName,
+                    Stage.PUBLISHED,
+                    "test-dimension",
+                    "updated-valid",
+                ),
+            );
+            expect(validationResponse.fn_output).toBe(true);
+            expect(validationResponse.function_type).toBe(
+                FunctionTypes.VALUE_VALIDATION,
+            );
+
+            const computeResponse = await superpositionClient.send(
+                valueComputeTest(
+                    valueComputeFunctionName,
+                    Stage.PUBLISHED,
+                    "test-dimension",
+                    "updated",
+                ),
+            );
+            expect(computeResponse.fn_output).toEqual([
+                "updated1",
+                "updated2",
+                "updated3",
+            ]);
         } catch (error) {
             console.error(error);
             throw error;

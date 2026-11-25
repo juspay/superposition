@@ -6,9 +6,9 @@
 /// variant in a current version of SDK, your code should continue to work when you
 /// upgrade SDK to a future version in which the enum does include a variant for that
 /// feature.
-/// 
+///
 /// Here is an example of how you can make a match expression forward-compatible:
-/// 
+///
 /// ```text
 /// # let orgstatus = unimplemented!();
 /// match orgstatus {
@@ -31,12 +31,12 @@
 /// Specifically, when `orgstatus` represents `NewFeature`,
 /// the execution path will hit the second last match arm as before by virtue of
 /// calling `as_str` on `OrgStatus::NewFeature` also yielding `"NewFeature"`.
-/// 
+///
 /// Explicitly matching on the `Unknown` variant should
 /// be avoided for two reasons:
 /// - The inner data `UnknownVariantValue` is opaque, and no further information can be extracted.
 /// - It might inadvertently shadow other intended match arms.
-/// 
+///
 #[allow(missing_docs)] // documentation missing in model
 #[non_exhaustive]
 #[derive(::std::clone::Clone, ::std::cmp::Eq, ::std::cmp::Ord, ::std::cmp::PartialEq, ::std::cmp::PartialOrd, ::std::fmt::Debug, ::std::hash::Hash)]
@@ -54,9 +54,9 @@ pub enum OrgStatus {
 impl ::std::convert::From<&str> for OrgStatus {
                     fn from(s: &str) -> Self {
                         match s {
-                            "Active" => OrgStatus::Active,
-"Inactive" => OrgStatus::Inactive,
-"PendingKyb" => OrgStatus::PendingKyb,
+                            "ACTIVE" => OrgStatus::Active,
+"INACTIVE" => OrgStatus::Inactive,
+"PENDING_KYB" => OrgStatus::PendingKyb,
 other => OrgStatus::Unknown(crate::primitives::sealed_enum_unknown::UnknownVariantValue(other.to_owned()))
                         }
                     }
@@ -72,15 +72,15 @@ impl OrgStatus {
                 /// Returns the `&str` value of the enum member.
                 pub fn as_str(&self) -> &str {
                     match self {
-    OrgStatus::Active => "Active",
-    OrgStatus::Inactive => "Inactive",
-    OrgStatus::PendingKyb => "PendingKyb",
+    OrgStatus::Active => "ACTIVE",
+    OrgStatus::Inactive => "INACTIVE",
+    OrgStatus::PendingKyb => "PENDING_KYB",
     OrgStatus::Unknown(value) => value.as_str()
 }
                 }
                 /// Returns all the `&str` representations of the enum members.
                 pub const fn values() -> &'static [&'static str] {
-                    &["Active", "Inactive", "PendingKyb"]
+                    &["ACTIVE", "INACTIVE", "PENDING_KYB"]
                 }
             }
 impl ::std::convert::AsRef<str> for OrgStatus {
@@ -103,10 +103,10 @@ impl OrgStatus {
 impl ::std::fmt::Display for OrgStatus {
                         fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                             match self {
-                                OrgStatus::Active => write!(f, "Active"),
-OrgStatus::Inactive => write!(f, "Inactive"),
-OrgStatus::PendingKyb => write!(f, "PendingKyb"),
-OrgStatus::Unknown(value) => write!(f, "{}", value)
+                                OrgStatus::Active => write!(f, "ACTIVE"),
+OrgStatus::Inactive => write!(f, "INACTIVE"),
+OrgStatus::PendingKyb => write!(f, "PENDING_KYB"),
+OrgStatus::Unknown(value) => write!(f, "{value}")
                             }
                         }
                     }

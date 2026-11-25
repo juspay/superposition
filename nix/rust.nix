@@ -85,7 +85,7 @@
                     pkgs.fixDarwinDylibNames
                   ]
                   ++ [
-                    pkgs.postgresql_15
+                    pkgs.postgresql_17
                     pkgs.openssl
                   ];
               };
@@ -113,7 +113,7 @@
                     pkgs.fixDarwinDylibNames
                   ]
                   ++ [
-                    pkgs.postgresql_15
+                    pkgs.postgresql_17
                     pkgs.openssl
                   ];
               };
@@ -139,7 +139,7 @@
                     pkgs.fixDarwinDylibNames
                   ]
                   ++ [
-                    pkgs.postgresql_15
+                    pkgs.postgresql_17
                     pkgs.openssl
                   ];
               };
@@ -165,7 +165,7 @@
                     pkgs.fixDarwinDylibNames
                   ]
                   ++ [
-                    pkgs.postgresql_15
+                    pkgs.postgresql_17
                     pkgs.openssl
                   ];
               };
@@ -191,7 +191,7 @@
                     pkgs.fixDarwinDylibNames
                   ]
                   ++ [
-                    pkgs.postgresql_15
+                    pkgs.postgresql_17
                     pkgs.openssl
                   ];
               };
@@ -217,7 +217,7 @@
                     pkgs.fixDarwinDylibNames
                   ]
                   ++ [
-                    pkgs.postgresql_15
+                    pkgs.postgresql_17
                     pkgs.openssl
                   ];
               };
@@ -246,7 +246,7 @@
                     pkgs.fixDarwinDylibNames
                   ]
                   ++ [
-                    pkgs.postgresql_15
+                    pkgs.postgresql_17
                     pkgs.openssl
                   ];
               };
@@ -274,7 +274,7 @@
                     pkgs.fixDarwinDylibNames
                   ]
                   ++ [
-                    pkgs.postgresql_15
+                    pkgs.postgresql_17
                     pkgs.openssl
                   ];
               };
@@ -299,7 +299,7 @@
                     pkgs.fixDarwinDylibNames
                   ]
                   ++ [
-                    pkgs.postgresql_15
+                    pkgs.postgresql_17
                     pkgs.openssl
                   ];
               };
@@ -326,7 +326,7 @@
               args = {
                 buildInputs = [
                   pkgs.openssl
-                  pkgs.postgresql_15
+                  pkgs.postgresql_17
                 ];
               };
             };
@@ -344,7 +344,7 @@
                   ++ [
                     pkgs.libiconv
                     pkgs.openssl
-                    pkgs.postgresql_15
+                    pkgs.postgresql_17
                   ];
                 nativeBuildInputs = with pkgs; [
                   pkg-config
@@ -363,7 +363,7 @@
               args = {
                 buildInputs = [
                   pkgs.openssl
-                  pkgs.postgresql_15
+                  pkgs.postgresql_17
                 ];
               };
             };

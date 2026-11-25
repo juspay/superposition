@@ -141,16 +141,15 @@ impl ContextAwareConfig {
             // Check if it's a Table type
             if let Value::Table(table) = dimensions {
                 // Iterate over the table
-                let mut index = 1;
-                for (key, value) in table {
+                for (index, (key, value)) in table.into_iter().enumerate() {
                     // println!("{:?}, {:?}", key, value);
                     if value.get("schema").is_none() {
                         eprintln!("dimension: {:?} does not have schema set", key);
                         return false;
                     }
 
-                    self.dimension_priority.insert(key.to_string(), index);
-                    index += 1;
+                    self.dimension_priority
+                        .insert(key.to_string(), index as i64);
                 }
             } else {
                 eprintln!("'dimensions' is not a section");

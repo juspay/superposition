@@ -2,6 +2,34 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## service_utils-v0.46.4 - 2026-11-23
+#### Bug Fixes
+- import deno dependencies (#1191) - (8ab1995) - Datron
+
+- - -
+
+## service_utils-v0.46.3 - 2026-11-19
+#### Bug Fixes
+- prevent sqli injection through workspace parameters (#1187) - (05a5356) - Datron
+
+- - -
+
+## service_utils-v0.46.2 - 2026-11-07
+#### Bug Fixes
+- remove legacy client from rust sdk (#1181) - (396e449) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.118.2 [skip ci] - (c926c91) - Superposition Bot
+
+- - -
+
+## service_utils-v0.46.1 - 2026-10-13
+#### Bug Fixes
+- let Casbin run against a read-only replica (#1159) - (7d1d081) - sauraww
+#### Miscellaneous Chores
+- **(version)** v0.118.0 [skip ci] - (9f8783d) - Superposition Bot
+
+- - -
+
 ## service_utils-v0.46.0 - 2026-09-05
 #### Features
 - add GCP Cloud KMS and OpenBao/Vault as pluggable KMS backends (#1142) - (476b461) - Harshvardhan Bahukhandi

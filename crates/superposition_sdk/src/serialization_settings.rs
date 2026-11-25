@@ -8,7 +8,7 @@
 
 use aws_smithy_http::header::set_request_header_if_absent;
 use aws_smithy_types::config_bag::{Storable, StoreReplace};
-use http::header::{HeaderName, CONTENT_LENGTH, CONTENT_TYPE};
+use http_1x::header::{HeaderName, CONTENT_LENGTH, CONTENT_TYPE};
 
 /// Configuration for how default protocol headers are serialized
 #[derive(Clone, Debug, Default)]
@@ -39,6 +39,22 @@ impl HeaderSerializationSettings {
         }
     }
 
+    /// Returns whether the default `Content-Length` header should be omitted.
+    /// Used by schema-serde-generated request serializers, which insert the
+    /// header directly on `aws_smithy_runtime_api::http::Request` rather than
+    /// going through `set_default_header`.
+    pub(crate) fn should_omit_default_content_length(&self) -> bool {
+        self.omit_default_content_length
+    }
+
+    /// Returns whether the default `Content-Type` header should be omitted.
+    /// Used by schema-serde-generated request serializers, which insert the
+    /// header directly on `aws_smithy_runtime_api::http::Request` rather than
+    /// going through `set_default_header`.
+    pub(crate) fn should_omit_default_content_type(&self) -> bool {
+        self.omit_default_content_type
+    }
+
     /// Returns true if the given default header name should be serialized
     fn include_header(&self, header: &HeaderName) -> bool {
         (!self.omit_default_content_length || header != CONTENT_LENGTH)
@@ -48,10 +64,10 @@ impl HeaderSerializationSettings {
     /// Sets a default header on the given request builder if it should be serialized
     pub(crate) fn set_default_header(
         &self,
-        mut request: http::request::Builder,
+        mut request: http_1x::request::Builder,
         header_name: HeaderName,
         value: &str,
-    ) -> http::request::Builder {
+    ) -> http_1x::request::Builder {
         if self.include_header(&header_name) {
             request = set_request_header_if_absent(request, header_name, value);
         }
@@ -61,6 +77,24 @@ impl HeaderSerializationSettings {
 
 impl Storable for HeaderSerializationSettings {
     type Storer = StoreReplace<Self>;
+}
+
+// Bridge to the schema-serde runtime guard. The schema-serde runtime in
+// `aws-smithy-schema` reads omit flags from the config bag via the abstract
+// `HeaderOmitSettings` trait so it doesn't have to depend on this concrete
+// inlineable type. The presigning interceptor stores the same settings under
+// both `HeaderSerializationSettings` (read by codegen-emitted streaming/
+// payload paths) and `SharedHeaderOmitSettings` (read by the runtime's
+// standard-body path); this trait impl is what lets the same concrete value
+// satisfy both lookups.
+impl aws_smithy_schema::header_omit_settings::HeaderOmitSettings for HeaderSerializationSettings {
+    fn should_omit_default_content_type(&self) -> bool {
+        self.omit_default_content_type
+    }
+
+    fn should_omit_default_content_length(&self) -> bool {
+        self.omit_default_content_length
+    }
 }
 
 #[cfg(test)]

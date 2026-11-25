@@ -54,14 +54,14 @@ impl  ListContextsInput  {
         self.org_id.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.prefix.is_none()`.
     pub fn prefix(&self) -> &[::std::string::String] {
         self.prefix.as_deref()
         .unwrap_or_default()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.exclude_prefix.is_none()`.
     pub fn exclude_prefix(&self) -> &[::std::string::String] {
         self.exclude_prefix.as_deref()
@@ -76,14 +76,14 @@ impl  ListContextsInput  {
         self.sort_by.as_ref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.created_by.is_none()`.
     pub fn created_by(&self) -> &[::std::string::String] {
         self.created_by.as_deref()
         .unwrap_or_default()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.last_modified_by.is_none()`.
     pub fn last_modified_by(&self) -> &[::std::string::String] {
         self.last_modified_by.as_deref()

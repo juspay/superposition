@@ -5,7 +5,11 @@ use actix_web::{
 use chrono::Utc;
 use diesel::prelude::*;
 use idgenerator::IdInstance;
-use service_utils::{middlewares::auth_z::AuthZHandler, service::types::DbConnection};
+use service_utils::{
+    helpers::{MAX_SCHEMA_NAME_LEN, validate_and_sanitize_identifier},
+    middlewares::auth_z::AuthZHandler,
+    service::types::DbConnection,
+};
 use superposition_derives::{authorized, declare_resource};
 use superposition_types::{
     PaginatedResponse, User,
@@ -89,7 +93,11 @@ pub async fn update_handler(
     user: User,
 ) -> superposition::Result<Json<Organisation>> {
     let DbConnection(mut conn) = db_conn;
-    let org_id = org_id.into_inner();
+    let org_id = validate_and_sanitize_identifier(
+        &org_id.into_inner(),
+        MAX_SCHEMA_NAME_LEN,
+        false,
+    )?;
     let now = Utc::now();
     let req = request.into_inner();
 
@@ -108,6 +116,11 @@ pub async fn get_handler(
     db_conn: DbConnection,
 ) -> superposition::Result<Json<Organisation>> {
     let DbConnection(mut conn) = db_conn;
+    let org_id = validate_and_sanitize_identifier(
+        &org_id.into_inner(),
+        MAX_SCHEMA_NAME_LEN,
+        false,
+    )?;
 
     let org = organisations::table
         .find(org_id.as_str())

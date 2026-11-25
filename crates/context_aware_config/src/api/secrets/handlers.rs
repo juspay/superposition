@@ -8,6 +8,7 @@ use service_utils::{
     encryption::{
         decrypt_workspace_key, encrypt_secret, rotate_workspace_encryption_key_helper,
     },
+    helpers::{MAX_SCHEMA_NAME_LEN, validate_and_sanitize_identifier},
     service::types::{
         AppState, DbConnection, EncryptionKey, OrganisationId, SchemaName,
         WorkspaceContext, WorkspaceId, WorkspaceWritePermit,
@@ -312,10 +313,19 @@ pub async fn rotate_master_key_handler(
             let mut total_secrets_re_encrypted = 0i64;
 
             for workspace in all_workspaces {
+                // re-validate the DB-derived schema name before
+                // using it as a SQL identifier. Matches the setup_workspace_schema
+                // pattern — guards against poisoned rows from manual SQL/seed
+                // scripts/future writers.
+                let schema_name = SchemaName(validate_and_sanitize_identifier(
+                    &workspace.workspace_schema_name,
+                    MAX_SCHEMA_NAME_LEN,
+                    true,
+                )?);
                 let workspace_context = WorkspaceContext {
                     workspace_id: WorkspaceId(workspace.workspace_name.clone()),
                     organisation_id: OrganisationId(workspace.organisation_id.clone()),
-                    schema_name: SchemaName(workspace.workspace_schema_name.clone()),
+                    schema_name,
                     settings: workspace,
                 };
                 match rotate_workspace_encryption_key_helper(

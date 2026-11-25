@@ -270,7 +270,7 @@ pub trait ConfigFormat {
         }
 
         // Sort contexts by priority (weight) - higher weight means higher priority
-        contexts.sort_by(|a, b| a.priority.cmp(&b.priority));
+        contexts.sort_by_key(|a| a.priority);
 
         // Set correct values for weight and priority after sorting
         contexts.iter_mut().enumerate().for_each(|(index, ctx)| {

@@ -81,10 +81,10 @@ pub(crate) mod shape_get_context;
 
 pub(crate) mod shape_get_context_from_condition;
 
-pub fn serialize_document(input: &::aws_smithy_types::Document) -> ::std::vec::Vec<u8> {
+pub fn serialize_document(input: &::aws_smithy_types::Document) -> std::result::Result<::std::vec::Vec<u8>, ::aws_smithy_types::error::operation::SerializationError> {
                     let mut out = String::new();
                     ::aws_smithy_json::serialize::JsonValueWriter::new(&mut out).document(input);
-                    out.into_bytes()
+                    Ok(out.into_bytes())
                 }
 
 pub(crate) mod shape_get_context_from_condition_input;
@@ -140,6 +140,8 @@ pub(crate) mod shape_list_experiment;
 pub(crate) mod shape_list_experiment_groups;
 
 pub(crate) mod shape_list_function;
+
+pub(crate) mod shape_list_grouped_default_configs;
 
 pub(crate) mod shape_list_organisation;
 
@@ -369,6 +371,8 @@ pub(crate) mod shape_list_context_out;
 
 pub(crate) mod shape_list_default_config_out;
 
+pub(crate) mod shape_list_grouped_default_config_out;
+
 pub(crate) mod shape_list_mandatory_dimensions;
 
 pub(crate) mod shape_list_override_keys;
@@ -438,6 +442,8 @@ pub(crate) mod shape_experiment_group_response;
 pub(crate) mod shape_experiment_response;
 
 pub(crate) mod shape_function_response;
+
+pub(crate) mod shape_grouped_default_config;
 
 pub(crate) mod shape_list_versions_member;
 

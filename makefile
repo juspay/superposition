@@ -6,6 +6,14 @@ SHELL := /usr/bin/env bash
 FEATURES ?= ssr
 FE_FEATURES ?= hydrate
 CARGO_FLAGS := --color always --no-default-features
+
+HEADLESS := $(filter true 1 yes,$(HEADLESS_SUPERPOSITION))
+ifdef HEADLESS
+FRONTEND_TARGET :=
+else
+FRONTEND_TARGET := frontend
+override FEATURES += frontend
+endif
 EXCLUDE_PACKAGES := experimentation_client_integration_example superposition_sdk
 FMT_EXCLUDE_PACKAGES_REGEX := $(shell echo "$(EXCLUDE_PACKAGES)" | sed "s/ /|/g")
 LINT_FLAGS := --workspace --all-targets --all-features $(addprefix --exclude ,$(EXCLUDE_PACKAGES)) --no-deps
@@ -49,7 +57,8 @@ DB_CONTAINER_NAME = $(shell $(call read-container-name,postgres))
 DB_UP = $(shell $(call check-container,$(DB_CONTAINER_NAME)))
 LSTACK_CONTAINER_NAME = $(shell $(call read-container-name,localstack))
 LSTACK_UP = $(shell $(call check-container,$(LSTACK_CONTAINER_NAME)))
-export SMITHY_MAVEN_REPOS = https://repo1.maven.org/maven2|https://sandbox.assets.juspay.in/smithy/m2
+SMITHY_LOCAL_REPO ?= $(CURDIR)/smithy/.local-m2
+export SMITHY_MAVEN_REPOS = file://$(SMITHY_LOCAL_REPO)|https://sandbox.assets.juspay.in/smithy/m2|https://repo1.maven.org/maven2
 
 .PHONY: amend \
 	amend-no-edit \
@@ -88,6 +97,7 @@ export SMITHY_MAVEN_REPOS = https://repo1.maven.org/maven2|https://sandbox.asset
 	smithy-build \
 	smithy-clean \
 	smithy-clean-build \
+	smithy-local-build \
 	smithy-clients \
 	smithy-updates \
 	superposition \
@@ -97,6 +107,7 @@ export SMITHY_MAVEN_REPOS = https://repo1.maven.org/maven2|https://sandbox.asset
 	symlink-target \
 	tailwind \
 	test \
+	test-hs-provider \
 	test-js-provider \
 	test-kotlin-provider \
 	test-py-provider \
@@ -157,6 +168,7 @@ validate-psql-connection:
 
 node-dependencies:
 	npm ci
+	cd crates/frontend && npm ci --ignore-scripts
 
 SETUP_DEPS = env-file db
 ifdef CI
@@ -169,7 +181,7 @@ setup-clients:
 		npm run build:cjs &&\
 		npm run build:types &&\
 		npm run build:es
-	cd tests && bun install
+	cd tests && bun install --frozen-lockfile
 
 clients: smithy-clients setup-clients
 
@@ -209,7 +221,7 @@ frontend:
 	cd crates/frontend && \
 		wasm-pack build --target web $(WASM_PACK_MODE) --no-default-features --features '$(FE_FEATURES)'
 	cd crates/frontend && \
-		npx tailwindcss -i ./styles/tailwind.css -o ./pkg/style.css
+		npx --no-install tailwindcss -i ./styles/tailwind.css -o ./pkg/style.css
 	-rm -rf $(CARGO_TARGET_DIR)/site
 	mkdir -p $(CARGO_TARGET_DIR)/site/pkg
 	mv crates/frontend/pkg $(CARGO_TARGET_DIR)/site/
@@ -220,19 +232,19 @@ backend:
 	-rm -rf $(CARGO_TARGET_DIR)/node_modules
 	cargo build $(CARGO_FLAGS)
 
-build: frontend backend
+build: $(FRONTEND_TARGET) backend
 
-run: kill db frontend superposition symlink-target
+run: kill db $(FRONTEND_TARGET) superposition symlink-target
 	@$(CARGO_TARGET_DIR)/debug/superposition
 
-%_run: kill db frontend superposition
+%_run: kill db $(FRONTEND_TARGET) superposition
 	@RUST_LOG=$* $(CARGO_TARGET_DIR)/debug/superposition
 
 run_legacy: kill build db superposition_legacy
 	@$(CARGO_TARGET_DIR)/debug/superposition
 
 test: WASM_PACK_MODE=--profiling
-test: setup frontend superposition
+test: setup $(FRONTEND_TARGET) superposition
 	cargo test
 	@echo "Running superposition"
 	MASTER_ENCRYPTION_KEY=$${MASTER_ENCRYPTION_KEY:-"dGVzdC1tYXN0ZXIta2V5LTMyLWNoYXJhY3RlcnMtb2s="} \
@@ -253,10 +265,35 @@ test: setup frontend superposition
 # cd $(SMITHY_CLIENT_DIR)/ts && npm ci && npm test
 
 tailwind:
-	cd crates/frontend && npx tailwindcss -i ./styles/tailwind.css -o ./pkg/style.css --watch
+	cd crates/frontend && npx --no-install tailwindcss -i ./styles/tailwind.css -o ./pkg/style.css --watch
 
 smithy-clean:
 	rm -rf smithy/output
+
+smithy-local-build:
+	@set -e; \
+	if [ -z "$(SMITHY_RUST_CODEGEN_VERSION)" ] || [ -z "$(SMITHY_RUST_KOTLIN_VERSION)" ]; then \
+		echo "usage: make smithy-local-build SMITHY_RUST_CODEGEN_VERSION=<ver> SMITHY_RUST_KOTLIN_VERSION=<ver> [SMITHY_LOCAL_REPO=<dir>]" >&2; \
+		exit 1; \
+	fi; \
+	v=$(SMITHY_RUST_CODEGEN_VERSION); \
+	for a in codegen-client codegen-core; do \
+		dir="$(SMITHY_LOCAL_REPO)/software/amazon/smithy/rust/$$a/$$v"; \
+		if [ ! -f "$$dir/$$a-$$v.pom" ]; then \
+			mkdir -p "$$dir"; \
+			base="https://repo1.maven.org/maven2/software/amazon/smithy/rust/$$a/$$v/$$a-$$v"; \
+			curl -fsSL -o "$$dir/$$a-$$v.jar" "$$base.jar"; \
+			curl -fsSL -o "$$dir/$$a-$$v.pom" "$$base.pom"; \
+			sed -i.bak 's#<version>unspecified</version>#<version>$(SMITHY_RUST_KOTLIN_VERSION)</version>#g' "$$dir/$$a-$$v.pom" && rm -f "$$dir/$$a-$$v.pom.bak"; \
+			for f in "$$dir/$$a-$$v.jar" "$$dir/$$a-$$v.pom"; do \
+				shasum -a 1 "$$f" | cut -d' ' -f1 > "$$f.sha1"; \
+				shasum -a 256 "$$f" | cut -d' ' -f1 > "$$f.sha256"; \
+				shasum -a 512 "$$f" | cut -d' ' -f1 > "$$f.sha512"; \
+				openssl md5 -r "$$f" | cut -d' ' -f1 > "$$f.md5"; \
+			done; \
+			echo "prepared $$a-$$v (kotlin-stdlib-jdk8 pinned to $(SMITHY_RUST_KOTLIN_VERSION))"; \
+		fi; \
+	done
 
 smithy-build:
 	cd smithy && smithy build
@@ -417,6 +454,14 @@ test-rust-provider: provider-template
 	$(MAKE) kill
 	-@pkill -f $(CARGO_TARGET_DIR)/debug/superposition
 
+test-hs-provider: provider-template
+	cd clients/haskell && \
+		export LIBRARY_PATH=$(CARGO_TARGET_DIR)/debug:$$LIBRARY_PATH && \
+		export LD_LIBRARY_PATH=$(CARGO_TARGET_DIR)/debug:$$LD_LIBRARY_PATH && \
+		export DYLD_LIBRARY_PATH=$(CARGO_TARGET_DIR)/debug:$$DYLD_LIBRARY_PATH && \
+		cabal run --project-file=cabal.project.ci provider-sdk-tests
+	$(MAKE) kill
+
 # Target to run all TOML bindings tests
 bindings-test: uniffi-bindings
 	@echo ""
@@ -477,7 +522,7 @@ SKILLS_TARGETS := claude openai gemini markdown
 
 skills-update:
 	@command -v skill-seekers >/dev/null 2>&1 || \
-		{ echo "Installing skill-seekers via uv..."; uv tool install skill-seekers; }
+		{ echo "Installing skill-seekers via uv..."; uv tool install skill-seekers==3.10.0; }
 	@echo "Creating skill from docs..."
 	@rm -rf $(SKILLS_BUILD) $(SKILLS_DEST) $(SKILLS_PACKAGES)
 	@skill-seekers create $(SKILLS_SRC) --name superposition --output $(SKILLS_BUILD) --quiet

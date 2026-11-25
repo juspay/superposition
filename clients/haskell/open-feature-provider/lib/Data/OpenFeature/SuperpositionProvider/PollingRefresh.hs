@@ -1,6 +1,7 @@
 module Data.OpenFeature.SuperpositionProvider.PollingRefresh (PollingRefresh (..)) where
 
 import Control.Concurrent (threadDelay, forkIO)
+import Control.Exception (evaluate)
 import Control.Monad (void)
 import Data.IORef (IORef)
 import Data.OpenFeature.SuperpositionProvider.RefreshTask
@@ -18,7 +19,12 @@ data PollingRefresh a = PollingRefresh
 instance RefreshTask PollingRefresh a where
   isRunning _ = pure True
   startRefresh r = do
-    weak <- mkWeak (anchor r) () Nothing
+    -- Force the record selector before using the IORef as a weak key.
+    -- 'mkWeak' does not evaluate its key, so keying on the unevaluated thunk
+    -- 'anchor r' makes the weak pointer die as soon as the thunk is GC'd,
+    -- even though the IORef itself is still held by the provider.
+    a <- evaluate (anchor r)
+    weak <- mkWeak a () Nothing
     let poll = do
           alive <- deRefWeak weak
           case alive of

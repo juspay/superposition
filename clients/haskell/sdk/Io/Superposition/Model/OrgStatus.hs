@@ -21,28 +21,28 @@ data OrgStatus =
     )
 
 instance Data.Aeson.ToJSON OrgStatus where
-    toJSON ACTIVE = Data.Aeson.String $ Data.Text.pack "Active"
-    toJSON INACTIVE = Data.Aeson.String $ Data.Text.pack "Inactive"
-    toJSON PENDING_KYB = Data.Aeson.String $ Data.Text.pack "PendingKyb"
+    toJSON ACTIVE = Data.Aeson.String $ Data.Text.pack "ACTIVE"
+    toJSON INACTIVE = Data.Aeson.String $ Data.Text.pack "INACTIVE"
+    toJSON PENDING_KYB = Data.Aeson.String $ Data.Text.pack "PENDING_KYB"
 
 instance Data.Aeson.FromJSON OrgStatus where
     parseJSON = Data.Aeson.withText "OrgStatus" $ \v ->
         case v of
-            "Active" -> pure ACTIVE
-            "Inactive" -> pure INACTIVE
-            "PendingKyb" -> pure PENDING_KYB
+            "ACTIVE" -> pure ACTIVE
+            "INACTIVE" -> pure INACTIVE
+            "PENDING_KYB" -> pure PENDING_KYB
             _ -> fail $ "Unknown value for OrgStatus: " <> Data.Text.unpack v
         
     
 
 instance Io.Superposition.Utility.SerDe OrgStatus where
-    serializeElement ACTIVE = Data.Text.Encoding.encodeUtf8 $ Data.Text.pack "Active"
-    serializeElement INACTIVE = Data.Text.Encoding.encodeUtf8 $ Data.Text.pack "Inactive"
-    serializeElement PENDING_KYB = Data.Text.Encoding.encodeUtf8 $ Data.Text.pack "PendingKyb"
+    serializeElement ACTIVE = Data.Text.Encoding.encodeUtf8 $ Data.Text.pack "ACTIVE"
+    serializeElement INACTIVE = Data.Text.Encoding.encodeUtf8 $ Data.Text.pack "INACTIVE"
+    serializeElement PENDING_KYB = Data.Text.Encoding.encodeUtf8 $ Data.Text.pack "PENDING_KYB"
     deSerializeElement bs = case Data.Text.Encoding.decodeUtf8 bs of
-        "Active" -> Right ACTIVE
-        "Inactive" -> Right INACTIVE
-        "PendingKyb" -> Right PENDING_KYB
+        "ACTIVE" -> Right ACTIVE
+        "INACTIVE" -> Right INACTIVE
+        "PENDING_KYB" -> Right PENDING_KYB
         e -> Left ("Failed to de-serialize OrgStatus, encountered unknown variant: " ++ (show bs))
     
 

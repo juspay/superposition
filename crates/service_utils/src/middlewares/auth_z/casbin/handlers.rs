@@ -120,8 +120,7 @@ async fn add_policy_handler(
                 .await
                 .map_err(|e| unexpected_error!("{}", e))
         })
-        .await
-        .map_err(|e| unexpected_error!(e))?;
+        .await?;
 
     if !added {
         bad_argument!("The specified policy already exists");
@@ -154,8 +153,7 @@ async fn delete_policy_handler(
                 .await
                 .map_err(|e| unexpected_error!("{}", e))
         })
-        .await
-        .map_err(|e| unexpected_error!(e))?;
+        .await?;
 
     if !removed {
         bad_argument!("The specified policy does not exist");
@@ -210,8 +208,7 @@ async fn add_roles_handler(
                 .await
                 .map_err(|e| unexpected_error!("{}", e))
         })
-        .await
-        .map_err(|e| unexpected_error!(e))?;
+        .await?;
 
     if !added {
         bad_argument!("The specified grouping policy already exists");
@@ -242,8 +239,7 @@ async fn delete_roles_handler(
                 .await
                 .map_err(|e| unexpected_error!("{}", e))
         })
-        .await
-        .map_err(|e| unexpected_error!(e))?;
+        .await?;
 
     if !removed {
         bad_argument!("The specified grouping policy does not exist");
@@ -301,8 +297,7 @@ async fn add_domain_action_group_handler(
                 .await
                 .map_err(|e| unexpected_error!("{}", e))
         })
-        .await
-        .map_err(|e| unexpected_error!(e))?;
+        .await?;
 
     if !added {
         bad_argument!("The specified policy already exists");
@@ -336,8 +331,7 @@ async fn delete_domain_action_group_handler(
                 .await
                 .map_err(|e| unexpected_error!("{}", e))
         })
-        .await
-        .map_err(|e| unexpected_error!(e))?;
+        .await?;
 
     if !removed {
         bad_argument!("The specified action-group policy does not exist");
@@ -387,8 +381,7 @@ async fn add_action_group_handler(
                 .await
                 .map_err(|e| unexpected_error!("{}", e))
         })
-        .await
-        .map_err(|e| unexpected_error!(e))?;
+        .await?;
 
     if !added {
         bad_argument!("The specified action-group policy already exists");
@@ -420,8 +413,7 @@ async fn delete_action_group_handler(
                 .await
                 .map_err(|e| unexpected_error!("{}", e))
         })
-        .await
-        .map_err(|e| unexpected_error!(e))?;
+        .await?;
 
     if !removed {
         bad_argument!("The specified action-group policy does not exist");
@@ -523,8 +515,7 @@ async fn backfill_orgs_handler(
         }
         Ok(())
     })
-    .await
-    .map_err(|e| unexpected_error!(e))?;
+    .await?;
 
     Ok(HttpResponse::Ok().body("Org backfill completed"))
 }
@@ -555,8 +546,7 @@ async fn backfill_workspaces_handler(
         }
         Ok(())
     })
-    .await
-    .map_err(|e| unexpected_error!(e))?;
+    .await?;
 
     Ok(HttpResponse::Ok().body("Workspace backfill completed"))
 }

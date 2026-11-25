@@ -2,6 +2,29 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## superposition_sdk-v0.25.0 - 2026-11-19
+#### Features
+- support search, filtering and grouping for list default configs (#879) - (2e85645) - Ayush Jain
+
+- - -
+
+## superposition_sdk-v0.24.2 - 2026-11-07
+#### Bug Fixes
+- remove legacy client from rust sdk (#1181) - (396e449) - Ayush Jain
+#### Miscellaneous Chores
+- **(version)** v0.118.2 [skip ci] - (c926c91) - Superposition Bot
+- update smithy version (#1077) - (04207ff) - Ayush Jain
+
+- - -
+
+## superposition_sdk-v0.24.1 - 2026-10-13
+#### Bug Fixes
+- add Haskell OpenFeature provider integration tests to CI (#1151) - (0437831) - Datron
+#### Miscellaneous Chores
+- **(version)** v0.118.0 [skip ci] - (9f8783d) - Superposition Bot
+
+- - -
+
 ## superposition_sdk-v0.24.0 - 2026-09-05
 #### Features
 - add workspace-defined metric selections with cleanups (#1145) - (948faaa) - Ayush Jain

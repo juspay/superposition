@@ -234,6 +234,10 @@ import {
   ListFunctionCommandOutput,
 } from "./commands/ListFunctionCommand";
 import {
+  ListGroupedDefaultConfigsCommandInput,
+  ListGroupedDefaultConfigsCommandOutput,
+} from "./commands/ListGroupedDefaultConfigsCommand";
+import {
   ListOrganisationCommandInput,
   ListOrganisationCommandOutput,
 } from "./commands/ListOrganisationCommand";
@@ -476,6 +480,7 @@ export type ServiceInputTypes =
   | ListExperimentCommandInput
   | ListExperimentGroupsCommandInput
   | ListFunctionCommandInput
+  | ListGroupedDefaultConfigsCommandInput
   | ListOrganisationCommandInput
   | ListSecretsCommandInput
   | ListVariablesCommandInput
@@ -568,6 +573,7 @@ export type ServiceOutputTypes =
   | ListExperimentCommandOutput
   | ListExperimentGroupsCommandOutput
   | ListFunctionCommandOutput
+  | ListGroupedDefaultConfigsCommandOutput
   | ListOrganisationCommandOutput
   | ListSecretsCommandOutput
   | ListVariablesCommandOutput

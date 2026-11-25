@@ -1,0 +1,12 @@
+packages:
+    open-feature-provider
+    superposition-bindings
+    provider-sdk-tests
+    sdk
+
+-- The `open-feature` Haskell SDK is pulled in from git (same revision as the
+-- one pinned in the root `flake.lock`).
+source-repository-package
+    type: git
+    location: https://github.com/juspay/open-feature-haskell-sdk
+    tag: e5b7f12044163bba6594900313f81733dd7ca738

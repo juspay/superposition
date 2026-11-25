@@ -50,7 +50,7 @@ impl  CreateExperimentInput  {
         self.context.as_ref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.variants.is_none()`.
     pub fn variants(&self) -> &[crate::types::Variant] {
         self.variants.as_deref()

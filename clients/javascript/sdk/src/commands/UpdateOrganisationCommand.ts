@@ -49,7 +49,7 @@ export interface UpdateOrganisationCommandOutput extends OrganisationResponse, _
  *   admin_email: "STRING_VALUE",
  *   sector: "STRING_VALUE",
  *   id: "STRING_VALUE", // required
- *   status: "Active" || "Inactive" || "PendingKyb",
+ *   status: "ACTIVE" || "INACTIVE" || "PENDING_KYB",
  * };
  * const command = new UpdateOrganisationCommand(input);
  * const response = await client.send(command);
@@ -61,7 +61,7 @@ export interface UpdateOrganisationCommandOutput extends OrganisationResponse, _
  * //   contact_phone: "STRING_VALUE",
  * //   created_by: "STRING_VALUE", // required
  * //   admin_email: "STRING_VALUE", // required
- * //   status: "Active" || "Inactive" || "PendingKyb", // required
+ * //   status: "ACTIVE" || "INACTIVE" || "PENDING_KYB", // required
  * //   sector: "STRING_VALUE",
  * //   created_at: new Date("TIMESTAMP"), // required
  * //   updated_at: new Date("TIMESTAMP"), // required

@@ -16,9 +16,9 @@ import qualified Io.Superposition.SuperpositionClient
 import qualified Io.Superposition.Utility
 
 data WeightRecomputeError =
-    InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
-    | WebhookFailed Io.Superposition.Model.WebhookFailed.WebhookFailed
+    WebhookFailed Io.Superposition.Model.WebhookFailed.WebhookFailed
     | WorkspaceLockConflict Io.Superposition.Model.WorkspaceLockConflict.WorkspaceLockConflict
+    | InternalServerError Io.Superposition.Model.InternalServerError.InternalServerError
     | BuilderError Data.Text.Text
     | DeSerializationError Io.Superposition.Utility.HttpMetadata Data.Text.Text
     | UnexpectedError (Data.Maybe.Maybe Io.Superposition.Utility.HttpMetadata) Data.Text.Text
@@ -31,9 +31,9 @@ instance Io.Superposition.Utility.OperationError WeightRecomputeError where
     mkUnexpectedError = UnexpectedError
 
     getErrorParser status
-        | status == (Io.Superposition.Utility.expectedStatus @Io.Superposition.Model.InternalServerError.InternalServerError) = Just (fmap InternalServerError (Io.Superposition.Utility.responseParser @Io.Superposition.Model.InternalServerError.InternalServerError))
         | status == (Io.Superposition.Utility.expectedStatus @Io.Superposition.Model.WebhookFailed.WebhookFailed) = Just (fmap WebhookFailed (Io.Superposition.Utility.responseParser @Io.Superposition.Model.WebhookFailed.WebhookFailed))
         | status == (Io.Superposition.Utility.expectedStatus @Io.Superposition.Model.WorkspaceLockConflict.WorkspaceLockConflict) = Just (fmap WorkspaceLockConflict (Io.Superposition.Utility.responseParser @Io.Superposition.Model.WorkspaceLockConflict.WorkspaceLockConflict))
+        | status == (Io.Superposition.Utility.expectedStatus @Io.Superposition.Model.InternalServerError.InternalServerError) = Just (fmap InternalServerError (Io.Superposition.Utility.responseParser @Io.Superposition.Model.InternalServerError.InternalServerError))
         | otherwise = Nothing
 
 

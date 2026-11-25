@@ -1,3 +1,4 @@
+use service_utils::service::types::SchemaName;
 use superposition_macros::bad_argument;
 use superposition_types::{
     database::models::others::{Webhook, WebhookEvent},
@@ -14,7 +15,7 @@ use superposition_types::database::schema::webhooks::{self, dsl};
 pub fn validate_events(
     events: &[WebhookEvent],
     exclude_webhook: Option<&String>,
-    schema_name: &String,
+    schema_name: &SchemaName,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
 ) -> superposition::Result<()> {
     let result: Vec<Webhook> =
@@ -34,7 +35,7 @@ pub fn validate_events(
 
 pub fn fetch_webhook(
     w_name: &String,
-    schema_name: &String,
+    schema_name: &SchemaName,
     conn: &mut PooledConnection<ConnectionManager<PgConnection>>,
 ) -> superposition::Result<Webhook> {
     Ok(dsl::webhooks

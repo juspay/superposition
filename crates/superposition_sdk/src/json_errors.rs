@@ -12,7 +12,7 @@ use std::borrow::Cow;
 
 // currently only used by AwsJson
 #[allow(unused)]
-pub fn is_error<B>(response: &http::Response<B>) -> bool {
+pub fn is_error<B>(response: &http_1x::Response<B>) -> bool {
     !response.status().is_success()
 }
 
@@ -36,7 +36,7 @@ struct ErrorBody<'a> {
     message: Option<Cow<'a, str>>,
 }
 
-fn parse_error_body(bytes: &[u8]) -> Result<ErrorBody, DeserializeError> {
+fn parse_error_body(bytes: &[u8]) -> Result<ErrorBody<'_>, DeserializeError> {
     let mut tokens = json_token_iter(bytes).peekable();
     let (mut typ, mut code, mut message) = (None, None, None);
     if let Some(Token::StartObject { .. }) = tokens.next().transpose()? {
@@ -105,7 +105,7 @@ mod test {
     #[test]
     fn error_metadata() {
         let response = HttpResponse::try_from(
-            http::Response::builder()
+            http_1x::Response::builder()
                 .body(SdkBody::from(
                     r#"{ "__type": "FooError", "message": "Go to foo" }"#,
                 ))
@@ -187,7 +187,7 @@ mod test {
     #[test]
     fn alternative_error_message_names() {
         let response = HttpResponse::try_from(
-            http::Response::builder()
+            http_1x::Response::builder()
                 .header("x-amzn-errortype", "ResourceNotFoundException")
                 .body(SdkBody::from(
                     r#"{

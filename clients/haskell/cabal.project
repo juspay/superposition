@@ -4,3 +4,4 @@ packages:
     hs-exp-client
     open-feature-provider
     superposition-bindings
+    provider-sdk-tests

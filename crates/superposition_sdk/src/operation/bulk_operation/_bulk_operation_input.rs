@@ -26,7 +26,7 @@ impl  BulkOperationInput  {
         self.config_tags.as_deref()
     }
     #[allow(missing_docs)] // documentation missing in model
-    /// 
+    ///
     /// If no value was sent for this field, a default will be set. If you want to determine if no value was sent, use `.operations.is_none()`.
     pub fn operations(&self) -> &[crate::types::ContextAction] {
         self.operations.as_deref()

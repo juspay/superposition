@@ -12,7 +12,7 @@ services:
     restart: on-failure
 
   redis:
-    image: redis:7
+    image: redis:8.10.3
     container_name: superposition_redis
     restart: on-failure
     ports:

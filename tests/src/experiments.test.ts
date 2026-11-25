@@ -354,7 +354,8 @@ describe("Experiments API", () => {
                 await superpositionClient.send(deleteCmd);
             }
 
-            // Clean up dimensions
+            // Clean up dimensions (mandatory dimensions cannot be deleted)
+            await removeMandatoryDimension(superpositionClient);
             console.log("Created dimensions to delete:", created_dimensions);
             for (const dimension of created_dimensions) {
                 const deleteCmd = new DeleteDimensionCommand({

@@ -116,6 +116,8 @@ import io.juspay.superposition.model.ListExperimentInput;
 import io.juspay.superposition.model.ListExperimentOutput;
 import io.juspay.superposition.model.ListFunctionInput;
 import io.juspay.superposition.model.ListFunctionOutput;
+import io.juspay.superposition.model.ListGroupedDefaultConfigsInput;
+import io.juspay.superposition.model.ListGroupedDefaultConfigsOutput;
 import io.juspay.superposition.model.ListOrganisationInput;
 import io.juspay.superposition.model.ListOrganisationOutput;
 import io.juspay.superposition.model.ListSecretsInput;
@@ -238,10 +240,10 @@ public interface SuperpositionAsyncClient {
      * Executes multiple context operations (PUT, REPLACE, DELETE, MOVE) in a single atomic transaction for
      * efficient batch processing.
      *
-     * @throws InternalServerError
-     * @throws WebhookFailed
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws WorkspaceLockConflict
+     * @throws InternalServerError
      */
     default CompletableFuture<BulkOperationOutput> bulkOperation(BulkOperationInput input) {
         return bulkOperation(input, null);
@@ -251,10 +253,10 @@ public interface SuperpositionAsyncClient {
      * Executes multiple context operations (PUT, REPLACE, DELETE, MOVE) in a single atomic transaction for
      * efficient batch processing.
      *
-     * @throws InternalServerError
-     * @throws WebhookFailed
      * @throws ResourceNotFound
+     * @throws WebhookFailed
      * @throws WorkspaceLockConflict
+     * @throws InternalServerError
      */
     CompletableFuture<BulkOperationOutput> bulkOperation(BulkOperationInput input, RequestOverrideConfig overrideConfig);
 
@@ -1313,6 +1315,24 @@ public interface SuperpositionAsyncClient {
     CompletableFuture<ListFunctionOutput> listFunction(ListFunctionInput input, RequestOverrideConfig overrideConfig);
 
     /**
+     * Retrieves a paginated list of all default config entries in the workspace, including their values,
+     * schemas, and metadata.
+     *
+     * @throws InternalServerError
+     */
+    default CompletableFuture<ListGroupedDefaultConfigsOutput> listGroupedDefaultConfigs(ListGroupedDefaultConfigsInput input) {
+        return listGroupedDefaultConfigs(input, null);
+    }
+
+    /**
+     * Retrieves a paginated list of all default config entries in the workspace, including their values,
+     * schemas, and metadata.
+     *
+     * @throws InternalServerError
+     */
+    CompletableFuture<ListGroupedDefaultConfigsOutput> listGroupedDefaultConfigs(ListGroupedDefaultConfigsInput input, RequestOverrideConfig overrideConfig);
+
+    /**
      * Retrieves a paginated list of all organisations with their basic information, creation details, and
      * current status.
      *
@@ -1902,9 +1922,9 @@ public interface SuperpositionAsyncClient {
      * Recalculates and updates the priority weights for all contexts in the workspace based on their
      * dimensions.
      *
-     * @throws InternalServerError
      * @throws WebhookFailed
      * @throws WorkspaceLockConflict
+     * @throws InternalServerError
      */
     default CompletableFuture<WeightRecomputeOutput> weightRecompute(WeightRecomputeInput input) {
         return weightRecompute(input, null);
@@ -1914,9 +1934,9 @@ public interface SuperpositionAsyncClient {
      * Recalculates and updates the priority weights for all contexts in the workspace based on their
      * dimensions.
      *
-     * @throws InternalServerError
      * @throws WebhookFailed
      * @throws WorkspaceLockConflict
+     * @throws InternalServerError
      */
     CompletableFuture<WeightRecomputeOutput> weightRecompute(WeightRecomputeInput input, RequestOverrideConfig overrideConfig);
 
