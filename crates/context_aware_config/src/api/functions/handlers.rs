@@ -78,8 +78,11 @@ async fn create_handler(
     .await?;
     let handle = rustyscript::tokio::runtime::Handle::current();
     let function = req.function.clone();
+    let enable_functions = state.enable_functions;
     handle
-        .spawn_blocking(move || compile_fn(&function, &req.function_type))
+        .spawn_blocking(move || {
+            compile_fn(&function, &req.function_type, enable_functions)
+        })
         .await
         .map_err(|e| {
             log::error!("Function compilation task failed: {:?}", e);
@@ -156,8 +159,11 @@ async fn update_handler(
     if let Some(fc) = &req.draft_code {
         let handle = rustyscript::tokio::runtime::Handle::current();
         let function_code = fc.clone();
+        let enable_functions = state.enable_functions;
         handle
-            .spawn_blocking(move || compile_fn(&function_code, &function.function_type))
+            .spawn_blocking(move || {
+                compile_fn(&function_code, &function.function_type, enable_functions)
+            })
             .await
             .map_err(|err| bad_argument!("Invalid function code: {}", err))??;
     }
