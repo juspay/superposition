@@ -40,6 +40,9 @@ VALUES
     -- config
     ('g3', 'config:get', 'read', '', '', '', ''),
     ('g3', 'config:get_toml', 'read', '', '', '', ''),
+    ('g3', 'config:get_json', 'read', '', '', '', ''),
+    ('g3', 'config:detailed_resolve', 'read', '', '', '', ''),
+    ('g3', 'config:explain_resolve', 'read', '', '', '', ''),
     ('g3', 'config:resolve', 'read', '', '', '', ''),
     ('g3', 'config:resolve_with_exp', 'read', '', '', '', ''),
     ('g3', 'config:list_version', 'read', '', '', '', ''),
@@ -99,3 +102,4 @@ VALUES
     -- TODO: Figure out what to do about Auth and Organisation resources, which don't fit neatly into the "workspace" schema. For now, we can use a wildcard schema ("*") for these resources in the policy rules, but this is something we may want to revisit for more fine-grained control in the future.
 ON CONFLICT (ptype, v0, v1, v2, v3, v4, v5) DO NOTHING;
 
+UPDATE casbin_rule SET v0 = 'context:get_from_condition' WHERE v0 = 'context:get_from_context';
