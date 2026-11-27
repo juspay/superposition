@@ -531,22 +531,28 @@ impl LocalResolutionProvider {
         context: EvaluationContext,
         prefix_filter: Option<Vec<String>>,
         exclude_prefix_filter: Option<Vec<String>>,
-    ) -> Result<Map<String, Value>> {
+    ) -> Result<AllFeaturesResolutionDetails> {
         self.ensure_fresh_data().await?;
 
         let (mut query_data, targeting_key) = self.get_merged_context(context).await;
         let dimensions_info = self.get_dimensions_info().await;
 
-        // If experiments are cached, get applicable variants and inject variantIds
+        // Variants are only computed when there is an identifier to evaluate them
+        // against and experiments are cached. Otherwise a `variantIds` already on the
+        // context is the caller's own assignment and is left untouched — injecting here
+        // would overwrite it with an empty list.
         {
             let cached_exp = self.cached_experiments.read().await;
-            if let Some(exp_data) = cached_exp.as_ref() {
+            if let (Some(key), Some(exp_data)) = (
+                targeting_key.filter(|key| !key.is_empty()),
+                cached_exp.as_ref(),
+            ) {
                 let variant_ids = get_applicable_variants(
                     &dimensions_info,
                     exp_data.data.experiments.clone(),
                     &exp_data.data.experiment_groups,
                     query_data.clone(),
-                    &targeting_key.unwrap_or_default(),
+                    &key,
                     prefix_filter.clone(),
                     exclude_prefix_filter.clone(),
                 );
@@ -558,19 +564,32 @@ impl LocalResolutionProvider {
             }
         }
 
+        let variant_ids = query_data
+            .get("variantIds")
+            .and_then(Value::as_array)
+            .map(|ids| {
+                ids.iter()
+                    .filter_map(|id| id.as_str().map(String::from))
+                    .collect()
+            })
+            .unwrap_or_default();
+
         // Evaluate config using cached data
         let cached = self.cached_config.read().await;
         match cached.as_ref() {
-            Some(config_data) => Ok(eval(
-                config_data.data.default_configs.clone(),
-                &config_data.data.contexts,
-                &config_data.data.overrides,
-                &config_data.data.dimensions,
-                query_data,
-                MergeStrategy::MERGE,
-                prefix_filter,
-                exclude_prefix_filter,
-            )),
+            Some(config_data) => Ok(AllFeaturesResolutionDetails {
+                value: eval(
+                    config_data.data.default_configs.clone(),
+                    &config_data.data.contexts,
+                    &config_data.data.overrides,
+                    &config_data.data.dimensions,
+                    query_data,
+                    MergeStrategy::REPLACE,
+                    prefix_filter,
+                    exclude_prefix_filter,
+                ),
+                variant_ids,
+            }),
             None => Err(SuperpositionError::ProviderError(
                 "Provider not initialized: no cached config available".into(),
             )),
@@ -586,6 +605,17 @@ impl AllFeatureProvider for LocalResolutionProvider {
         prefix_filter: Option<Vec<String>>,
         exclude_prefix_filter: Option<Vec<String>>,
     ) -> Result<Map<String, Value>> {
+        self.eval_with_context(context, prefix_filter, exclude_prefix_filter)
+            .await
+            .map(|details| details.value)
+    }
+
+    async fn resolve_all_features_with_filter_details(
+        &self,
+        context: EvaluationContext,
+        prefix_filter: Option<Vec<String>>,
+        exclude_prefix_filter: Option<Vec<String>>,
+    ) -> Result<AllFeaturesResolutionDetails> {
         self.eval_with_context(context, prefix_filter, exclude_prefix_filter)
             .await
     }
