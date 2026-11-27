@@ -380,6 +380,8 @@ impl FromRequest for WorkspaceWritePermit {
 pub struct CustomHeaders {
     pub config_tags: Option<String>,
     pub idempotency_key: Option<String>,
+    /// `x-auto-reduce`. `None` means fall back to the workspace setting.
+    pub auto_reduce: Option<bool>,
 }
 impl FromRequest for CustomHeaders {
     type Error = Error;
@@ -399,6 +401,18 @@ impl FromRequest for CustomHeaders {
                 .and_then(|v| v.to_str().ok())
                 .map(|v| v.trim().to_string())
                 .filter(|v| !v.is_empty()),
+            auto_reduce: header_val
+                .get("x-auto-reduce")
+                .and_then(|v| v.to_str().ok())
+                .and_then(|v| match v.trim().parse::<bool>() {
+                    Ok(parsed) => Some(parsed),
+                    Err(_) => {
+                        log::warn!(
+                            "ignoring x-auto-reduce: expected true/false, got {v:?}"
+                        );
+                        None
+                    }
+                }),
         };
         ready(Ok(val))
     }
