@@ -898,6 +898,204 @@ fn eval_with_empty_config_returns_empty_map() {
 }
 
 // ---------------------------------------------------------------------------
+// eval_with_applied_variants
+// ---------------------------------------------------------------------------
+
+fn eval_variants(
+    defaults: ExtendedMap,
+    contexts: &[Context],
+    all_overrides: &HashMap<String, Overrides>,
+    query_data: Map<String, Value>,
+    filter_prefixes: Option<Vec<String>>,
+) -> (Map<String, Value>, Vec<String>) {
+    eval_with_applied_variants(
+        defaults,
+        contexts,
+        all_overrides,
+        &HashMap::new(),
+        query_data,
+        MergeStrategy::REPLACE,
+        filter_prefixes,
+        None,
+    )
+}
+
+#[test]
+fn applied_variants_are_the_last_writers_of_resolved_keys() {
+    let defaults = default_configs(vec![
+        ("price", json!(100)),
+        ("color", json!("red")),
+        ("banner", json!(false)),
+    ]);
+    let contexts = [
+        context("c0", vec![("variantIds", json!("v1"))], "o0"),
+        context("c1", vec![("variantIds", json!("v2"))], "o1"),
+        context("c2", vec![("variantIds", json!("v3"))], "o2"),
+        context("c3", vec![("city", json!("BLR"))], "o3"),
+    ];
+    let all_overrides = overrides_map(vec![
+        // v1 loses `price` to v2 but keeps `color`, so it still applied
+        ("o0", vec![("price", json!(200)), ("color", json!("blue"))]),
+        ("o1", vec![("price", json!(300))]),
+        // v3 loses its only key to the normal context after it
+        ("o2", vec![("banner", json!(true))]),
+        ("o3", vec![("banner", json!(false))]),
+    ]);
+    let query = value_map(vec![
+        ("city", json!("BLR")),
+        ("variantIds", json!(["v3", "v2", "v1"])),
+    ]);
+
+    let (resolved, applied) = eval_variants(
+        defaults.clone(),
+        &contexts,
+        &all_overrides,
+        query.clone(),
+        None,
+    );
+
+    assert_eq!(applied, vec!["v2", "v1"], "ordered as in the query");
+    assert_eq!(
+        resolved,
+        value_map(vec![
+            ("price", json!(300)),
+            ("color", json!("blue")),
+            ("banner", json!(false)),
+        ])
+    );
+    assert_eq!(
+        resolved,
+        eval(
+            defaults,
+            &contexts,
+            &all_overrides,
+            &HashMap::new(),
+            query,
+            MergeStrategy::REPLACE,
+            None,
+            None,
+        ),
+        "must resolve the same config as eval"
+    );
+}
+
+#[test]
+fn key_sources_point_at_the_context_that_set_each_key_last() {
+    let defaults = default_configs(vec![
+        ("price", json!(100)),
+        ("color", json!("red")),
+        ("banner", json!(false)),
+    ]);
+    let contexts = [
+        context("c0", vec![("city", json!("BLR"))], "o0"),
+        context(
+            "c1",
+            vec![("city", json!("BLR")), ("os", json!("ios"))],
+            "o1",
+        ),
+    ];
+    let all_overrides = overrides_map(vec![
+        ("o0", vec![("price", json!(200)), ("color", json!("blue"))]),
+        ("o1", vec![("price", json!(300)), ("unknown", json!(1))]),
+    ]);
+    let query = value_map(vec![("city", json!("BLR")), ("os", json!("ios"))]);
+    let dimensions = HashMap::new();
+
+    let (resolved, sources) = eval_with_key_sources(
+        defaults.clone(),
+        &contexts,
+        &all_overrides,
+        &dimensions,
+        query.clone(),
+        MergeStrategy::REPLACE,
+        None,
+        None,
+    );
+
+    let source_ids: HashMap<&str, &str> = sources
+        .iter()
+        .map(|(key, context)| (key.as_str(), context.id.as_str()))
+        .collect();
+    // `banner` kept its default and `unknown` is not a default config key, so
+    // neither has a source
+    assert_eq!(
+        source_ids,
+        HashMap::from([("price", "c1"), ("color", "c0")])
+    );
+    assert_eq!(
+        resolved,
+        eval(
+            defaults,
+            &contexts,
+            &all_overrides,
+            &HashMap::new(),
+            query,
+            MergeStrategy::REPLACE,
+            None,
+            None,
+        )
+    );
+}
+
+#[test]
+fn applied_variants_skip_keys_missing_from_default_config() {
+    let contexts = [context("c0", vec![("variantIds", json!("v1"))], "o0")];
+    let all_overrides = overrides_map(vec![("o0", vec![("unknown", json!(1))])]);
+
+    let (_, applied) = eval_variants(
+        default_configs(vec![("price", json!(100))]),
+        &contexts,
+        &all_overrides,
+        value_map(vec![("variantIds", json!(["v1"]))]),
+        None,
+    );
+
+    assert!(applied.is_empty(), "got {applied:?}");
+}
+
+#[test]
+fn applied_variants_only_cover_keys_left_by_the_prefix_filter() {
+    let contexts = [
+        context("c0", vec![("variantIds", json!("v1"))], "o0"),
+        context("c1", vec![("variantIds", json!("v2"))], "o1"),
+    ];
+    let all_overrides = overrides_map(vec![
+        ("o0", vec![("checkout.enabled", json!(true))]),
+        ("o1", vec![("search.enabled", json!(true))]),
+    ]);
+
+    let (_, applied) = eval_variants(
+        default_configs(vec![
+            ("checkout.enabled", json!(false)),
+            ("search.enabled", json!(false)),
+        ]),
+        &contexts,
+        &all_overrides,
+        value_map(vec![("variantIds", json!(["v1", "v2"]))]),
+        Some(vec!["checkout.".to_string()]),
+    );
+
+    assert_eq!(applied, vec!["v1"]);
+}
+
+#[test]
+fn applied_variants_are_empty_without_variant_ids_in_query() {
+    let contexts = [context("c0", vec![("city", json!("BLR"))], "o0")];
+    let all_overrides = overrides_map(vec![("o0", vec![("price", json!(1))])]);
+
+    let (resolved, applied) = eval_variants(
+        default_configs(vec![("price", json!(100))]),
+        &contexts,
+        &all_overrides,
+        value_map(vec![("city", json!("BLR"))]),
+        None,
+    );
+
+    assert!(applied.is_empty());
+    assert_eq!(resolved, value_map(vec![("price", json!(1))]));
+}
+
+// ---------------------------------------------------------------------------
 // ConfigRef
 // ---------------------------------------------------------------------------
 

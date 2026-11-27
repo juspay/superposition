@@ -1031,10 +1031,14 @@ async fn get_applicable_variants_handler(
         (dimension_params.into_inner(), identifier)
     } else {
         let req_body = req_body.map(|body| body.into_inner());
-        let (context, identifier) = req_body.map_or_else(
-            || (QueryMap::default(), String::default()),
+        let (context, body_identifier) = req_body.map_or_else(
+            || (QueryMap::default(), None),
             |body| (body.context.into(), body.identifier),
         );
+        // the SDK sends the identifier as a query param, older clients in the body
+        let identifier = body_identifier
+            .or(query_data.identifier)
+            .unwrap_or_default();
         (context, identifier)
     };
 

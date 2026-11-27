@@ -317,6 +317,12 @@ impl SuperpositionProviderOptions {
     }
 }
 
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct AllFeaturesResolutionDetails {
+    pub value: serde_json::Map<String, Value>,
+    pub variant_ids: Vec<String>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
