@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from typing import Dict, List, Optional, Any, AsyncGenerator
 import asyncio
 
-from superposition_bindings.superposition_client import ffi_parse_config_file_with_filters
+from superposition_bindings.superposition_client import MarkupFormat, ffi_parse_config_file_with_filters
 from superposition_bindings.superposition_types import Config
 
 from watchdog.observers import Observer
@@ -57,7 +57,7 @@ class _FileEventHandler(FileSystemEventHandler):
 
 def _parse_config_file(
     content: str,
-    file_format: str,
+    file_format: MarkupFormat,
     context: Optional[Dict[str, Any]] = None,
     prefix_filter: Optional[List[str]] = None,
     exclude_prefix_filter: Optional[List[str]] = None,
@@ -95,9 +95,9 @@ class FileDataSource(SuperpositionDataSource):
         self._watch_task = None
         self.file_path = file_path
         if file_path.endswith('.toml'):
-            self.file_format = "toml"
+            self.file_format = MarkupFormat.TOML
         elif file_path.endswith('.json'):
-            self.file_format = "json"
+            self.file_format = MarkupFormat.JSON
         else:
             raise ValueError(f"Unsupported file format: {file_path}")
 

@@ -22,12 +22,16 @@ pub use experiment::{
 
 // Re-export legacy FFI functions
 pub use ffi_legacy::{
-    core_free_string, core_get_resolved_config, core_parse_json_config,
-    core_parse_toml_config,
+    core_free_string, core_get_resolved_config, core_parse_config_file_with_filters,
+    core_provider_cache_filter_config, core_provider_cache_filter_experiment_config,
+    core_provider_cache_get_applicable_variants,
 };
 
 // Re-export format module and types
-pub use format::{json::JsonFormat, toml::TomlFormat, ConfigFormat, FormatError};
+pub use format::{
+    json::JsonFormat, parse_config_file_with_filters, toml::TomlFormat, ConfigFormat,
+    FormatError,
+};
 
 // Re-export Config type
 pub use superposition_types::Config;
