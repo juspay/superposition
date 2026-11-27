@@ -82,3 +82,19 @@ must be no longer than 25 characters.
 After startup, check the Superposition logs for either
 `Kronos library mode: embedded worker started` or `Kronos service mode` to
 confirm the selected mode.
+
+## Running Without Kronos
+
+Set `KRONOS_ENABLED=false` to turn Kronos off. Superposition then starts no
+worker, creates no Kronos tables, and needs none of the `KRONOS_*` settings
+above, including `KRONOS_DISPATCH_TOKEN`.
+
+Webhooks still work, but are sent inline while the API request is handled:
+
+- Each webhook is attempted once. `max_retries` is ignored.
+- The API response waits for the webhook target, up to
+  `WEBHOOK_OUTBOUND_TIMEOUT_SEC` (default `10`).
+- If the call fails, the change is still saved and the API returns status
+  `512`. The event is not retried.
+
+The startup log shows `Kronos disabled (KRONOS_ENABLED=false)`.

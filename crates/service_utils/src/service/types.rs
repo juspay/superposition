@@ -104,18 +104,25 @@ pub struct AppState {
     pub tenant_middleware_exclusion_list: HashSet<String>,
     pub service_prefix: String,
     pub superposition_token: String,
-    pub kronos_dispatch_token: String,
     pub redis: Option<fred::clients::RedisPool>,
     pub workspace_lock_default_ttl: Duration,
     pub workspace_lock_batch_ttl: Duration,
     pub http_client: reqwest::Client,
     pub master_encryption_key: Option<EncryptionKey>,
-    pub kronos_client: Arc<dyn InvokrClient>,
+    /// `None` when Kronos is disabled (`KRONOS_ENABLED=false`): webhooks are then sent
+    /// inline from the request, once, with no durable retries.
+    pub kronos: Option<KronosState>,
+}
+
+pub struct KronosState {
+    pub client: Arc<dyn InvokrClient>,
     /// Service mode: `Some(<shared workspace slug>)` — all SP schemas share one Kronos
     /// workspace, and webhook routing rides in the job input (templated headers).
     /// Library mode: `None` — Kronos tables live per SP schema, so we target the SP
     /// schema directly and provision per workspace.
-    pub kronos_workspace: Option<String>,
+    pub workspace: Option<String>,
+    /// Secret Kronos presents when calling back `/dispatch/webhook`.
+    pub dispatch_token: String,
 }
 
 impl FromStr for AppEnv {

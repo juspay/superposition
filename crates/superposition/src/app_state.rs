@@ -22,7 +22,7 @@ use service_utils::{
     helpers::{get_from_env_or_default, get_from_env_unsafe},
     kms::SecretProviderClient,
     kronos_dispatch::{SuperpositionSchemaProvider, setup_dispatcher},
-    service::types::{AppEnv, AppState, ExperimentationFlags},
+    service::types::{AppEnv, AppState, ExperimentationFlags, KronosState},
 };
 use snowflake::SnowflakeIdGenerator;
 
@@ -93,83 +93,16 @@ pub async fn get(
     };
 
     let superposition_token = get_superposition_token(kms_client, &app_env).await;
-    let kronos_dispatch_token = get_kronos_dispatch_token(kms_client, &app_env).await;
-
-    let kronos_url = std::env::var("KRONOS_URL").ok();
-    let (kronos_client, worker_handle, kronos_shutdown_timeout_sec, kronos_workspace): (
-        Arc<dyn InvokrClient>,
-        Option<WorkerHandle>,
-        u64,
-        Option<String>,
-    ) = if let Some(kronos_url) = kronos_url {
-        let api_key = get_kronos_api_key(kms_client, &app_env).await;
-        let org_id =
-            get_from_env_or_default("KRONOS_ORG_ID", "superposition".to_string());
-        // Single shared Kronos workspace for all SP schemas. Slug must be Kronos-valid
-        // (lowercase/digits/hyphens, <=25 chars).
-        let workspace =
-            get_from_env_or_default("KRONOS_WORKSPACE", "superposition".to_string());
-        log::info!(
-            "Kronos service mode: {kronos_url} (org={org_id}, workspace={workspace})"
-        );
-        let client: Arc<dyn InvokrClient> =
-            Arc::new(InvokrHttpClient::new(kronos_url, api_key, org_id));
-
-        setup_dispatcher(
-            client.as_ref(),
-            &workspace,
-            &superposition_host,
-            &kronos_dispatch_token,
-        )
-        .await;
-
-        (client, None, 0, Some(workspace))
+    let kronos_enabled = get_from_env_or_default("KRONOS_ENABLED", true);
+    let (kronos, worker_handle, kronos_shutdown_timeout_sec) = if kronos_enabled {
+        let (kronos, handle, timeout) =
+            init_kronos(kms_client, &app_env, &superposition_host).await;
+        (Some(kronos), handle, timeout)
     } else {
-        let database_url = get_database_url(kms_client, &app_env, None).await;
-        let pool_size = get_from_env_or_default("KRONOS_DB_POOL_SIZE", 1);
-        let kronos_encryption_key =
-            get_from_env_or_default("KRONOS_ENCRYPTION_KEY", "0".repeat(64));
-        let table_prefix =
-            get_from_env_or_default("KRONOS_TABLE_PREFIX", "kronos_".to_string());
-        let client = InvokrLibraryClient::from_database_url(
-            &database_url,
-            pool_size,
-            &table_prefix,
-            &kronos_encryption_key,
-            None,
-        )
-        .await
-        .expect("Failed to create InvokrLibraryClient");
-        let schema_provider = SuperpositionSchemaProvider::new(client.pool().clone());
-
-        if matches!(app_env, AppEnv::DEV | AppEnv::TEST) {
-            match schema_provider.get_active_schemas().await {
-                Ok(schemas) => {
-                    log::info!(
-                        "Kronos library mode: bootstrapping {} workspace(s)",
-                        schemas.len()
-                    );
-                    for schema in schemas {
-                        setup_dispatcher(
-                            &client,
-                            &schema,
-                            &superposition_host,
-                            &kronos_dispatch_token,
-                        )
-                        .await;
-                    }
-                }
-                Err(e) => log::warn!(
-                    "Kronos bootstrap: could not list workspaces, skipping: {e}"
-                ),
-            }
-        }
-
-        let worker_config = WorkerConfig::default();
-        let shutdown_timeout_sec = worker_config.shutdown_timeout_sec;
-        let handle = client.start_worker(schema_provider, worker_config);
-        log::info!("Kronos library mode: embedded worker started");
-        (Arc::new(client), Some(handle), shutdown_timeout_sec, None)
+        log::warn!(
+            "Kronos disabled (KRONOS_ENABLED=false): webhooks are sent inline, once, without retries"
+        );
+        (None, None, 0)
     };
 
     let state = AppState {
@@ -202,16 +135,105 @@ pub async fn get(
         .collect::<HashSet<_>>(),
         service_prefix,
         superposition_token,
-        kronos_dispatch_token,
         redis: redis_pool,
         workspace_lock_default_ttl: Duration::from_millis(workspace_lock_default_ttl_ms),
         workspace_lock_batch_ttl: Duration::from_millis(workspace_lock_batch_ttl_ms),
         http_client: reqwest::Client::new(),
         master_encryption_key,
-        kronos_client,
-        kronos_workspace,
+        kronos,
         superposition_host,
     };
 
     (state, worker_handle, kronos_shutdown_timeout_sec)
+}
+
+/// Starts Kronos in service mode (`KRONOS_URL` set) or library mode (embedded worker).
+async fn init_kronos(
+    kms_client: &Option<SecretProviderClient>,
+    app_env: &AppEnv,
+    superposition_host: &str,
+) -> (KronosState, Option<WorkerHandle>, u64) {
+    let kronos_dispatch_token = get_kronos_dispatch_token(kms_client, app_env).await;
+
+    if let Ok(kronos_url) = std::env::var("KRONOS_URL") {
+        let api_key = get_kronos_api_key(kms_client, app_env).await;
+        let org_id =
+            get_from_env_or_default("KRONOS_ORG_ID", "superposition".to_string());
+        // Single shared Kronos workspace for all SP schemas. Slug must be Kronos-valid
+        // (lowercase/digits/hyphens, <=25 chars).
+        let workspace =
+            get_from_env_or_default("KRONOS_WORKSPACE", "superposition".to_string());
+        log::info!(
+            "Kronos service mode: {kronos_url} (org={org_id}, workspace={workspace})"
+        );
+        let client: Arc<dyn InvokrClient> =
+            Arc::new(InvokrHttpClient::new(kronos_url, api_key, org_id));
+
+        setup_dispatcher(
+            client.as_ref(),
+            &workspace,
+            superposition_host,
+            &kronos_dispatch_token,
+        )
+        .await;
+
+        let kronos = KronosState {
+            client,
+            workspace: Some(workspace),
+            dispatch_token: kronos_dispatch_token,
+        };
+        return (kronos, None, 0);
+    }
+
+    let database_url = get_database_url(kms_client, app_env, None).await;
+    let pool_size = get_from_env_or_default("KRONOS_DB_POOL_SIZE", 1);
+    let kronos_encryption_key =
+        get_from_env_or_default("KRONOS_ENCRYPTION_KEY", "0".repeat(64));
+    let table_prefix =
+        get_from_env_or_default("KRONOS_TABLE_PREFIX", "kronos_".to_string());
+    let client = InvokrLibraryClient::from_database_url(
+        &database_url,
+        pool_size,
+        &table_prefix,
+        &kronos_encryption_key,
+        None,
+    )
+    .await
+    .expect("Failed to create InvokrLibraryClient");
+    let schema_provider = SuperpositionSchemaProvider::new(client.pool().clone());
+
+    if matches!(app_env, AppEnv::DEV | AppEnv::TEST) {
+        match schema_provider.get_active_schemas().await {
+            Ok(schemas) => {
+                log::info!(
+                    "Kronos library mode: bootstrapping {} workspace(s)",
+                    schemas.len()
+                );
+                for schema in schemas {
+                    setup_dispatcher(
+                        &client,
+                        &schema,
+                        superposition_host,
+                        &kronos_dispatch_token,
+                    )
+                    .await;
+                }
+            }
+            Err(e) => {
+                log::warn!("Kronos bootstrap: could not list workspaces, skipping: {e}")
+            }
+        }
+    }
+
+    let worker_config = WorkerConfig::default();
+    let shutdown_timeout_sec = worker_config.shutdown_timeout_sec;
+    let handle = client.start_worker(schema_provider, worker_config);
+    log::info!("Kronos library mode: embedded worker started");
+
+    let kronos = KronosState {
+        client: Arc::new(client),
+        workspace: None,
+        dispatch_token: kronos_dispatch_token,
+    };
+    (kronos, Some(handle), shutdown_timeout_sec)
 }

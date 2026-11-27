@@ -37,6 +37,7 @@ use superposition_types::{
 use crate::{
     kronos_dispatch::submit_webhook_job,
     service::types::{AppState, SchemaName, WorkspaceContext},
+    webhook_sender::send_webhook,
 };
 
 const CONFIG_TAG_REGEX: &str = "^[a-zA-Z0-9_-]{1,64}$";
@@ -347,6 +348,27 @@ where
         payload,
     };
 
+    let Some(kronos) = state.kronos.as_ref() else {
+        // Kronos disabled: deliver inline, single attempt, no durable retries.
+        let body = match serde_json::to_value(&webhook_response) {
+            Ok(body) => body,
+            Err(e) => {
+                log::error!("Failed to serialize webhook '{}': {}", webhook.name, e);
+                return false;
+            }
+        };
+        return match send_webhook(&webhook, &body, workspace_context, state, conn).await {
+            Ok(()) => {
+                log::info!("Webhook sent inline: webhook='{}'", webhook.name);
+                true
+            }
+            Err(e) => {
+                log::error!("Inline webhook call failed for '{}': {}", webhook.name, e);
+                false
+            }
+        };
+    };
+
     // Idempotency key: SP schema + webhook_name + event type + millisecond timestamp.
     // The schema prefix namespaces keys across SP workspaces, which all share one Kronos
     // workspace in service mode. Ensures each trigger attempt gets a unique job while
@@ -361,13 +383,13 @@ where
 
     // Service mode: all SP schemas share one Kronos workspace. Library mode: target the SP
     // schema directly.
-    let target_workspace = state
-        .kronos_workspace
+    let target_workspace = kronos
+        .workspace
         .clone()
         .unwrap_or_else(|| workspace_context.schema_name.to_string());
 
     match submit_webhook_job(
-        state.kronos_client.as_ref(),
+        kronos.client.as_ref(),
         &target_workspace,
         &workspace_context.organisation_id,
         &workspace_context.workspace_id,

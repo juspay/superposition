@@ -30,7 +30,6 @@ log = { workspace = true }
 reqwest = { workspace = true }
 rs-snowflake = { workspace = true }
 rustls = { workspace = true }
-secrecy = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 service_utils = { workspace = true }
